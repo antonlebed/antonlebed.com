@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>memory.py | Numbers read one place at a time</title>
+<meta name="description" content="memory.py">
+<link rel="alternate" type="text/x-python" href="/code/memory.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>memory.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/memory/#the-route-weight-cancellation">MEMORY: The route-weight cancellation</a> (theorem); <a href="/memory/#the-bounded-evidence-law">MEMORY: The bounded-evidence law</a> (theorem); <a href="/memory/#the-unbounded-memory-law">MEMORY: The unbounded-memory law</a> (theorem; observation); <a href="/memory/#a-deepening-world-reads-its-lock-prime">MEMORY: A deepening world reads its lock prime</a> (theorem; property); <a href="/memory/#the-witness-gap">MEMORY: The witness gap</a> (theorem; observation); <a href="/memory/#the-cold-blindness">MEMORY: The cold blindness</a> (theorem); <a href="/memory/#the-fossil-paradox">MEMORY: The fossil paradox</a> (theorem; observation).</p><p>Cited on: <a href="/memory/">MEMORY</a>.</p><p>To run it: <a href="/code/growth.py">growth.py</a> beside it; needs mpmath.</p></div>
+<pre>"""memory.py -- what a grown world can know of its own genesis: the
+evidence a state, a dated state, a watched path and a probe each carry
+about the generator that grew it, fate by fate.
+
+QUESTION. thermal.py grows a state Z/N by a Boltzmann choice: from N an
+admissible m is picked with probability m^(-beta) / Psi_N(beta), Psi_N(beta) the sum of
+m^(-beta) over the admissible m, beta &gt; 1.
+The GENERATOR of a world is its demand and its beta, with the seed 1
+unless stated. An observer inside the world is handed less than the
+outside view: the STATE N (its ring's isomorphism class), the DATED
+STATE (N and the move count tau), the PATH (the moves as they
+happened), or a PROBE (it may ask whether a proposed move is
+admissible). What does each view carry about the generator, and
+about the ROUTE (the order in which the moves came, given the state)?
+Does the answer depend on the fate the demand grows?
+
+THE OBJECT. The demands: independence (m coprime to N), dynamics
+(lambda(Nm) &gt; lambda(N)), semisimplicity (Nm squarefree), and new
+idempotents (m has a prime factor not dividing N). A(N) is the
+admissible set and Psi_N(beta) the sum of m^(-beta) over it. For independence Psi_N = zeta(beta)
+prod_{p | N} (1 - p^(-beta)) - 1; for dynamics Psi_N = zeta(beta) -
+sigma_beta(xi), xi = W(lambda(N)) / N the headroom (thermal.py). The
+INDEPENDENCE world is the one independence grows, its limit the zeta
+measure (G_p independent geometric of ratio p^(-beta)); the CRYSTAL is
+its beta = infinity limit, every G_p = 1. The DEPTH world is the column
+3^t that greedy dynamics grows from seed 1. A ONE-WINDOW world has the
+menu {3^a : a &gt;= 1} at every state.
+
+THE ARGUMENT (written before the engine).
+  (1) THE ROUTE-WEIGHT CANCELLATION. A history from seed s to N is an
+      ordered factorization N/s = m_1 ... m_tau into admissible moves; its
+      probability is prod m_i^(-beta) / Psi_{N_(i-1)} = (N/s)^(-beta)
+      prod 1/Psi_{N_(i-1)}. The numerator is the same for every history,
+      so given the state the posterior over histories is proportional
+      to prod 1/Psi over the states the history passed through: every
+      piece of route information sits in the normalizers, in what the
+      intermediate worlds could have done, never in what they did.
+      This holds for any demand and makes every posterior exact.
+  (2) THE BOUNDED-EVIDENCE LAW. A squarefree world read on the primes
+      p &lt;= y has likelihood 1 under the crystal and prod (1 - p^(-beta))
+      under the zeta measure, so the ratio for the crystal is
+      prod (1 - p^(-beta))^(-1), increasing in y to zeta(beta): the
+      whole infinite world gives odds zeta(beta):1 for cold genesis and
+      no more, while one column of depth &gt;= 2 refutes it outright.
+      (As written before the run; that is, a world not squarefree
+      refutes the crystal outright.) Cold genesis is falsifiable and never confirmable beyond
+      zeta(beta):1 against a given beta.
+  (3) THE FINITE THERMOMETER. The profile's temperature information is
+      the Fisher information of independent geometrics, I_p = (log p)^2
+      r / (1 - r)^2 with r = p^(-beta), and the sum over p converges for
+      beta &gt; 1: any unbiased estimate of beta read off the completed
+      profile has sd &gt;= I_total^(-1/2) forever. The score of a
+      squarefree profile is sum_p log p r/(1 - r) &gt; 0 at every beta, so
+      its likelihood rises toward 1 as beta grows, with no finite
+      maximizer, and its maximum likelihood reading is the crystal: the
+      share of worlds that read
+      as crystals is the squarefree share, 1/zeta(beta), exactly.
+  (4) THE PEELABLE PASTS. Greedy independence picks the least prime not
+      dividing the state. So (s, tau) reaches N iff N/s is the product of
+      a set Q of primes, each with v_p(N) = 1, such that every prime
+      below a member of Q divides N. Call a prime p PEELABLE in N when
+      v_p(N) = 1 and every prime below p divides N; the pasts of N at
+      zero temperature are the subsets of its peelable primes, 2^j of
+      them, j the peelable count. Seed and history are separable from
+      inside only by the seed-1 convention.
+  (5) THE COLUMN'S NORMALIZER. lambda(3^a) = 2 3^(a-1), and the primes
+      p with p - 1 | 2 3^(a-1) are 2, 3 and the primes 2 3^j + 1,
+      j = 1..a-1, so xi_a = W(lambda(3^a)) / 3^a = 8 prod {2 3^j + 1
+      prime, 1 &lt;= j &lt;= a - 1}, and Psi_(3^a) = zeta - sigma_beta(xi_a)
+      is non-increasing in a, to Psi_col = zeta - sigma_beta(xi_infinity).
+  (6) THE UNBOUNDED-MEMORY LAW. From seed 1 every move 3^k from 3^a is
+      admissible, and the histories to 3^t are the subsets of the depths
+      1..t-1, so by (1) the probability that a thermal dynamics world
+      passes through 3^t is f(t) = 3^(-beta t) / Psi_1 prod_{a &lt; t}
+      (1 + 1/Psi_(3^a)). The greedy world passes through 3^t surely, so
+      the log-odds for cold genesis given 3^t is -log f(t), with slope
+      beta log 3 - log(1 + 1/Psi_col) per deepening. The slope is
+      positive for every beta &gt; 1: 3, 5 and 6 never divide xi, so
+      Psi_col &gt;= 3^(-b) + 5^(-b) + 6^(-b), and 5^(-b) &gt;= 9^(-b) /
+      (1 - 3^(-b)) because (9/5)^b (1 - 3^(-b)) is 1.2 at b = 1 and
+      increasing, so Psi_col &gt; 1/(3^b - 1), which is 3^b &gt; 1 + 1/Psi_col.
+      Evidence grows linearly in depth where independence's is capped.
+  (7) THE COLUMN READS ITS PRIME. For C coprime to p, lambda(C p^e) =
+      lcm(L_0, p^(e-1)) with L_0 = lcm(lambda(C), p - 1) (odd p), so the
+      ratio lambda(C p^(e+1)) / lambda(C p^e) is p exactly for e &gt;= e_0
+      = v_p(L_0) + 1 and not at e_0 - 1; at p = 2, e_0 = max(3,
+      v_2(lambda(C)) + 2). The limit of Z/(C p^e), Z/C x Z_p, carries |.|_p on
+      its deep factor, v_p(x) read off x mod p^e whenever v &lt; e, while
+      the crystal's limit prod_l F_l has only finite fields as factors,
+      on which every absolute value is trivial (x^(l-1) = 1 for x != 0).
+  (8) THE WITNESS FAMILY. P_N(m) = m^(-beta) / Psi_N is an exponential
+      family in beta with statistic -log m, so a watched move carries
+      Fisher information Var_N(log m) and d/dbeta E_N[log m] =
+      -Var_N(log m): the drift of a state's size under a change of
+      temperature is the watch's per-move information. The dated state
+      is a function of the path, so the chain rule for Fisher
+      information gives I_path = I_dated + E[I_route], the last term
+      the information of the route posterior given the dated state,
+      which by (1) is carried by the normalizers alone. THE WITNESS
+      GAP is that term. Along the cold path N = p_k#, independence's
+      menu sums close: with f = zeta(beta) prod_(p &lt;= p_k) (1 - p^-beta)
+      and g = log f, S0 = f - 1, S1 = -f g', S2 = f (g'' + g'^2), so
+      Var_N(log m) = f (g''(f - 1) - g'^2)/(f - 1)^2, cumulative in k.
+  (9) THE COLD BLINDNESS. Let q be the least prime not dividing N.
+      Every m in A(N) under independence or new idempotents has a prime
+      factor not dividing N, so m &gt;= q, and q itself is admissible;
+      under semisimplicity from squarefree N the same holds. All three
+      greedy picks are q, so from a squarefree seed the three demands
+      write one world forever and no watcher learns which. For N &gt; 1
+      with least prime p | N, the probe q^2 is refused only by
+      semisimplicity and pq is admitted only by new idempotents: two probes
+      read the whole law. THE DISCRIMINATION RATE: for nested
+      admissible sets A_n in A_w, KL(P_n || P_w) = log(Psi_w / Psi_n)
+      exactly, which as beta grows is asymptotic to (m*/q)^(-beta),
+      m* the least move in A_w not in A_n, so -log KL grows with slope
+      log(m*/q). (As written before the run; below, the subscripts n
+      and w are written narrow and wide.)
+  (10) THE FOSSIL PARADOX. In a one-window world every state has the
+      same normalizer, so by (1) the route posterior given the dated
+      state 3^t, tau is uniform over the compositions of t into tau
+      parts and free of beta: the dated state is sufficient, the
+      witness gap is zero, I_dated = I_path = tau (log 3)^2 r / (1 -
+      r)^2 with r = 3^(-beta), and the route's entropy given the dated
+      state is the largest any law on those compositions allows. Zero menu drift
+      makes the dated state a perfect generator fossil and gives a maximally
+      unreadable past at once. The
+      chain rule J(G; path) = J(G; dated) + J(G; path | dated) holds
+      for any prior on the generator G, since the dated state is a function
+      of the path; in a world whose menu drifts the last term is
+      positive and the route posterior is skewed below uniform.
+
+DESIGN. Standard library and mpmath; one process. growth.py supplies
+its prime list, value, factor, merge_add, v2, lcm, lambda (on a
+factorization and on an integer) and the wall.
+  C  POSITIVE CONTROLS, before any verdict. C1 the Euler-Maclaurin sums
+     of n^(-s) (log n)^k, k = 0, 1, 2, against zeta(2) = pi^2/6, zeta(4)
+     = pi^4/90, zeta'(2) = -0.93754825431584 and mpmath's zeta''(2).
+     C2 lambda(M) against the largest element order of (Z/M)^x at every
+     M &lt;= 300. C3 the independence normalizer's closed form against
+     brute sums to 30,000 with the tail bracketed, at N = 1, 6, 30, 210,
+     beta 1.5, 2, 3.
+  R  R1a the histories to p_n#, n &lt;= 5, counted against the ordered set
+     partitions. R1b every history to every N &lt;= 360 under independence
+     and dynamics, its probability the product of m^(-beta)/Psi over its
+     moves, Psi in closed form (C3 reads the closed form against brute
+     sums), summed against the forward visit probability.
+  B  the independence world. B1 the likelihood ratio at the cutoff
+     2 10^5 against zeta(beta) inside the Euler tail's bracket, at
+     beta 1.5, 2, 3. B2 I_total over primes to 2 10^6 plus the integral
+     bound on the tail, and the Cramer-Rao floor. B4 the peelable
+     count against the brute pasts of every N &lt;= 2000, pasts found by
+     running greedy independence from every seed s &lt;= 2000.
+  D  the depth world. D1 xi_a against W(lambda(3^a)) / 3^a, a = 1..9.
+     D2 Psi_(3^a) against brute admissible sums to 30,000 with lambda
+     computed per m, a = 1..6, beta 1.5, 2, 3. D3 f(t) against the
+     enumerated histories, t &lt;= 8. D4 the slope at beta 1.25, 1.5, 2,
+     3, 6 from Psi_col bracketed between Psi_(3^a) at large a and the tail
+     of xi's product; the term test's inequality on the same grid.
+     D5 the lambda ratio over A in {1, 2, 5, 7, 11, 13, 21, 30, 77,
+     120, 385, 1001}, q in {2, 3, 5, 7, 13} coprime to A, e = 1..10,
+     against e_0. D6 the route coins: the entropy of the enumerated
+     route posterior given 3^t, t &lt;= 8, against the sum over a &lt; t of
+     h(1/(1 + Psi_(3^a))), h the binary entropy; beta_c, the root of
+     Psi_col = 1, bisected at both ends of D4's bracket.
+  W  the watch. W1 the exponential family on truncated menus: the
+     derivative of log Psi against -E[log m] and of E[log m] against
+     -Var(log m) by central differences, 12 (state, demand) pairs.
+     W2 the witness gap on the truncated world (menu 2..12, seed 1, age
+     4, a world with an empty menu frozen): I_path, I_dated and
+     E[I_route] computed exactly, independence and dynamics, beta 1.5,
+     2, 3, I_path from the paths' squared scores against the sum of the
+     per-move Var along them; the split itself is the law of total
+     variance over one path list, argued, not checked. W3 the depth
+     watcher: Var(log m) under the column's limit law at beta = 2. W4,
+     before W5, the cold path's control: the closed form of (8) at
+     k = 3 and 50 against direct sums over m &lt; 2 10^6 with least prime
+     factor above p_k, plus the density prod (1 - 1/p) times the
+     integral tail (added before the first run: the neglected tail
+     moves Var by about 1e-2 at k = 50). W5 the
+     cold path's Var at every 3 &lt;= k &lt;= 10^5, beta 2: its least and
+     greatest. Kill: the old record's four values missed by 1e-3, or
+     any k below 0.8. Added after the first run: W5 widened to
+     1 &lt;= k and computed from mpmath's zeta(2), zeta'(2), zeta''(2) at
+     40 digits; em no longer feeds the cold path, and C1 checks it at
+     zeta(2) and both derivatives, before C, B, D and W3 use it.
+  P  the probe. P1 the three greedy picks at every N &lt;= 10^5 (new idempotents
+     and independence) and every squarefree N &lt;= 3000 (all three),
+     against the least prime not dividing N; T = 0 trajectories of 25
+     moves from seeds 1, 30, 105. P2 the probe rows at every squarefree
+     1 &lt; N &lt;= 3000. P3 KL by its definition on menus to 10^5 at
+     N = 30, beta 9 and 10, and the slope of -log KL between them
+     against log(m*/q); KL = log(Psi_wide / Psi_narrow) is algebra.
+  F  the fossil. F1 the one-window world at tau &lt;= 4, beta 1.5, 2, 3:
+     I_dated, from the law of t summed over t &lt; 600, against tau I_1,
+     which is I_path, the moves being independent; that every
+     composition is equiprobable is (10)'s algebra. F2 the views on the
+     truncated world with the generator uniform over beta in
+     {1.5, 2, 3}, age uniform over 1..4: J(G; state) &lt; J(G; dated) &lt;
+     J(G; path) for independence and dynamics; the chain rule is
+     algebra. F3 the residual route entropy
+     H(route | dated, G) against its uniform maximum, the one-window
+     world (menu {3, 9}) and independence.
+
+PREDICTIONS, fixed before the run.
+  C  C1 within 1e-12; C2 agreement everywhere; C3 inside the bracket.
+  R  every history agrees to 1e-12.
+  B  B1 monotone, zeta(2) = 1.6449 reached inside the bracket, log
+     zeta(2) = 0.4977 nats; p &lt;= 10 carrying about 94% of the log-odds
+     at beta = 2. B2 I_total(2) inside [0.8844, 0.8859] (the replaced
+     record's bracket), sd floor 1.06. B3 positive everywhere. B4 zero
+     disagreements; N = 210 has 16 pasts.
+  D  D1 zero disagreements. D2 Psi_1(2) = 0.394934 and Psi_3(2) = 0.316809
+     (the replaced record's figures). D3 to 1e-12. D4 slope(2) =
+     0.6936, slope(6) = 0.0619; the term test holds at every beta; the
+     log-odds at depth 1 above log zeta(beta) at every beta. D5 zero
+     disagreements, the tightness at e_0 - 1 included. D6 to 1e-12;
+     beta_c inside (1.49, 1.50), the replaced record's 1.49595.
+  W  W1 to 1e-6. W2 the identity to 1e-12 in every cell; one cell
+     reproduces the replaced record's 0.649817 = 0.446763 + 0.203054.
+     W3 1.2430. W4 0.91336 against 0.91336 (k = 3), 0.81292 against
+     0.81288 (k = 50). W5 0.9474, 0.9153, 0.9134, 0.8129, 0.8668,
+     0.8907 at k = 1, 2, 3, 50, 5000, 10^5, the old record's four
+     (k = 3, 50, 5000, 10^5) matched; least 0.8055 at k = 30 (p_k =
+     113), greatest 0.9474 at k = 1 (predicted least near 0.81 at k
+     near 50: missed). Its first form took zeta(2) and its
+     derivatives from em, whose zeta(2) C prints 5.6e-15 off; divided
+     by f - 1 near k = 10^5 that error printed 0.8908 there, where the
+     40-digit value is 0.89074, just under the rounding boundary; the
+     brute control reaches only k = 50.
+  P  P1, P2 zero disagreements. P3 the identity to 1e-12; slopes within
+     0.05 of log 2 (independence against new idempotents) and log 7
+     (semisimplicity against independence).
+  F  F1 uniform to 1e-12, the three informations equal to 1e-12. F2
+     both ladders strict, the replaced record's rows 0.0628 &lt; 0.0758
+     (independence) and 0.0693 &lt; 0.0726 (dynamics); the identity to
+     1e-12. F3 the one-window world at its maximum to 1e-12, 0.3183
+     bits; independence strictly below its maximum.
+A KILL is any exact disagreement in C, R, B1, B4, D1-D3, D5, D6, W1,
+W2, P1, P2, F1 or the F3 one-window equality; a slope in D4 at or
+below zero; a term test failing; a P3 slope off its band. A control
+out of its band voids the verdicts that lean on it.
+A replaced record's figure not reproduced, with the identities green,
+is a definition to read, not a kill.
+
+FINDINGS. 27/27 checks PASS and no kill (D4c, depth 1 against
+independence's whole ceiling log zeta(beta), was a print gated into a
+check after the predictions froze and sits outside the KILL list,
+though its failure fails the run); one check was written stronger than
+its argument and was narrowed to it, recorded below. The splits of W2
+and F2, F1's equiprobability, P3's closed form, B1's monotonicity and
+the squarefree score's sign hold by algebra: argued, not checked.
+  C  zeta(2) off by 5.6e-15, zeta(4) by 5.6e-14, zeta'(2) by 3.9e-15,
+     zeta''(2) by 1.4e-14;
+     lambda equals the largest unit order at every M &lt;= 300; the
+     independence normalizer inside its bracket at 4 states x 3 betas.
+  R  the histories to p_n# number 1, 3, 13, 75, 541, the ordered set
+     partitions; every history sum equals the forward visit
+     probability at every N &lt;= 360 under both demands, worst 1.1e-16.
+  B  the odds for the crystal rise to zeta: 2.6124, 1.6449, 1.2021
+     (0.9603, 0.4977, 0.1840 nats) at beta 1.5, 2, 3, the primes
+     p &lt;= 10 carrying 83.2%, 93.8%, 99.0% of the log-odds; the
+     crystal share 1/zeta is 0.3828, 0.6079, 0.8319. I_total lies in
+     [0.88447, 0.88459] at beta 2 (sd floor 1.063), [0.17228,
+     0.17228] at 3, and [3.83162, 4.22270] at 1.5, where the integral
+     tail bound is loose. The zero-temperature pasts equal
+     2^(peelable count) at every N &lt;= 2000; the most is 16, at 210.
+  D  xi_a = 8, 56, 1064, 1064, 173432, 84461384, 123229159256 (three
+     times) for a = 1..9, equal to W(lambda(3^a))/3^a; Psi_1(2) =
+     0.394934, Psi_3(2) = 0.316809; f(t) against the enumerated
+     histories to 4.3e-16 relative. Psi_col = 2.7266876, 0.9870668,
+     0.2858929, 0.0559803, 0.0014615 at beta 1.25, 1.5, 2, 3, 6, the
+     bracket closed to the printed digits; the slope 1.0608, 0.9482,
+     0.6936, 0.3586, 0.0619 nats per deepening; depth 1 alone gives
+     2.5285, 1.8781, 1.2682, 0.7326, 0.2251 against independence's whole
+     ceiling 1.5250, 0.9603, 0.4977, 0.1840, 0.0172. The term test holds
+     at every beta. The lambda ratio is q from e_0 on and not at
+     e_0 - 1 in all 417 cells. NARROWED: the check as first written
+     asked that the ratio differ from q at EVERY e &lt; e_0, which the
+     argument never claimed, and it failed at one cell, A = 1, q = 2,
+     e = 1, where lambda(2) = 1 and lambda(4) = 2 already give the
+     ratio 2 before lambda(4) = lambda(8) = 2 stalls it; e_0 is where
+     the ratio becomes q for good, not where it is first q. D6: the
+     route entropy given 3^t equals the depth coins' sum to 2.2e-16 at
+     t = 2..8 and beta 1.5, 2, 3; beta_c = 1.495950 at both ends of
+     the bracket.
+  W  the two exponential-family identities to 6.2e-9 and 5.0e-9 by
+     central differences. The witness gap at age 4, I_path against the
+     summed Var to 1.4e-15:
+     independence (648 paths, 26 end states) 0.798016 = 0.599353 +
+     0.198663, 0.649817 = 0.446763 + 0.203054, 0.370647 = 0.212363 +
+     0.158284 at beta 1.5, 2, 3; dynamics (4166 paths, 310 end states)
+     0.810389 = 0.763430 + 0.046959, 0.733136 = 0.682622 + 0.050514,
+     0.501002 = 0.466505 + 0.034497. The replaced record's figure is
+     independence at beta 2. The depth watcher's per-move information
+     under the column's limit law at beta 2 is 1.2430. A watcher of
+     the cold path p_k# gains between 0.8055 and 0.9474 per move at
+     beta 2 at every 1 &lt;= k &lt;= 10^5 (rule in range): within two moves
+     more than the Fisher bound B2 brackets for a completed state.
+  P  the three greedy picks are the least prime not dividing N at
+     every N &lt;= 10^5 and at all 1824 squarefree N &lt;= 3000, and the
+     25-move trajectories from 1, 30 and 105 coincide; the probe rows
+     are as argued at every squarefree 1 &lt; N &lt;= 3000. At N = 30, q = 7,
+     m* = 14 for independence inside new idempotents (slope 0.7023
+     against log 2 = 0.6931) and m* = 49 for semisimplicity inside
+     independence (slope 1.9380 against log 7 = 1.9459).
+  F  the one-window world's I_dated = tau I_1 to 4.4e-16, I_1 =
+     0.35618, 0.16973, 0.04821. The ladders,
+     generator uniform over beta in {1.5, 2, 3}, age over 1..4:
+     independence 0.0489 &lt; 0.0628 &lt; 0.0758, dynamics 0.0512 &lt; 0.0693
+     &lt; 0.0726, the one-window world 0.0144 &lt; 0.0388 = 0.0388. The
+     residual route entropy: one-window 0.3183 of
+     0.3183 bits, dynamics 1.1754 of 1.2492, independence 1.5414 of
+     2.0900.
+  Tiers: (1), (2), (4), (5), (6) and (9) are theorems, the closed forms
+  verified in the ranges printed; (3) is a theorem, the convergence
+  proved and the value bracketed; (7) is a theorem, its absolute-value half a
+  property; (8) is a theorem, the split proved, the gap's values and
+  its strict ladder on the truncated world observations; (10) is a
+  theorem for the one-window world, the gap and the route entropy
+  values computed on the truncated world observations.
+
+RUN RECORD. python memory.py: 27/27 checks, 6.2 s (the cold path's
+40-digit sum and brute control about 4 s of it), peak commit 44.6 MB
+under a 512 MB ceiling.
+"""
+
+import math
+import os
+import sys
+import time
+from math import gcd, log
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import growth  # noqa: E402
+import mpmath  # noqa: E402
+
+CHECKS = []
+BETAS = (1.5, 2.0, 3.0)
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" + (f"  [{detail}]" if detail
+                                                   else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+# --------------------------------------------------------- the sums
+
+_EM = {}
+
+
+<span id="em"></span>def em(s, k):
+    """sum over n &gt;= 1 of n^(-s) (log n)^k, k = 0, 1, 2: direct to
+    N - 1, then the integral, f(N)/2 and -f'(N)/12."""
+    key = (s, k)
+    if key in _EM:
+        return _EM[key]
+    N = 10000
+    tot = 0.0
+    for n in range(2 if k else 1, N):
+        tot += n ** -s * log(n) ** k
+    L = log(N)
+    a = s - 1
+    integral = N ** -a * [1 / a, L / a + 1 / a ** 2,
+                          L * L / a + 2 * L / a ** 2 + 2 / a ** 3][k]
+    f = N ** -s * L ** k
+    fp = N ** (-s - 1) * ((k * L ** (k - 1) if k else 0) - s * L ** k)
+    _EM[key] = tot + integral + f / 2 - fp / 12
+    return _EM[key]
+
+
+<span id="zeta"></span>def zeta(s):
+    return em(s, 0)
+
+
+<span id="sigma"></span>def sigma(n, beta):
+    """sum of d^(-beta) over the divisors d of n."""
+    out = 1.0
+    for p, e in growth.factor(n).items():
+        out *= sum(p ** (-beta * i) for i in range(e + 1))
+    return out
+
+
+<span id="divisors"></span>def divisors(n):
+    ds = [1]
+    for p, e in growth.factor(n).items():
+        ds = [d * p ** i for d in ds for i in range(e + 1)]
+    return ds
+
+
+<span id="is_prime"></span>def is_prime(n):
+    """Miller-Rabin with the first 13 prime bases: exact below 3.3 10^24."""
+    if n &lt; 2:
+        return False
+    small = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41)
+    for p in small:
+        if n % p == 0:
+            return n == p
+    d, r = n - 1, 0
+    while d % 2 == 0:
+        d //= 2
+        r += 1
+    for a in small:
+        x = pow(a, d, n)
+        if x in (1, n - 1):
+            continue
+        for _ in range(r - 1):
+            x = x * x % n
+            if x == n - 1:
+                break
+        else:
+            return False
+    return True
+
+
+<span id="sieve"></span>def sieve(n):
+    s = bytearray([1]) * (n + 1)
+    s[0] = s[1] = 0
+    for i in range(2, int(n ** 0.5) + 1):
+        if s[i]:
+            s[i * i::i] = bytearray(len(s[i * i::i]))
+    return s
+
+
+<span id="lam"></span>def lam(N):
+    return growth.lam_int(N)
+
+
+<span id="lam_f"></span>def lam_f(f):
+    return growth.value(growth.lam(f))
+
+
+# ------------------------------------------------------- the demands
+
+<span id="strips_to_one"></span>def strips_to_one(m, N):
+    """Every prime of m divides N."""
+    g = gcd(m, N)
+    while g &gt; 1:
+        while m % g == 0:
+            m //= g
+        g = gcd(m, N)
+    return m == 1
+
+
+<span id="squarefree"></span>def squarefree(n):
+    return all(e == 1 for e in growth.factor(n).values())
+
+
+<span id="adm"></span>def adm(demand, N, m, lamN=None):
+    if demand == "ind":
+        return gcd(m, N) == 1
+    if demand == "mem":
+        return not strips_to_one(m, N)
+    if demand == "semi":
+        return squarefree(N * m)
+    if demand == "dyn":
+        L = lam(N) if lamN is None else lamN
+        return lam(N * m) != L
+    if demand == "col":
+        return m in (3, 9)
+    raise ValueError(demand)
+
+
+<span id="z_ind"></span>def z_ind(N, beta):
+    out = zeta(beta)
+    for p in growth.factor(N) if N &gt; 1 else ():
+        out *= 1 - p ** -beta
+    return out - 1
+
+
+<span id="xi_of"></span>def xi_of(N):
+    return growth.wall(lam(N)) // N
+
+
+<span id="z_dyn"></span>def z_dyn(N, beta):
+    return zeta(beta) - sigma(xi_of(N), beta)
+
+
+Z = {"ind": z_ind, "dyn": z_dyn}
+
+
+# --------------------------------------------------------- C controls
+
+<span id="section_c"></span>def section_c():
+    section("C  positive controls")
+    e2 = abs(zeta(2.0) - math.pi ** 2 / 6)
+    e4 = abs(zeta(4.0) - math.pi ** 4 / 90)
+    ed = abs(-em(2.0, 1) - (-0.93754825431584))
+    edd = abs(em(2.0, 2) - float(mpmath.zeta(2, 1, 2)))
+    print(f"  zeta(2) off by {e2:.1e}, zeta(4) by {e4:.1e}, "
+          f"zeta'(2) by {ed:.1e}, zeta''(2) by {edd:.1e}")
+    check("C1 Euler-Maclaurin sums, k = 0, 1, 2, within 1e-12",
+          max(e2, e4, ed, edd) &lt; 1e-12)
+
+    bad = 0
+    for M in range(2, 301):
+        best = 1
+        for a in range(1, M):
+            if gcd(a, M) != 1:
+                continue
+            x, o = a % M, 1
+            while x != 1 % M:
+                x = x * a % M
+                o += 1
+            best = max(best, o)
+        bad += best != lam(M)
+    check("C2 lambda equals the largest unit order, M &lt;= 300", bad == 0,
+          f"{bad} disagreements")
+
+    X = 30000
+    worst = 0.0
+    ok = True
+    for N in (1, 6, 30, 210):
+        for b in BETAS:
+            brute = sum(m ** -b for m in range(2, X + 1) if gcd(m, N) == 1)
+            tail = X ** (1 - b) / (b - 1)
+            cf = z_ind(N, b)
+            ok &amp;= brute - 1e-12 &lt;= cf &lt;= brute + tail + 1e-12
+            worst = max(worst, cf - brute)
+    check("C3 independence normalizer inside the brute bracket", ok,
+          f"largest tail used {worst:.2e}")
+
+
+# ----------------------------------------------------- R the routes
+
+<span id="histories"></span>def histories(demand, N, s=1):
+    """Every ordered factorization of N/s into moves admissible along
+    the way, as lists of (state, move)."""
+    out = []
+
+    def go(M, acc):
+        if M == N:
+            out.append(list(acc))
+            return
+        for m in divisors(N // M):
+            if m &gt;= 2 and adm(demand, M, m):
+                acc.append((M, m))
+                go(M * m, acc)
+                acc.pop()
+    go(s, [])
+    return out
+
+
+<span id="section_r"></span>def section_r():
+    section("R  the route-weight cancellation")
+    fub = []
+    for n in range(1, 6):
+        P = growth.value({p: 1 for p in growth.PRIMES[:n]})
+        fub.append(len(histories("ind", P)))
+    print(f"  histories to p_n#, n = 1..5: {fub}")
+    check("R1a the histories to p_n# are the ordered set partitions",
+          fub == [1, 3, 13, 75, 541])
+
+    worst = 0.0
+    for demand in ("ind", "dyn"):
+        for b in BETAS:
+            zc = {}
+
+            def zz(M):
+                if M not in zc:
+                    zc[M] = Z[demand](M, b)
+                return zc[M]
+            visit = {1: 1.0}
+            for N in range(2, 361):
+                v = 0.0
+                for M in divisors(N):
+                    if M &lt; N and M in visit and adm(demand, M, N // M):
+                        v += visit[M] * (N // M) ** -b / zz(M)
+                if v:
+                    visit[N] = v
+                direct = sum(math.prod(m ** -b / zz(M) for M, m in h)
+                             for h in histories(demand, N))
+                worst = max(worst, abs(direct - v))
+    check("R1b every history sum equals the forward visit probability, "
+          "N &lt;= 360, both demands", worst &lt; 1e-12, f"worst {worst:.1e}")
+
+
+# ---------------------------------------------- B the independence world
+
+<span id="section_b"></span>def section_b(big):
+    section("B  the independence world")
+    X = 200000
+    primes = [p for p in range(2, X + 1) if big[p]]
+    ok_br = True
+    for b in BETAS:
+        acc = 1.0
+        for p in primes:
+            acc /= 1 - p ** -b
+            if p == 7:
+                upto10 = acc
+        z = zeta(b)
+        ok_br &amp;= z * (1 - X ** (1 - b) / (b - 1)) &lt;= acc &lt;= z
+        print(f"  beta {b}: odds for the crystal -&gt; zeta = {z:.4f} "
+              f"({log(z):.4f} nats); primes to 2 10^5 give {acc:.6f}; "
+              f"p &lt;= 10 carries {log(upto10) / log(z):.1%} of the "
+              f"log-odds; crystal share 1/zeta = {1 / z:.4f}")
+    check("B1 the likelihood ratio at 2 10^5 inside the Euler tail's "
+          "bracket below zeta", ok_br)
+
+    Y = len(big) - 1
+    i2 = None
+    for b in BETAS:
+        tot = 0.0
+        for p in range(2, Y + 1):
+            if big[p]:
+                r = p ** -b
+                tot += log(p) ** 2 * r / (1 - r) ** 2
+        L, a = log(Y), b - 1
+        tail = Y ** -a * (L * L / a + 2 * L / a ** 2 + 2 / a ** 3)
+        tail /= (1 - Y ** -b) ** 2
+        print(f"  beta {b}: I_total in [{tot:.5f}, {tot + tail:.5f}], "
+              f"sd floor &gt;= {(tot + tail) ** -0.5:.3f}")
+        if b == 2.0:
+            i2 = (tot, tot + tail)
+    check("B2 I_total(2) inside the frozen bracket [0.8844, 0.8859]",
+          0.8844 &lt;= i2[0] and i2[1] &lt;= 0.8859)
+
+    LIM = 2000
+    pasts = [0] * (LIM + 1)
+    for s in range(1, LIM + 1):
+        N = s
+        while N &lt;= LIM:
+            pasts[N] += 1
+            N *= next(p for p in growth.PRIMES if N % p)
+    bad = 0
+    for N in range(1, LIM + 1):
+        f = growth.factor(N) if N &gt; 1 else {}
+        peel = sum(1 for p, e in f.items()
+                   if e == 1 and all(N % r == 0 for r in growth.PRIMES
+                                     if r &lt; p))
+        bad += pasts[N] != 2 ** peel
+    print(f"  pasts(210) = {pasts[210]}, the most pasts to 2000: "
+          f"{max(pasts)} at N = {pasts.index(max(pasts))}")
+    check("B4 the zero-temperature pasts are the peelable subsets, "
+          "N &lt;= 2000", bad == 0 and pasts[210] == 16, f"{bad} off")
+
+
+# ---------------------------------------------------- D the depth world
+
+<span id="sigma_col"></span>def sigma_col(a, beta):
+    """sigma_beta(xi_a), xi_a = 8 prod(2 3^j + 1 prime, j &lt; a)."""
+    out = sum(2 ** (-beta * i) for i in range(4))
+    for j in range(1, a):
+        p = 2 * 3 ** j + 1
+        if is_prime(p):
+            out *= 1 + p ** -beta
+    return out
+
+
+<span id="xi_col"></span>def xi_col(a):
+    x = 8
+    for j in range(1, a):
+        if is_prime(2 * 3 ** j + 1):
+            x *= 2 * 3 ** j + 1
+    return x
+
+
+<span id="z_col"></span>def z_col(a, beta):
+    return zeta(beta) - sigma_col(a, beta)
+
+
+<span id="z_col_bracket"></span>def z_col_bracket(beta, a=40):
+    grow = math.exp((2 * 3 ** a) ** -beta / (1 - 3 ** -beta))
+    return zeta(beta) - sigma_col(a, beta) * grow, z_col(a, beta)
+
+
+<span id="section_d"></span>def section_d():
+    section("D  the depth world")
+    bad = sum(xi_col(a) != xi_of(3 ** a) for a in range(1, 10))
+    print(f"  xi_a, a = 1..9: {[xi_col(a) for a in range(1, 10)]}")
+    check("D1 xi_a = 8 prod(2 3^j + 1 prime) equals W(lambda(3^a))/3^a",
+          bad == 0)
+
+    X = 30000
+    ok = True
+    for a in range(1, 7):
+        L = lam(3 ** a)
+        good = [m for m in range(2, X + 1)
+                if lam_f(growth.merge_add({3: a}, growth.factor(m))) != L]
+        for b in BETAS:
+            brute = sum(m ** -b for m in good)
+            cf = z_col(a, b)
+            ok &amp;= brute - 1e-12 &lt;= cf &lt;= brute + X ** (1 - b) / (b - 1)
+    print(f"  Psi_1(2) = {z_dyn(1, 2.0):.6f}, Psi_3(2) = {z_dyn(3, 2.0):.6f}")
+    check("D2 the column's normalizer inside the brute bracket, a &lt;= 6",
+          ok)
+
+    worst = 0.0
+    for b in BETAS:
+        for t in range(1, 9):
+            f = 3 ** (-b * t) / z_dyn(1, b)
+            for a in range(1, t):
+                f *= 1 + 1 / z_col(a, b)
+            enum = sum(math.prod(m ** -b / z_dyn(M, b) for M, m in h)
+                       for h in histories("dyn", 3 ** t))
+            worst = max(worst, abs(f - enum) / enum)
+    check("D3 the visit probability f(t) against the enumerated "
+          "histories, t &lt;= 8", worst &lt; 1e-12, f"relative {worst:.1e}")
+
+    ok_slope, ok_test, ok_one = True, True, True
+    for b in (1.25, 1.5, 2.0, 3.0, 6.0):
+        lo, hi = z_col_bracket(b)
+        s_lo = b * log(3) - log(1 + 1 / lo)
+        s_hi = b * log(3) - log(1 + 1 / hi)
+        one = b * log(3) + log(z_dyn(1, b))
+        print(f"  beta {b}: Psi_col in [{lo:.7f}, {hi:.7f}], slope in "
+              f"[{s_lo:.4f}, {s_hi:.4f}] nats per deepening; depth 1 "
+              f"gives {one:.4f} against independence's ceiling "
+              f"{log(zeta(b)):.4f}")
+        ok_slope &amp;= s_lo &gt; 0
+        ok_test &amp;= 3 ** -b + 5 ** -b + 6 ** -b &gt; 1 / (3 ** b - 1)
+        ok_one &amp;= one &gt; log(zeta(b))
+    check("D4a the slope is positive at every beta", ok_slope)
+    check("D4b the three-term test holds at every beta", ok_test)
+    check("D4c depth 1 out-earns independence's whole ceiling at every beta",
+          ok_one)
+
+    bad = n = 0
+    early = []
+    for A in (1, 2, 5, 7, 11, 13, 21, 30, 77, 120, 385, 1001):
+        fA = growth.factor(A) if A &gt; 1 else {}
+        lA = lam(A)
+        for q in (2, 3, 5, 7, 13):
+            if A % q == 0:
+                continue
+            if q == 2:
+                e0 = max(3, growth.v2(lA) + 2)
+            else:
+                L0, v = growth.lcm(lA, q - 1), 0
+                while L0 % q == 0:
+                    L0 //= q
+                    v += 1
+                e0 = v + 1
+            for e in range(1, 11):
+                l1 = lam_f(growth.merge_add(fA, {q: e}))
+                l2 = lam_f(growth.merge_add(fA, {q: e + 1}))
+                if e &gt;= e0 - 1:
+                    n += 1
+                    bad += (l2 == q * l1) != (e &gt;= e0)
+                elif l2 == q * l1:
+                    early.append((A, q, e))
+    check("D5 the lambda ratio is q from e_0 on and not at e_0 - 1",
+          bad == 0, f"{n} cells, {bad} off")
+    print(f"  ratio q already below e_0 - 1 at (A, q, e) = {early}")
+
+    def h(x):
+        return -(x * log(x) + (1 - x) * log(1 - x))
+
+    worst = 0.0
+    for b in BETAS:
+        for t in range(2, 9):
+            ws = [math.prod(m ** -b / z_dyn(M, b) for M, m in hs)
+                  for hs in histories("dyn", 3 ** t)]
+            tot = sum(ws)
+            enum = -sum(w / tot * log(w / tot) for w in ws)
+            coins = sum(h(1 / (1 + z_col(a, b))) for a in range(1, t))
+            worst = max(worst, abs(enum - coins))
+
+    def root(side):
+        lo, hi = 1.3, 1.7
+        for _ in range(60):
+            mid = (lo + hi) / 2
+            lo, hi = (mid, hi) if z_col_bracket(mid)[side] &gt; 1 else (lo, mid)
+        return lo
+    b_lo, b_hi = root(0), root(1)
+    check("D6 the route entropy is the sum of the depth coins, t &lt;= 8; "
+          "beta_c in (1.49, 1.50)",
+          worst &lt; 1e-12 and 1.49 &lt; b_lo &lt;= b_hi &lt; 1.50,
+          f"worst {worst:.1e}; beta_c in [{b_lo:.6f}, {b_hi:.6f}]")
+
+
+# ---------------------------------------------- the truncated world
+
+<span id="paths"></span>def paths(demand, beta, tau, top=12):
+    """Every path of tau moves from seed 1 on the menu 2..top, as
+    (moves, end state, probability, score, sum of per-move variances).
+    A state with an empty menu is frozen: the move 1, probability 1."""
+    menus = {}
+
+    def menu(N):
+        if N not in menus:
+            ms = [m for m in range(2, top + 1) if adm(demand, N, m)]
+            if not ms:
+                menus[N] = None
+            else:
+                w = [m ** -beta for m in ms]
+                z = sum(w)
+                el = sum(wi * log(m) for wi, m in zip(w, ms)) / z
+                v = sum(wi * log(m) ** 2 for wi, m in zip(w, ms)) / z - el ** 2
+                menus[N] = (ms, [wi / z for wi in w], el, v)
+        return menus[N]
+
+    out = []
+
+    def go(N, moves, pr, sc, vs):
+        if len(moves) == tau:
+            out.append((tuple(moves), N, pr, sc, vs))
+            return
+        mu = menu(N)
+        if mu is None:
+            go(N, moves + [1], pr, sc, vs)
+            return
+        ms, ps, el, v = mu
+        for m, p in zip(ms, ps):
+            go(N * m, moves + [m], pr * p, sc - log(m) + el, vs + v)
+    go(1, [], 1.0, 0.0, 0.0)
+    return out
+
+
+<span id="fisher_split"></span>def fisher_split(ps):
+    """I_path, I_dated and E[I_route] of one fixed-age path list."""
+    i_path = sum(p * s * s for _, _, p, s, _ in ps)
+    i_var = sum(p * v for _, _, p, _, v in ps)
+    byN = {}
+    for _, N, p, s, _ in ps:
+        a = byN.setdefault(N, [0.0, 0.0])
+        a[0] += p
+        a[1] += p * s
+    i_dated = sum(d * d / P for P, d in byN.values())
+    i_route = sum(p * (s - byN[N][1] / byN[N][0]) ** 2
+                  for _, N, p, s, _ in ps)
+    return i_path, i_var, i_dated, i_route, len(ps), len(byN)
+
+
+# ---------------------------------------------------------- W the watch
+
+<span id="section_w"></span>def section_w(big=None):
+    section("W  the watch")
+    worst1 = worst2 = 0.0
+    h = 1e-4
+    for demand in ("ind", "dyn"):
+        for N in (1, 6, 7, 12, 30, 360):
+            ms = [m for m in range(2, 1001) if adm(demand, N, m)]
+            for b in (1.5, 2.5):
+                def lz(x):
+                    return log(sum(m ** -x for m in ms))
+
+                def el(x):
+                    return (sum(m ** -x * log(m) for m in ms)
+                            / sum(m ** -x for m in ms))
+
+                def var(x):
+                    z = sum(m ** -x for m in ms)
+                    return (sum(m ** -x * log(m) ** 2 for m in ms) / z
+                            - el(x) ** 2)
+                d1 = (lz(b + h) - lz(b - h)) / (2 * h)
+                d2 = (el(b + h) - el(b - h)) / (2 * h)
+                worst1 = max(worst1, abs(d1 + el(b)))
+                worst2 = max(worst2, abs(d2 + var(b)))
+    check("W1 dlogZ/dbeta = -E[log m] and dE[log m]/dbeta = -Var(log m)",
+          max(worst1, worst2) &lt; 1e-6,
+          f"worst {worst1:.1e}, {worst2:.1e}")
+
+    worst = 0.0
+    hit = False
+    for demand in ("ind", "dyn"):
+        for b in BETAS:
+            ip, iv, idt, ir, npth, nend = fisher_split(paths(demand, b, 4))
+            worst = max(worst, abs(ip - iv))
+            hit |= abs(ip - 0.649817) &lt; 5e-7 and abs(idt - 0.446763) &lt; 5e-7
+            print(f"  {demand} beta {b}: I_path {ip:.6f} = I_dated "
+                  f"{idt:.6f} + E[I_route] {ir:.6f}  ({npth} paths, "
+                  f"{nend} end states)")
+    check("W2 the witness gap's I_path = the summed per-move Var",
+          worst &lt; 1e-12, f"worst {worst:.1e}")
+    print(f"  the replaced record's 0.649817 = 0.446763 + 0.203054 "
+          f"reproduced in some cell: {hit}")
+
+    b = 2.0
+    primes = [2]
+    for j in range(1, 25):
+        if is_prime(2 * 3 ** j + 1):
+            primes.append(2 * 3 ** j + 1)
+    ds = [1]
+    for p in primes:
+        e = 3 if p == 2 else 1
+        ds = [d * p ** i for d in ds for i in range(e + 1)]
+    s0 = zeta(b) - sum(d ** -b for d in ds)
+    s1 = em(b, 1) - sum(d ** -b * log(d) for d in ds if d &gt; 1)
+    s2 = em(b, 2) - sum(d ** -b * log(d) ** 2 for d in ds if d &gt; 1)
+    vcol = s2 / s0 - (s1 / s0) ** 2
+    print(f"  the depth watcher: Var(log m) under the column's limit law "
+          f"at beta 2 = {vcol:.4f}")
+    if big is not None:
+        cold_watch(big)
+
+
+<span id="cold_var"></span>def cold_var(big, K, b=2):
+    """Var_N(log m) on the independence menu at N = p_k#, k = 1..K, at
+    beta = b: f = zeta(b) prod (1 - p^-b), g = log f, S0 = f - 1,
+    S1 = -f g', S2 = f (g'' + g'^2), Var = f (g''(f - 1) - g'^2)/(f - 1)^2.
+    The zeta values are mpmath's at 40 digits: an error in zeta(2) is
+    divided by f - 1, which falls toward 5e-8 by k = 10^5, so em's
+    zeta(2), off by the 5.6e-15 that C prints, moved Var's fourth digit
+    there."""
+    mp = mpmath.mp
+    mp.dps = 40
+    z0 = mpmath.zeta(b)
+    z1, z2 = mpmath.zeta(b, 1, 1), mpmath.zeta(b, 1, 2)
+    lf, g1, g2 = mpmath.log(z0), z1 / z0, z2 / z0 - (z1 / z0) ** 2
+    out, k, p = {}, 0, 1
+    while k &lt; K:
+        p += 1
+        if not big[p]:
+            continue
+        k += 1
+        t = mpmath.mpf(p) ** -b
+        lp = mpmath.log(p)
+        lf += mpmath.log1p(-t)
+        g1 += lp * t / (1 - t)
+        g2 -= lp ** 2 * t / (1 - t) ** 2
+        f1 = mpmath.expm1(lf)
+        out[k] = (p, float((1 + f1) * (g2 * f1 - g1 * g1) / (f1 * f1)))
+    return out
+
+
+<span id="cold_brute"></span>def cold_brute(big, k, X=2000000):
+    """The same Var at beta 2 by direct sums over 2 &lt;= m &lt; X with least
+    prime factor above p_k, plus the density times the integral tail,
+    whose closed forms are beta 2's."""
+    b = 2.0
+    ps = [p for p in range(2, X) if big[p]][:k]
+    keep = bytearray([1]) * X
+    keep[0] = keep[1] = 0
+    for p in ps:
+        keep[p::p] = bytearray(len(keep[p::p]))
+    s0 = s1 = s2 = 0.0
+    for m in range(2, X):
+        if keep[m]:
+            w, L = m ** -b, log(m)
+            s0 += w
+            s1 += w * L
+            s2 += w * L * L
+    d = math.prod(1 - 1 / p for p in ps)
+    L = log(X)
+    s0 += d / X
+    s1 += d * (L + 1) / X
+    s2 += d * (L * L + 2 * L + 2) / X
+    return s2 / s0 - (s1 / s0) ** 2
+
+
+<span id="cold_watch"></span>def cold_watch(big):
+    cv = cold_var(big, 100000)
+    br = {k: cold_brute(big, k) for k in (3, 50)}
+    ok = all(abs(cv[k][1] - br[k]) &lt; 1e-3 for k in br)
+    check("W4 control, before W5: the cold path's closed form against "
+          "brute sums at k = 3, 50", ok,
+          ", ".join(f"k {k}: {cv[k][1]:.5f} vs {br[k]:.5f}" for k in br))
+    print("  cold path p_k#, beta 2, Var_N(log m): "
+          + ", ".join(f"k {k} {cv[k][1]:.5f}"
+                      for k in (1, 2, 3, 50, 5000, 100000)))
+    lo = min(range(1, 100001), key=lambda k: cv[k][1])
+    hi = max(range(1, 100001), key=lambda k: cv[k][1])
+    print(f"  over 1 &lt;= k &lt;= 10^5: least {cv[lo][1]:.4f} at k = {lo} "
+          f"(p_k = {cv[lo][0]}), greatest {cv[hi][1]:.4f} at k = {hi}")
+    old = {3: 0.9134, 50: 0.8129, 5000: 0.8668, 100000: 0.8907}
+    check("W5 the cold path's watch stays between 0.8 and 1 at every "
+          "1 &lt;= k &lt;= 10^5, the old record's four within 1e-3",
+          0.8 &lt;= cv[lo][1] and cv[hi][1] &lt; 1
+          and all(abs(cv[k][1] - v) &lt; 1e-3 for k, v in old.items()),
+          f"{cv[lo][1]:.4f} .. {cv[hi][1]:.4f}")
+
+
+# ---------------------------------------------------------- P the probe
+
+<span id="least_prime_not_dividing"></span>def least_prime_not_dividing(N):
+    return next(p for p in growth.PRIMES if N % p)
+
+
+<span id="section_p"></span>def section_p():
+    section("P  the probe")
+    bad = 0
+    for N in range(1, 100001):
+        q = least_prime_not_dividing(N)
+        mi = next(m for m in range(2, q + 1) if gcd(m, N) == 1)
+        mm = next(m for m in range(2, q + 1) if not strips_to_one(m, N))
+        bad += mi != q or mm != q
+    sq = [N for N in range(1, 3001) if N == 1 or squarefree(N)]
+    for N in sq:
+        q = least_prime_not_dividing(N)
+        ms = next(m for m in range(2, q + 1) if squarefree(N * m))
+        bad += ms != q
+    print(f"  {len(sq)} squarefree states checked for semisimplicity")
+
+    def greedy(demand, N):
+        m = 2
+        while not adm(demand, N, m):
+            m += 1
+        return m
+    same = True
+    for seed in (1, 30, 105):
+        runs = []
+        for demand in ("semi", "ind", "mem"):
+            N, seq = seed, []
+            for _ in range(25):
+                m = greedy(demand, N)
+                seq.append(m)
+                N *= m
+            runs.append(seq)
+        same &amp;= runs[0] == runs[1] == runs[2]
+    check("P1 the three greedy picks are the least prime not dividing N; "
+          "three demands, one world", bad == 0 and same,
+          f"{bad} off; trajectories identical: {same}")
+
+    bad = 0
+    for N in sq[1:]:
+        q = least_prime_not_dividing(N)
+        p = min(growth.factor(N))
+        rows = [(adm(d, N, q * q), adm(d, N, p * q))
+                for d in ("semi", "ind", "mem")]
+        bad += rows != [(False, False), (True, False), (True, True)]
+    check("P2 the probes q^2 and pq read the whole law at every "
+          "squarefree 1 &lt; N &lt;= 3000", bad == 0, f"{bad} off")
+
+    N, X = 30, 100000
+    A = {d: [m for m in range(2, X + 1) if adm(d, N, m)]
+         for d in ("semi", "ind", "mem")}
+    ok = True
+    for narrow, wide in (("ind", "mem"), ("semi", "ind")):
+        mstar = min(set(A[wide]) - set(A[narrow]))
+        q = min(A[narrow])
+        kls = {}
+        for b in (9, 10):
+            zn = sum(m ** -b for m in A[narrow])
+            zw = sum(m ** -b for m in A[wide])
+            kls[b] = sum(m ** -b / zn * (log(m ** -b / zn)
+                                         - log(m ** -b / zw))
+                         for m in A[narrow])
+        slope = log(kls[9]) - log(kls[10])
+        print(f"  {narrow} inside {wide} at N = 30: q = {q}, m* = {mstar}; "
+              f"slope of -log KL between beta 9 and 10 = {slope:.4f} "
+              f"against log(m*/q) = {log(mstar / q):.4f}")
+        ok &amp;= abs(slope - log(mstar / q)) &lt; 0.05
+    check("P3 the slope of -log KL within 0.05 of log(m*/q), both pairs",
+          ok)
+
+
+# --------------------------------------------------------- F the fossil
+
+<span id="section_f"></span>def section_f():
+    section("F  the fossil")
+    worst = 0.0
+    for b in BETAS:
+        r = 3 ** -b
+        i1 = log(3) ** 2 * r / (1 - r) ** 2
+        for tau in range(1, 5):
+            info = 0.0
+            for t in range(tau, 600):
+                P = math.comb(t - 1, tau - 1) * r ** (t - tau) * (1 - r) ** tau
+                dlog = -(t - tau) * log(3) + tau * log(3) * r / (1 - r)
+                info += P * dlog * dlog
+            worst = max(worst, abs(info - tau * i1))
+        print(f"  beta {b}: I_1 = {i1:.5f}; I_dated = tau I_1, "
+              f"I_path's value")
+    check("F1 the one-window world: I_dated from the law of t = tau I_1",
+          worst &lt; 1e-12, f"worst {worst:.1e}")
+
+    H = log(3)
+    rows = {}
+    for demand in ("ind", "dyn", "col"):
+        joint = []
+        for b in BETAS:
+            for tau in range(1, 5):
+                for mv, N, p, _, _ in paths(demand, b, tau):
+                    joint.append((b, tau, mv, N, p / 12))
+
+        def cond_h(key):
+            agg, tot = {}, {}
+            for g, tau, mv, N, p in joint:
+                k = key(tau, mv, N)
+                agg.setdefault(k, {}).setdefault(g, 0.0)
+                agg[k][g] += p
+                tot[k] = tot.get(k, 0.0) + p
+            return -sum(pg * log(pg / tot[k]) for k, d in agg.items()
+                        for pg in d.values() if pg &gt; 0)
+        j_state = H - cond_h(lambda tau, mv, N: N)
+        j_dated = H - cond_h(lambda tau, mv, N: (N, tau))
+        j_path = H - cond_h(lambda tau, mv, N: mv)
+        pgd = {}
+        for g, tau, mv, N, p in joint:
+            pgd[(g, (N, tau))] = pgd.get((g, (N, tau)), 0.0) + p
+        hr = hmax = 0.0
+        for (g, d), pg_d in pgd.items():
+            sub = [p for gg, tau, mv, N, p in joint
+                   if gg == g and (N, tau) == d]
+            hr -= sum(p * log2(p / pg_d) for p in sub)
+            hmax += pg_d * log2(len(sub))
+        rows[demand] = (j_state, j_dated, j_path, hr, hmax)
+        print(f"  {demand}: J(G; state) {j_state:.4f}, J(G; dated) "
+              f"{j_dated:.4f}, J(G; path) {j_path:.4f}; route entropy "
+              f"given the dated state and G {hr:.4f} bits of a uniform "
+              f"maximum {hmax:.4f}")
+    ok = all(rows[d][0] &lt; rows[d][1] &lt; rows[d][2] for d in ("ind", "dyn"))
+    check("F2 the view ladder is strict for independence and dynamics",
+          ok)
+    c = rows["col"]
+    check("F3 the one-window world: zero information gap, route entropy "
+          "at its maximum",
+          abs(c[2] - c[1]) &lt; 1e-12 and abs(c[3] - c[4]) &lt; 1e-12,
+          f"{c[3]:.4f} of {c[4]:.4f} bits")
+    i = rows["ind"]
+    check("F3 independence: route entropy strictly below its maximum",
+          i[3] &lt; i[4] - 1e-9, f"{i[3]:.4f} of {i[4]:.4f} bits")
+
+
+<span id="log2"></span>def log2(x):
+    return log(x) / log(2)
+
+
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    big = sieve(2000000)
+    section_c()
+    section_r()
+    section_b(big)
+    section_d()
+    section_w(big)
+    section_p()
+    section_f()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/memory.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

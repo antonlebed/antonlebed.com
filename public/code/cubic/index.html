@@ -1,0 +1,972 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cubic.py | Numbers read one place at a time</title>
+<meta name="description" content="cubic.py">
+<link rel="alternate" type="text/x-python" href="/code/cubic.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a> › <a href="/tools/">Tools: programs to call on your own input</a></nav></header>
+<main><article>
+<h1>cubic.py</h1>
+<div class="src" data-generated="uses"><p>Cited on: <a href="/triple/">TRIPLE</a>.</p><p>To run it: no other script; needs mpmath.</p></div>
+<pre>"""cubic.py -- complex cubic fields read through binary cubic forms: the
+ring of integers, the prime places, a class group checked against the
+analytic class number formula, and the class of a degree-1 place.
+
+USE. In Python, with mpmath installed, from the folder holding
+cubic.py:
+
+    &gt;&gt;&gt; from cubic import enumerate_fields, Field
+    &gt;&gt;&gt; fields = enumerate_fields(300)         # every one with |d_K| &lt;= 300
+    &gt;&gt;&gt; len(fields)
+    32
+    &gt;&gt;&gt; form = next(f for f, d in fields.items() if d == -283)
+    &gt;&gt;&gt; K = Field(form, -283)
+    &gt;&gt;&gt; K.class_group(), K.h                   # checked against the formula
+    (True, 2)
+    &gt;&gt;&gt; [K.place_class(P) for P in K.places(2) if P.deg == 1]
+    [(1,)]
+
+WHAT IT IS FOR. A stranger holding a complex cubic field, by a
+discriminant bound (enumerate_fields) or by an irreducible defining
+polynomial g(x) = a x^3 - b x^2 + c x - d of negative discriminant
+(the form (a, b, c, d) passed through maximal_form, which refuses
+|disc| past about 6.4 * 10^13), gets its maximal order, its places
+over any prime, its class group with that check, and the class of a
+place of degree 1 (None when no element within place_class's search
+radius places it), in pure Python. Field takes a maximal form: it
+refuses one of discriminant &gt;= 0, or one whose discriminant is not
+the d_K passed beside it. triple.py reads the split primes' triples
+of classes with it.
+
+THE ROUTE.
+  (1) FIELDS (Hunter's theorem, Cohen, A Course in Computational
+      Algebraic Number Theory, Thm 6.4.2). Every cubic field is Q(theta)
+      with theta integral, Tr theta in {0, 1} and T2(theta) &lt;= Tr^2/3 +
+      (2/3) sqrt|d_K|. Each such minimal polynomial x^3 - s1 x^2 + s2 x
+      - s3 is a binary cubic form, and its ring is Z[theta].
+  (2) THE MAXIMAL ORDER (Delone and Faddeev; Davenport and Heilbronn).
+      A binary cubic form f = (a, b, c, d), f(x, y) = a x^3 + b x^2 y +
+      c x y^2 + d y^3, is the ring with basis 1, w, v and
+          w v = -ad,   w^2 = -ac + b w - a v,   v^2 = -bd + d w - c v,
+      of discriminant disc(f); GL2(Z) acting by f -&gt; det(g)^-1 f((x,y)g)
+      is ring isomorphism. The ring is not maximal at p exactly when f =
+      0 mod p or f is equivalent to a form with p^2 | a and p | b, and
+      then (a/p^2, b/p, c, p d) is the form of an overorder of index p.
+      A form maximal at every p is O_K, and p factors in O_K as f
+      factors mod p. With xi a root of g(x) = f(x, -1) = a x^3 - b x^2 +
+      c x - d, w = a xi and v = -(a xi^2 - b xi + c).
+  (3) ONE KEY PER FIELD. A complex cubic form has one real and two
+      complex roots; the quadratic factor through the complex pair is a
+      positive definite covariant, Gauss-reduced, and the key is the
+      least form (sign fixed by a &gt; 0) over the substitutions keeping it
+      reduced.
+  (4) THE CLASS GROUP. The prime places of norm up to B, B at least the
+      Minkowski bound (4/pi)(2/9) sqrt|d_K|, generate Cl. Relations come
+      from small elements (an LLL-reduced basis under T2) whose norms are
+      B-smooth, and from the rational primes (p); each valuation is EXACT:
+      a degree-1 place unramified over p is a p-adic root of g, lifted by
+      Newton, and v_P(x + y w + z v) is v_p of the image; the other
+      places over p take what the norm leaves. The quotient of Z^B by the
+      relations maps ONTO Cl, and a relation reducing to zero is a unit,
+      whose log at the real place is carried through the reduction. So
+      h_found R_found = h R m with m a positive integer, and the analytic
+      class number formula hR = sqrt|d_K| L / (2 pi), L the Euler product
+      of zeta_K / zeta to 3 * 10^4, puts m = 1 when their ratio is below 2
+      by a margin. The truncated product carries no proved error bound,
+      so the check is numerical evidence for m = 1, not a proof. At
+      h_found = 1 the map onto Cl already gives h = 1; always_cert
+      asks for the ratio there too, as a control of the whole
+      route. The logs of the units are carried to 60 digits through a
+      Hermite form kept reduced, and read first off relations sharing an
+      exponent row, so they stay small; a regulator below 0.28 (d_K =
+      -23's, the least) is refused wherever the formula is read:
+      class_group returns False with floor_bad set.
+  (5) THE CLASS OF A PLACE ABOVE B: an element of its own ideal lattice
+      (LLL-reduced) whose norm is p times a B-smooth number places it.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import cmath
+from math import gcd, isqrt, log, pi, sqrt
+
+import mpmath
+mpmath.mp.dps = 60
+MPF = mpmath.mpf
+
+
+<span id="primes_below"></span>def primes_below(n):
+    s = bytearray([1]) * n
+    s[0:2] = b"\x00\x00"
+    for i in range(2, isqrt(n - 1) + 1):
+        if s[i]:
+            s[i * i::i] = bytearray(len(range(i * i, n, i)))
+    return [i for i in range(n) if s[i]]
+
+
+PRIMES = primes_below(40000)
+UNIT_TOL = MPF("1e-15")     # a remainder below this is zero
+R_FLOOR = 0.28              # d_K = -23's regulator, the least (see _certify)
+
+
+# ---------------------------------------------------------------------------
+# binary cubic forms
+
+<span id="disc"></span>def disc(f):
+    a, b, c, d = f
+    return (b * b * c * c - 4 * a * c ** 3 - 4 * b ** 3 * d
+            - 27 * a * a * d * d + 18 * a * b * c * d)
+
+
+<span id="_mul"></span>def _mul(P, Q):
+    R = [0] * (len(P) + len(Q) - 1)
+    for i, u in enumerate(P):
+        for j, v in enumerate(Q):
+            R[i + j] += u * v
+    return R
+
+
+<span id="subst"></span>def subst(f, al, be, ga, de):
+    """det^-1 f(al X + be Y, ga X + de Y), coefficients by power of Y."""
+    a, b, c, d = f
+    x, y = [al, be], [ga, de]
+    x2, y2 = _mul(x, x), _mul(y, y)
+    out = [0, 0, 0, 0]
+    for k, P in ((a, _mul(x2, x)), (b, _mul(x2, y)), (c, _mul(x, y2)),
+                 (d, _mul(y2, y))):
+        for i in range(4):
+            out[i] += k * P[i]
+    det = al * de - be * ga
+    assert det in (1, -1)
+    return tuple(det * o for o in out)
+
+
+<span id="maximalize"></span>def maximalize(f, p):
+    """The form of the p-maximal overorder of f's ring."""
+    while True:
+        a, b, c, d = f
+        if a % p == 0 and b % p == 0 and c % p == 0 and d % p == 0:
+            f = (a // p, b // p, c // p, d // p)
+            continue
+        if a % p == 0 and b % p == 0:
+            F = f
+        else:
+            for r in range(p):
+                if (a * r * r * r + b * r * r + c * r + d) % p == 0 and \
+                        (3 * a * r * r + 2 * b * r + c) % p == 0:
+                    F = subst(f, r, 1, 1, 0)
+                    break
+            else:
+                return f
+        A, Bc, C, D = F
+        if A % (p * p) == 0 and Bc % p == 0:
+            f = (A // (p * p), Bc // p, C, D * p)
+            continue
+        return F
+
+
+<span id="squarefull_primes"></span>def squarefull_primes(n):
+    """The primes p with p^2 | n; n = 0, and |n| past the trial
+    division's range, refused."""
+    n = abs(n)
+    if n == 0:
+        raise ValueError("every prime squared divides 0")
+    out = []
+    lim = round(n ** (1 / 3)) + 2
+    if lim &gt; PRIMES[-1]:
+        raise ValueError("|n| past the trial division's range")
+    for p in PRIMES:
+        if p &gt; lim:
+            break
+        if n % p == 0:
+            k = 0
+            while n % p == 0:
+                n //= p
+                k += 1
+            if k &gt;= 2:
+                out.append(p)
+    if n &gt; 1:
+        q = isqrt(n)
+        if q * q == n:
+            out.append(q)
+    return out
+
+
+<span id="maximal_form"></span>def maximal_form(f):
+    for p in squarefull_primes(disc(f)):
+        f = maximalize(f, p)
+    return f
+
+
+<span id="_roots_complex"></span>def _roots_complex(f):
+    """The real root and the root of positive imaginary part of f(t, 1)."""
+    a, b, c, d = f
+    rs = _cubic_roots(a, b, c, d)
+    real = min(rs, key=lambda z: abs(z.imag)).real
+    cx = max(rs, key=lambda z: z.imag)
+    return real, cx
+
+
+<span id="_cubic_roots"></span>def _cubic_roots(a, b, c, d):
+    """All three roots of a t^3 + b t^2 + c t + d, polished by Newton."""
+    B, C, D = b / a, c / a, d / a
+    p = C - B * B / 3
+    q = 2 * B ** 3 / 27 - B * C / 3 + D
+    disc_ = q * q / 4 + p ** 3 / 27
+    s = cmath.sqrt(disc_)
+    u = (-q / 2 + s)
+    u = u ** (1 / 3) if u != 0 else 0
+    if abs(u) &lt; 1e-300:
+        u = (-q / 2 - s) ** (1 / 3)
+    w = complex(-0.5, sqrt(3) / 2)
+    roots = []
+    for k in range(3):
+        uk = u * w ** k
+        t = uk - p / (3 * uk) if uk != 0 else 0
+        roots.append(t - B / 3)
+    out = []
+    for z in roots:
+        for _ in range(3):
+            fz = ((a * z + b) * z + c) * z + d
+            dz = (3 * a * z + 2 * b) * z + c
+            if dz == 0:
+                break
+            z = z - fz / dz
+        out.append(z)
+    return out
+
+
+_SMALL = [(al, be, ga, de) for al in (-1, 0, 1) for be in (-1, 0, 1)
+          for ga in (-1, 0, 1) for de in (-1, 0, 1)
+          if al * de - be * ga in (1, -1)]
+
+
+<span id="canonical"></span>def canonical(f):
+    """One key per GL2(Z)-class of a complex cubic form (see (3)). The
+    reduction runs in floats with tolerance 1e-9 A, so the key's
+    uniqueness rests on them; Hasse's count at f = 1 (conductor.py C3)
+    and the independent field counts (triple.py K1) control it."""
+    rho, sig = _roots_complex(f)
+    # J(x, y) = (x - sig y)(x - conj(sig) y) = A x^2 + B xy + C y^2
+    A, B, C = 1.0, -2 * sig.real, abs(sig) ** 2
+    for _ in range(200):
+        k = -int(round(B / (2 * A)))
+        if k:
+            f = subst(f, 1, k, 0, 1)
+            A, B, C = A, 2 * k * A + B, A * k * k + B * k + C
+        if C &lt; A:
+            f = subst(f, 0, -1, 1, 0)
+            A, B, C = C, -B, A
+            continue
+        break
+    best = None
+    tol = 1e-9 * A
+    for (al, be, ga, de) in _SMALL:
+        A2 = A * al * al + B * al * ga + C * ga * ga
+        B2 = 2 * A * al * be + B * (al * de + be * ga) + 2 * C * ga * de
+        C2 = A * be * be + B * be * de + C * de * de
+        if abs(B2) &lt;= A2 + tol and A2 &lt;= C2 + tol:
+            g = subst(f, al, be, ga, de)
+            if g[0] &lt; 0:
+                g = tuple(-x for x in g)
+            if best is None or g &lt; best:
+                best = g
+    return best
+
+
+<span id="_irreducible_monic"></span>def _irreducible_monic(s1, s2, s3):
+    """x^3 - s1 x^2 + s2 x - s3 has no integer root (s3 != 0)."""
+    n = abs(s3)
+    r = 1
+    while r * r &lt;= n:
+        if n % r == 0:
+            for t in (r, -r, n // r, -(n // r)):
+                if ((t - s1) * t + s2) * t - s3 == 0:
+                    return False
+        r += 1
+    return True
+
+
+<span id="enumerate_fields"></span>def enumerate_fields(cap):
+    """Every complex cubic field with |d_K| &lt;= cap: {key form: d_K}."""
+    fields = {}
+    for s1 in (0, 1):
+        t2max = s1 * s1 / 3 + (2 / 3) * sqrt(cap) + 1e-9
+        s2lo = -int((t2max - s1 * s1) // 2) - 1
+        s2hi = int((s1 * s1 + t2max) // 2) + 1
+        s3max = int((t2max / 3) ** 1.5) + 1
+        for s2 in range(s2lo, s2hi + 1):
+            for s3 in range(0 if s1 == 0 else -s3max, s3max + 1):
+                if s3 == 0:
+                    continue
+                A, Bq, Cq = -s1, s2, -s3
+                D = (A * A * Bq * Bq - 4 * Bq ** 3 - 4 * A ** 3 * Cq
+                     - 27 * Cq * Cq + 18 * A * Bq * Cq)
+                if D &gt;= 0:
+                    continue
+                # the real root rho; the complex pair has |z|^2 = s3/rho
+                rs = _cubic_roots(1, -s1, s2, -s3)
+                rho = min(rs, key=lambda z: abs(z.imag)).real
+                t2 = rho * rho + 2 * s3 / rho
+                if t2 &gt; t2max:
+                    continue
+                if not _irreducible_monic(s1, s2, s3):
+                    continue
+                # g(x) = f(x, -1) = x^3 - s1 x^2 + s2 x - s3: a, b, c, d =
+                # 1, s1, s2, s3
+                f = maximal_form((1, s1, s2, s3))
+                dk = disc(f)
+                if -dk &gt; cap:
+                    continue
+                key = canonical(f)
+                if key not in fields:
+                    fields[key] = dk
+    return fields
+
+
+# ---------------------------------------------------------------------------
+# the field
+
+<span id="_vp"></span>def _vp(n, p):
+    if n == 0:
+        return 10 ** 9
+    k = 0
+    while n % p == 0:
+        n //= p
+        k += 1
+    return k
+
+
+<span id="xgcd"></span>def xgcd(a, b):
+    x0, x1, y0, y1 = 1, 0, 0, 1
+    while b:
+        q, a, b = a // b, b, a % b
+        x0, x1 = x1, x0 - q * x1
+        y0, y1 = y1, y0 - q * y1
+    return a, x0, y0
+
+
+<span id="_mult"></span>def _mult(coeffs, r, p):
+    """The multiplicity of r as a root mod p (coefficients from the top)."""
+    m = 0
+    cs = [x % p for x in coeffs]
+    while len(cs) &gt; 1:
+        q, acc = [], 0
+        for x in cs:
+            acc = (acc * r + x) % p
+            q.append(acc)
+        if q[-1]:
+            break
+        m += 1
+        cs = q[:-1]
+    return m
+
+
+<span id="legendre"></span>def legendre(a, p):
+    a %= p
+    if a == 0:
+        return 0
+    return 1 if pow(a, (p - 1) // 2, p) == 1 else -1
+
+
+<span id="Place"></span>class Place:
+    __slots__ = ("p", "deg", "e", "kind", "r", "idx")
+
+    def __init__(self, p, deg, e, kind, r):
+        self.p, self.deg, self.e, self.kind, self.r = p, deg, e, kind, r
+        self.idx = None
+
+    def __repr__(self):
+        return "P(%d,f%d,e%d,%s%s)" % (self.p, self.deg, self.e, self.kind,
+                                       self.r)
+
+
+<span id="Field"></span>class Field:
+    def __init__(self, form, dk=None):
+        if disc(form) &gt;= 0 or (dk is not None and dk != disc(form)):
+            raise ValueError("needs disc(form) = d_K &lt; 0 (maximal_form first)")
+        self.f = form
+        self.a, self.b, self.c, self.d = form
+        self.dk = disc(form) if dk is None else dk
+        a, b, c, d = form
+        rs = _cubic_roots(a, -b, c, -d)        # roots of g
+        self.xi0 = min(rs, key=lambda z: abs(z.imag)).real
+        self.xi1 = max(rs, key=lambda z: z.imag)
+        self.emb0 = (1.0, a * self.xi0,
+                     -(a * self.xi0 ** 2 - b * self.xi0 + c))
+        x1 = self.xi1
+        self.emb1 = (1.0, a * x1, -(a * x1 * x1 - b * x1 + c))
+        z = MPF(self.xi0)
+        for _ in range(8):
+            z = z - (((a * z - b) * z + c) * z - d) / ((3 * a * z - 2 * b)
+                                                       * z + c)
+        self.hp0 = (a * z, -(a * z * z - b * z + c))
+        self._places = {}
+        self.cl = None
+
+    # --- arithmetic
+    def norm(self, x, y, z):
+        a, b, c, d = self.f
+        m00, m01, m02 = x, -a * c * y - a * d * z, -a * d * y - b * d * z
+        m10, m11, m12 = y, x + b * y, d * z
+        m20, m21, m22 = z, -a * y, x - c * z
+        return (m00 * (m11 * m22 - m12 * m21)
+                - m01 * (m10 * m22 - m12 * m20)
+                + m02 * (m10 * m21 - m11 * m20))
+
+    def mul(self, u, v):
+        a, b, c, d = self.f
+        x1, y1, z1 = u
+        x2, y2, z2 = v
+        ww, wv, vv = y1 * y2, y1 * z2 + z1 * y2, z1 * z2
+        return (x1 * x2 - a * c * ww - a * d * wv - b * d * vv,
+                x1 * y2 + y1 * x2 + b * ww + d * vv,
+                x1 * z2 + z1 * x2 - a * ww - c * vv)
+
+    def s0(self, u):
+        e = self.emb0
+        return u[0] + u[1] * e[1] + u[2] * e[2]
+
+    def s1(self, u):
+        e = self.emb1
+        return u[0] + u[1] * e[1] + u[2] * e[2]
+
+    def vec(self, u):
+        z = self.s1(u)
+        return (self.s0(u), sqrt(2) * z.real, sqrt(2) * z.imag)
+
+    def logabs0(self, u):
+        """log |u| at the real place, at mpmath's 60 digits."""
+        e1, e2 = self.hp0
+        return mpmath.log(abs(u[0] + u[1] * e1 + u[2] * e2))
+
+    # --- places
+    def places(self, p):
+        if p in self._places:
+            return self._places[p]
+        a, b, c, d = self.f
+        roots = []                             # (kind, r, multiplicity)
+        for r in range(p):
+            if (((a * r - b) * r + c) * r - d) % p == 0:
+                roots.append(("f", r, _mult([a, -b, c, -d], r, p)))
+        if a % p == 0:
+            m = 1
+            if b % p == 0:
+                m = 2
+                if c % p == 0:
+                    m = 3
+            roots.append(("i", 0, m))
+        tot = sum(m for _, _, m in roots)
+        out = []
+        if tot == 3:
+            for kind, r, m in roots:
+                out.append(Place(p, 1, m, kind, r))
+        elif tot == 1:
+            kind, r, m = roots[0]
+            out.append(Place(p, 1, 1, kind, r))
+            out.append(Place(p, 2, 1, "q", 0))
+        elif tot == 0:
+            out.append(Place(p, 3, 1, "n", 0))
+        else:
+            raise ValueError("impossible splitting")
+        self._places[p] = out
+        return out
+
+    def ptype(self, p):
+        """The splitting pattern at p: the sorted (degree, ramification
+        index) of its places, read off places()."""
+        return tuple(sorted((pl.deg, pl.e) for pl in self.places(p)))
+
+    def hom(self, pl, k):
+        """(alpha, beta) mod p^k: the images of w, v under O -&gt; Z/p^k at a
+        degree-1 place (lifted by Newton where the root is simple)."""
+        a, b, c, d = self.f
+        p = pl.p
+        m = p ** k
+        if pl.kind == "f":
+            r = pl.r
+            if pl.e == 1:
+                for _ in range(k.bit_length() + 1):
+                    gv = (((a * r - b) * r + c) * r - d) % m
+                    if gv == 0:
+                        break
+                    dv = ((3 * a * r - 2 * b) * r + c) % m
+                    r = (r - gv * pow(dv, -1, m)) % m
+            return (a * r) % m, -(a * r * r - b * r + c) % m
+        # the root at infinity: eta = 1/xi, h(eta) = -d eta^3 + c eta^2
+        # - b eta + a, w = b - c eta + d eta^2, v = -d eta
+        eta = 0
+        if pl.e == 1:
+            for _ in range(k.bit_length() + 1):
+                hv = (((-d * eta + c) * eta - b) * eta + a) % m
+                if hv == 0:
+                    break
+                dv = ((-3 * d * eta + 2 * c) * eta - b) % m
+                eta = (eta - hv * pow(dv, -1, m)) % m
+        return (b - c * eta + d * eta * eta) % m, (-d * eta) % m
+
+    def valuations(self, u, p, n):
+        """{place: v_P(u)} over the places above p, n = v_p(N(u)) &gt;= 1.
+        u is primitive."""
+        pls = self.places(p)
+        out = {}
+        simple = [pl for pl in pls if pl.deg == 1 and pl.e == 1]
+        used = 0
+        for pl in simple:
+            al, be = self.hom(pl, n + 1)
+            m = p ** (n + 1)
+            val = (u[0] + u[1] * al + u[2] * be) % m
+            v = _vp(val, p) if val else n + 1
+            out[pl] = v
+            used += v
+        rest = [pl for pl in pls if pl not in out]
+        left = n - used
+        if len(rest) == 0:
+            if left != 0:
+                raise ValueError("valuation sum off")
+        elif len(rest) == 1:
+            pl = rest[0]
+            if left % pl.deg:
+                raise ValueError("valuation not divisible")
+            out[pl] = left // pl.deg
+        else:
+            raise ValueError("two unresolved places")
+        if any(v &lt; 0 for v in out.values()):
+            raise ValueError("negative valuation")
+        return out
+
+    # --- lattices
+    def lll(self, basis):
+        """LLL (delta 0.99) under T2 on integer coordinate vectors."""
+        B = [list(v) for v in basis]
+        n = len(B)
+
+        def emb(v):
+            return self.vec(v)
+
+        def dot(x, y):
+            return x[0] * y[0] + x[1] * y[1] + x[2] * y[2]
+
+        k = 1
+        it = 0
+        while k &lt; n and it &lt; 1000:
+            it += 1
+            E = [emb(v) for v in B]
+            Bs, mu = [], [[0.0] * n for _ in range(n)]
+            for i in range(n):
+                w = list(E[i])
+                for j in range(i):
+                    mu[i][j] = dot(E[i], Bs[j]) / dot(Bs[j], Bs[j])
+                    w = [w[t] - mu[i][j] * Bs[j][t] for t in range(3)]
+                Bs.append(w)
+            for j in range(k - 1, -1, -1):
+                q = round(mu[k][j])
+                if q:
+                    B[k] = [B[k][t] - q * B[j][t] for t in range(3)]
+                    E = [emb(v) for v in B]
+                    for jj in range(j + 1):
+                        mu[k][jj] -= q * (mu[j][jj] if jj &lt; j else 1.0)
+            bk = dot(Bs[k], Bs[k])
+            bk1 = dot(Bs[k - 1], Bs[k - 1])
+            if bk &gt;= (0.99 - mu[k][k - 1] ** 2) * bk1:
+                k += 1
+            else:
+                B[k], B[k - 1] = B[k - 1], B[k]
+                k = max(k - 1, 1)
+        return [tuple(v) for v in B]
+
+    # --- class group
+    def minkowski(self):
+        return (4 / pi) * (2 / 9) * sqrt(abs(self.dk))
+
+    def build_fb(self, bound):
+        self.B = bound
+        self.fb = []
+        for p in PRIMES:
+            if p &gt; bound:
+                break
+            for pl in self.places(p):
+                if pl.deg == 3:
+                    continue
+                pl.idx = len(self.fb)
+                self.fb.append(pl)
+
+    def smooth_row(self, u, N=None):
+        """The exponent row of a primitive element u over the factor base,
+        or None if its norm is not smooth."""
+        if N is None:
+            N = self.norm(*u)
+        if N == 0:
+            return None
+        m = abs(N)
+        row = {}
+        for p in PRIMES:
+            if p &gt; self.B:
+                break
+            if m % p:
+                continue
+            n = 0
+            while m % p == 0:
+                m //= p
+                n += 1
+            for pl, v in self.valuations(u, p, n).items():
+                if v:
+                    if pl.idx is None:
+                        return None
+                    row[pl.idx] = v
+            if m == 1:
+                break
+        if m != 1:
+            return None
+        return row
+
+    def class_group(self, R_start=3, R_max=9, always_cert=False):
+        """Read Cl, checked against the analytic formula; returns True,
+        or False if unresolved. Units are read
+        first from relations sharing an exponent row (their quotient is a
+        unit of small exact log), so every log carried through the
+        reduction is reduced modulo R from the start and stays small."""
+        self.always_cert = always_cert
+        self.floor_bad = False
+        bound = max(int(self.minkowski()) + 1, 30)
+        self.build_fb(bound)
+        n = len(self.fb)
+        self.hnf = {}                # pivot col -&gt; [row list, L]
+        self.units = []
+        self.R = MPF(0)
+        self.nrel = 0
+        self.val_bad = 0
+        first = {}
+        pending = []
+        for p in PRIMES:             # the rational primes
+            if p &gt; bound:
+                break
+            row = [0] * n
+            any_ = False
+            for pl in self.places(p):
+                if pl.idx is not None:
+                    row[pl.idx] = pl.e
+                    any_ = True
+            if any_:
+                pending.append((row, mpmath.log(p)))
+        base = self.lll([(1, 0, 0), (0, 1, 0), (0, 0, 1)])
+        self.base = base
+        seen = set()
+        for R in range(R_start, R_max + 1):
+            for i in range(-R, R + 1):
+                for j in range(-R, R + 1):
+                    for k in range(-R, R + 1):
+                        if max(abs(i), abs(j), abs(k)) != R and \
+                                R != R_start:
+                            continue
+                        if gcd(gcd(i, j), k) != 1:
+                            continue
+                        if (-i, -j, -k) in seen:
+                            continue
+                        seen.add((i, j, k))
+                        u = tuple(i * base[0][s] + j * base[1][s]
+                                  + k * base[2][s] for s in range(3))
+                        N = self.norm(*u)
+                        try:
+                            row = self.smooth_row(u, N)
+                        except ValueError:
+                            self.val_bad += 1
+                            continue
+                        if row is None:
+                            continue
+                        self.nrel += 1
+                        L = self.logabs0(u)
+                        key = tuple(sorted(row.items()))
+                        if key in first:
+                            du = abs(L - first[key])
+                            if du &gt; UNIT_TOL:
+                                self._add_unit(du)
+                        else:
+                            first[key] = L
+                        full = [0] * n
+                        for c_, v in row.items():
+                            full[c_] = v
+                        pending.append((full, L))
+            for full, L in pending:
+                self._insert(full, L)
+            pending = []
+            if len(self.hnf) == n and self._certify():
+                return True
+        return False
+
+    def _insert(self, vec, L):
+        """Insert a relation into the Hermite form, kept REDUCED (every entry
+        above a pivot below that pivot), so entries and logs stay small; a
+        relation reducing to zero is a unit."""
+        n = len(vec)
+        H = self.hnf
+        for j in range(n):
+            if vec[j] == 0:
+                continue
+            if j not in H:
+                if vec[j] &lt; 0:
+                    vec = [-x for x in vec]
+                    L = -L
+                H[j] = list(self._hreduce(vec, L, j))
+                self._reduce_above(j)
+                return
+            piv, Lp = H[j]
+            if vec[j] % piv[j] == 0:
+                q = vec[j] // piv[j]
+                vec = [vec[i] - q * piv[i] for i in range(n)]
+                L = self._redL(L - q * Lp)
+                continue
+            g, s, t = xgcd(piv[j], vec[j])
+            u, w = piv[j] // g, vec[j] // g
+            newp = [s * piv[i] + t * vec[i] for i in range(n)]
+            newL = s * Lp + t * L
+            vec = [w * piv[i] - u * vec[i] for i in range(n)]
+            L = self._redL(w * Lp - u * L)
+            if newp[j] &lt; 0:
+                newp = [-x for x in newp]
+                newL = -newL
+            H[j] = list(self._hreduce(newp, newL, j))
+            self._reduce_above(j)
+        if abs(L) &gt; UNIT_TOL:
+            self._add_unit(abs(L))
+
+    def _hreduce(self, row, L, j):
+        """Reduce the entries of row right of column j by the pivots."""
+        H = self.hnf
+        n = len(row)
+        for k in range(j + 1, n):
+            if row[k] and k in H:
+                pk = H[k][0]
+                q = row[k] // pk[k]
+                if q:
+                    row = [row[i] - q * pk[i] for i in range(n)]
+                    L = L - q * H[k][1]
+        return row, self._redL(L)
+
+    def _reduce_above(self, j):
+        H = self.hnf
+        for i in list(H):
+            if i &lt; j and H[i][0][j]:
+                H[i] = list(self._hreduce(H[i][0], H[i][1], j - 1))
+
+    def _redL(self, L):
+        if self.R &gt; 0:
+            return L - mpmath.nint(L / self.R) * self.R
+        return L
+
+    def _add_unit(self, L):
+        """Fold a unit's log into R, the real gcd of the units' logs. The
+        logs are carried to 60 digits, so a remainder under UNIT_TOL is zero;
+        the drift is the largest distance of a unit's log from a multiple
+        of R, and a sound run keeps it at the precision's floor."""
+        self.units.append(L)
+        R = self.R
+        if R == 0:
+            self.R = L
+            return
+        a, b = max(R, L), min(R, L)
+        while b &gt; UNIT_TOL * a:
+            r = a % b
+            if b - r &lt; UNIT_TOL * a:
+                r = MPF(0)
+            a, b = b, r
+        self.R = a
+
+    def unit_drift(self):
+        R = self.R
+        return max((float(abs(u - mpmath.nint(u / R) * R))
+                    for u in self.units), default=0.0)
+
+    def _certify(self):
+        h = 1
+        for j, (row, _) in self.hnf.items():
+            h *= row[j]
+        self.h_found = h
+        if h == 1 and not self.always_cert:
+            self.cert = None
+            self._snf()
+            return True
+        if self.R == 0:
+            return False
+        if self.R &lt; R_FLOOR:
+            self.floor_bad = True
+            return False
+        L = self.euler()
+        est = sqrt(abs(self.dk)) * L / (2 * pi)
+        self.cert = h * float(self.R) / est
+        if self.cert &gt; 1.5 or self.cert &lt; 0.5:
+            return False
+        self._snf()
+        return True
+
+    def euler(self, X=30000):
+        """The Euler product of zeta_K / zeta over p &lt; X."""
+        a, b, c, d = self.f
+        dk = self.dk
+        prod = 1.0
+        for p in PRIMES:
+            if p &gt;= X:
+                break
+            if dk % p == 0 or p == 2:
+                pat = self.ptype(p)
+                if pat == ((1, 1), (1, 2)):
+                    prod *= 1 / (1 - 1 / p)
+                elif pat == ((1, 1), (1, 1), (1, 1)):
+                    prod *= 1 / (1 - 1 / p) ** 2
+                elif pat == ((1, 1), (2, 1)):
+                    prod *= 1 / (1 - 1 / (p * p))
+                elif pat == ((3, 1),):
+                    prod *= (1 - 1 / p) / (1 - 1 / p ** 3)
+                continue
+            ls = legendre(dk, p)
+            if ls == -1:
+                prod *= 1 / (1 - 1 / (p * p))
+                continue
+            if self._splits(p):
+                prod *= 1 / (1 - 1 / p) ** 2
+            else:
+                prod *= (1 - 1 / p) / (1 - 1 / p ** 3)
+        return prod
+
+    def _splits(self, p):
+        """At p not dividing d_K with (d_K/p) = +1: total splitting."""
+        a, b, c, d = self.f
+        if a % p == 0:
+            return True
+        ia = pow(a, -1, p)
+        e2, e1, e0 = (-b * ia) % p, (c * ia) % p, (-d * ia) % p
+
+        def mulmod(u, v):
+            r = [0] * 5
+            for i in range(3):
+                if u[i]:
+                    for j in range(3):
+                        r[i + j] += u[i] * v[j]
+            for k in (4, 3):
+                t = r[k] % p
+                if t:
+                    r[k - 1] -= t * e2
+                    r[k - 2] -= t * e1
+                    r[k - 3] -= t * e0
+            return [r[0] % p, r[1] % p, r[2] % p]
+
+        res, base, e = [1, 0, 0], [0, 1, 0], p
+        while e:
+            if e &amp; 1:
+                res = mulmod(res, base)
+            base = mulmod(base, base)
+            e &gt;&gt;= 1
+        return res == [0, 1, 0]
+
+    def _snf(self):
+        """Smith form of the relation matrix with the column transform V:
+        a row vector e is in the lattice iff (e V)_k = 0 mod d_k."""
+        n = len(self.fb)
+        A = [list(self.hnf[j][0]) for j in range(n)]
+        V = [[int(i == j) for j in range(n)] for i in range(n)]
+        for k in range(n):
+            while True:
+                piv = None
+                for i in range(k, n):
+                    for j in range(k, n):
+                        if A[i][j] and (piv is None or abs(A[i][j]) &lt;
+                                        abs(A[piv[0]][piv[1]])):
+                            piv = (i, j)
+                if piv is None:
+                    break
+                i, j = piv
+                A[k], A[i] = A[i], A[k]
+                for row in A:
+                    row[k], row[j] = row[j], row[k]
+                for row in V:
+                    row[k], row[j] = row[j], row[k]
+                done = True
+                pk = A[k][k]
+                for i in range(k + 1, n):
+                    q = A[i][k] // pk
+                    if q:
+                        A[i] = [A[i][t] - q * A[k][t] for t in range(n)]
+                    if A[i][k]:
+                        done = False
+                for j in range(k + 1, n):
+                    q = A[k][j] // pk
+                    if q:
+                        for row in A:
+                            row[j] -= q * row[k]
+                        for row in V:
+                            row[j] -= q * row[k]
+                    if A[k][j]:
+                        done = False
+                if not done:
+                    continue
+                bad = None
+                for i in range(k + 1, n):
+                    for j in range(k + 1, n):
+                        if A[i][j] % pk:
+                            bad = i
+                            break
+                    if bad is not None:
+                        break
+                if bad is None:
+                    break
+                A[k] = [A[k][t] + A[bad][t] for t in range(n)]
+        diag = [abs(A[k][k]) for k in range(n)]
+        self.V = V
+        self.inv = [(k, dk) for k, dk in enumerate(diag) if dk &gt; 1]
+        self.cl = tuple(dk for _, dk in self.inv)
+        self.h = 1
+        for dk in self.cl:
+            self.h *= dk
+
+    def cls(self, row):
+        """The class of the ideal with exponent row {col: v}."""
+        out = []
+        for k, dk in self.inv:
+            s = 0
+            for c_, v in row.items():
+                s += v * self.V[c_][k]
+            out.append(s % dk)
+        return tuple(out)
+
+    def place_class(self, pl, R_max=6):
+        """The class of a place in the factor base, or of a degree-1
+        place outside it, or None if not placed."""
+        if pl.idx is not None:
+            return self.cls({pl.idx: 1})
+        if pl.deg != 1:
+            raise ValueError("past the factor base, degree 1 only")
+        p = pl.p
+        al, be = self.hom(pl, 1)
+        lat = self.lll([(p, 0, 0), (-al, 1, 0), (-be, 0, 1)])
+        for R in range(1, R_max + 1):
+            for i in range(-R, R + 1):
+                for j in range(-R, R + 1):
+                    for k in range(-R, R + 1):
+                        if max(abs(i), abs(j), abs(k)) != R:
+                            continue
+                        u = tuple(i * lat[0][s] + j * lat[1][s]
+                                  + k * lat[2][s] for s in range(3))
+                        if gcd(gcd(u[0], u[1]), u[2]) != 1:
+                            continue
+                        N = self.norm(*u)
+                        if N == 0 or N % p or (N // p) % p == 0:
+                            continue
+                        row = self.smooth_row(u, N // p)
+                        if row is None:
+                            continue
+                        c = self.cls(row)
+                        return tuple((-x) % dk for x, (_, dk) in
+                                     zip(c, self.inv))
+        return None
+
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/cubic.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

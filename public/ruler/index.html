@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RULER — evaluations that know their optimum | Numbers read one place at a time</title>
+<meta name="description" content="RULER — evaluations that know their optimum">
+<link rel="alternate" type="text/markdown" href="/ruler.md">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a> › <a href="/instruments/">Exact truth</a></nav></header>
+<main><article>
+<h1>RULER — evaluations that know their optimum</h1>
+<p class="lead">The object: an integer x in Z/N, N = Mc, read through the residue r = x
+mod M, held in its <dfn id="t-channels">channels</dfn>, the residues of x at the prime powers
+exactly dividing M; the fiber over r is the c integers r + jM, j its
+index, and c is the cofactor, with M &gt; 1 and c &gt; 1 throughout. An
+<dfn id="t-eval">eval</dfn> is a task with a prior, this evidence and a score (0-1
+accuracy, or log-loss in nats). Its ceiling is the Bayes-optimal
+expected score, its floor the best score with the evidence severed, and
+a cell (N, M) is dead when the two coincide; a <dfn id="t-gauge">gauge</dfn> is the closed
+form naming the dead cells. The tasks ask one question of size or order:
+the sign bit [2x ≥ N], the threshold [x ≥ t], the cyclic orientation of
+three points, the comparison of two, and the magnitude class ⌊kx/N⌋. The
+prior is uniform or the tilt θ^x, whose ratio between neighbours in a
+fiber is q = θ^M. The exact Bayes error then makes the family a
+<dfn id="t-ruler">ruler</dfn>: an estimator of the Bayes error is scored on its bias against
+the truth and on the coverage of its own stated 95% interval, the
+fraction of trials in which that interval holds the truth. The verifiers
+are <a href="/code/ceiling/">ceiling.py</a>, <a href="/code/estimators/">estimators.py</a>, <a href="/code/statements/">statements.py</a>, <a href="/code/audit/">audit.py</a>, <a href="/code/selfreport/">selfreport.py</a>,
+<a href="/code/lira/">lira.py</a> and <a href="/code/sets/">sets.py</a>.</p>
+<nav class="toc" aria-label="Contents" data-generated="toc"><ol><li><a href="#the-parity-law-of-the-sign-bit">The parity law of the sign bit</a> <span>theorem; observation</span></li><li><a href="#one-threshold-range-one-tent-the-threshold-family">One threshold range, one tent: the threshold family</a> <span>theorem; observation</span></li><li><a href="#the-gauge-is-the-tasks-orientation-and-comparison">The gauge is the task's: orientation and comparison</a> <span>theorem</span></li><li><a href="#the-threshold-range-law-under-a-tilted-prior">The threshold-range law under a tilted prior</a> <span>theorem</span></li><li><a href="#the-resonance-criterion">The resonance criterion</a> <span>criterion</span></li><li><a href="#one-live-arc-the-magnitude-parent">One live arc: the magnitude parent</a> <span>theorem; observation</span></li><li><a href="#the-knife-a-consistent-point-inside-an-inconsistent-interval">The knife: a consistent point inside an inconsistent interval</a> <span>observation</span></li><li><a href="#more-data-a-worse-held-out-interval">More data, a worse held-out interval</a> <span>observation</span></li><li><a href="#one-bound-at-two-statistics">One bound at two statistics</a> <span>theorem</span></li><li><a href="#the-spanning-tree-is-not-identified">The spanning tree is not identified</a> <span>property</span></li><li><a href="#the-sign-law-of-a-stated-interval">The sign law of a stated interval</a> <span>property</span></li><li><a href="#coverage-is-a-function-of-two-ratios">Coverage is a function of two ratios</a> <span>observation</span></li><li><a href="#the-kernel-of-the-inside-instruments">The kernel of the inside instruments</a> <span>property</span></li><li><a href="#the-nested-repair-reads-the-term-not-the-model">The nested repair reads the term, not the model</a> <span>observation</span></li><li><a href="#the-audit-world-and-its-two-roots">The audit world and its two roots</a> <span>property</span></li><li><a href="#the-flip-is-the-sign-of-one-scalar">The flip is the sign of one scalar</a> <span>theorem; observation</span></li><li><a href="#the-audits-band-counts-one-sample-of-three">The audit's band counts one sample of three</a> <span>observation</span></li><li><a href="#with-σ-known-no-self-report-read-off-d-is-unbiased-at-every-distance">With σ known, no self-report read off D̂ is unbiased at every distance</a> <span>theorem</span></li><li><a href="#the-per-example-audit-states-its-gaussian-limit">The per-example audit states its Gaussian limit</a> <span>property</span></li><li><a href="#open-fronts">Open fronts</a></li></ol></nav>
+<p>The thesis: each eval read here at uniform ships its 0-1 ceiling as a
+closed form, a solver of a CRT combination or two and a comparison that
+attains it, and a gauge; which channels pay is the task's, not the
+ring's. The threshold family's dead cells at uniform, the even-c ones,
+are a resonance of that one prior: every rational tilt off uniform gives
+each a live threshold, and only the seam, where the threshold sits on a
+fiber boundary
+(<a href="/ruler/#one-threshold-range-one-tent-the-threshold-family">One threshold range, one tent: the threshold family</a>), stays dead
+at every tilt, the sign bit at even c among it, and the k-ary parent
+trades the isolated resonant tilts for one live arc of tilts, ending at
+resonance roots once M &gt; k and c &gt; k with k ∤ c. Turned on the textbook
+Bayes-error estimators, the ruler finds intervals that fail in ways more
+data does not repair, or for a stretch makes worse, and that a
+truth-free check sees only in part; the failures are the estimators',
+the ring supplying only their exact placement, and the two
+distribution-free brackets are one bound, correct and nearly
+uninformative on the family's own live thresholds. Read as a statement,
+estimate ± h or one side of it, an interval is protected only on the
+side its omitted term's known sign favours; under the normal
+approximation its coverage is a function of two ratios, and the one that
+decides, the bias's, is read from inside only through the fitted class's
+own functional. Turned on a published deletion audit, which estimates a
+mixture weight in the box [0, 1] and whose target the depth column
+(<a href="/forget/#two-witnesses-buy-the-robust-grade">FORGET: Two witnesses buy the robust grade</a>) places exactly, read against
+that exact target, the estimator is followed root by root: where its
+objective's vertex lies off the box, its wrong-side answers are the sign
+of one scalar, its band omits the noise of the samples it holds fixed,
+and a statement that
+reports the root set, its objective's roots in the box, keeps the sign
+law where the target is not identified. An auditor can measure the
+spread of their own answer from inside, but in the normal model with
+that scalar's spread σ known, no statement of its instability read off
+the scalar alone is right in the mean at every distance of the scalar's
+mean from 0. A second, per-example tool converges to its model's
+Gaussian limit rather than to the posterior, and its membership call
+survives only where the two share a side.</p>
+<h2 id="the-parity-law-of-the-sign-bit">The parity law of the sign bit</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a> (squarefree N); observation (211 dead of the 602 cells
+over the 57 squarefree rings from two or more of the first six primes).<br>
+Verifier: proof; <a href="/code/ceiling/#section_sign">ceiling.py::section_sign</a>.</p>
+<p>The below-count of fiber r is ⌈c/2 − r/M⌉. At even c it is c/2 on every
+fiber, so the posterior is the prior; at odd c it is (c+1)/2 for r &lt; M/2
+and (c−1)/2 otherwise, and every fiber scores (c+1)/2c. So the 0-1
+ceiling is (c+1)/2c at odd c and 1/2 at even c, and the log-loss is
+H₂((c+1)/2c) and log 2, H₂ the binary entropy in nats. At even
+squarefree N, c is even iff 2 does not divide M: those cells, and only
+those, are dead (211 of 602). At odd N, c is odd and no cell is dead.
+The achiever reconstructs r from the channels read and compares 2r
+with M. A lone channel p is the same law
+at M = p: at even squarefree N only channel 2 lifts the score, to
+1/2 + 1/N, and at odd N every channel scores 1/2 + p/2N, so a channel
+set is priced against its own subsets (N = 2310 read at {2, 3, 5} scores
+39/77, its best lone channel 578/1155). This is the hiding lemma of
+<a href="/size/#the-hiding-lemma">SIZE: The hiding lemma</a> read as a score: a posterior that leans nowhere
+is a dead cell.</p>
+<h2 id="one-threshold-range-one-tent-the-threshold-family">One threshold range, one tent: the threshold family</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>; observation (the floor sets' sizes, over the 40,914
+(cell, t) slices with N ≤ 500 a product of two or more distinct primes
+among 2, 3, 5, 7, 11, 13).<br>
+Verifier: proof; <a href="/code/ceiling/#section_threshold">ceiling.py::section_threshold</a>.</p>
+<p>Write t = QM + s, 0 ≤ s &lt; M. Fiber r holds Q + [r &lt; s] points below t,
+so two fiber types exist. The 0-1 ceiling is the floor max(t, N − t)/N
+except when c = 2m + 1 is odd and t lies strictly inside the middle
+range (mM, (m+1)M), where it is (c+1)/2c whatever t is. The lift there
+is the tent min(s, M − s)/N, highest at the midpoint: the sign bit is
+the family's extremal member. The achiever guesses below at fiber r iff
+Q + [r &lt; s] &gt; c/2. The two scores disagree about deadness. The log-loss
+is (s/M)H₂((Q+1)/c) + ((M−s)/M)H₂(Q/c), at the prior's entropy iff
+M | t, so its floor set is the thin <dfn id="t-seam">seam</dfn> {M | t}, the thresholds on
+a fiber boundary; the 0-1 floor set is everything outside the range,
+where the posterior, off the seam, moves but never crosses 1/2 (the
+log-loss floor set 4,599 slices, inside the 0-1 floor set's 38,217).</p>
+<h2 id="the-gauge-is-the-tasks-orientation-and-comparison">The gauge is the task's: orientation and comparison</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/ceiling/#section_orientation">ceiling.py::section_orientation</a>.</p>
+<p>Orientation. A uniform ordered triple of distinct points, all three read
+mod M, is positive iff (y − x) mod N &lt; (z − x) mod N. With the
+differences reduced mod M to (α, β), a fiber with α ≠ β, both nonzero,
+leans (c+1)/2c toward the residue order (the differences α + jM and
+β + j′M compare by j against j′ and at a tie by α against β; at α = 0, j
+runs from 1 and half the pairs of blocks order each way); α = β, or a
+zero among them, is balanced. The ceiling is
+1/2 + c(M−1)(M−2)/(2(N−1)(N−2)), the floor 1/2, and no fiber's
+posterior reaches 0 or 1. The one dead cell shape is M = 2: channel 2,
+without which the sign bit is dead at even squarefree N, is
+orientation's only blind channel, and a lone channel is worth more the
+larger its prime. The achiever subtracts the residues
+channel by channel, CRT-combines the two differences and compares them.</p>
+<p>Comparison. [x &lt; y] on a uniform ordered pair of distinct points, both
+read mod M, to residues r_x and r_y: r_x &lt; r_y leans (c+1)/2c, r_x = r_y
+is balanced, and the ceiling is 1/2 + (M−1)/(2(N−1)), with no condition
+on c, over a floor of exactly 1/2. No cell is dead, M = 2 included. The
+achiever CRT-combines both residues and compares them.</p>
+<p>The <dfn id="t-skew-unit">skew unit</dfn> (property) is the score (c+1)/2c. In the sign,
+threshold, orientation and comparison tasks every fiber whose lean
+crosses 1/2 is a staircase count on a c-point ladder and scores exactly
+the skew unit. The four tasks carry three gauge shapes: the threshold
+range (sign and threshold; at the midpoint threshold its live condition
+is c odd), the inverted gauge (orientation, dead only at M = 2) and the
+constant gauge (comparison, never dead). The inversion is the prime
+2's: at even squarefree N the sign bit is dead exactly when 2 does not
+divide M, since c is then even, and orientation exactly when M = 2.</p>
+<h2 id="the-threshold-range-law-under-a-tilted-prior">The threshold-range law under a tilted prior</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/ceiling/#section_tilt">ceiling.py::section_tilt</a>.</p>
+<p>Under the tilt a fiber of below-count J lies below t with probability
+Pb(J) = (1 − q^J)/(1 − q^c), and leans below iff J &gt; Q*,
+Q* = log_q((1 + q^c)/2), which lies strictly in (0, c) whenever q ≠ 1.
+So a threshold is live iff s ≠ 0 and Q &lt; Q* &lt; Q + 1: at every tilt
+off uniform the live thresholds form one range of M − 1 thresholds
+at index ⌊Q*⌋, empty exactly when Q* is an integer. The seam {M | t},
+where every fiber has one type, has posterior equal to prior at every
+tilt and is the whole log-loss floor set at every tilt. An even-c cell,
+dead at every threshold at uniform, has a live threshold at every
+rational tilt off uniform (the resonance criterion below), and the map
+x ↦ N − 1 − x sends the ceiling at (θ, t) to the ceiling at
+(1/θ, N − t). A single fixed threshold is live only on a range of
+tilts; the family loses every live threshold only at its cell's
+irrational resonant tilts and, at even c, at uniform, and its one live
+range slides toward index 0 as q → 0 and toward index c − 1 as q → ∞.
+The sign bit's own row is the k = 2 row of the magnitude arc: at odd
+c = 2m + 1 ≥ 3 it is alive exactly while q lies in (ρ_m, 1/ρ_m), ρ_m
+the root in (0, 1) of q^(2m+1) − 2q^m + 1, the values of q putting Q*
+in (m, m + 1), an interval in q free of M, dead outside, and at even c
+its threshold N/2 sits on the seam, dead at every tilt.</p>
+<h2 id="the-resonance-criterion">The resonance criterion</h2>
+<p class="tag">Tier: <a href="/key/#criterion">criterion</a>.<br>
+Verifier: proof; <a href="/code/ceiling/#section_resonance">ceiling.py::section_resonance</a>.</p>
+<p>Off uniform, q ≠ 1, the range of a cell with cofactor c is empty iff q
+is a root of f(q) = q^c − 2q^J + 1 for some 0 &lt; J &lt; c; at uniform it is
+empty iff c is even, the parity law. Proof. At q ≠ 1, Q* = J is
+2q^J = 1 + q^c, and Q* lies in (0, c). f is monic with constant term 1,
+so its only rational roots are ±1: no rational tilt off uniform is ever
+resonant. Its signs +, −, + allow two positive roots, one of them q = 1
+with f′(1) = c − 2J. From f(0) = 1 and f → ∞, at 2J &lt; c the other root
+lies in (0, 1) and at 2J &gt; c in (1, ∞), one algebraic irrational per
+pair; q ↦ 1/q exchanges J and c − J. At 2J = c, f = (q^J − 1)², so q = 1
+is a double root and the only one: the uniform prior is where the 2J = c
+family collapses, which is the parity law's dead half. At
+(J, c) = (1, 3), f = (q − 1)(q² + q − 1), and the root is the reciprocal
+golden ratio. ∎</p>
+<h2 id="one-live-arc-the-magnitude-parent">One live arc: the magnitude parent</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a> (every N, squarefree or not); observation (the masses
+read at two tilted cells).<br>
+Verifier: proof; <a href="/code/ceiling/#section_magnitude">ceiling.py::section_magnitude</a>, <a href="/code/sets/#section_family">sets.py::section_family</a>.</p>
+<p>Write c = ak + v, 0 ≤ v &lt; k. At an atom, the fiber over r, the classes
+of Y = ⌊kx/N⌋ are contiguous blocks of fiber indices of lengths a and
+a + 1, exactly v of them heavy (length a + 1), at
+{⌊k(ℓ + r/M)/v⌋ : ℓ &lt; v}; the first heavy class is y₁(r) = ⌊kr/(vM)⌋. At
+uniform every atom's best class carries ⌈c/k⌉/c, so the ceiling is
+⌈c/k⌉/c over a floor of ⌈N/k⌉/N, and guessing y₁(r) attains it (at k | c
+every class ties). A cell is dead at uniform iff k | c or M(k − v) &lt; k,
+saturation, where class 0 is heavy at every atom; it needs k &gt; M, and at
+k = 2 the gauge is the parity law's.</p>
+<p>Under the tilt a block starting at lo of length w carries mass
+q^lo(1 − q^w). Since q's powers are monotone, the first of equal-length
+blocks wins at q &lt; 1 and a heavy block beats every later light one; so
+off uniform an atom's best class is 0 or y₁(r) at q &lt; 1, the last heavy
+or k − 1 at q &gt; 1 (at uniform all heavy classes tie). At q &lt; 1 an atom
+with y₁ ≥ 1 overrules the floor's guess, class 0, iff
+g(q) = 1 − q^a − q^L + q^(L+a+1) &lt; 0, L = a·y₁(r): g has one root in
+(0, 1), at a ≥ 1, and the atom overrules above it; at a = 0 its class 0
+is empty and it overrules at every q &lt; 1. The root rises with L, since
+g &lt; 0 iff q^L &gt; (1 − q^a)/(1 − q^(a+1)), a ratio falling from 1 to
+a/(a + 1) on (0, 1) while q^L rises from 0 to 1, so they cross once. The
+partition is a floor partition, not symmetric under x ↦ N − 1 − x, so
+q &gt; 1 is read on its own, where a cell is dead exactly when one class is
+best at every atom. An atom whose top class is heavy keeps class k − 1;
+one whose top class is light prefers its last heavy class y_last on
+(1, 1/q′), q′ the root of g at L = a(k − 1 − y_last), and k − 1 above
+it, or y_last at every q &gt; 1 when a = 0. The top class is light at the
+atom r = 0 whenever k ∤ c, and if it is light at every atom, which needs
+Mv &lt; k, the atoms r = 0 and r = M − 1 differ in
+y_last = ⌊k(v − 1 + r/M)/v⌋. So at a tilt q &gt; 1 the cell is alive iff q
+lies in (1, 1/q′) for some light-topped atom: it is alive on (1, q_up),
+q_up the largest of those 1/q′ and infinite when a = 0. So every cell is
+of one of three kinds: dead at every tilt iff k | c; alive at every tilt
+when a = 0 and it is unsaturated; otherwise alive on exactly one open
+arc (q_lo, q_up), q_lo the least root in (0, 1) of g over the atoms
+with y₁ ≥ 1, or 1 if there is none, each end algebraic, 1 or infinite.
+A saturated cell
+has q_lo = 1: dead at uniform and below, revived by a small tilt upward,
+and dead again past q_up when a ≥ 1. When M &gt; k, a ≥ 1 and k ∤ c the arc
+is (ρ_a, 1/ρ_a), ρ_a the root in (0, 1) of q^(2a+1) − 2q^a + 1, the f
+of <a href="/ruler/#the-resonance-criterion">The resonance criterion</a> at J = a and cofactor 2a + 1, a
+function of ⌊c/k⌋ alone: a phase r/M in [v/k, 2v/k) gives y₁ = 1 and
+one in [1 − 2v/k, 1 − v/k)
+gives y_last = k − 2, each meeting [0, 1) in length at least 1/k &gt; 1/M,
+so L = a is reached at each end. ρ₁ is the reciprocal golden ratio.</p>
+<p>Read set-valued, the class keeps what the fiber index loses. The index j
+reads q^j at every atom, the θ^r cancelling, while the class blocks move
+with the atom's phase r/M. At uniform every atom carries the same
+multiset of masses, so a set's size is blind to the atom and only its
+labels move; at k | c the blocks do not move at all, so every atom
+carries one law at every tilt; at a = 0, c classes hold one point each
+and the rest are empty, and every atom carries one multiset at every
+tilt; at the two tilted cells with k ∤ c that <a href="/code/sets/#section_family">sets.py::section_family</a>
+reads, the masses themselves depend on the atom. <a href="/sets/">SETS</a> scores set
+rules on this class.</p>
+<h2 id="the-knife-a-consistent-point-inside-an-inconsistent-interval">The knife: a consistent point inside an inconsistent interval</h2>
+<p class="tag">Tier: <a href="/key/#observation">observation</a> (the ratio derived asymptotically; 40 trials at
+n = 500 to 32,000, on the ring and on bare Bernoulli bins).<br>
+Verifier: <a href="/code/estimators/#section_knife">estimators.py::section_knife</a>,
+<a href="/code/estimators/#section_transient">estimators.py::section_transient</a>.</p>
+<p>Drawing x uniform and reading (x mod M, [x ≥ t]) draws a bin r uniform
+and a label Bernoulli(η_r), η_r = (c − J(r))/c with J(r) the below-count
+of fiber r, its number of points below t, so any failure an estimator
+shows on the ring it shows on bare bins with those η_r (property); what
+the ring adds is placement, η_r = 1/2 exactly at a knife slice
+(c even, t = N/2), with the truth computed in exact rational arithmetic.
+There resubstitution on n points, (1/n)Σ_r min(n_r0, n_r1) with n_r0 and
+n_r1 the label counts in bin r, falls short by the mean absolute
+deviation of a fair binomial, (1/2)√(2M/πn), while its stated half-bar
+is 1.96/(2√n): the point estimate is consistent, but the ratio of
+deficit to half-bar is √(2M/π)/1.96, free of n (1.5766 at M = 15,
+printed −1.46 to −1.68 as a signed ratio over 40 trials a point), and
+the interval covers at 0 to 3% at every n on the ring and bare alike.
+The failure is a band at 1/2: on bare bins
+at n = 8000 a label rate one sixty-fourth off 1/2 already covers at
+0.90. The band's width in the scaled offset 2δ√(n/M), δ the label rate's
+distance from 1/2, is measured only, at n = 8000, M = 15.</p>
+<h2 id="more-data-a-worse-held-out-interval">More data, a worse held-out interval</h2>
+<p class="tag">Tier: <a href="/key/#observation">observation</a> (40 trials per point; the direction on the ring and
+on bare bins, the recovery on bare bins to n = 512,000).<br>
+Verifier: <a href="/code/estimators/#section_transient">estimators.py::section_transient</a>.</p>
+<p>Held-out fits the per-bin majority on half the sample and scores it on
+the other half, so it measures a fitted rule, whose excess over the
+optimum is Σ_r P(r)|2η_r − 1|·P(the bin's majority flips). At
+|η_r − 1/2| = δ that decays exponentially in δ²n_r only once n_r passes
+1/δ², while the stated bar shrinks as 1/√n from the start. So coverage
+falls as data grows, then recovers: at M = 105, η = 6/11 on bare bins
+it runs 0.88 at n = 500 to 0.17 at n = 32,000 and back to 0.95 at
+128,000 over 40 trials a point (a second run of 400 reads 0.24 at
+32,000, <a href="/ruler/#coverage-is-a-function-of-two-ratios">Coverage is a function of two ratios</a>), and the ring
+slice with those η_r falls alike, 0.72 at n = 500 to 0.12 at 8000 and
+0.30 at 32,000. Without the exact truth the tightening interval
+reads as improving evidence.</p>
+<h2 id="one-bound-at-two-statistics">One bound at two statistics</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/estimators/#section_bound">estimators.py::section_bound</a>.</p>
+<p>Two distribution-free brackets are standard: Cover–Hart's
+[(1 − √(1 − 2R_NN))/2, R_NN] from the nearest-neighbour error, and the
+bracket [(1 − √u)/2, (1 − u)/2] of Berisha, Wisler, Hero and Spanias
+(IEEE Trans. Signal Process. 2016, Theorem 2) from a Friedman–Rafsky
+spanning-tree count, u = 1 − 2W/n with W the number of the tree's edges
+joining two labels, taken as 0 when negative. On a categorical feature
+with every bin populated (n ≫ M), ties among zero-distance neighbours
+broken blind to the label, R_NN tends to E[2η(1 − η)], and under a tree
+blind to the labels (the next block) u has population value
+E[(2η − 1)²]; (1 − u)/2 = E[2η(1 − η)] identically, so the two are one
+bound read through two statistics, and a second bracket buys a second
+estimator, never a second opinion. Since the Bayes error is
+R* = 1/2 − E|2η − 1|/2, the lower end's gap is the Jensen gap of
+|2η − 1|: zero iff |c − 2J(r)| is constant in r, iff M | t or t lies in
+the odd-c middle range. On that range the bound is correct and nearly
+uninformative: at N = 105, M = 15 the exact bracket is [3/7, 24/49] and
+holds the no-evidence value at 12 of the 14 thresholds inside it, so
+even exact knowledge of the statistic certifies the family's lift at
+two.</p>
+<h2 id="the-spanning-tree-is-not-identified">The spanning tree is not identified</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: proof; <a href="/code/estimators/#section_mst">estimators.py::section_mst</a>.</p>
+<p>The Friedman–Rafsky count assumes a unique minimum spanning tree. On a
+categorical feature two points of one bin sit at distance 0, so any
+spanning tree of a bin's clique belongs to a minimum spanning tree, and
+every choice is genuine. A chain in label order puts one cross edge in
+each two-label bin, so W/n → 0 and the bracket collapses to [0, 0], the
+classes declared separable; a spanning tree of the bipartite graph
+between a bin's two label classes makes all n_r − 1 of its edges cross,
+so W/n tends to the mass of the two-label bins, which is 1 where every
+fiber holds both labels, as on the odd-c range; there u → −1 is clipped
+to 0 and the bracket sits at [1/2, 1/2]. Exchanging one edge of a tree
+moves W by at most 1, and such exchanges walk from one spanning tree to
+any other; every tree crosses at least once in each two-label bin, so
+where every fiber holds both labels the bracket's upper end takes every
+value from order M/n to 1/2 in steps of 1/n: the values the bracket
+states over the minimum spanning trees, its identified set, are every
+value a binary Bayes error can take, to within order M/n. A tree
+whose shape ignores the labels has the labels exchangeable on its
+n_r − 1 edges, expected cross count 2n_r0 n_r1/n_r, which is the
+population quantity; label-blindness is the repair, and randomness buys
+nothing beyond it. The edges between bins number at most M − 1, so they
+move W/n by at most M/n. ∎ At n = 8000 on the slice N = 105, M = 15,
+t = 45 the three within-bin trees give W/n = 0.0019, 0.998 and 0.4885
+against 24/49 = 0.4898.</p>
+<h2 id="the-sign-law-of-a-stated-interval">The sign law of a stated interval</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a> (proved, up to the binomial bar's normal approximation;
+measured at 8 settings, two worlds at four sample sizes, 400 trials
+each, and under non-identification in the audit's Gaussian worlds at
+mixture weights 1/5 and 4/5 with equal class variances, and in one where
+the second root has left the box, 200 trials each).<br>
+Verifier: proof; <a href="/code/statements/#section_sign">statements.py::section_sign</a>, <a href="/code/audit/#section_band">audit.py::section_band</a>.</p>
+<p>A statement "estimate ± h", or one side of it, counts only the error its
+own arithmetic admits; what it omits is its uncounted term. A <dfn id="t-held-out-bound">held-out
+bound</dfn> fits a rule on one half and states err + h, one-sided, on the
+other: the rule is fixed before the test half is read, so err is
+binomial about the rule's own risk and the bar is the right width for
+that, and every rule's risk is at least the Bayes error. So the bound
+covers the Bayes error at least as often as it covers the rule's risk:
+the omitted term has a known sign and only adds margin, whatever the
+world. ∎ That the bar covers the rule's risk at its nominal is the
+normal approximation's, and fails near a risk of 0, where err = 0 states
+a bar of 0. A fit (a plug-in with its model-implied bar) has a signed
+term only in the mean, never trial by trial: the per-bin plug-in reads
+low in the mean in every world, since min is concave, while a pooled fit,
+the bins merged into groups, adds its pooling gap, the excess of the
+pooled limit over the Bayes error, against that pull, so its sign is the
+world's. Nothing forces a fit to fail either: at the knife the per-bin
+bar is too wide for the estimate's sd S, h/S = 3.25 derived, 3.09 to
+3.26 printed, and its two-sided coverage of 0.02 to 0.03 is lost to bias
+alone. The protection is one-sided: the same held-out error stated
+two-sided for the Bayes error has the term against its lower end and
+fails (0.18 at n = 8000, on the plane of
+<a href="/ruler/#coverage-is-a-function-of-two-ratios">Coverage is a function of two ratios</a>). Conservative is not
+empty: on a world with no bin rate nearer 1/2 than 1/10 the bound
+excluded the no-evidence 1/2 in every trial at every n, and on it and
+at the knife the bound covered 0.970 to 0.988 against 0.975.</p>
+<p>The law survives a target that is not identified, where the omitted term
+is not a displacement but which root is the truth. On the audit below
+(<a href="/ruler/#the-audit-world-and-its-two-roots">The audit world and its two roots</a>, the box being [0, 1]),
+report from the same resamples of the audited set the 95% quantile of
+the largest in-box root as an upper bound and the 5% quantile of the
+smallest as a lower one: the truth is one of the roots, so the root term
+only widens. At equal class variances and the audit's mixture weight
+κ = 1/5, the pair closes on [1/5, 4/5], the span of the identified set
+{1/5, 4/5}, and not on a point, its excess 0.194, 0.146, 0.047 below
+and 0.194, 0.147, 0.048 above at n = 50, 200, 1000; the bound on the
+second root's side covers in every trial and refuses to tighten, the
+other tightens and covers
+0.93 to 1. At κ = 4/5 the two trade roles, the slacks within 0.003 of
+their mirrors and the tightening bound covering 0.925 to 1. With the
+second root
+pushed out of the box the same statement contracts (upper slack 0.047 at
+n = 1000) and covers 0.87 to 0.96 against 0.95: the root term is gone in
+the population, and what is left omits the class samples' noise, as the
+band below does. The pair is never wrong together by construction. The
+tool's own band, the quantiles of the argmin, chooses a mode and has no
+such term.</p>
+<h2 id="coverage-is-a-function-of-two-ratios">Coverage is a function of two ratios</h2>
+<p class="tag">Tier: <a href="/key/#observation">observation</a> (44 settings over five worlds, four sample sizes and
+five kinds of statement; the formula follows from construction under
+normality, and what is measured is that the approximation holds).<br>
+Verifier: <a href="/code/statements/#section_plane">statements.py::section_plane</a>.</p>
+<p>With b the estimate's mean deviation from the truth, S its sd and h the
+mean stated bar, a two-sided statement covers at
+Φ((h − b)/S) − Φ((−h − b)/S), Φ the standard normal distribution
+function, and a one-sided bound at Φ((b + h)/S).
+Every setting landed within 0.034 of that (mean 0.006), so at these
+sizes, n ≥ 500, mechanisms that read as distinct act only by where they
+put a statement on the plane (b/S, h/S). With h/S settled, whether data
+carries coverage to its value at b = 0 is the trajectory of b/h: to 0 or
+negligible, remedied (a well-specified plug-in, |b|/h 0.048 to 0.038,
+each within two standard errors of 0); constant, sample size irrelevant
+(the knife, √(2M/π)/1.96 = 1.5766, |b|/h printed 1.57 to 1.60 over 400
+trials a point); to infinity, more data is worse. The third regime
+has two residents. A model class that cannot hold the truth, pooling
+bins whose group straddles 1/2, keeps b on its exact pooling gap 7/750
+while h falls: |b|/h 0.22 to 1.81, coverage 0.94 to 0.06, and the
+coverage passes 1/2 where |b|/h passes about 1. A shrinkage toward 1/2
+at weight λ = n^(−1/4) is (1 − λ)·(plug-in) + λ/2 exactly, since the
+lesser of a rate and its complement is linear on each side of 1/2 and
+the pull never crosses, so b decays as n^(−1/4): divergent while still
+moving (|b|/h 1.24 to 3.79). Held-out's transient
+(<a href="/ruler/#more-data-a-worse-held-out-interval">More data, a worse held-out interval</a>) sits on the same plane:
+in a second run of 400 trials beside that block's 40, on a world of 105
+bins at η = 6/11, coverage 0.89, 0.51, 0.18, 0.24 at n = 500, 2000,
+8000, 32,000, each within 0.026 of it.</p>
+<h2 id="the-kernel-of-the-inside-instruments">The kernel of the inside instruments</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a> (the kernel and the shrinkage identity, proved; the
+knife factor derived asymptotically; the detection rates measured at
+400 trials).<br>
+Verifier: proof; <a href="/code/statements/#section_kernel">statements.py::section_kernel</a>.</p>
+<p>An auditor holding one sample estimates S by resampling, as Ŝ, the sd of
+the estimate over bootstrap resamples of that sample, so h/S is free
+from inside; b/S decides, and it is the hidden coordinate. On one world a
+pooled and a per-bin fit printed h/Ŝ within 0.2 of each other at every
+n while their coverages parted to 0.06 and 0.97. Two instruments reach
+for b. With Ê the estimate of R* and Ê* its value on a resample, the
+bootstrap term, mean Ê* − Ê at the same n, estimates the bias against
+the estimator's own estimand, the class's functional on the population;
+the drift, Ê on the sample minus Ê on an exact half run at n/2, reads
+b(n) − b(n/2). So the gap between a class's limit and the truth is
+invisible to the bootstrap by construction, the drift differences a
+settled term away, and a term that has stopped moving is in the kernel
+of both. ∎ Both reach b only through the class's own functional, which
+is why the nested repair escapes by fitting a richer class. At the
+shrinkage the bootstrap is blind by identity, the λ/2 parts cancelling
+at equal n (its term is (1 − λ) times the plug-in's to 2·10⁻¹⁶), while
+the drift reads −(2^(1/4) − 1)λ(1/2 − R*) and its hand values land
+within 0.09 of h. At the knife the bootstrap sees the term and reads
+only √2 − 1 of it: a resampled bin rate carries twice the fitted one's
+variance where |·| is not differentiable (0.402 to 0.420 printed). The
+drift's mean reads the same fraction with the opposite sign, b falling
+as 1/√n there, but a single drift has sd near S and its mean is not
+measured. The failure is anti-monotone: at thresholds holding false
+alarms to 0.10, the bootstrap caught every knife trial and 0.27, 0.01,
+0, 0 of the pooled fit's on the world of pooling gap 29/150, not the one
+above, as its |b|/h grew 4.4 to 35, since severity there is bought by
+the term converging. And the free coordinate bends the flattering way
+where the functional is not smooth: at the knife Ŝ/S is 1.18 to 1.24.</p>
+<h2 id="the-nested-repair-reads-the-term-not-the-model">The nested repair reads the term, not the model</h2>
+<p class="tag">Tier: <a href="/key/#observation">observation</a> (three pooled worlds at four sample sizes, 400
+trials; Δ̂ ≥ 0 and its limit, proved).<br>
+Verifier: <a href="/code/statements/#section_repair">statements.py::section_repair</a>.</p>
+<p>Where a richer class nests the model, read the two fits' difference in
+the functional, Δ̂ = pooled − per-bin: min is concave, so Δ̂ ≥ 0, its
+limit is the pooling gap, and it vanishes where every bin of a group
+sits on one side of 1/2. On a world pooled wrongly about 14 of its 15
+bins and exactly about the Bayes error (gap 0, coverage 0.95 to 0.96),
+a goodness-of-fit statistic fired hard, standardized means 8 to 548,
+while Δ̂/h alarmed on 0.06 then no trials; Δ̂ caught every trial of a
+world of pooling gap 29/150 and 0.998 of one of gap 7/750 at n = 32,000.
+It reads the term's size, never its lethality: at n = 500 it alarms on
+0.44 of the small gap's trials while that statement still covers at
+0.94, h alone deciding when the term kills. The kernel narrows and does
+not empty: error outside every class the auditor can nest stays
+uncounted.</p>
+<h2 id="the-audit-world-and-its-two-roots">The audit world and its two roots</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a> (proved; the depth-cell roots and the tangency identity
+checked in exact rational arithmetic, the Gaussian second root
+1 − κ + γ/4 in floating point at κ = 1/5 and the four γ in
+{0, 1/4, 1/2, 4/5} where it lies in the box, and found outside the box
+at γ = 1 and 2).<br>
+Verifier: proof; <a href="/code/audit/#section_controls">audit.py::section_controls</a>, <a href="/code/audit/#section_tangency">audit.py::section_tangency</a>.</p>
+<p>A mixture-proportion deletion audit (Statistical Membership Inference,
+arXiv:2602.01150, Lemma 3.2 and Algorithm 1, read at source) models the
+audited features as F_u = κF_out + (1 − κ)F_in, F_in the member class
+and F_out the non-member class, and reports κ. For a scalar feature,
+with d = μ_out − μ_in, μ_out and μ_in the class means, B = d²,
+A = var_u − var_in and G = var_out − var_in + B, it returns the
+minimizer of (A − pG + p²B)² over the candidates 0, 1 and the
+objective's critical points in [0, 1], the vertex G/(2B) and the roots
+of Bp² − Gp + A. It
+never reads the audited set's mean; its band is the {5%, 95%} quantiles
+of the estimate over resamples of the audited set. The world it is
+turned on is the depth column of <a href="/forget/">FORGET</a>: a history is a route of
+moves, each multiplying the state by 2 or by 3, and a <dfn id="t-depth-cell">depth cell</dfn> is
+named by its counts of moves by 2 and by 3, the cell (12, 3) holding the
+routes to the state 2^12 3^3 in every arrangement, equally likely. The
+audited datum is the first move, the member class the routes opening
+with 2 and the non-member class those opening with 3. That depth cell
+is an exact mixture of the two classes at weight κ, the share of moves
+by 3 (1/5 at (12, 3)), whose distance from ½ is the size of the count
+leak of <a href="/forget/#readability-descends-spread-ascends-flatness-neither">FORGET: Readability descends, spread ascends, flatness neither</a>,
+and with
+the feature the number of moves by 2 in the three positions after the
+first, each class is hypergeometric: the audit's model holds exactly and
+every moment is rational.</p>
+<p>For any two-class mixture var_u = κ var_out + (1 − κ)
+var_in + κ(1 − κ)d², so A = κG − κ²B identically: κ is a root of the
+population objective in every world, and the other root is A/(Bκ). ∎
+With F_in = 𝒩(0, 1) and F_out = 𝒩(2, 1 + γ) it is 1 − κ + γ/4: equal
+variances give the twin {κ, 1 − κ}, and a variance excess γ &gt; 0 slides
+the second root up until it leaves the box at γ = 4κ. The box, not the
+data, identifies. The depth cells (12, 3) and (2, 8), κ = 1/5 and 4/5,
+have second roots −113/65 and 17/10: both are identified. For a {0, 1}
+feature A − Bκ² = κd(1 − 2μ_u), μ_u the audited set's mean, its rate,
+since var_out − var_in = d(1 − μ_out − μ_in): for d ≠ 0 the two roots
+meet at κ exactly when the audited set is balanced, a tangency. ∎</p>
+<h2 id="the-flip-is-the-sign-of-one-scalar">The flip is the sign of one scalar</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a> (off the box); observation (inside it, the cases and
+their counts; the rates, 1,000 replicates per row).<br>
+Verifier: proof; <a href="/code/audit/#section_level">audit.py::section_level</a>.</p>
+<p>Write L(p) = Gp − Bp², the level the objective needs at p, so the
+estimate is the p whose L(p) is nearest Â. When a replicate's own
+vertex lies off [0, 1], L is monotone on the box and the estimate is
+Â clamped to L's range and inverted, so it lies past 1/2 exactly when
+Â is past the half-box level L(1/2) = G/2 − B/4, the direction set by
+the side of the box the vertex sits on. ∎ The flip, an estimate nearer
+1 − κ than κ, is therefore the sign of one scalar at the replicate's
+own coefficients,</p>
+<pre>D̂ = Â − (Ĝ/2 − B̂/4) = s_u² − s_in²/2 − s_out²/2 − d̂²/4,</pre>
+<p>s_u², s_in² and s_out² the sample variances (divisor n − 1) of the
+audited, member and non-member samples and d̂ the difference of the two
+class sample means, the flip being D̂ &lt; 0 at both depth cells, for a
+replicate whose vertex sits on the population's side, where D itself is
+positive; D̂ draws noise from all three samples, so the flip is not
+Â's event. At n = 200 and 1000 its rate is Φ(−D/sd(D̂)) within 4 standard
+errors, sd(D̂) by the delta method from the exact moments: 0.247 and
+0.063 against 0.275 and 0.060 measured at (12, 3), n = 200 and 1000,
+and 0.137 and 0.007 against 0.132 and 0.003 at (2, 8); at n = 50 the
+normal reading of D̂ degrades (0.368 against 0.440 at (12, 3)).
+Holding Ĝ and B̂ at the population and reading sd(Â) alone gives 0.100
+at (12, 3), n = 1000, 4.2 standard errors off. With the
+vertex in the box L is concave and the winning candidate decides. At the
+vertex the side is G &gt; B; at an endpoint it is the endpoint; a lone
+in-box root keeps the level set on its branch; two in-box roots both
+zero the objective and the winner is floating-point residue. When the
+winner is the vertex or an endpoint, the side of 1/2 is fixed by the
+class samples alone: of the 565 replicates at the depth cells whose
+vertex lies in the box, 553 fall in the first three cases and 370 in the
+first two, so crossing into the box the estimator changes which sample
+decides. L(1/2) lies strictly inside L's range, so the flip and the
+event of no in-box root, Â leaving that range, are two cuts of one
+scalar: a flip is a root drifting past 1/2 (0.92 to 1 of flips at
+n = 200 and 1000), not the silent fallback. The no-root rate is near
+the two normal tails of Â past the range's edges, Ĝ and B̂ held at the
+population, the near margin 0.0160 and 0.0156 in units of the level:
+within 0.037 of measurement at n = 200 and 1000 (observation), the class
+samples' noise left out. A tangency puts an edge on A itself, out of
+the tails' scope.</p>
+<h2 id="the-audits-band-counts-one-sample-of-three">The audit's band counts one sample of three</h2>
+<p class="tag">Tier: <a href="/key/#observation">observation</a> (two depth cells and three Gaussian worlds, κ = 1/5
+and 4/5 at γ = 0 and κ = 1/5 at γ = 2, three sizes, 200 replicates of
+200 resamples).<br>
+Verifier: <a href="/code/audit/#section_band">audit.py::section_band</a>.</p>
+<p>The band resamples the audited set and holds the class samples fixed, so
+it omits their noise, which enters D̂ at weights 1/2, 1/2 and 1/4 and
+has no known sign. At the identified depth cells it covers 0.69 to 0.78
+against its nominal 0.90 at every size, while it narrows with data
+(0.71 to 0.37 wide at (12, 3)). The same quantiles with all three
+samples resampled cover 0.87 to 0.95, above the band at all six rows:
+the omitted term is chiefly the held samples' noise, and no root choice
+is involved, the cells having one root in the box. The one-sided bound
+on the side of the box end nearest the truth fails there as well, 0.83
+to 0.92 at n = 200 and 1000, since the sign law covers the root set's term and
+never the counted spread's. At equal class variances the band covers
+0.83 to 0.89, choosing a mode where the bound pair reports the set.</p>
+<h2 id="with-σ-known-no-self-report-read-off-d-is-unbiased-at-every-distance">With σ known, no self-report read off D̂ is unbiased at every distance</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a> (in the normal model with σ known; the laws measured at two
+depth cells, three sizes, 1,000 replicate pairs each).<br>
+Verifier: proof; <a href="/code/selfreport/#section_theorem">selfreport.py::section_theorem</a>,
+<a href="/code/selfreport/#section_statements">selfreport.py::section_statements</a>.</p>
+<p>Off the box, with both vertices on one side of it, two audits of one
+world land on opposite sides of 1/2 exactly when their D̂s differ in
+sign (0 exceptions on 4,819 such pairs), an event the one unknown
+direction cannot touch, so an auditor can state their answer's
+instability from inside: Φ(−|D̂|/(ζσ̂)) at a scale ζ, or the pair form
+2p̂(1 − p̂) with p̂ = Φ(−|D̂|/σ̂). The spread is solved: σ̂ from the
+replicate's own moments sits within 5% of the exact delta-method sd at
+n = 200 and 1000. The form is not. With ν = D/σ, signed, the <dfn id="t-pair-rate">pair rate</dfn> is
+g(ν) = 2Φ(ν)Φ(−ν), even in ν, and a statement's mean is its folded law
+E[Φ(−|ν + ε|/ζ)], ε standard normal (within 0.010 of measurement at
+n = 200 and 1000). Without the fold this is Φ(−|ν|/√(1 + ζ²)), so noise in D̂
+flattens every tail exponent and every ζ &gt; 0 diverges against g. On the
+grid ν ∈ [0, 6] of step 0.01, each form tested is right in the mean at
+one distance |ν| = ν* (1.51, 1.13, 1.07, 2.18 for ζ = 1, ζ = √2, the
+pair form, and the pair form sharpened twofold, its argument doubled,
+each the grid point at or below the crossing), under-warns below it and
+over-warns above it; past ν = 6 no crossing was searched; the divergence
+above says only that each form over-warns far enough out.</p>
+<p>No form escapes. Take X = D̂/σ ~ 𝒩(ν, 1) with σ known; g, being even,
+does not see ν's sign, and no bounded function T of D̂ alone has E_ν
+T(X) = g(ν) for every ν. A bounded T's mean Γ(ν) = E_ν T(X) is entire in
+ν with |Γ(iξ)| ≤ sup|T|·e^{ξ²/2}, ξ real. But writing the pair as
+U = (X₁ + X₂)/√2, V = (X₁ − X₂)/√2, the signs differ iff |V| &gt; |U|, so
+g(ν) = E 2Φ(−|U|) with U ~ 𝒩(√2ν, 1), and g(iξ) = e^{ξ²}ψ̂(√2ξ) for
+ψ(u) = 2Φ(−|u|)φ(u), φ the standard normal density,
+ψ̂(ω) = ∫ψ(u)e^{iωu}du its Fourier transform (a
+transform here, not an estimate). The kink of ψ at 0 gives ψ̂(ω) ~
+2/(πω²), so g(iξ) ~ e^{ξ²}/(πξ²), beyond any bound of the form
+C·e^{ξ²/2}. ∎ Given the auditor's own D̂, the truth takes the two values
+Φ(−|ν|) and 1 − Φ(−|ν|) by whether D̂ has D's sign (measured 0.136 and
+0.892 against the predicted 0.137 and 0.863 at (2, 8), n = 200). A
+reliability diagram of any such statement therefore slopes, and the
+weights that would flatten it are functions of ν.</p>
+<h2 id="the-per-example-audit-states-its-gaussian-limit">The per-example audit states its Gaussian limit</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a> (proved; the convergence measured at three depth cells
+and the two-point world, the side census over every depth cell with
+2 to 30 moves by 2 and by 3).<br>
+Verifier: proof; <a href="/code/lira/#section_tool">lira.py::section_tool</a>, <a href="/code/lira/#section_census">lira.py::section_census</a>.</p>
+<p>U-LiRA (arXiv:2403.01218, Algorithm 1) fits a Gaussian of mean μ₁ and
+variance s₁² to an example's scores under K shadow models that saw and
+then unlearned it and one of mean μ₀ and variance s₀² to its scores
+under K that never saw it, and states at the example's score o
+p = 𝒩(o; μ₁, s₁²)/(𝒩(o; μ₁, s₁²) + 𝒩(o; μ₀, s₀²)), 𝒩(o; μ, s²) the
+normal density at o, calling a member when p &gt; 1/2. Its estimand is
+the equal-prior posterior τ, exact at a depth cell with the feature of
+the audit world (<a href="/ruler/#the-audit-world-and-its-two-roots">The audit world and its two roots</a>), the
+number of moves by 2 in the three positions after the first. The fits
+converge to the class moments, so p converges to the Gaussian limit
+p_lim, and the calibration error converges to Σ P_u|p_lim − τ| over
+the scores, P_u a score's mass in the depth cell, a property of the
+model class that no shadow count removes; at a finite count it can sit
+below that limit (0.080 against 0.088 on the two-point world below at
+K = 32). At
+(12, 3), τ = (1, 11/15, 5/9, 3/7) against p_lim = (0.982, 0.840, 0.554,
+0.414): the certain score is stated short of certainty and the tail
+score past its truth. Two support points {0, 3}, the member's masses
+9/10 and 1/10 and the non-member's mirrored, give
+p_lim = 1/(1 + e^{−40/9}) = 0.988 against 9/10, because the Gaussian
+prices the far support point by a squared distance. At K = 512 the
+stated mean at every score of mass above 0.01 sits within 0.02 of
+p_lim, and the error within 0.015 of its limit, which runs from 0.0031
+at (5, 5) to 0.088 on the two-point world. The share of
+mass stated more extremely than τ reaches the limit's share only where
+p_lim clears τ by more than the noise.</p>
+<p>The call is a separate matter. Balanced accuracy is maximized by taking
+τ's side of 1/2, so the limit call reaches the ceiling iff p_lim and τ
+sit on the same side at every score with mass, τ = 1/2 counting as
+either side, and each exception costs |P_in − P_out|/2, P_in and P_out
+the two classes' masses at that score. ∎ The source names the Gaussian
+fit as a risk to accuracy; at (5, 5), (12, 3), (2, 8) and on the
+two-point world the call reaches the ceiling at K = 512, and the cost
+lands on the stated probability. The census finds 90 of 841 cells with
+an exception, the worst costing 11/1120 at (5, 12), where τ = 0.4898 and
+p_lim = 0.5019: in the census's cells disagreement came only near a
+tie, so it is common and cheap there. Off the depth column a far
+support point can
+move p_lim across 1/2 at a score far from a tie: member masses 0.45,
+0.1, 0.45 at 0, 1, 10 against non-member 0.2, 0.8 at 1, 5 put τ = 1/3 at
+score 1 and p_lim near 0.65, an exception costing 1/20.</p>
+<h2 id="open-fronts">Open fronts</h2>
+<p>Where do orientation's and comparison's dead cells sit under the tilt?
+The tilted prior is read here only for the sign bit, the threshold and
+the magnitude class. Which cells does a prior beyond the tilt kill or
+revive, a two-block prior being the simplest? What gauge does a quantile
+task carry? Outside the normal model, or with σ estimated rather than
+known, is there a bounded self-report whose mean is the pair rate at
+every distance? And can an eval be built whose ceiling is known exactly
+while its floor is a functional of a process, held at a scale its user
+cannot enumerate?</p>
+</article></main>
+<footer>Next: <a href="/flatten/">FLATTEN — the least height at a given flattening</a> · <a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/ruler.md">Source text</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

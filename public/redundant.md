@@ -1,0 +1,1129 @@
+# REDUNDANT — what a signed-digit reader of integers computes
+
+The object: the integers written top first in radix b with the
+contiguous digits D = {−a⁻, …, a⁺}, a± ≥ 0, whose interval I = [−a⁻, a⁺]
+has length |I| = a⁻ + a⁺ and |I| + 1 > b, so the slack ρ = |I| + 1 − b
+is at least 1 and a value has many strings; the symmetric set
+a⁻ = a⁺ = a has ρ = 2a + 1 − b. DUAL.md#the-redundant-reader, where ρ
+names the digit range's radius a/(b − 1) and not this slack, showed that
+symmetric such digits make the completions of adjacent prefixes overlap
+and read every Lipschitz map of their range into itself with a
+sufficient lookahead. This page gives the exact least lookahead of the
+affine maps on the integers, where a map is rounded down to an integer
+and the reader must end: it commits one output digit per step, and
+whenever the input stops, c more digits finish the output. It then
+prices curved C² maps of infinite streams, whose reader never ends, by
+their steepest tangent, and piecewise ones by three clauses, reads the
+sign and comparison by automata, and bounds the delay of units
+(operators that read digit streams and write one) wired in series. A
+cell is a triple (b, a⁻, a⁺), or (b, a) for a symmetric set, and the 20
+cells are those of radices 2 to 5 with 1 ≤ a± ≤ b − 1 and ρ ≥ 1.
+
+Write R_j = (b^j − 1)/(b − 1). The j-digit strings of D write exactly
+the integers of [−a⁻R_j, a⁺R_j]. A **stream reader** takes k integers
+X_1, …, X_k in lockstep, one digit of each per step, top first, and
+commits one digit of D after each step; the map
+f = ⌊λ_1X_1 + … + λ_kX_k + θ⌋, with rational weights λ_i = u_i/v ≠ 0,
+gcd(u_1, …, u_k, v) = 1, and a phase θ ∈ [0, 1), is read at lookahead c
+when after every step t the t committed digits followed by some c digits
+of D write f at the values read so far. The least such c is c_min.
+Scaling is k = 1, f(X) = ⌊λX + θ⌋; addition is X + Y, the sum X_1 + X_2.
+
+The reader's freedom is one number. With Q_t the value committed, let
+y be the sum over i of λ_i times the value of X_i's first t digits, less
+b^cQ_t; the c-digit finish exists iff y lies in the **finish range**
+[−A⁻ − θ, A⁺ + 1 − θ), A± = a±R_c, and a step reading digits x_i
+against a committed digit e moves
+
+    y′ = by + s − b^c e,    s = Σλ_ix_i,  y₀ = 0.
+
+The injection s has largest value M⁺ = a⁺Σ_(λ_i>0) λ_i +
+a⁻Σ_(λ_i<0) |λ_i|, and least value −M⁻ by the mirror. What stays legal
+depends on y alone, so f is read at lookahead c iff this safety game
+is won from 0. Its winning set W is the greatest set of states in the
+finish range from which every injection has an answer e staying in the set.
+
+## The affine criterion
+Tier: criterion.
+Verifier: proof; redundant.py::section_c, redundant.py::section_ss,
+redundant.py::section_r.
+
+Put δ = gcd(u_1, …, u_k, v b^c)/v, P = b^c/δ,
+ε± = (a±b^c − M±)/(b − 1) and
+
+    J = [−ε⁻, ε⁺] ∩ [−A⁻ − θ, A⁺ + 1 − θ).
+
+W meets the lattice δZ in exactly the points of J when J holds at
+least P of them, and misses δZ otherwise; f is read at lookahead c
+iff moreover 0 lies in J. This holds for every radix, every contiguous
+digit set with ρ ≥ 1, every number of streams, all rational weights
+and every phase. For one stream with λ > 0 and a symmetric set it is
+the **slope criterion**: M± = aλ, ε = a(b^c − λ)/(b − 1), and since the
+finish range contains [−A, A], J contains [−min(ε, A), min(ε, A)] and holds
+0 once it is nonempty.
+
+Proof. Every y reached from 0 lies in Σλ_iZ + b^cZ = δZ, whose classes
+mod b^c number P. Endpoint bound: if W has a maximum H, the injection
+M⁺ forces y′ ≥ bH + M⁺ − a⁺b^c whatever e is, and y′ ≤ H gives
+H ≤ ε⁺. The mirror bounds the minimum by −ε⁻, so W lies in J.
+Necessity: from any ζ ∈ W ∩ δZ, the state t steps after ζ is
+congruent mod b^c to b^t ζ plus the sum of λ_i times the value of the
+t digits of X_i read since ζ, each such value any integer of
+[−a⁻R_t, a⁺R_t], since t digits of D write that whole range and the
+committed digits enter as a multiple of b^c. Once the ranges pass
+v b^c the sums meet every class of δZ mod b^c, so the states met lie
+in J and meet every class. Sufficiency: suppose J meets every class,
+and let S = J ∩ δZ, with maximum hi and minimum lo. For y ∈ S,
+T = by + s is in δZ, so T − eb^c ∈ J for some integer e. Since
+hi ≤ ε⁺, T − a⁺b^c ≤ b·hi + M⁺ − a⁺b^c ≤ hi, and T + a⁻b^c ≥ lo
+by the mirror. If every such e exceeded a⁺, the least one e₀ would
+have T − e₀b^c ∈ J and T − (e₀ − 1)b^c > hi, against
+T − (e₀ − 1)b^c ≤ T − a⁺b^c ≤ hi, and the mirror rules out every e
+below −a⁻; the admissible e form a run, J being an interval. So S is
+invariant, and the reader wins iff 0 ∈ S. P
+consecutive points of δZ meet every class, so for an interval "every
+class" and "P points" are one test. A reader at c becomes one at
+c + 1 by committing a 0 first, so c_min is the least c passing it.
+
+Total rate and lattice. With every weight positive, M± = a±Λ for the
+total rate Λ = Σλ_i, so ε± = a±(b^c − Λ)/(b − 1): the map enters only
+through Λ and δ, and k streams of rate Λ read as one stream of slope
+Λ on a finer lattice. Then 0 lies in J iff b^c ≥ Λ, and at Λ ≥ 1,
+ε± ≤ A±, so the finish range never binds and the phase never enters.
+
+Related results in print, each sufficient or one-sided. The covering
+argument behind the length bound (below) is the one on-line arithmetic
+sets its delay with: the Lebesgue number of a digit covering sizes the
+delay of the Trivedi–Ercegovac multiplier and divider (Frougny, Pavelka,
+Pelantová and Svobodová, DMTCS 21(3), 2019, Lemma 3.2 and inequality
+(11)). And the one-stream lower bound c_min ≥ ⌈log_b λ⌉ is the
+one-argument case of Duprat, Herreros and Muller's bound (see the
+many-stream theorem). Exactness, the slack, the lattice and the phase
+are the criterion's.
+
+The script solves the game exhaustively and meets the criterion and the
+winning set in every case read, a case being a digit set with a map, its
+phase and a lookahead c, each c from 0 up to the least that reads (to 4
+at most for the many-stream cases, where some digit sets with a map and
+phase read at no c up to 4): 4973 cases of one symmetric stream (radices
+2 to 7, every a ≤ b with ρ ≥ 1, slopes u/v with u, v ≤ 7, four
+phases), among them 30 phase-0 families where gcd(u, v b^c) > 1 and a
+plain length test (the length bound below) is too strict; and 36068
+cases of one to three streams (radices 2 to 5, every contiguous set
+with a± ≤ b, weights of
+both signs, three phases). The clause on 0 is its own: in 3529 of those
+cases J holds P lattice points but not 0, and the game refuses each. At
+(2, 1), ×3 reads at 3 and ×4 at 2; at (10, 6), ×2 and ×10 read at 1. A
+reader playing the game's answers on random inputs keeps the finish
+writable over 13317 steps.
+
+## The two regimes of slope
+Tier: criterion.
+Verifier: proof; redundant.py::section_c.
+
+For one stream and a symmetric set, with λ = u/v > 0: for λ < 1,
+c_min ≤ 1, and at phase 0 c_min = 0 iff
+
+    a(v − u) ≥ (b − 1)(v − 1).
+
+For λ ≥ 1 the phase never enters, and c_min is the least c with
+2⌊ε/δ⌋ + 1 ≥ P.
+
+Proof. ε − A = a(1 − λ)/(b − 1). For λ ≥ 1, ε ≤ A < A + 1 − θ, so
+J = [−ε, ε], which holds 2⌊ε/δ⌋ + 1 lattice points. For λ < 1,
+ε > A, so J contains [−A, A], and at c ≥ 1 that interval is
+2A ≥ b^c long, a full period. At c = 0, δ = 1/v, P = v, and at
+phase 0 J is [0, ε] when ε < 1 and [0, 1) otherwise, which holds v
+points of (1/v)Z iff ε ≥ 1 − 1/v.
+
+So division by 3 in signed binary is read at lookahead 0, and (2, 1)
+slope 3/5 and (10, 6) slopes 1/3 and 1/7 need 1. The script checks
+the condition at 306 phase-0 families.
+
+## On one stream and a symmetric set the phase lowers, never raises
+Tier: theorem.
+Verifier: proof; redundant.py::section_c.
+
+For one stream and a symmetric set, and every θ ∈ [0, 1), c_min at
+phase θ is at most c_min at phase 0, equal at every |λ| ≥ 1, and below
+it only at |λ| < 1 where phase 0 needs 1.
+
+The proof writes λ > 0; a symmetric set has M± = a|λ|, so it reads
+the same with |λ|.
+
+Proof. At λ ≥ 1, J does not depend on θ. At λ < 1 every phase reads at
+c = 1, so only c = 0 is at stake, where A = 0 and J_θ = [max(−ε, −θ), ε]
+when ε < 1 − θ and [max(−ε, −θ), 1 − θ) otherwise. If ε ≥ 1 − θ, J_θ is
+either [−θ, 1 − θ), a half-open interval of length 1 holding P points,
+or it contains [−ε, 0], the mirror of J₀ = [0, ε] when ε < 1, and δZ is
+symmetric. If ε < 1 − θ, J_θ contains J₀.
+
+Phase 1/2 saves the digit at (2, 1) slope 3/5 and (10, 6) slope 1/3.
+The script finds no phase raising c_min over the grid's phased
+families, and 223 where it lowers it.
+
+## Dividing by the radix
+Tier: criterion.
+Verifier: proof; redundant.py::section_b.
+
+For a symmetric set at phase 0, λ = b^N is read at c_min = N exactly
+when N ≥ 0, and when N < 0 at c_min = 0 iff a ≥ b − 1, and at 1
+otherwise, whatever N is. Dividing by a power of the radix is free on a
+symmetric set only when it contains {−(b − 1), …, b − 1}, strictly more
+than redundancy from radix 4 on.
+
+Proof. At λ = b^N, δ = b^min(N, c), and ε < 0 below c = N while at
+c = N, ε = 0 and P = 1. At N < 0, slopes below one give c_min = 0
+iff a(b^(−N) − 1) ≥ (b − 1)(b^(−N) − 1).
+
+The script reads 238 (cell, N) pairs by the criterion (radices 2 to
+10, every a ≤ b, N from −3 to 3) and 12 by the game (the six
+symmetric cells with a ≤ b − 1 at radices 2 to 5, at N = −1 and −2).
+
+## The length bound
+Tier: theorem.
+Verifier: proof; redundant.py::section_c, redundant.py::section_ss.
+
+With positive weights, let c_L be the least c ≥ 0 with
+b^c ρ ≥ Λ|I|, which is ε⁺ + ε⁻ ≥ b^c: the length of [−ε⁻, ε⁺] against
+a period, lattice and finish range dropped. For one
+symmetric stream it reads b^c(2a − b + 1) ≥ 2aλ, the formula of
+DUAL.md#the-redundant-reader at Lipschitz constant λ, a sufficient
+lookahead for y ↦ λy on the reals when λ ≤ 1, where the image stays in
+the digits' range. With positive weights and Λ ≥ 1, at every phase,
+
+    c_min ≤ c_L ≤ c_min + 1.
+
+For one symmetric stream at phase 0 with λ < 1, c_L ≤ c_min ≤ c_L + 1.
+So in these two scopes the bound misses by at most one digit, high
+only at rate at least 1 and low only below it. Off them it can run
+high below rate 1: at b = 2, D = {0, 1, 2}, slope 2/3 reads at 0
+against c_L = 1, and so does D = {−1, 0, 1} at phase 1/3.
+
+Proof. For Λ ≥ 1: at c_L, b^c ρ ≥ Λ|I| > Λρ gives b^c > Λ, so 0 lies
+in J, and an interval at least Pδ long holds P points; so
+c_min ≤ c_L. If J holds P points at c, ε⁺ + ε⁻ ≥ (P − 1)δ, and
+ε±(c + 1) = bε±(c) + M±, so ε⁺ + ε⁻ at c + 1 is at least
+b^(c+1) − bδ + Λ|I| ≥ b^(c+1), as δ ≤ min λ_i ≤ Λ and |I| ≥ b; so
+c_L ≤ c_min + 1. For one symmetric stream with λ < 1, c_min ≤ 1 by the
+two regimes, and c_L ≤ 1 since 2ε(1) > 2a ≥ b. c_L = 1 with
+c_min = 0 would need (b − 1)v > 2a(v − u) ≥ 2(b − 1)(v − 1), that is
+v < 2.
+
+The stream reader departs from the bound in two ways, which pull
+opposite ways. Above rate 1
+the lattice can fit P points into J with less than b^c of length, so
+the stream reader can beat the formula. Below rate 1 the finish
+range [−A, A + 1) is what binds, and the stream reader pays for ending.
+Over 630 phase-0 families of one stream the bound is one digit high
+at 56, all at λ ≥ 1, and one digit low at 66, all at λ < 1; over 3276
+families of one to three positive streams with Λ ≥ 1, at three phases, it
+is one digit high at 483 and never low.
+
+## Addition
+Tier: criterion.
+Verifier: proof; redundant.py::section_ss, redundant.py::section_sm,
+redundant.py::section_sr.
+
+X + Y is read at lookahead 1 iff
+
+    ρ ≥ ⌈a⁻/(b − 1)⌉ + ⌈a⁺/(b − 1)⌉ =: σ,
+
+at 2 otherwise, and never at 0. The length test b^c ρ ≥ 2|I| never asks
+too little, and asks one digit too many exactly on the **wedge**
+
+    (b ≥ 3, ρ = 2, min(a⁻, a⁺) ≠ 1)  or  (b = 3, ρ = 3).
+
+Proof. X + Y is the affine criterion at Λ = 2, δ = 1, P = b^c. At
+c = 0, b^c < Λ and 0 is not in J. At c = 1 the finish range does not bind,
+and J = [−a⁻(b − 2)/(b − 1), a⁺(b − 2)/(b − 1)] holds
+|I| + 1 − σ integers, since ⌊x(b − 2)/(b − 1)⌋ = x − ⌈x/(b − 1)⌉;
+that is at least b iff ρ ≥ σ. At c = 2, ε⁺ + ε⁻ =
+|I|(b² − 2)/(b − 1) ≥ b² as |I| ≥ b. The test is the length bound at
+Λ = 2, so it asks at most one digit too many and never too few. It
+grants c = 1 iff ρ(b − 2) ≥ 2(b − 1), which fails at every ρ for
+b = 2, at ρ ≤ 3 for b = 3 and at ρ ≤ 2 for b ≥ 4. Where it fails, σ =
+|I| > ρ at b = 2; σ ≥ 2 at ρ = 1; at ρ = 2, σ = 3 when an endpoint has
+magnitude 1 and 2 otherwise; and σ ≤ 3 at b = 3, ρ = 3.
+
+The literature states the same inequality for one algorithm: the generalized
+signed-digit framework (Parhami, IEEE Trans. Computers 39(1), 1990)
+proves by its Lemmas 1 and 2 that its carry-free addition applies iff
+ρ ≥ σ, and its Theorem 1 unpacks this as ρ ≥ 3 when an endpoint has
+magnitude 1 and ρ ≥ 2 otherwise, at radix above 2. What the criterion
+adds is necessity against every stream reader writing its output in D,
+so no such design reads X + Y at 1 where the inequality fails, and the
+place of addition in the family: it is scaling at slope 2 on the lattice
+Z. Doubling one stream, 2X, has the same rate on δ = gcd(2, b^c): at an
+odd radix it is read exactly as X + Y, and at an even radix its lattice
+is 2Z from c = 1 on, so it never reads later and in signed binary reads
+at 1 against X + Y's 2. X_1 + X_2 + X_3 is read at 1 iff
+⌊a⁻(b − 3)/(b − 1)⌋ + ⌊a⁺(b − 3)/(b − 1)⌋ + 1 ≥ b.
+
+The game meets ρ ≥ σ at 156 families of X + Y (the 52 digit sets of
+radices 2 to 5 with a± ≤ b and ρ ≥ 1, at three phases) and the
+criterion at
+26330 cases (b ≤ 40, a± ≤ 30); the length test holds at
+every one, and its 711 misses are one digit each, all on the wedge.
+2X reads earlier than X + Y at 36 of those 156, all at even radix. A
+reader playing the game's answers on random pairs keeps the finish
+writable over 7684 steps.
+
+## The many-stream theorem
+Tier: theorem.
+Verifier: proof; manystream.py::section_mapped,
+manystream.py::section_ml, manystream.py::section_mk,
+manystream.py::section_mc, manystream.py::section_mw.
+
+Here the streams never end: each is an infinite string of D, worth a
+real number in [−M⁻, M⁺], M± = a±/(b − 1). From here to the page's end
+M± names this range of one stream, no longer the affine criterion's
+extremes of the injection. n digits confine the streams to a box of side
+w/b^n, w = M⁻ + M⁺, the **root box** [−M⁻, M⁺]^k at n = 0, k the number
+of streams. Let f be C² on the root box and Λ the sup over it of
+|∇f|₁ = Σ|∂_if|. The output is written with a lead o whose **root tile**
+[−M⁻b^o, M⁺b^o], the values its digit strings write, holds f's range,
+its t-th digit weighing b^(o−t), and the reader commits digit t after
+reading n = t + c digits of every stream; L = c + o is the delay.
+Then f is read at an L ≥ o iff
+
+    b^L ρ ≥ Λ|I|,
+
+the **margin law**, unless f is affine on the root box; L* is the least
+integer L with b^L ρ ≥ Λ|I|. The least L at which a map is read at all
+is its floor: L* for a curved map, at most L* for an affine one.
+Below the lead the law is
+unchanged (REDUNDANT.md#the-pole-units). That is the affine criterion's
+length test at the steepest tangent: an affine map of weights λ_i of
+either sign, its injection's extremes summing to Σ|λ_i|·|I|, has
+ε⁺ + ε⁻ = |I|(b^c − Σ|λ_i|)/(b − 1), so its length test, at lead 0 where
+L = c, is b^L ρ ≥ Σ|λ_i|·|I|. A curved map is read at the length test of
+its steepest tangent map, with the lattice and the finish range dropped,
+whatever the number of streams. The sup is the gradient's own and not
+the box's: for x(1 − y²), whose ∂_x peaks at y = 0 where ∂_y vanishes,
+Λ = 1 + M̂² with M̂ = max(M⁻, M⁺) when M̂ ≤ 1, that is a± ≤ b − 1, where
+the partials' separate sups add to 1 + 2M̂².
+
+Proof. The **tile lemma**: in units b^(o−t) the level-t tiles, the
+values the output can still reach once t committed digits write p, are
+[p − M⁻, p + M⁺], consecutive ones overlapping in a zone of length
+w − 1 = ρ/(b − 1) > 0, and an interval lies in some tile iff it strictly
+contains no zone. If the committed tile of value Q holds it, the
+children bQ + e run over the integers of [bQ − a⁻, bQ + a⁺], and a tile
+holding the interval can be clamped into that run, so some child holds
+it. The reader is dead iff some box's image strictly contains a level-t
+zone at t = n − c ≥ 1. The reader has no strategy: any legal digit is as
+good as another. Sufficiency: a box's image is at most Λw/b^n wide, and
+the zone is (w − 1)b^(L−n) long in absolute units. Necessity below the
+law, with Λ_law = (w − 1)b^L/w < Λ: the component of
+{|∇f|₁ > (Λ + Λ_law)/2} holding the peak carries a point where the
+Hessian is nonzero, since a vanishing Hessian there makes ∇f constant on
+it and, by continuity at its boundary, makes the component the root box
+and f affine. The points where each partial is nonzero or vanishes on a
+neighbourhood are open and dense, so one of them lies inside the box in
+that component where the Hessian is nonzero, and there the Hessian's
+quadratic form at some integer direction V is nonzero. Round it a closed
+ball inside the component has every partial one-signed or zero and that
+form one-signed, at least half its central value in size. There a box's
+image runs between two fixed corners and
+overshoots the zone by at least half the excess Λw/b^L − (w − 1), in
+units of the zone grid, and along a line of prefixes, each the one
+before plus V, the lower end, read modulo that grid, is a phase whose
+second difference is one-signed and of order b^(−n−L). Van der Corput's
+second-derivative estimate with the Erdős–Turán inequality (Kuipers and
+Niederreiter, Uniform Distribution of Sequences, 1974) equidistributes
+these phases as n grows, so one falls in the dead arc, the phases at
+which the image strictly contains a zone. A sum x₁ + … + x_k has no such
+line: its box images depend only on the prefix sum s, and the reader is
+dead iff an integer lies in ((b^L − k)M⁺, b^L − (b^L − k)M⁻), which is
+the affine criterion with its lookahead set to L, at unit weights. On
+sums the stream reader of the criterion and this reader are one.
+
+So every map reads at L* or below it, a sum of streams at
+most one digit below by the length bound, and a curved map exactly at
+it. The digit is the lattice's discount, which
+curvature forfeits. At a⁺ = b − 1 ≥ a⁻ the product x y has the
+steepest tangent x + y, and it reads one digit after addition exactly
+on the addition wedge. The product's law, b^L(b − 1)ρ ≥ 4a² on a
+symmetric set, is the on-line multiplier's delay condition (Trivedi
+and Ercegovac, 1977, as restated in Frougny, Pavelka, Pelantová and
+Svobodová, DMTCS 21(3), 2019, Corollary 2.2, which states it as
+sufficient). The theorem makes it a bound on every reader, and it
+carries the condition off the diagonal, up the degrees and across the
+arities. A one-sided bound of the same shape without ρ is Duprat,
+Herreros and Muller's (9th IEEE
+Symposium on Computer Arithmetic, 1989, Theorems 3 and 5: delay ≥
+⌈log_b max(|∂f/∂x| + |∂f/∂y|)⌉ over {−a..a}), with an upper bound one
+above for monotone maps at radix 2 (Theorem 4, conjectured at every
+radix); exactness, ρ and asymmetric sets are ours.
+
+The script finds every one of nine maps (x², x³, x y, x² + y,
+x y + z, x² + x y, x²y, x y z and x(1 − y²)) dead at L* − 1 at all 20
+cells of radices 2 to 5 with 1 ≤ a± ≤ b − 1. Each kill is an exact box
+whose image strictly contains a zone, at output depth 1 to 4 and, for
+x³ at (5, 3, 3), 6. The partials' separate sups over the root box, the
+script's rate, sum to Λ at eight of the maps and to 1 + 2M̂² at
+x(1 − y²), and that map reads at L* at the six cells where the law read
+on those separate sups asks one digit more. At all 44 cells of radices
+2 to 5 with 1 ≤ a± ≤ b and k = 1, 2, 3 the k-sum read on infinite
+streams reads at a delay L equal to the stream reader's least lookahead
+c_min.
+
+## The pole units
+Tier: theorem.
+Verifier: proof; poles.py::section_pb_pc, poles.py::section_pg.
+
+The many-stream theorem holds at every L in Z, so the lookahead
+c = L − o may be negative: the reader then commits −c digits before
+it reads one. Those digits are committed on the root box alone, against
+level-t zones of length (w − 1)b^(o−t) ≥ (w − 1)b^L, and the root box's
+image is at most Λw wide. So under b^L ρ ≥ Λ|I| none of them is dead,
+and below it the necessity argument is unchanged. A kill at a coarse
+level also carries to the next: in units of a level, a zone of length
+w − 1 holds a whole zone of the next level, spaced 1/b and (w − 1)/b
+long, since (w − 1)(b − 1) = ρ ≥ 1.
+
+The on-line units with a pole (square root, reciprocal, divider) meet
+the theorem once the pole sits a pole distance h > 0 outside the root
+box, s = M⁻ + h:
+
+    √(s + x):    Λ = 1/(2√h),       range [√h, √(h + w)],
+    1/(s + x):   Λ = 1/h²,          range [1/(h + w), 1/h],
+    x/(s + y):   Λ = (h + M̂)/h²,    range [−M⁻/h, M⁺/h],
+
+each read at the least L with b^L ρ ≥ Λ|I|, and o the least lead whose
+root tile, the output's level-0 tile, holds the range. At the 20 cells
+and the six h with h(b − 1) = 1, 2, 4, 8, 32 and 128, all 360 (unit,
+cell, h) are alive at L* and dead at L* − 1, the kill at output depth
+1 to 9. The root's lookahead is negative at 65 of its 120 pairs, down
+to −7 at (2, 1, 1), h = 128. The reciprocal's is negative at 40, over
+every cell. The divider's is 0, 1 or 2.
+
+Against the literature (Ercegovac and Lang, Digital Arithmetic,
+2003, read in the authors' chapter 9 slides): Table 9.1 gives the
+on-line multiplier delay 3 in radix 2 and 2 in radix 4, and the
+chapter's derivation lists 3 in radix 4 when the digits stop at 2.
+Operands and result share one format, so these are lookaheads at lead 0.
+The product's floor at those digit sets, (2, 1, 1), (4, 3, 3) and
+(4, 2, 2), is 2, 1 and 2: each published multiplier sits one digit above
+what every reader pays, and REDUNDANT.md#the-selection-estimate accounts
+for that digit cell by cell. The table gives division and square root 4.
+Its divisor is a stream held to [1/2, 1), a narrower set of values than
+its root box, which the theorem's reader does not model, and the
+dividend's and radicand's ranges are not on that source, so those rows
+are not compared.
+
+## The selection estimate
+Tier: property; rule (verified at the symmetric cells of slack ≥ 1
+with a ≤ b − 1 to radix 64).
+Verifier: proof; poles.py::section_ph.
+
+The literature's multiplier picks each output digit from its residual
+truncated to m fractional bits. On {−a, …, a} in radix b, with
+M̂ = a/(b − 1), the chapter's own condition (slides 43 and 44, its delay
+written here as L) is that selection constants exist iff
+T_m(ω) ≥ (1 + 2^(−m))/2, where ω = M̂(1 − 2M̂b^(−L)) bounds the scaled
+residual and T_m truncates to m bits. Since T_m(ω) ≤ ω and the right
+side exceeds 1/2, no m works unless ω > 1/2; and if ω > 1/2, then
+T_m(ω) > ω − 2^(−m) clears the right side once 3·2^(−m)/2 ≤ ω − 1/2. And
+ω ≥ 1/2 is b^L(2a + 1 − b)(b − 1) ≥ 4a², the product's law. So the
+literature's condition, read at an exact residual, IS the floor of the
+many-stream theorem, and the estimate costs a digit exactly where the
+law holds with equality: there ω = 1/2 at L* and no finite m reaches it.
+At a = b − 1 equality is b^L = 4, radix 2 at L = 2 and radix 4 at L = 1:
+the published cells (2, 1, 1) and (4, 3, 3), and the only equality cells
+among the symmetric sets with a ≤ b − 1 to radix 64. Every other such
+cell to radix 64 reaches its floor at some m ≤ 8. At (4, 2, 2), ω = 11/18 at
+L = 2, which m = 4 reaches, where the chapter's row takes m = 3 and
+L = 3.
+
+## The relative-gradient law
+Tier: property; rule (the counts, verified at the 20 cells over the
+h and rates read).
+Verifier: proof; poles.py::section_pd_pf, poles.py::section_pe,
+chains.py::section_ce.
+
+With a± ≥ 1, the root tile [−M⁻b^o, M⁺b^o] holds a range [lo, hi]
+exactly when b^o ≥ K = max(hi/M⁺, −lo/M⁻), the range's scale. So
+o = ⌈log_b K⌉ while L* = ⌈log_b(Λ|I|/ρ)⌉, and two ceilings differ by
+less than one from the difference of their arguments, so the least
+lookahead past the lead, c* = L* − o, obeys
+
+    c* − log_b(Γ|I|/ρ) ∈ (−1, 1),    Γ = Λ/K.
+
+The map enters its lookahead through its **relative gradient** Γ alone,
+to within one digit. A unit runs ahead without bound exactly when Γ
+falls to 0 along its family. The root's Γ = M⁺/(2√(h(h + w))) and
+the reciprocal's M⁺/h do so as the pole recedes.
+
+A stream multiplied by a positive factor never runs ahead, at any
+reader. For
+f = x·g(y) with g > 0 of sup g*, the range is [−M⁻g*, M⁺g*], of
+length wg*, and K = g*. The least lead has b^(o−1) < g*, so a level-1
+tile, of length wb^(o−1), is shorter than the range. At a negative
+lookahead the first digit is committed before any digit of x and must
+hold the whole range: dead. So c ≥ 0 however y was produced, and the
+digits one unit runs ahead are spent in the next unit that multiplies
+its stream by a fresh one. The law agrees: the x-partial is g, so Λ ≥ g*
+and Γ ≥ 1, and at slack 1, where |I|/ρ = b, c* ≥ 1. The divider has
+Γ = 1 + M̂/h, so when a± ≤ b − 1, c* = L* − o ≤ 2 once h ≥ 1/(b − 1),
+since then Γ|I|/ρ ≤ b². At 98,620 (cell, h)
+pairs of the 20 cells its c* is never negative and is 0 somewhere at
+exactly the ten cells of slack 2 or more.
+
+Those digits are spent but not wasted. A unit multiplying a fresh stream z
+by the reciprocal's stream r that reads r as deep as the reciprocal runs
+ahead, d = −c₁* digits past z, c₁* the reciprocal's c*, sees r's box b^d
+times narrower, and by the tile lemma reads z·r wherever
+b^L(w − 1) ≥ (τ + M̂b^(−d))w, τ = sup|r|, against (τ + M̂)w for
+a unit reading r aligned with z. At the 40 pairs where the reciprocal
+runs ahead, the deep unit's test sits below the aligned one's at 25,
+and every such unit's lookahead is at least 0, as a multiplied
+stream's must be. The fused divider
+z/(s + x) reads at or below the deep chain at all 40, equal to it at 33.
+
+The dependency structure is one way to hold Γ up, not the variable.
+exp(−χy), χ a rate, multiplies no stream, and its Γ = χM⁺ rises. As its
+rate χ and the others' pole distance h each run from 1/(b − 1) to
+8192/(b − 1), its lookahead climbs by 5 to 13 digits at each of the 20
+cells, while the root's, the reciprocal's and 1/(s + y)²'s fall by 4 to
+13. Over these four families and two more, the divider and x·exp(−χy),
+at all 960 (family, cell, h or χ) read, c* stays within one digit of
+log_b(Γ|I|/ρ).
+
+## The piecewise theorem
+Tier: theorem.
+Verifier: proof; piecewise.py::section_wb, piecewise.py::section_wc,
+piecewise.py::section_wd, piecewise.py::section_we,
+piecewise.py::section_wf.
+
+Let f be a continuous map of one stream, cut at finitely many rational
+**kinks** κ into pieces on each of which it is C² and monotone, an
+affine piece being λx + γ with rational slope λ = u/v and rational
+offset γ. (A discontinuous map is dead at every L: a box round the jump
+has an image at least the jump wide at every depth.) With the threshold
+Λ_law(L) = (w − 1)b^L/w that no box of smaller Lipschitz constant
+can kill at, f is dead at L iff one of three clauses fires; a clause
+that does not fire is empty, as is an affine piece with no killing box:
+
+- The **curved clause**: a non-affine piece has sup |f′| > Λ_law(L).
+- The **piece clause**: an affine piece has a killing box. With its excess
+  ξ = |λ|w/b^L − (w − 1), a box kills iff ψ > 1 − ξ, ψ the fractional
+  part of M⁻ plus the image's lower end in zone units, b^(L−n) at box
+  depth n, the zones' spacing. Over the
+  prefixes the ψ form a lattice of step δ/b^L, δ = gcd(u, vb^L)/v the
+  affine criterion's step at c = L (gcd(ub^(−L), v)/(vb^(−L)) at
+  L < 0), and its offset γb^(n−L) mod 1 is
+  eventually periodic in the depth n.
+- The **kink clause**: a **straddler**, a box straddling a kink, kills
+  at a depth below n_full, the depth from which every affine piece holds
+  a whole period of its lattice plus w + 2 boxes and every box position
+  straddling a kink belongs to a prefix.
+
+So the floor is the least L at which all three are empty: at most L*,
+and below it exactly when all three are empty at L* − 1. A sup, a
+cycle and a finite scan decide it, the third branch beside the
+many-stream theorem's two, a curved map at L* and an affine map on its
+lattice.
+
+Proof. Death is a property of the boxes (the tile lemma), and a box lies
+in a piece or is a straddler. In a curved piece the many-stream
+theorem's necessity runs with the piece as the root box: the component
+of {|f′| > (sup + Λ_law)/2} holding the peak has nonzero f″ somewhere
+unless f′ is constant on it, and then f′ continuous up to the kink makes
+the component the whole piece and the piece affine. So a piece affine on
+its excess region {|f′| > Λ_law}, when that region is nonempty, is that
+region whole: on that region's boundary inside the piece f′ would be
+Λ_law, not the sup. In an affine piece a box's image is |λ|w/b^n wide
+against a zone (w − 1)b^(L−n) long, and it strictly contains one iff
+ψ > 1 − ξ. A straddler's image is the hull of f at the box's ends and at
+the kink, and the **containment lemma** carries it: from n_full on, a
+killing straddler implies a clause of a piece beside it. A curved side
+above the threshold meets the curved clause. If both sides of a kink are
+below the threshold, the image is at most w − 1 wide; at an extremum
+kink a side below it never attains the far end of a killing hull.
+Otherwise take the hull end T attained by the steeper affine side, of
+slope λ above the threshold; the image lies within |λ|w/b^L of T on the
+side that piece's images extend, the other side adding at most |λ| times
+its share of the box. So at n ≥ n_full the image sits inside a
+same-phase image of a box of that piece, translated by whole zones, and
+that piece's clause fires.
+
+The script reads the clauses against a box scan at the 20 cells of
+radices 2 to 5, the scan's kill found at every map and cell the clauses
+call dead. The specimen [x/2 | x], x/2 left of the kink 0 and x right
+of it, has L* = 1 and reads at 0 at 16 cells. The slope-1 piece's
+lattice sits on the dead arc's excluded point, and the slope-1/2 piece
+kills only where w < 2 and neither digit bound is b − 1: at (4, 2, 2),
+(5, 2, 3), (5, 3, 2) and (5, 3, 3). Beside the identity a curved piece
+reads by its sup alone. [3x/4 + x²/4 | x], kinked at 0, is dead at 0 and
+[x/5 + x²/20 | x] alive at 0 at each of the 20 cells, and
+x − (x + M⁻/2)³ below −M⁻/2 with x above it, a C² map affine on its
+whole peak set, is dead at 0 at every cell by its curved remainder, at
+input depth 1 to 3. The kink clause fires alone, but only shallow. Ten valleys
+at radices 2 to 4 and eight kinks between two rising slopes, both pieces
+empty at L* − 1, are killed there by a straddler at depth 0 or 1. Over
+every map and L read, no straddler kills at or past n_full without a
+neighbour's clause. The theorem is about one stream; of maps of
+several streams cut into pieces the script reads two, |x|·y and
+max(x, y)·z, dead at L* − 1 at all 20 cells, as the many-stream
+theorem inside each piece predicts (observation).
+
+Muller (IEEE Trans. Comput. 43, 1994, Theorems 1 and 2) proves that a
+map with piecewise continuous f″ that a
+finite automaton computes on-line is piecewise affine with rational
+coefficients and breakpoints. The theorem's delay, and its curved
+pieces under unbounded memory, are not there.
+
+## The segment lemma
+Tier: criterion.
+Verifier: proof; piecewise.py::section_ws, piecewise.py::section_wt,
+piecewise.py::section_wl, piecewise.py::section_wr,
+piecewise.py::section_wz.
+
+An open arc of the circle is missed by a lattice iff the lattice's step
+is at least the arc and its offset lies, modulo the step, in a closed
+range of length the step less the arc, one point at equality. So an
+affine piece with excess ξ > 0 at L can be empty only if δ/b^L ≥ ξ, and
+a piece reads below L* only on an arithmetically simple slope.
+At L = 0 a slope ±u/v in lowest terms has step 1/v and ξ = ℓ/(v(b − 1)),
+ℓ = u|I| − vρ an integer, and there the condition is sufficient too: an
+offset γ on the grid 1/(v(b − 1)) holds the lattice's offset fixed at
+every depth and on that grid, where the arc's ends sit. The
+**alive-able** slopes are every slope of magnitude at most ρ/|I|, empty
+at every offset, and above it exactly the u/v in lowest terms with
+
+    1 ≤ u|I| − vρ ≤ b − 1,
+
+each empty on a range of offsets (b − 1 − ℓ)/(v(b − 1)) long. Slope 1 is
+the boundary ℓ = b − 1 and no slope above it is alive-able, and slope
+1/2 is alive-able at every cell, |I| − 2ρ ≤ b − 1 being |I| ≥ b − 1. At
+every cell with |I| ≤ 2(b − 1), the 20 cells among them, nothing
+strictly between max(1/2, λ_gap) and 1 is, where
+λ_gap = 2/(2 + ⌈(b − 1)/ρ⌉). For numerator u every alive-able slope
+is at most u/(u + ⌈(u − 1)(b − 1)/ρ⌉), the least v with ℓ ≤ b − 1,
+and equal to it when that fraction is in lowest terms; λ_gap is the
+largest of these bounds over u ≥ 2, the bound at u = 2. With
+Δ = (b − 1)/ρ ≥ 1, ⌈(u − 1)Δ⌉ is u − 1 ≥ u/2 when ⌈Δ⌉ = 1, and
+otherwise at least (u − 1)(⌈Δ⌉ − 1) + 1 ≥ u⌈Δ⌉/2, as
+(u − 2)(⌈Δ⌉ − 2) ≥ 0; so u⌈Δ⌉ ≤ 2⌈(u − 1)Δ⌉, which is
+u/(u + ⌈(u − 1)Δ⌉) ≤ 2/(2 + ⌈Δ⌉). λ_gap need not be alive-able
+with numerator 2: at 13 of the 20 cells it reduces to 1/2 or 1/3, and
+the largest alive-able slope of numerator at least 2 over v ≤ 120 is
+3/7, 5/11, 7/15 or 2/7, below it. The gap holds either way, and above
+1/2 an alive-able slope has v < (b − 1)/(|I|/2 − ρ), or is u/(2u − 1)
+where |I| = 2ρ, at most 2/3 once u ≥ 2, so off that family the count
+over v ≤ 120 is exhaustive. The script meets the lemma at L = 0, on
+the offset grid 1/(v(b − 1)), at all 480 (cell, slope) pairs of the
+Farey slopes of order 6, both signs: which slopes are alive-able, and
+how many grid offsets are empty. The grid cannot tell a slope empty at
+every offset from one at ℓ = 1, whose range holds every grid offset.
+It prints the 13 cells.
+
+A **chord map**, the table-and-interpolate shape computer arithmetic
+uses for a reciprocal or a logarithm, samples a curve at breakpoints and
+joins them by chords. A chord's slope carries its breakpoints'
+denominators, so the steepest chord is fine-latticed and dead at L* − 1
+wherever the breakpoints sit, unless its slope is simple. The reciprocal
+1/(M⁻ + 1 + x), its pole at distance 1, has L* = 1 at every cell. Of
+60 designs at the 20 cells (uniform 4 and 8 chords, and 8 chords
+snapped to the boxes of one depth), 56 have a steepest chord whose
+step is below its excess and are dead at 0. The other 4 are the
+uniform 4-chord design at the symmetric top cells a⁻ = a⁺ = b − 1,
+whose steepest chord −2/3 has step and excess both 1/3: they read at
+0, at the one offset their range of offsets holds. Their 8-chord
+refinement has a steeper, finer chord, −4/5 at step 1/5, and is back
+at L* at every cell, so the segment count moves the delay, and
+snapping the breakpoints to boxes moved it at no cell.
+Where a breakpoint sits decides a coarse-lattice piece at one depth:
+[x/2 | x − κ/2] cut at κ has its slope-1 piece empty at 0 iff κb^(n₁)/2
+is an integer, n₁ the first depth at which that piece holds a box, at
+all 360 cuts read.
+
+A continuous map F within μ of a decreasing curve f has, over a box
+[x₁, x₂], an image containing [f(x₂) + μ, f(x₁) − μ]. So a killing box
+of f whose two overhangs past its zone both exceed μ kills F too,
+whatever F's pieces: F's lead is at least f's once μ is below the gap
+between f's range and the next smaller root tile, and a larger lead only
+counts more depths. With μ_rob, the **robust radius**, the largest
+smaller overhang over the curve's killing boxes at L* − 1, no map within
+μ < μ_rob of the curve, μ below that gap, reads below the curve's L*.
+μ_rob is attained at a bounded depth, since a depth-n box's two
+overhangs sum to at most (Λw − (w − 1)b^L)/b^n. For the reciprocal it is
+attained at depth 3 or less, from 1/150 at (5, 4, 4) to 1/12 at
+(4, 2, 2), and is above b⁻⁴ at 17 of the 20 cells; a digit lower, the
+same largest smaller overhang over the killing boxes at L* − 2 is at
+least b⁻² at every cell but (2, 1, 1). The uniform
+4-chord design sits 0.034 from the curve, above μ_rob at each top
+cell. Designs found by a search over the alive-able slopes
+read at 0 within 1.003 to 1.053 times
+μ_rob at eight cells, within 5 percent at seven: at (3, 1, 2) eight
+pieces of slopes −1, −1/3, −1, −1/3, −1, −1/2, −1/4, −1/6. A chord map
+within μ < μ_rob of the curve, μ below the lead gap, reads no lower than
+the curve's L*, so a chord map reading lower sits at least the lesser
+of μ_rob and the lead gap from the curve. Open: does a design come
+within 1.053 times μ_rob at the
+other twelve cells?
+
+## The tile-valued maps
+Tier: theorem.
+Verifier: proof; comparators.py::section_xb.
+
+At L = 0 the level-t tiles are, in absolute units, the intervals
+[p − M⁻, p + M⁺]b^(−n) for every integer p, n = t + c: the depth-n
+boxes and their translates by whole steps b^(−n). A map is **tile-valued**
+when the image of every box of every depth n ≥ 0 lies in a tile of
+depth n. A tile-valued map is read at L = 0, at lookahead −o: an
+interval in a tile strictly contains no zone, and the case n = 0 puts
+the range in a level-o tile, which lies in a tile of every coarser
+level, each integer p being some bQ + e with e in D, so the digits
+committed before any input is read hold the range too.
+
+The comparators are tile-valued. Boxes of one depth have one width, so
+the higher top has the higher bottom, and the image of max(x, y) over a
+box is the higher box, that of min(x, y) the lower. Every lattice
+polynomial of streams, max and min nested as in the clamp
+min(max(x, y), z), has a box for its image, and the rectifier max(x, 0)
+has the box, the point 0 or [0, hi] inside the box. Each reads at
+lookahead 0, where the margin law at Λ = 1 asks for 1. The literature's table
+gives max and min on-line delay 0 (Ercegovac and Lang, Digital
+Arithmetic, 2003, Table 9.1); the theorem is why, at every radix and
+every digit set. The script reads every box to depth 2 at least, by map
+and cell, and finds each image in a tile of its depth, no kill at 0 and
+a kill at −1, for five such maps at the 20 cells, the three-stream ones
+at the 10 of radices 2 to 4.
+
+## The absolute value
+Tier: criterion.
+Verifier: proof; comparators.py::section_xc.
+
+With a± ≥ 1, |x| is read at L = 0 iff (b − 1) | (a⁺ − a⁻), and at
+L = 1 otherwise. Its lead is 0 when a⁻ ≤ a⁺ and otherwise the least o
+with b^o a⁺ ≥ a⁻, so at a divisible cell with a⁻ > a⁺ it reads at the
+negative lookahead −o.
+
+Proof. |x| sends a box [lo, hi] in x ≥ 0 to itself and one in x ≤ 0
+to its mirror [−hi, −lo], whose lower end sits at M⁻ − M⁺ modulo 1,
+in units b^(−n), from the tiles' lower ends; a box straddling 0 goes
+to [0, max(−lo, hi)], inside the box or its mirror. When b − 1
+divides a⁺ − a⁻, M⁻ − M⁺ is an integer and every mirror is a tile, so
+is the one holding the range [0, max(M⁻, M⁺)] at n = 0, and |x| is
+tile-valued. Otherwise an interval w long at an offset in (0, 1) from
+the tiles' lower ends strictly contains the zone above its lower end, so
+the box of the least prefix kills at L = 0 once it lies in x ≤ 0,
+which it does at the least n ≥ 1 with a⁺ ≤ a⁻(b^n − 1). At L = 1 the
+margin law holds at Λ = 1, bρ ≥ |I| being |I| ≥ b. At L = −1 a box in
+x ≥ 0 is its own image, bw long in level units against zones of
+spacing 1 and length w − 1, and strictly contains one.
+
+The piece −x carries the segment lemma's boundary slope, whose range
+of offsets is one point: every box of the piece has the one phase
+M⁻ − M⁺ modulo 1, and the clause asks whether it is that point. So
+"|x| reads at 0 iff the digit set is symmetric", true inside the radix
+where b − 1 dividing a⁺ − a⁻ forces a⁺ = a⁻, fails outside it: every
+set of radix 2 reads at 0, and so do (3, 1, 3) and (4, 1, 4). Over the
+265 cells of radices 2 to 6 with a± ≤ 2b − 1 the script finds delay 0
+at exactly the 79 the clause names, each other cell's kill at 0 by the
+depth named, death at −1 everywhere, and piecewise.py's clauses for
+the two-piece map [−x | x] agreeing at all 265. 50 asymmetric sets
+read at 0, and 25 cells at a negative lookahead: −2 at (2, 3, 1),
+(3, 5, 1), (4, 7, 1), (5, 9, 1) and (6, 11, 1), −1 at the other 20.
+
+## The free comparator
+Tier: theorem.
+Verifier: proof; comparators.py::section_xd,
+comparators.py::section_xe, comparators.py::section_xf.
+
+A comparator inside a unit is free: for every map G of streams,
+G(x, max(y, z)) and G(x, y) die at the same L at the same depths, and
+min likewise. Over the boxes of a depth the first map's images are the
+second's: at boxes B_x, B_y and B_z of x, y and z the image is G's at
+B_x and the higher of B_y and B_z, and each pair (B_x, B_y) is the case
+B_z = B_y. So the ranges agree, the leads do, and death is a property
+of the images.
+
+On an output it costs nothing either. If G has lead 0,
+max(G(x), z) has G's delay whenever that is not negative. The
+constant stream z₋ of digit −a⁻ has the depth-n box
+[−M⁻, −M⁻ + w/b^n], so at (B_x, that box) the image is
+[lo_G, max(hi_G, −M⁻ + w/b^n)], which strictly contains every zone
+G's image does. Conversely the image lies in G's image or in z's box,
+a depth-n tile, which lies in a level-t tile while t ≤ n, that is
+L ≥ 0. min(G(x), z) takes z₊, the constant stream of digit a⁺, and a
+partner at the output's scale, b^o z against a G of lead o, is the
+same argument wherever G's lookahead is not negative.
+
+A clamp of a sum is the one case a partner at the input scale makes new:
+max(x + y, z₋), where z₋'s value −M⁻ cuts inside the sum's range. It too
+has the sum's delay wherever a⁺ ≥ 1, and min(x + y, z₊) by the mirror
+wherever a⁻ ≥ 1. The upper half is the output argument's: the clamp's
+image lies in the sum's image or in z₋'s box, a tile of level n + 1 at
+lead 1, which strictly contains no level-t zone while L ≥ 0. The sum's
+image at the prefix sum s is [(s − 2M⁻)/b^n, (s + 2M⁺)/b^n], and
+s ↦ s + b^L moves it one zone up. At L ≥ 1 take the top s of a dead
+box's orbit, s > 2a⁺R_n − b^L. The zone it strictly contains,
+[(q + 1 − M⁻)b^(L−n), (q + M⁺)b^(L−n)], has q > 2M⁺ + M⁻ − 2w/b − 2
+since n ≥ L, and that is at least −1 iff
+2a⁺(b − 1) + a⁻(b − 2) ≥ b(b − 1), true once a⁺ ≥ 1. So q ≥ 0, the
+zone's lower end lies above −M⁻, and the clamped image still strictly
+contains it. At L ≤ 0 the clamp's first digit must hold a range M⁺
+longer than a tile.
+
+The script finds each of max(x, y) + z, min(x, y) + z, x max(y, z) and x
+min(y, z) dead at its bare map's delay less one at the bare map's first
+kill depth, and at no shallower depth, the sum forms at the 10 of the 20
+cells of radices 2 to 4 and the product forms at the 7 of those where
+the root tile at lead 0 holds x y's range. The constant partner kills
+max(x y, z₋) and min(x y, z₊) at x y's depth, and max(x + y, b z₋) at
+the sum's. Over 104 cells of radices 2 to 7 with a± ≤ b the sum's delay
+is 1 at 70, where the clamp is dead at 0 by its range, and 2 at 34, where
+every orbit top has q ≥ 0, the least being 0, and the clamp kills there.
+So a comparator inside a unit, on its output at the output's scale, or
+clamping a sum at the constant stream of digit −a⁻ where a⁺ ≥ 1 (of
+digit a⁺ where a⁻ ≥ 1, for min), adds no digit to the delay.
+
+## The sign count
+Tier: theorem.
+Verifier: proof; sign.py::section_sa, sign.py::section_sb,
+sign.py::section_sc.
+
+A string of D read top first writes an integer, and the **sign
+automaton** reports its sign. Here D needs only |I| + 1 ≥ b, the
+non-redundant ρ = 0 included. With a± ≥ 1 the least sign automaton
+has
+
+    σ + 1 = ⌈a⁻/(b − 1)⌉ + ⌈a⁺/(b − 1)⌉ + 1
+
+states, σ being addition's (REDUNDANT.md#addition), so 2⌈a/(b − 1)⌉ + 1
+on a symmetric set. Its live states, the prefixes whose completions take
+more than one sign, are the prefix values u with −M⁺ < u < M⁻: the
+prefixes whose box [u − M⁻, u + M⁺] holds 0 strictly inside. On a
+symmetric set with a ≥ b − 1 that live set, with the moves u ↦ bu + d,
+d ∈ D, among its prefixes, is the trim part of Frougny and Sakarovitch's
+zero automaton, and the law below
+for a three-state sign automaton is their criterion (Combinatorics,
+Automata and Number Theory, Cambridge University Press, 2010, ch. 2,
+Propositions 2.2.5 and 2.2.8). The minimality, the count and the
+asymmetric sides are ours.
+
+Proof. The m-digit tails write every integer of [−a⁻R_m, a⁺R_m]. At
+u ≥ M⁻ every completion is at least b^m M⁻ − a⁻R_m = M⁻ > 0, and by
+the mirror every completion of u ≤ −M⁺ is negative. A u > 0 inside
+the interval is positive at the empty tail and reaches 0 by a tail of
+value −b^m u once u ≤ M⁻(1 − b^(−m)), which a large m grants since
+u < M⁻ strictly; the mirror holds below, and 0 reaches 0, 1 and −1.
+Two live u < u′ are parted by the tail sending u to 0, which leaves u′
+at b^m(u′ − u) > 0, and a live prefix is parted from both dead
+classes by the same tail. Every integer of the interval is a prefix
+value, so the count is two plus its integers,
+(⌈M⁻⌉ − 1) + (⌈M⁺⌉ − 1) + 1.
+
+The sides cross: a positive prefix survives while u < M⁻, the
+negative reach of the tails, since only a negative tail pulls it back.
+Addition counts the same two reaches M⁻ and M⁺ in integers from an
+integer anchor: σ counts the digits of D less than M⁻ above its
+bottom or M⁺ below its top, the ones addition's J leaves out at c = 1;
+the sign
+count lays the same two reaches on either side of 0. One number
+prices addition's slack and the sign's states, and ρ fixes neither:
+at ρ = 3, (4, 3, 3) has 3 states and (2, 2, 2) has 5.
+
+The **leading-nonzero law** is the count 3, a property: σ + 1 = 3 iff
+a± ≤ b − 1, and then 0 is the only live prefix, so the automaton
+reads "zero so far" until the first nonzero digit, whose sign is the
+string's, and a string writes 0 iff every digit is 0. Above the line
+it fails: at a⁺ ≥ b the string (−1, b) writes 0 behind a nonzero
+lead. With one reach 0 the numeration is unsigned and the automaton
+has 2 states.
+
+The script minimises the prefix machine by partition refinement, checks
+its verdict against the exact sign of 949,180 strings, and finds σ + 1
+states with the interval's live set at all 511 signed cells (a± ≥ 1) of
+its grid (the covering sets, |I| + 1 ≥ b: the symmetric ones with a ≤ 12
+at radices 2 to 12, and every one with a± ≤ 8 at radices 2 to 9), and 3
+states at exactly the 165 signed cells of that grid with a± ≤ b − 1.
+
+## The full width
+Tier: property.
+Verifier: proof; sign.py::section_sd, sign.py::section_se.
+
+No lookahead short of the whole string decides the sign. At every
+width n the strings 0^(n−1)1 and 0^(n−1)(−1) share n − 1 digits and
+differ in sign, at every D with a± ≥ 1, ρ = 0 included. The prefix
+0's box holds 0 at every depth, so the cost is a signed numeration's
+and not the redundancy's. The sign is discontinuous at 0 and its
+verdict is not a stream of digits, so it is read through no tile.
+
+What replaces the lookahead is a factorization. Each digit acts on
+the automaton's σ + 1 states as a map, read at lookahead 0; the sign
+is the composite at the start state, and composition is associative,
+so a balanced tree evaluates it at depth ⌈log₂ n⌉ with no chain. A
+zero-test factors the same way, and only its per-digit predicate
+"this digit is 0" reads at lookahead 0: the conjunction over the
+digits is the full-width reduction, and it IS the test only below the
+leading-nonzero line. A digit-output map pays in lookahead; a
+reduction pays in states and depth.
+
+The script finds no width decided by a shorter prefix at 164
+(cell, width) pairs of radices 2 to 4, ρ = 0 at (3, 1, 1), (4, 1, 2)
+and (4, 2, 1), and the balanced product exact on 2,400 random strings
+of lengths to 64.
+
+## Comparison
+Tier: theorem.
+Verifier: proof; sign.py::section_sf.
+
+x − y taken digit by digit is a string of {−|I|, …, |I|}, contiguous
+with both digit bounds |I| at the same radix, so comparison is the sign
+automaton there: 2⌈w⌉ + 1 states, reading a⁻ and a⁺ only through
+their sum and never fewer than the sign's. By the sign count a
+difference u of prefixes is live iff |u| < w: exactly when the two
+prefixes' boxes, each w long, have interiors that meet. Those 2⌈w⌉ − 1
+differences are the order blur of DUAL.md#what-the-purchase-spends,
+counted there on a symmetric set as the tiles a tile's order stays
+open against.
+
+That is why max is free and comparison is not. max(x, y) sends a pair
+of boxes to the higher box, a tile at L = 0
+(REDUNDANT.md#the-tile-valued-maps). Which box is higher is the order
+of the prefix values, known at every step; which value is higher is
+the order of two points of the boxes, open exactly while their
+interiors meet. The comparator reads the first order and never the
+second. A later turn of the boxes' order costs it nothing: the images
+nest as the boxes do, so the tile committed for the old higher box
+holds the new one. The verdict asks the second order, and a pair of
+equal prefixes keeps it open forever. One box carries both orders,
+and selection needs only the one that is always decided.
+
+The script finds 2⌈w⌉ + 1 states, and the live differences exactly
+the meeting boxes, at all 511 signed cells of the sign count's grid.
+
+## The chained delay
+Tier: rule (verified b = 2..4).
+Verifier: chains.py::section_ca, chains.py::section_cb.
+
+Units wired in series: a **producer** is the unit whose output stream
+the next unit reads, here one reading x and y and emitting the digits of
+U = x y as a D-stream, and a **consumer** reads U and a fresh stream
+z, digit n of each together. A chain at delays (L₁, L₂) pays L₁ + L₂
+in the inputs. The literature prices a series by that sum: "for a series of
+online operations, the overall latency is the sum of online delays of
+the corresponding operation" (Usman, Ercegovac and Lee, J. Signal
+Processing Systems 95, 2023, section 4.2.2). The producer is free
+wherever two digits are legal, and a consumer that knows its
+**selector**, the producer's rule for choosing a digit where two are
+legal, might read more from a prefix of U than its box. At the 7 cells of
+radices 2 to 4 where the root tile at lead 0 holds U's range, the
+consumer cannot: for the adder U + z, the sum of the two floors is the
+chain's floor, whatever the multiplier's selector.
+
+The hull. What the consumer knows of x y is the fibre of the prefix
+it has seen, every value of x y the producer's selector sends to that
+prefix, and its tiles are intervals, so it reads the fibre only
+through its hull: an interval inside U's box, inset by α at the bottom
+and β at the top. By the tile lemma the adder is dead at L₂ iff an
+integer lies in
+
+    ((b^L₂ − 2)M⁺ + β,  b^L₂ − (b^L₂ − 2)M⁻ − α),
+
+the two-stream clause with U's box shortened. Its **escape cost** E(L₂) is
+the least α + β that empties that interval. The **budget** is what the
+producer can spend on insets: the product
+images at level n + L₁ are up to 2M̂w/b^L₁ wide, and dense, in level-n
+units, so consecutive hulls must overlap by that much, and the insets
+cost the producer
+
+    α + β ≤ S(L₁) = (w − 1) − 2M̂w/b^L₁,
+
+which is exactly the condition for a reader into tiles narrowed by
+(α, β) to read x y at L₁: such a reader is one whose tiles are narrowed
+by α below and β above, with the same digits, whose zones are
+w − 1 − α − β long. So the chain lives at (L₁, L₂) when E(L₂) ≤ S(L₁)
+and the producer's narrowed root tile still holds U's range at lead 0,
+and is predicted dead when E(L₂) > S(L₁), the **escape law**. Below
+L₁*, the producer's own L*, it is dead, and below the adder's lead 1
+its first digit must hold a hull plus z's
+whole root box, longer than any tile. At each of the 13 cells where the
+root tile at lead 0 holds U's range the escape law finds the escape
+unaffordable at every pair below the sum. The law's survivals are that
+narrowed reader. Its deaths rest on the budget and are certified by a
+covering search, which finds no assignment of the level-(1 + L₁)
+product images to hulls inset by any (α, β) that empties the adder's
+clause at any of the six pairs below the sum at radices 2 to 4: with
+L₁ ≥ L₁* and L₂ at or above the adder's lead 1, the only such pairs are
+(L₁*, 1) at the six cells of those radices whose floors sum to 4, four
+of the seven above and two where U needs a lead, searched there with
+U read at lead 0, and the other three of the seven have none to rule
+out.
+
+Where certified, the floor rides the hull being an interval and
+nothing else. Of the 13
+cells of the 20 where the root tile at lead 0 holds U's range,
+(a⁻)² ≤ a⁺(b − 1), it is the chain's floor, certified, at the 7 of
+radices 2 to 4, and the escape law's prediction at the 6 of radix 5.
+Elsewhere U needs a lead, and the led chain is not priced. The fused
+unit x y + z reads below the chain at 9 of the 13 and
+equal to it at the 4 where the product's own floor is 1. At the 7
+certified cells what the chain costs is the fusion forgone, not the
+multiplier's choices.
+
+## The threshold-miss law
+Tier: rule (the gain proved, once the budget is bounded by the
+producer's room; the converse and the silence at slack 2 or more,
+a± ≤ b − 1, rest on the budget, agreeing with the escape law to radix
+40 where the root tile at lead 0 holds the ranges of U and z·U; the
+escape law's deaths a covering certifies at radices 2 to 4 for the
+adder U + z only, not for z·U).
+Verifier: chains.py::section_cc.
+
+A product consumer z·U, U a stream and τ = sup|U| its largest
+magnitude, can beat the sum. Reading U through a hull inset by η, its
+image of a z box times a hull is at most
+(τw + M̂(w − η))/b^n wide, so it reads at L₂ wherever
+τw + M̂(w − η) ≤ b^L₂(w − 1): its box width rate is Λ₂ = τ + M̂, and
+escaping costs it the miss of its own threshold read in the producer's
+coordinate, E₂(L₂) = (Λ₂w − b^L₂(w − 1))⁺/M̂. At a signed slack-1 cell
+(a± ≥ 1, so M̂ ≤ 1), w − 1 = w/b, so the consumer's floor L₂* is 1 when
+Λ₂ ≤ 1 and 2 when Λ₂ > 1, and the one pair that can read below the sum
+is (L₁*, L₂* − 1). With [lo, hi] the producer's range, the chain reads
+one digit below the sum if
+
+    0 < Λ₂ − 1 ≤ (M̂/w)·min(S(L₁*), (M⁻ + lo) + (M⁺ − hi)):
+
+the threshold missed by at most the producer's budget, itself O(1/b),
+bounded by its room, the second term: the most a narrowed reader may
+inset in total and still hold that range in its root tile at lead 0.
+The gain is proved, by the narrowed reader twice; the room binds at
+many cells and moves no verdict to radix 40.
+The converse, that no other slack-1 cell gains, rests on the budget,
+as the escape law's deaths do, and the escape law agrees with it to
+radix 40 where the root tile at lead 0 holds the ranges of U and z·U.
+
+Behind a product, τ = M̂² and Λ₂ = 1 falls at M̂ = 1/φ, φ the golden
+ratio. The escape law finds the gains to radix 40 at the slack-1 cells
+whose M̂, a multiple of 1/(b − 1), falls in the O(1/b) range above it:
+2/3 at radix 4, 5/8 at 9, 17, 25 and 33, 7/11 at 12, 13/21 at 22, 18/29
+at 30 and 23/37 at 38, 17 cells with their mirrors. At (4, 2, 2),
+(x y)·z reads at 3 against the naive sum 4, the units' floors added.
+Behind a sum x + y read at lead 1, τ = 2M̂/b and the producer's budget,
+which stands for S(L₁*) in the condition above, is
+(w − 1) − (2w − 1)/b^L₁, its images on a lattice of pitch 1/b^L₁.
+Λ₂ = 1 falls at the rational b/(b + 2), and the
+cell (b, 2, b − 2) and its mirror gain at every radix from 5 to 40, 72
+cells. The gains' M̂ near 1/φ are the multiples of 1/(b − 1) meeting the
+O(1/b) range above an irrational crossing, and nothing Diophantine: the
+design rule is the least such multiple above the consumer's crossing
+that the budget reaches. By the budget, no cell of slack 2 or more with
+a± ≤ b − 1 where the root tile at lead 0 holds the ranges of U and z·U
+gains, for either consumer, to radix 40.
+
+## The matching law
+Tier: rule (the least total an upper bound on the floor, proved; that
+total the naive sum less ν, the size of a maximum matching of the
+pairwise gains, outside the two ranges, proved and checked over 12,242
+chains to radix 40; the total equal to the floor resting on the budget,
+argued and not certified past two units).
+Verifier: chains.py::section_cd.
+
+A chain of units, a **head** reading fresh streams alone and emitting a
+stream of largest magnitude τ₁ (M̂² for a product, 2M̂/b for a sum read
+at lead 1), then product consumers numbered from 2, consumer j reading a
+stream of largest magnitude τ_(j−1) = τ₁M̂^(j−2), its box width rate
+Λ_j = M̂ + τ_(j−1), is priced link by link by the threshold-miss
+reading: a consumer below its floor spends its producer's leftover,
+and one at its floor hands on its own,
+S_j = (w − 1) − (Λ_jw − M̂η)/b^(L_j), L_j its L and η the inset of
+the hull it reads its producer through, bounded by its range's room. The
+least total over every assignment of delays is an upper bound on the
+chain's floor, proved by the narrowed reader; its lower half rests on
+the budget, link by link, argued and not certified past two units. At
+slack 1 that least total is the units' floors less ν, the size of a
+maximum matching of the path's **pairwise gains**, the links (j − 1, j)
+at which unit j reads one below its floor on what unit j − 1 keeps at
+its own floor and zero inset, outside two ranges of the
+downstream miss, Λ_j − 1 at the downstream unit j of a link between two
+consumers (j ≥ 3): the adjacent range,
+0 < w(Λ_j − 1) < M̂(M̂(w − 1) − w(Λ_(j−1) − 1))/b, about M̂²/b² wide;
+and the crossed range, where w(Λ_j − 1)/M̂ lies strictly between S_(j−1)
+at η = 0 and at η = w − 1, unit j − 1 at its floor and its room ignored,
+O(1/b³) wide. Gains on links sharing no unit add; two gains sharing a
+unit do not.
+
+Proof. Λ_j never rises along the chain, and a unit below its floor
+sits at L = 1 with Λ_j > 1. Setting the downstream unit of each
+matched link one below its floor and every other unit at its floor is
+alive, since a matched unit's producer sits at its floor and keeps at
+least what it keeps there at zero inset. Conversely, call a unit low below its
+floor and high above it. Any assignment costs at least the naive sum
+less the low count plus the high count. Outside the adjacent range no
+two low units are neighbours, since a low unit keeps less than
+(M̂(w − 1) − w(Λ_j − 1))/b. Charge each low unit j to its producer
+j − 1 when that unit is high; when it sits at its floor, outside the
+crossed range j's gain is decided by j − 1's leftover at zero inset,
+so the link (j − 1, j) is a pairwise gain, and these links are
+disjoint. So the low count is at most ν plus the high count.
+
+The adjacent range is real: every chain off the matching lies in it.
+Whether any chain enters the crossed range alone is not read. Over
+12,242 chains, slack-1 cells of radices 3 to 40 at 3 to 12 units and
+along each finite run of floor-2 consumers to radix 24, the least
+total is naive − ν at every chain outside the ranges and misses it by
+one at 49 inside the adjacent range. A five-unit chain
+behind a sum at (9, 2, 7) reads 7 against the matching's 8, where two
+adjacent consumers' misses bunch within O(1/b²). Non-adjacent gains add:
+the four-unit chain behind a sum at (b, 2, b − 2) reads two below the
+naive sum at every radix from 8 to 40.
+
+## Reading a unit's delay
+
+The laws above, handed to a stranger as one entry point: delays.py.
+Given a radix, a digit set and a unit, it returns the lead, L* and the
+lookahead: for a unit named by its box width rate and its range
+(delays.py::unit), and for six standard units, the three with a pole at
+a pole distance h, with the relative-gradient law's estimate beside
+each (delays.py::table). For a map of several streams described by its
+exact image it returns the lead, L* and the output depths at which a
+scan finds a reader at L* − 1, and one at L*, dead (delays.py::certify).
+For a map built from pieces it returns the lead, L* and the floor, or
+none when the map still reads four digits below L*
+(delays.py::piecewise), and for a unit feeding a second the naive sum
+and the floor the chain laws admit (delays.py::chains). It adds no
+claim: every number is one of the engines' functions at the arguments
+given, and a chain returns nothing where the chain laws have no word:
+the two chains x y feeds, where x y's range does not fit the root tile
+at lead 0, and z (x + y), where the range of z times (x + y)/b, the
+adder read at lead 1, does not.
+
+## Open fronts
+
+The chained delay's floor rides the hull being an interval. Is there
+a per-unit summary that prices a composition whose fibres are not
+intervals? Can a producer's ambiguity be removed while its lookahead is
+kept? Is convexity in a value necessary, or sufficient, for a
+consumer, under some order on the alphabet? Where does the delay that
+Tenca and Ercegovac (1996) derive for the fused unit x y + z sit
+against its L*?
+
+Does the matching law's lower half hold past two units, where no
+covering search has certified it? At one digit set two gains share a
+unit only inside the law's two ranges, the crossed one unread; where
+each unit carries its own digit set, can they share one outside them,
+and can three gains fall on consecutive links? Does a cell of slack 2 or
+more gain twice along a chain, or gain at all past radix 40? Is the
+least cost of a chain over a general graph of units polynomial or hard?
+Are there two consumers whose safe extents pull a shared hull's
+insets opposite ways? Identical consumers share one safety predicate,
+since each reads a fibre only through its hull. Can running ahead be
+carried down a chain by a product consumer that emits before it reads its fresh
+stream?
+
+Is there a consumer the escape law prices wrong, a unit homogeneous of
+some degree in its pole distance whose delay moves, per digit the pole
+closes in, by other than one minus that degree, or a kill that spans
+pieces past every piece's lattice period? Does a lattice law predict the
+kink clause?
+
+What do these laws become past the radix, a± ≥ b, where the 20 cells
+stop? The many-stream theorem's Λ for x(1 − y²) already changes form
+once M̂ > 1; is over-redundancy a regime with laws of its own, or, as
+for DUAL.md#the-redundant-reader, which holds at every a, no new case?

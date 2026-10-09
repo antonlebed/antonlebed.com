@@ -1,0 +1,1077 @@
+"""limit.py -- where one greedy growth walk goes: the pricing schedule a
+walk over F_2[x] or a curve over F_2 is an instance of, the chain its
+clock moves form, the one deep coordinate that chain leaves, the support
+beside it, the ceiling on the deep coordinate's degree, and the rules
+that can stop the support from widening.
+
+QUESTION. growth.py grows a modulus by the cheapest move a demand
+admits. Over F_2[x], and over the ring of a curve over F_2, the dynamics
+demand (lambda must rise) never stops. What does a greedy walk converge
+to, coordinate by coordinate, and which of its features belong to the
+ring rather than to the way moves are priced?
+
+THE SCHEDULE. ITEMS carry a positive integer DEGREE d, the SUPPLY
+sigma(d) >= 0 counting the items of degree d, finitely many per degree.
+A state gives every item an exponent a >= 0 and carries a NOTCH T, a
+member of a LADDER S, an infinite set of positive integers containing 1;
+next_S(x) is the least member of S at or above x. A degree is COVERED
+when it lies in the BORN set B, when nu OPENINGS have been made at it,
+or when the COVERING RULE says so (the default rule adds nothing). A
+move on an item x of degree d is
+    an OPENING, when a(x) = 0 and d is uncovered: DOOR 1, x lands at 1,
+        the notch stays;
+    a CLOCK MOVE otherwise: door r = T + 1 - a(x), x lands at T + 1,
+        and T <- next_S(T + 1),
+and costs the PRICE kappa(d, r). Every walk starts from the VOID, every
+exponent 0 and T = 1. A GREEDY walk takes a move of least price;
+a TIE is a menu with several least types, and a BRANCH is one way of
+breaking every tie. The clock is GLOBAL: one notch for every item. The
+invariant a <= T holds (an opening lands at 1 <= T, a clock move at
+T + 1 <= next_S(T + 1)), so every door is at least 1. The HOLDER of a
+clock move is the item it moves; the item holding every clock move from
+some point on is the RUNAWAY, and an item that held a clock move and
+is not the runaway is a STRAND. The CORNER is S = the powers of 2,
+kappa(d, r) = d r, nu = 1, B = {1}.
+
+THE ARGUMENT (written before the engine; the clauses marked AFTER THE
+RUN were added after it).
+  (1) THE DOOR OVER F_2[x]. For P irreducible of degree d, (F_2[x]/P^a)^*
+      is F_(2^d)^* times (1 + P)/(1 + P^a), and (1 + y)^(2^j) = 1 + y^(2^j)
+      makes the second factor a 2-group of exponent 2^ceil(log2 a). So
+      lambda(P^a) = lcm(2^d - 1, 2^ceil(log2 a)), and lambda of a state is
+      the lcm over its places. A move raises lambda at P either by
+      seating P when 2^d - 1 does not divide the state's odd part (an
+      opening, door 1) or by carrying P past the state's 2-part T = 2^k,
+      to exponent T + 1, which doubles T (a clock move, door T + 1 - a).
+      The index [P^a : P^(a+r)] is 2^(dr), whose log is the price d r. A
+      curve over F_2 has the same completions, F_(2^d)[[t]] at a place of
+      degree d, so the same doors. So the IDEAL WORLD (a move seats one
+      place power) over either ring is the corner schedule, with the
+      supply its place count per degree, IF the covered degrees are the
+      opened ones and 1. That is BANG'S THEOREM (1886, the base-2 case of
+      Zsigmondy's): for d > 1, d != 6, 2^d - 1 has a prime p no smaller
+      2^j - 1 carries, and since the order of 2 mod p is d, p | 2^j - 1
+      iff d | j. At d = 6, 63 = 3^2 7 and v_3(2^j - 1) >= 2 iff 6 | j.
+      So 2^d - 1 divides the lcm of 2^j - 1 over a set J iff J holds a
+      multiple of d; a walk opening degrees in increasing order never
+      covers a degree before opening it. The PRODUCT of the 2^j - 1, a
+      more generous reading, frees d = 6 alone (3 from j = 2 and 4, 7 from
+      j = 3); at base 3 neither reading frees any degree (3^2 - 1 = 8
+      against 3 - 1 = 2 is Zsigmondy's n = 2 exception, and 8 is not
+      supplied).
+  (2) THE CHAIN. Let kappa be strictly increasing in the door and
+      nondecreasing in the degree (F2 sharpens this to the joint
+      hypothesis). Take a clock move of Y whose previous
+      clock move had a different holder Z. Z landed one above the notch u
+      it met, and every exponent except Z's is at most max(1, u), so
+      a(Y) < a(Z) and Y's door exceeds Z's. Z could have been moved, so
+      kappa(d_Y, r_Y) <= kappa(d_Z, r_Z) < kappa(d_Z, r_Y), whence d_Y < d_Z. So the
+      holders' degrees STRICTLY FALL at every change of holder, and no
+      holder returns, its degree exceeding every later holder's. The
+      holders form a finite chain: a walk with infinitely many clock
+      moves has exactly ONE RUNAWAY, its strands are the chain's earlier
+      members, at most as many as the supplied degrees below the first
+      holder, each at a finite exponent >= 2, and every item never
+      clocked stands at 0 or 1 forever. Nothing here reads the ladder,
+      the degrees' values, nu or the ring.
+  (3) WHEN THE CLOCK RUNS FOREVER. Between clock moves T is fixed, so a
+      clock move's price is fixed. Each opening is
+      spent once. If the opening prices kappa(d, 1) tend to infinity over the
+      supply (finitely many items open below any bound), or the supply is
+      finite, openings alone cannot continue and the walk clocks
+      infinitely often. AFTER THE RUN: merely unbounded is not enough.
+      Supply every degree and let kappa(d, 1) = 1 at every even d and
+      kappa(d, r) = d r otherwise; on the doubling ladder, once the notch reaches
+      4 every clock move has door at least 2 and costs at least 2, and
+      the walk opens forever. At the DEGREE-BLIND price kappa = r
+      no holder change is possible at all, and every opening costs 1. A
+      clocked item sits at T + 1 and its next door is next_S(T + 1) - T,
+      at least 2 once the ladder's gap there exceeds 1; every other door
+      is then at least 2 as well (a <= 1 < T). So after a short transient
+      a degree-blind walk on any ladder but the exact one, over
+      infinitely many supplied degrees that its born set and covering rule
+      leave uncovered until they open, clocks NEVER AGAIN and opens
+      forever: no deep coordinate. On the doubling ladder the transient
+      is two clock moves (land at 2, notch 2, door 1 again; land at 3,
+      notch 4, door 2).
+  (4) THE SUPPORT. Once the runaway X holds every clock move, its door
+      at each re-clock is the ladder's gap T_k - T_(k-1), so the
+      recurrent price is kappa(d_X, gap). Take the default covering, no
+      degree covered but by birth or by its nu openings. If the gaps are
+      unbounded and kappa is unbounded in the door, then for any opening a
+      large enough gap prices the re-clock above it, and since
+      openings leave the notch where it is, every cheaper opening is taken
+      before that re-clock: over infinitely many supplied degrees not
+      born covered the support widens forever, min(nu, sigma(d)) items at exponent 1 at every
+      uncovered-at-birth degree. If the gaps are bounded by G, no opening
+      priced above kappa(d_X, G) is ever taken after the runaway settles,
+      since the re-clock is always on the menu: the support is finite
+      when only finitely many openings cost kappa(d_X, G) or less (the
+      degree-blind price on the exact ladder has infinitely many).
+  (5) THE CEILING. At each re-clock after settling, the runaway (degree
+      D) beat every item of the least supplied degree d_min. If D >
+      d_min every such item is at 0 or 1, since strands sit above D, and
+      its price is at most kappa(d_min, T_k + 1). So
+          kappa(D, T_k - T_(k-1)) <= kappa(d_min, T_k + 1)   at every large k,
+      and at kappa = d^alpha r, alpha > 0,
+          D <= d_min ((T_k + 1)/(T_k - T_(k-1)))^(1/alpha).
+      On the ladder T_k = ceil(b T_(k-1)) the ratio tends to b/(b - 1),
+      so D <= d_min (b/(b - 1))^(1/alpha): 2 d_min at the corner. The
+      ratio R_k satisfies R_k/(R_k - 1) = (T_k + 1)/(T_(k-1) + 1) exactly,
+      so the bound reads the liminf of R_k, finite as soon as T + 1 grows
+      by a fixed ratio infinitely often. AFTER THE RUN: a bound
+      on EVERY ladder, the additive price included. Openings leave the
+      notch at 1, so the first clock move is made at T = 1,
+      where an item of degree d_min offers a move at price at most
+      kappa(d_min, 2) (its opening, a door-1 clock, or a door-2 clock when
+      its degree is covered). So the first holder has
+      kappa(d_1, 1) <= kappa(d_min, 2) and the chain gives D <= d_1: D <= 2^(1/alpha) d_min at d^alpha r, and
+      D <= d_min + 1 at the additive price. The ladder formula is sharper
+      only at b > 2.
+  (6) ATTAINMENT IS THE VOID MENU'S. Until the first clock move the
+      notch is 1, and there the least born covered degree d_c bids
+      kappa(d_c, 2) and the least fresh degree d_f, the least supplied
+      degree not born covered, bids kappa(d_f, 1); an item opened meanwhile
+      at d_f has a clock at door 1 and bids kappa(d_f, 1) again. So, at a
+      price strictly increasing in the degree, the first holder's degree
+      is a winner of that comparison. At the
+      corner every ring supply with a degree-2 place ties it, kappa(1, 2) =
+      2 = kappa(2, 1), and a row whose supply has nothing at 1 or 3, with
+      degree 2 born covered and 4 the least fresh, ties it at
+      kappa(2, 2) = 4 = kappa(4, 1), a
+      degree-4 holder being the ceiling 2 d_min itself. The tie is the
+      ADDITIVE index's: priced by the MULTIPLICATIVE index, over a ring
+      whose places of degree d have norm q^d, an unseated place at door
+      r costs q^(dr) - q^(d(r-1)) and a seated one q^(dr), so the void
+      bids are q^(2d) - q^d < q^(2d) - 1, and the born covered bid wins
+      at every q.
+  (7) THE STRAND. At the corner the first holder never loses the clock:
+      at degree d_1 <= 2 d_min it re-clocks at d_1 T/2 against a least
+      rival's d_min (T + 1) at exponent 0 (the rival at exponent 1 bids
+      d_min T, which the chain forbids from winning unless d_min < d_1
+      and the bids tie). At b = 3 the tie branch's degree-2 holder bids
+      2 (2T/3) = 4T/3 against a rational rival's T + 1, and loses once
+      T > 3: exactly one strand, by (2), on that branch.
+  (8) THE COVERING RULE. An OPENED-SET rule, whose extra covered set is
+      a function of the born and opened degrees, covers nothing new on a
+      clock move. So between openings the HORIZON (the least uncovered
+      supplied degree with an item left) has a constant price while the
+      runaway's recurrent price is unbounded with the gaps: the horizon
+      opening undercuts some later re-clock, so after any step some
+      opening is made, and over infinitely many supplied degrees not
+      born covered no opened-set rule stops the widening, however fast
+      it covers. A CLOCK-KEYED rule, d covered while d <= theta T, can:
+      at the corner over a supply holding every degree (so the horizon
+      costs at least floor(theta T) + 1) with runaway degree D, which is
+      the first clock's holder's by (7), T is a power of 2 at least 2
+      after the first clock, so D T/2 is an integer and the recurrent
+      price D T/2 is below the horizon's floor(theta T) + 1 iff
+      D T/2 <= theta T iff theta >= D/2. Below D/2 an opening is taken
+      only at or below the standing clock price, D T/4 through the notch
+      T/2, so no degree above D T/4 has been opened by the move to T
+      once D T/4 >= 2, and the horizon just after that move is at most
+      max(floor(theta T), floor(D T/4)) + 1, under D T/2 at a large
+      notch. The widening stops at the first clock or never, with no T
+      in the condition.
+
+PREDICTIONS, frozen before the engine, each naming what the run PRINTS.
+  PR1 THE DOOR. Printed: the unit-group exponent of F_2[x]/P^a computed
+     by brute force at every irreducible P of degree <= 4 and a with
+     deg P^a <= 12, against lcm(2^d - 1, 2^ceil(log2 a)). KILL: one off.
+  PR2 BANG. Printed: for d <= 300, whether 2^d - 1 divides the lcm, and
+     the product, of 2^j - 1 over j < d, and the same at base 3; and the
+     multiple criterion at every nonempty J within 1..12 and 1 < d <= 12.
+     KILL: an lcm hit at any d, a product hit other than d = 6 at base 2,
+     or one criterion miss.
+  PR3 THE EXACT WALKER IS THE SCHEDULE. Printed: states compared between
+     a walker covering by exact divisibility of big-integer lambda and
+     the corner schedule, over the six ring supplies (F_2[x] and five
+     curves over F_2 given by their zeta numerators), menus as typed
+     multisets. KILL: one menu or covered set differing.
+  PR4 THE CHAIN. Printed: holder changes read over every schedule walk
+     (every section but the exact-walker comparison, which advances
+     without the chain check), a change counted each time a walk steps
+     through it, each checked falling. KILL: one that did not.
+  PR5 THE CORNER'S LIMIT. Printed per ring supply, over its branches:
+     the items above exponent 1, strands, whether exponent-1 items are
+     one per opened degree, and the last change of holder. KILL: a
+     second item above 1, or a strand.
+  PR6 THE SUPPORT. Printed per ladder (exact, gaps 2, 3, 5, squares,
+     triangular numbers, doubling, and b = 3/2, 3, 4): the last opening's
+     step and degree against the recurrent price kappa(d_X, G), G the
+     largest door after settling.
+     KILL: a bounded-gap walk opening above kappa(d_X, G) after settling, or
+     an unbounded-gap walk that stops opening before its degree cap.
+  PR7 THE CEILING. Printed per schedule and supply: the runaway degrees
+     over all branches against the finite-notch bound at every re-clock
+     and the formula's value. KILL: a runaway above its bound; or the
+     designed {2, 4} supply's corner census not reaching 4.
+  PR8 THE VOID LAW. Printed per schedule and supply: the degrees that
+     ever hold a clock move over all branches, against the void
+     winners, at the additive index; the branch and strand counts at the
+     multiplicative index. KILL: one row where the census differs from
+     the winners, or a multiplicative row with two branches or a strand.
+  PR9 THE STRAND. Printed at b = 3/2, 2, 3, 4 per supply: branches and
+     strands per branch. KILL: no strand at b = 3, or one at b <= 2;
+     revised before the run: a row whose void menu has one winner seats
+     no item of degree 2 d_min at the tie and is exempt (h5, with no
+     place of degree 2 or 3).
+  PR10 THE DEGREE-BLIND PRICE. Printed: per branch at alpha = 0 on the
+     doubling ladder, the number of clock moves and the final notch
+     (while T = 1 an opened item's clock ties every opening at price 1,
+     so WHEN the two clocks fall is the tie-break's). KILL: a branch with
+     more than two clock moves or a final notch above 4.
+  PR11 THE COVERING RULES. Printed: the below-2^d opened-set rule's
+     openings at the corner, and at theta in {1/4, 1/2, 3/4, 1, 3/2, 2}
+     per branch whether the widening stopped, against theta >= D/2. KILL:
+     the opened-set walk stopping, or one theta row against the iff.
+  CONTROLS, run first: the exact-walker comparison made to fail by a
+  tripling clock; the chain checker made to fire on a planted rising
+  holder; the strand counter made to count a planted strand.
+
+FINDINGS (entered after the run, from its printed output).
+  F1 THE RING IS A SUPPLY (PR1 to PR3 hit). lambda(P^a) as argued at 47
+     pairs, 32760 units read. Below 301 the lcm frees no degree at base
+     2 or 3 and the product frees 6 alone at base 2; the multiple
+     criterion holds at all 45045 (J, d). The exact walker reads the
+     corner's least moves and covered sets at all 720 states, 120 along
+     one canonical walk over each of the six ring supplies cut at degree
+     40, and a tripling clock parts from it at the second state.
+     The comparison is over SUPPLIED degrees: a degree with no place (3
+     on three curves, 2 and 4 on one each) is covered once a multiple of
+     it opens, 3 by the opening at 6, which no menu reads.
+  F2 THE CHAIN (PR4 hit). 17 changes of holder over the schedule walks,
+     every one falling, a change counted once per tie edge stepped in
+     the branched moves and once per branch after them. Sharpened in
+     reading the prints: the hypothesis is the
+     joint one, kappa(d', r') > kappa(d, r) at d' >= d and r' > r, since the
+     multiplicative index at q = 2 prices a degree-1 unseated item one
+     door deeper equal to a seated one; no change of holder occurred
+     at any multiplicative row.
+  F3 THE CORNER'S LIMIT (PR5 hit). Branches 3, 3, 3, 3, 1, 3 over F2[x],
+     h2, h3, h4, h5, g2; one item above exponent 1, no strand, the clock
+     settled at its first move; every supplied degree above 1 opened,
+     with none skipped, 290 degrees on every branch whose runaway is rational (notch
+     2^10) and 291 on every branch whose runaway has degree 2 (notch 2^9),
+     the one extra being its own opening. The flat count is one per opened
+     degree except where the runaway was itself opened fresh at degree 2.
+  F4 THE SUPPORT (PR6 hit). The exact and gap-2 ladders never open, gap 3
+     opens to degree 2 and gap 5 to 4, each within d_X G, on the
+     canonical branch, which clocks at the void's tie kappa(1, 2) = kappa(2, 1); the squares,
+     triangular, and ratio 3/2, 2, 3, 4 ladders open 30 to 60 times in
+     the last quarter of 240 moves.
+  F5 THE CEILING AND THE VOID LAW (PR7, PR8 hit). 54 rows over 14
+     schedules; at every one the degrees ever clocked equal the void
+     winners, no runaway exceeds its ceiling, and the support is
+     min(nu, sigma(d)) at every degree below the horizon. The designed
+     supply reads {2, 4} at the corner and at b = 3/2. Every runaway at
+     a power or additive price lies within the first-clock bound (71
+     branch rows), and every ladder of the support table within 2 d_min. Every
+     multiplicative row: one branch, no strand. The law is the sweep's,
+     not general; the printed row off the sweep shows it: at
+     b = 4 with degree 2 born covered and every degree from 2 supplied,
+     the void winner is 3, above the ceiling 2, and a degree-2 item takes
+     the clock from it; clocked {2, 3}, winners {3}, runaway 2. Argument
+     (6) fixes only the FIRST holder.
+  F6 THE STRAND (PR9 hit). b = 3: strands [0, 1, 1] over F2[x], [0, 1,
+     1, 1] over g2, [0, 1, 1] over the designed supply; b = 4: [0, 1]
+     each; none at b = 2 or 3/2.
+  F7 THE DEGREE-BLIND PRICE (PR10 hit). Clock-first: clocks at steps 1
+     and 2, notch 4, 298 openings; open-first: no clock in 300 moves;
+     five openings then clock-first: clocks at steps 5 and 6.
+  F8 THE COVERING RULES (PR11 hit). Below 2^d: openings at degrees 2, 4,
+     16, 65536 at notches 8, 16, 64, 262144. theta: 22 branches, stopped
+     iff theta >= D/2 at every one, and a stopped branch never opens
+     after its first clock. On all 22 the first clock's holder keeps
+     the clock, every clock move of degree D and no change of holder.
+
+RUN RECORD. One process, CPython, no numpy: 37954 checks, 4.9 s.
+"""
+
+import time
+from bisect import bisect_left
+from collections import Counter
+from fractions import Fraction
+from math import gcd, isqrt
+
+CHECKS = [0]
+
+
+def check(cond, msg):
+    CHECKS[0] += 1
+    if not cond:
+        raise AssertionError(msg)
+
+
+# ---------------------------------------------------------------------------
+# polynomials over F_2 as integers, bit i the coefficient of x^i
+
+def pdeg(a):
+    return a.bit_length() - 1
+
+
+def pmod(a, m):
+    dm = pdeg(m)
+    while a and pdeg(a) >= dm:
+        a ^= m << (pdeg(a) - dm)
+    return a
+
+
+def pmul(a, b):
+    r = 0
+    while b:
+        if b & 1:
+            r ^= a
+        b >>= 1
+        a <<= 1
+    return r
+
+
+def ppowmod(a, n, m):
+    r, a = 1, pmod(a, m)
+    while n:
+        if n & 1:
+            r = pmod(pmul(r, a), m)
+        a = pmod(pmul(a, a), m)
+        n >>= 1
+    return r
+
+
+def irreducibles(d):
+    return [p for p in range(1 << d, 1 << (d + 1))
+            if all(pmod(p, q) for q in range(2, 1 << (d // 2 + 1)))]
+
+
+def ceil_log2(e):
+    return (e - 1).bit_length()
+
+
+def lcm(a, b):
+    return a // gcd(a, b) * b
+
+
+def prime_factors(n):
+    out, p = [], 2
+    while p * p <= n:
+        if n % p == 0:
+            out.append(p)
+            while n % p == 0:
+                n //= p
+        p += 1
+    return out + ([n] if n > 1 else [])
+
+
+def mobius(n):
+    r, p = 1, 2
+    while p * p <= n:
+        if n % p == 0:
+            n //= p
+            if n % p == 0:
+                return 0
+            r = -r
+        p += 1
+    return -r if n > 1 else r
+
+
+def section_d():
+    """PR1 and PR2: the door over F_2[x], and Bang's coverage."""
+    print("S1  THE DOOR OVER F_2[x] AND BANG'S COVERAGE")
+    cases = units = 0
+    for d in range(1, 5):
+        for P in irreducibles(d):
+            e = 1
+            while d * e <= 12:
+                m = 1
+                for _ in range(e):
+                    m = pmul(m, P)
+                L = lcm(2 ** d - 1, 2 ** ceil_log2(e))
+                us = [u for u in range(1, 1 << (d * e)) if pmod(u, P)]
+                check(len(us) == 2 ** (d * e) - 2 ** (d * (e - 1)),
+                      "unit count")
+                check(all(ppowmod(u, L, m) == 1 for u in us),
+                      f"u^L != 1 at P = {P:b}, e = {e}")
+                for p in prime_factors(L):
+                    check(any(ppowmod(u, L // p, m) != 1 for u in us),
+                          f"exponent below L at P = {P:b}, e = {e}")
+                cases, units, e = cases + 1, units + len(us), e + 1
+    print(f"  PR1: lambda(P^a) = lcm(2^d - 1, 2^ceil(log2 a)) at {cases} "
+          f"(P, e) with deg P <= 4, {units} units read by brute force")
+    for base in (2, 3):
+        L, prod, lhits, phits = 1, 1, [], []
+        for d in range(1, 301):
+            v = base ** d - 1
+            if d > 1 and L % v == 0:
+                lhits.append(d)
+            if d > 1 and prod % v == 0:
+                phits.append(d)
+            L, prod = lcm(L, v), prod * v
+        print(f"  PR2: base {base}, 1 < d <= 300: degrees freed by the lcm "
+              f"{lhits}, by the product {phits}")
+        check(lhits == [], "the lcm frees a degree")
+        check(phits == ([6] if base == 2 else []), "the product frees")
+    miss = pairs = 0
+    for mask in range(1, 1 << 12):
+        J = [j + 1 for j in range(12) if mask >> j & 1]
+        L = 1
+        for j in J:
+            L = lcm(L, 2 ** j - 1)
+        for d in range(2, 13):
+            miss += (L % (2 ** d - 1) == 0) != any(j % d == 0 for j in J)
+            pairs += 1
+    check(miss == 0, "the multiple criterion")
+    print(f"  PR2: 2^d - 1 | lcm(2^j - 1 : j in J) iff J holds a multiple "
+          f"of d, at all {pairs} (J, d): {miss} misses")
+
+
+# ---------------------------------------------------------------------------
+# supplies, each a dict built in ascending degree
+
+RING_L = {"F2[x]": [1], "h2": [1, -1, 2], "h3": [1, 0, 2],
+          "h4": [1, 1, 2], "h5": [1, 2, 2], "g2": [1, 2, 4, 4, 4]}
+
+
+def ring_supply(name, dmax):
+    """Places per degree of a curve over F_2 with the named zeta numerator
+    (a_0 .. a_2g), one rational place at infinity removed."""
+    a = RING_L[name]
+    g = (len(a) - 1) // 2
+    check(all(a[2 * g - i] == 2 ** (g - i) * a[i] for i in range(g + 1)),
+          f"functional equation at {name}")
+    e = [(-1) ** i * c for i, c in enumerate(a)]
+    s = [0] * (dmax + 1)
+    for n in range(1, dmax + 1):
+        v = (-1) ** (n - 1) * n * (e[n] if n < len(e) else 0)
+        v += sum((-1) ** (i - 1) * e[i] * s[n - i]
+                 for i in range(1, min(n, len(e))))
+        s[n] = v
+    N = [0] + [2 ** n + 1 - s[n] for n in range(1, dmax + 1)]
+    sup = {}
+    for d in range(1, dmax + 1):
+        t = sum(mobius(d // k) * N[k] for k in range(1, d + 1) if d % k == 0)
+        check(t % d == 0 and t >= 0, f"place count at {name}, degree {d}")
+        sup[d] = t // d - (d == 1)
+    return sup
+
+
+def wide(n, dmax):
+    return {d: n for d in range(1, dmax + 1)}
+
+
+def designed(dmax):
+    """Items at degree 2 and at every degree from 4, none at 1 or 3."""
+    return {d: (2 if d == 2 or d >= 4 else 0) for d in range(1, dmax + 1)}
+
+
+# ---------------------------------------------------------------------------
+# ladders
+
+class Ladder:
+    def __init__(self, name, gen, bounded):
+        self.name, self.gen, self.m, self.bounded = name, gen, [1], bounded
+
+    def next(self, x):
+        while self.m[-1] < x:
+            self.m.append(self.gen(self.m[-1]))
+        return self.m[bisect_left(self.m, x)]
+
+
+def ladder_b(b):
+    b = Fraction(b)
+    return Ladder(f"b = {b}", lambda t: max(t + 1, -((-b.numerator * t)
+                                                     // b.denominator)), False)
+
+
+def ladder_gap(c):
+    return Ladder("exact" if c == 1 else f"gap {c}", lambda t: t + c, True)
+
+
+def _tri(t):
+    n = (isqrt(8 * t + 1) - 1) // 2 + 1
+    return n * (n + 1) // 2
+
+
+LADDERS = [ladder_gap(1), ladder_gap(2), ladder_gap(3), ladder_gap(5),
+           Ladder("squares", lambda t: (isqrt(t) + 1) ** 2, False),
+           Ladder("triangular", _tri, False), ladder_b(2)]
+
+
+# ---------------------------------------------------------------------------
+# prices: kappa(d, r, unseated) returns an orderable key
+
+def price_power(alpha):
+    return lambda d, r, u: d ** alpha * r
+
+
+def price_additive(d, r, u):
+    return d + r
+
+
+class MKey:
+    """q^a - q^s (s None standing for 0), compared exactly: at equal a the
+    larger subtracted term is cheaper; at a < a' the first is cheaper,
+    except at q = 2 where q^a equals q^(a+1) - q^a."""
+    __slots__ = ("q", "a", "s")
+
+    def __init__(self, q, a, s):
+        self.q, self.a, self.s = q, a, s
+
+    def cmp(self, o):
+        if (self.a, self.s) == (o.a, o.s):
+            return 0
+        if self.a == o.a:
+            if self.s is None or (o.s is not None and self.s < o.s):
+                return 1
+            return -1
+        lo, hi = (self, o) if self.a < o.a else (o, self)
+        if (self.q == 2 and lo.s is None and hi.s == hi.a - 1
+                and lo.a == hi.a - 1):
+            return 0
+        return -1 if lo is self else 1
+
+    def __lt__(self, o):
+        return self.cmp(o) < 0
+
+    def __gt__(self, o):
+        return self.cmp(o) > 0
+
+    def __eq__(self, o):
+        return self.cmp(o) == 0
+
+
+def price_mult(q):
+    return lambda d, r, u: MKey(q, d * r, d * (r - 1) if u else None)
+
+
+def section_m():
+    """The exact comparison against big integers at small exponents."""
+    n = 0
+    for q in (2, 3, 5):
+        keys = [MKey(q, a, s) for a in range(1, 9)
+                for s in [None] + list(range(a))]
+        for x in keys:
+            vx = q ** x.a - (q ** x.s if x.s is not None else 0)
+            for y in keys:
+                vy = q ** y.a - (q ** y.s if y.s is not None else 0)
+                check(x.cmp(y) == (vx > vy) - (vx < vy), "MKey order")
+                n += 1
+    print(f"  the multiplicative key agrees with integer order at {n} pairs")
+
+
+# ---------------------------------------------------------------------------
+# the schedule walker
+
+class Sched:
+    def __init__(self, name, ladder, price, nu=1, born=(1,), cover=None):
+        self.name, self.ladder, self.price = name, ladder, price
+        self.nu, self.born, self.cover = nu, frozenset(born), cover
+
+    def but(self, **kw):
+        s = Sched(self.name, self.ladder, self.price, self.nu, self.born,
+                  self.cover)
+        for k, v in kw.items():
+            setattr(s, k, frozenset(v) if k == "born" else v)
+        return s
+
+
+class State:
+    __slots__ = ("T", "seat", "opens", "nseat")
+
+    def __init__(self):
+        self.T, self.seat = 1, Counter()
+        self.opens, self.nseat = Counter(), Counter()
+
+    def copy(self):
+        s = State()
+        s.T, s.seat = self.T, Counter(self.seat)
+        s.opens, s.nseat = Counter(self.opens), Counter(self.nseat)
+        return s
+
+    def key(self):
+        return (self.T, tuple(sorted(self.seat.items())),
+                tuple(sorted(self.opens.items())))
+
+    def top(self):
+        return max(self.seat, key=lambda de: de[1]) if self.seat else None
+
+
+def covered(S, st, d):
+    return (d in S.born or st.opens[d] >= S.nu
+            or (S.cover is not None and S.cover(st, d)))
+
+
+def menu(S, st, sup):
+    """The least price and the least move TYPES (kind, degree, exponent)
+    with their multiplicities. Kinds: c clocks a seated item, u clocks an
+    unseated item of a covered degree, o opens. A price never falls
+    below kappa(d, 1), so the scan over degrees stops there."""
+    best, types = None, []
+    for (d, e), n in st.seat.items():
+        k = S.price(d, st.T + 1 - e, False)
+        if best is None or k < best:
+            best, types = k, [(("c", d, e), n)]
+        elif k == best:
+            types.append((("c", d, e), n))
+    for d in sup:
+        if best is not None and S.price(d, 1, True) > best:
+            break
+        u = sup[d] - st.nseat[d]
+        if u <= 0:
+            continue
+        t, k = ((("o", d, 0), S.price(d, 1, True)) if not covered(S, st, d)
+                else (("u", d, 0), S.price(d, st.T + 1, True)))
+        if best is None or k < best:
+            best, types = k, [(t, u)]
+        elif k == best:
+            types.append((t, u))
+    return best, types
+
+
+def apply(S, st, t):
+    kind, d, e = t
+    s = st.copy()
+    if kind == "o":
+        s.seat[(d, 1)] += 1
+        s.opens[d] += 1
+        s.nseat[d] += 1
+        return s
+    if kind == "c":
+        s.seat[(d, e)] -= 1
+        if not s.seat[(d, e)]:
+            del s.seat[(d, e)]
+    else:
+        s.nseat[d] += 1
+    s.seat[(d, st.T + 1)] += 1
+    s.T = S.ladder.next(st.T + 1)
+    return s
+
+
+def canon(types):
+    """The canonical tie-break: a clock before an opening, low degree and
+    low exponent first."""
+    return min(types, key=lambda tm: (tm[0][0] == "o", tm[0][1], tm[0][2]))[0]
+
+
+TALLY = Counter()
+
+
+def step(S, st, t, log):
+    """Apply t, check the notch law, and at a change of holder check that the
+    degree falls. The previous holder is the item at the top exponent: it
+    landed one above every other exponent. Log (kind, degree, door, notch
+    before, notch after, holder changed)."""
+    s = apply(S, st, t)
+    if t[0] == "o":
+        TALLY["opens"] += 1
+        check(s.T == st.T, "an opening moved the notch")
+        log.append(("o", t[1], 1, st.T, s.T, False))
+        return s
+    TALLY["clocks"] += 1
+    check(s.T == S.ladder.next(st.T + 1) and s.T > st.T, "the notch law")
+    top = st.top()
+    chg = top is not None and top[1] >= 2 and (t[0] == "u" or t[2] < top[1])
+    if chg:
+        TALLY["changes"] += 1
+        check(t[1] < top[0], f"chain: holder {top} -> {t}")
+    log.append((t[0], t[1], st.T + 1 - t[2], st.T, s.T, chg))
+    return s
+
+
+def walk(S, sup, n, st=None, log=None, choose=canon):
+    st = st if st is not None else State()
+    log = [] if log is None else log
+    for _ in range(n):
+        best, types = menu(S, st, sup)
+        if best is None:
+            break
+        st = step(S, st, choose(types), log)
+    return st, log
+
+
+def branches(S, sup, k, n, cap=64):
+    """Every distinct state any tie choice reaches in k moves, each walked
+    on canonically for n more; and the degrees clocked on any edge."""
+    front, census = {State().key(): (State(), [])}, set()
+    for _ in range(k):
+        nxt = {}
+        for st, log in front.values():
+            for t, _m in menu(S, st, sup)[1]:
+                lg = list(log)
+                s2 = step(S, st, t, lg)
+                if t[0] != "o":
+                    census.add(t[1])
+                nxt.setdefault(s2.key(), (s2, lg))
+        front = nxt
+        check(len(front) <= cap, "branch cap")
+    out = []
+    for st, log in front.values():
+        st2, lg = walk(S, sup, n, st, list(log))
+        census |= {x[1] for x in lg if x[0] != "o"}
+        out.append((st2, lg))
+    return out, census
+
+
+def shape(st):
+    """(runaway degree, strands, items at exponent 1 per degree)."""
+    above = sum(m for (d, e), m in st.seat.items() if e >= 2)
+    flat = Counter()
+    for (d, e), m in st.seat.items():
+        if e == 1:
+            flat[d] += m
+    return st.top()[0], above - 1, flat
+
+
+def settled(log):
+    """The step of the last holder change (0 if none)."""
+    return max([i for i, x in enumerate(log) if x[5]] + [0])
+
+
+def void_winners(S, sup):
+    bids = []
+    born = [d for d in sup if sup[d] and d in S.born]
+    fresh = [d for d in sup if sup[d] and d not in S.born]
+    if born:
+        bids.append((S.price(born[0], 2, True), born[0]))
+    if fresh:
+        bids.append((S.price(fresh[0], 1, True), fresh[0]))
+    lo = bids[0][0]
+    for b, _ in bids:
+        if b < lo:
+            lo = b
+    return {d for b, d in bids if b == lo}
+
+
+# ---------------------------------------------------------------------------
+# the exact walker: coverage read off lambda by divisibility
+
+def exact_menu(st, sup):
+    lam_odd = 1
+    for (d, e) in st.seat:
+        lam_odd = lcm(lam_odd, 2 ** d - 1)
+    T = max([2 ** ceil_log2(e) for (d, e) in st.seat] + [1])
+    cov = {d for d in sup if sup[d] and lam_odd % (2 ** d - 1) == 0}
+    items = Counter()
+    for (d, e), n in st.seat.items():
+        items[("c", d, e, d * (T + 1 - e))] += n
+    for d in sup:
+        u = sup[d] - st.nseat[d]
+        if u > 0:
+            items[("u", d, 0, d * (T + 1)) if d in cov else ("o", d, 0, d)] += u
+    lo = min(k[3] for k in items)
+    return T, cov, Counter({k: m for k, m in items.items() if k[3] == lo})
+
+
+def abstract_menu(S, st, sup):
+    best, types = menu(S, st, sup)
+    cov = {d for d in sup if sup[d] and covered(S, st, d)}
+    return st.T, cov, Counter({(t[0], t[1], t[2], best): m for t, m in types})
+
+
+def control_exact(S, n, dmax):
+    """Advance by the EXACT walker's canonical move; compare every state."""
+    compared = 0
+    for name in RING_L:
+        sup, st = ring_supply(name, dmax), State()
+        for _ in range(n):
+            ex, ab = exact_menu(st, sup), abstract_menu(S, st, sup)
+            if ex != ab:
+                return compared, False
+            compared += 1
+            t = min(ex[2], key=lambda k: (k[0] == "o", k[1], k[2]))
+            st = apply(S, st, t[:3])
+    return compared, True
+
+
+CORNER = Sched("corner", ladder_b(2), price_power(1))
+
+
+def section_x():
+    """PR3 and the controls."""
+    print("S0  CONTROLS AND THE EXACT WALKER")
+    for name in RING_L:
+        sup = ring_supply(name, 8)
+        print(f"  {name:6s} affine places per degree 1..8: "
+              f"{[sup[d] for d in range(1, 9)]}")
+    bad, ok = control_exact(Sched("tripling", ladder_b(3), price_power(1)),
+                            40, 40)
+    check(not ok, "a tripling clock did not part from the exact walker")
+    print(f"  forced: a tripling clock parts from the exact walker at state "
+          f"{bad + 1}")
+    n, ok = control_exact(CORNER, 120, 40)
+    check(ok, "the exact walker parts from the corner schedule")
+    print(f"  PR3: the corner schedule equals the exact walker at {n} states "
+          f"over the six ring supplies, least moves and covered sets both")
+    st = State()
+    st.seat[(3, 4)] += 1
+    st.seat[(4, 1)] += 1
+    st.T = 4
+    try:
+        step(CORNER, st, ("c", 4, 1), [])
+        fired = False
+    except AssertionError as e:
+        fired = str(e).startswith("chain:")
+    check(fired, "the chain check did not fire on a rising holder")
+    st = State()
+    st.seat[(1, 9)] += 1
+    st.seat[(2, 3)] += 1
+    check(shape(st)[1] == 1, "the strand count missed a planted strand")
+    print("  forced: the chain check fires on a planted rising holder; the "
+          "strand count reads a planted strand")
+    TALLY.clear()
+    section_m()
+
+
+def section_l():
+    """PR5: the corner's limit over the six ring supplies."""
+    print("S2  THE CORNER'S LIMIT OVER THE RING SUPPLIES (10 moves branched, "
+          "290 more each)")
+    print("  ring   branches  runaways  above 1  strands  one per opened  "
+          "opened by runaway  last change")
+    for name in RING_L:
+        sup = ring_supply(name, 400)
+        brs, census = branches(CORNER, sup, 10, 290)
+        runs, nopen, above, strs, last = [], set(), set(), set(), set()
+        for st, log in brs:
+            D, strands, flat = shape(st)
+            runs.append(D)
+            above.add(strands + 1)
+            strs.add(strands)
+            last.add(settled(log))
+            nopen.add((D, len(st.opens)))
+            opened = sorted(st.opens)
+            check(strands == 0, f"a strand at the corner, {name}")
+            own = D in opened
+            check(all(flat[d] == (0 if own and d == D else 1) for d in opened)
+                  and sum(flat.values()) == len(opened) - own,
+                  f"flat, {name}")
+            check(opened == [d for d in sup if sup[d] and 1 < d <= opened[-1]],
+                  f"a degree skipped, {name}")
+            check(settled(log) == 0, f"the clock changed hands, {name}")
+            check((D, own) in ((1, False), (2, True)), f"runaway {name}")
+        check(nopen <= {(1, 290), (2, 291)}, f"openings by runaway, {name}")
+        by = "/".join(str(n) for _, n in sorted(nopen))
+        print(f"  {name:6s} {len(brs):6d}    {str(sorted(set(runs))):8s} "
+              f"{str(sorted(above)):>6s} {str(sorted(strs)):>8s}      yes"
+              f"      {by:>8s}   {str(sorted(last))}")
+
+
+SWEEP = [
+    Sched("corner", ladder_b(2), price_power(1)),
+    Sched("b = 3/2", ladder_b(Fraction(3, 2)), price_power(1)),
+    Sched("b = 3", ladder_b(3), price_power(1)),
+    Sched("b = 4", ladder_b(4), price_power(1)),
+    Sched("alpha = 2", ladder_b(2), price_power(2)),
+    Sched("additive", ladder_b(2), price_additive),
+    Sched("nu = 2", ladder_b(2), price_power(1), nu=2),
+    Sched("nu = 3", ladder_b(2), price_power(1), nu=3),
+    Sched("born {}", ladder_b(2), price_power(1), born=()),
+    Sched("born 1,2", ladder_b(2), price_power(1), born=(1, 2)),
+    Sched("mult q=2", ladder_b(2), price_mult(2)),
+    Sched("mult q=3", ladder_b(2), price_mult(3)),
+    Sched("mult b=3", ladder_b(3), price_mult(2)),
+    Sched("mult b=4", ladder_b(4), price_mult(2)),
+]
+
+
+def ceiling(S, dmin):
+    """The largest D with D^alpha (b - 1) <= dmin^alpha b, for a power
+    price on a b-ladder; None where the formula does not apply."""
+    alpha = {"alpha = 2": 2}.get(S.name, 1)
+    if S.name in ("additive",) or S.name.startswith("mult"):
+        return None
+    b = Fraction(S.ladder.name.split("= ")[1])
+    D = dmin
+    while (D + 1) ** alpha * (b - 1) <= dmin ** alpha * b:
+        D += 1
+    return D
+
+
+def section_c():
+    """PR7, PR8, PR9: the ceiling, the void law, the strand."""
+    print("S3  THE SWEEP: THE CEILING, THE VOID LAW, THE STRAND "
+          "(10 moves branched, 150 more each)")
+    print("  schedule   supply  branches  clocked  void    runaways  ceiling"
+          "  strands per branch")
+    rows = 0
+    for S0 in SWEEP:
+        sups = [(n, ring_supply(n, 60), S0) for n in ("F2[x]", "h5", "g2")]
+        if S0.name not in ("born {}", "born 1,2"):
+            sups.append(("{2,4}", designed(60), S0.but(born=(2,))))
+        for sname, sup, S in sups:
+            brs, census = branches(S, sup, 10, 150)
+            vw = void_winners(S, sup)
+            dmin = min(d for d in sup if sup[d])
+            cap = ceiling(S, dmin)
+            runs, strands = set(), []
+            for st, log in brs:
+                D, ns, _ = shape(st)
+                runs.add(D)
+                strands.append(ns)
+                top = max(st.opens)
+                check(all(st.opens[d] == min(S.nu, sup[d]) for d in sup
+                          if d < top and sup[d] and d not in S.born),
+                      f"support width at {S.name}, {sname}")
+                ks = [x for x in log if x[0] != "o"]
+                check(len({x[1] for x in ks[-3:]}) == 1,
+                      "no single holder over the last three clock moves")
+                check(ns <= sum(1 for d in sup if sup[d] and d < max(
+                    x[1] for x in ks)), "more strands than the chain allows")
+                if cap is not None:
+                    check(D <= cap, f"runaway {D} above the ceiling {cap}")
+                if not S.name.startswith("mult"):
+                    fcb = max(d for d in sup if sup[d] and S.price(d, 1, True)
+                              <= S.price(dmin, 2, True))
+                    check(D <= fcb, f"runaway {D} above the first-clock "
+                          f"bound {fcb}")
+                    TALLY["first-clock rows"] += 1
+                last = max([j for j, x in enumerate(ks) if x[5]] + [0])
+                for x in ks[last + 1:]:
+                    if D > dmin:
+                        check(S.price(D, x[2], False)
+                              <= S.price(dmin, x[3] + 1, True),
+                              "the finite-notch bound")
+            check(census == vw, f"void law, {S.name} {sname}: "
+                  f"{sorted(census)} against {sorted(vw)}")
+            if S.name.startswith("mult"):
+                check(len(brs) == 1 and max(strands) == 0,
+                      f"multiplicative row {S.name} {sname}")
+            if S.ladder.name in ("b = 2", "b = 3/2"):
+                check(max(strands) == 0, f"a strand at {S.name}, {sname}")
+            if S.name in ("b = 3", "b = 4"):
+                check(max(strands) >= 1 or len(vw) == 1,
+                      f"no strand at {S.name}, {sname}")
+            rows += 1
+            print(f"  {S.name:10s} {sname:6s} {len(brs):6d}    "
+                  f"{str(sorted(census)):8s} {str(sorted(vw)):7s} "
+                  f"{str(sorted(runs)):8s} {str(cap):7s}  {strands}")
+    print(f"  {rows} rows: the clocked degrees equal the void winners at "
+          f"every row; {TALLY['first-clock rows']} branch rows at a power "
+          f"or additive price, every runaway within the first-clock bound")
+    _, census = branches(CORNER.but(born=(2,)), designed(60), 10, 150)
+    check(census == {2, 4}, "the designed supply does not attain 2 d_min")
+    S = Sched("b = 4", ladder_b(4), price_power(1), born=(2,))
+    sup = {d: (2 if d >= 2 else 0) for d in range(1, 61)}
+    brs, census = branches(S, sup, 10, 150)
+    vw, runs = void_winners(S, sup), sorted({shape(st)[0] for st, _ in brs})
+    print(f"  off the sweep: b = 4, degree 2 born covered, every degree from "
+          f"2 supplied: clocked {sorted(census)}, void winners {sorted(vw)}, "
+          f"runaways {runs}, ceiling {ceiling(S, 2)}")
+    check(census == {2, 3} and vw == {3} and runs == [2],
+          "a void winner above its ceiling kept the clock")
+
+
+def section_s():
+    """PR6: the support against the ladder."""
+    print("S4  THE SUPPORT AGAINST THE LADDER (corner price, 2 items per "
+          "degree to 400, 240 moves)")
+    print("  ladder       runaway  settled  last open  at degree  max door "
+          "kappa(D, G)  opens in last quarter")
+    sup, n = wide(2, 400), 240
+    for lad in LADDERS + [ladder_b(Fraction(3, 2)), ladder_b(3), ladder_b(4)]:
+        S = Sched(lad.name, lad, price_power(1))
+        st, log = walk(S, sup, n)
+        D, _, _ = shape(st)
+        s0 = settled(log)
+        opens = [(i, x) for i, x in enumerate(log) if x[0] == "o"]
+        li, ld = (opens[-1][0], opens[-1][1][1]) if opens else ("-", "-")
+        G = max(x[2] for i, x in enumerate(log) if x[0] != "o" and i > s0)
+        late = sum(1 for i, x in opens if i >= 3 * n // 4)
+        check(D <= 2, f"runaway {D} above the first-clock bound 2 d_min")
+        if lad.bounded:
+            check(late == 0, f"a bounded ladder still opening: {lad.name}")
+            check(all(x[1] <= D * G for i, x in opens if i > s0),
+                  f"an opening above kappa(D, G) at {lad.name}")
+        else:
+            check(late > 0, f"an unbounded ladder stopped: {lad.name}")
+        print(f"  {lad.name:12s} {D:5d} {s0:9d} {li:>9} {ld:>9} {G:9d} "
+              f"{D * G:8d} {late:10d}")
+
+
+def section_b():
+    """PR10: the degree-blind price."""
+    print("S5  THE DEGREE-BLIND PRICE (alpha = 0, doubling ladder, 2 items "
+          "per degree to 400, 300 moves)")
+    S, sup = Sched("blind", ladder_b(2), price_power(0)), wide(2, 400)
+    rules = {
+        "clock first": canon,
+        "open first": lambda ts: min(ts, key=lambda tm: (tm[0][0] != "o",
+                                                        tm[0][1]))[0],
+        "open 5, then clock": None,
+    }
+    want = {"clock first": [1, 2], "open first": [],
+            "open 5, then clock": [5, 6]}
+    for name, rule in rules.items():
+        if rule is None:
+            st, log = walk(S, sup, 5, choose=rules["open first"])
+            st, log = walk(S, sup, 295, st, log)
+        else:
+            st, log = walk(S, sup, 300, choose=rule)
+        clocks = [i for i, x in enumerate(log) if x[0] != "o"]
+        check(len(clocks) <= 2 and st.T <= 4, f"degree-blind {name}")
+        check(clocks == want[name], f"degree-blind {name}: clock steps")
+        print(f"  {name:20s} clock moves at steps {clocks}, final notch "
+              f"{st.T}, openings {len(log) - len(clocks)}")
+
+
+def section_k():
+    """PR11: the covering rules."""
+    print("S6  THE COVERING RULES (corner)")
+    sup = wide(2, 65536)
+    S = CORNER.but(cover=lambda st, d: any(d < 2 ** o for o in st.opens))
+    st, log = walk(S, sup, 40)
+    opens = [(i, x[1], x[3]) for i, x in enumerate(log) if x[0] == "o"]
+    print(f"  below 2^d: openings (step, degree, notch) {opens}; "
+          f"{len(log)} moves, the supply then covered")
+    check([d for _, d, _ in opens] == [2, 4, 16, 65536]
+          and [T for _, _, T in opens] == [8, 16, 64, 262144],
+          "the below-2^d rule's openings")
+    for i, _, _ in opens:
+        check(all(x[0] != "o" for x in log[max(0, i - 1):i]),
+              "two openings in a row under the below-2^d rule")
+    print("  theta     branch runaway  stopped  theta >= D/2  "
+          "last open  first clock")
+    sup, rows = wide(2, 4096), 0
+    for th in (Fraction(1, 4), Fraction(1, 2), Fraction(3, 4), Fraction(1),
+               Fraction(3, 2), Fraction(2)):
+        S = CORNER.but(cover=lambda st, d, th=th: d <= th * st.T)
+        brs, _ = branches(S, sup, 8, 60)
+        for st, log in brs:
+            D = shape(st)[0]
+            opens = [i for i, x in enumerate(log) if x[0] == "o"]
+            first = next(i for i, x in enumerate(log) if x[0] != "o")
+            clocks = [x for x in log if x[0] != "o"]
+            check(not any(x[5] for x in clocks)
+                  and all(x[1] == D for x in clocks),
+                  f"theta {th}: the first clock's holder lost the clock")
+            stopped = not any(i >= 34 for i in opens)
+            check(stopped == (th >= Fraction(D, 2)), f"theta {th}, D {D}")
+            if stopped:
+                check(all(i < first for i in opens),
+                      "an opening after the first clock on a stopped branch")
+            else:
+                check(opens[-1] >= len(log) - 4, "a climbing branch stalled")
+            rows += 1
+            print(f"  {str(th):6s} {D:9d}       {str(stopped):7s} "
+                  f"{str(th >= Fraction(D, 2)):12s} {opens[-1] if opens else '-':>9} "
+                  f"{first:9d}")
+    print(f"  {rows} branch rows: the widening stops iff theta >= D/2 "
+          f"(every degree supplied); on every one the first clock's "
+          f"holder keeps the clock, every clock move of degree D")
+
+
+def main():
+    t0 = time.time()
+    section_x()
+    section_d()
+    section_l()
+    section_c()
+    section_s()
+    section_b()
+    section_k()
+    print(f"CHAIN: {TALLY['changes']} holder changes read, each checked "
+          f"falling; {TALLY['clocks']} clock moves and "
+          f"{TALLY['opens']} openings read")
+    print(f"ALL CHECKS PASS: {CHECKS[0]} checks, {time.time() - t0:.1f} s")
+
+
+if __name__ == "__main__":
+    main()

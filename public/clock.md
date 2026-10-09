@@ -1,0 +1,941 @@
+# CLOCK — what a place charges a growth walk
+
+The object: a place P of a Dedekind ring O with finite residue field,
+read as a price list. For an ideal I, λ(I) is the exponent of the unit
+group (O/I)^×; a walk's state is a quotient O/M, the state M for short,
+and a walk raising λ(M) at P climbs P's column, and pays N(P)^r for a
+climb of r in depth; the depths from which one step more raises the
+part of λ that is a power of P's residue characteristic are P's **tick
+ladder**, and the price of every tick is read off it. This page asks
+what the whole ladder is, its tail and the head it has at some places,
+what a place hands a walk beyond its norm, and where those numbers stop
+a walk. Its verifiers are clock.py for the place,
+stop.py for the walk and dial.py for walks whose items share notches in
+blocks, census.py for what a walk strands, door.py for the ring's own
+block, race.py for which of its places runs, winner.py for what a walk
+from the void seats, lid.py for when a walk has locked for good and on
+which place, carrier.py for what a place over another prime does to a
+door, and column.py for where a column takes its closed form, with
+tame.py, wild.py and weld.py for the width; the tick's price in norm,
+and the tail it steps by, are GROWTH.md#the-module-law.
+
+K is the completion at P, v its valuation: residue field of N(P) = p^f
+elements, ramification index e over p, e infinite in equal
+characteristic, and U_i the units ≡ 1 mod P^i; a unit z ≠ 1 of U₁ has
+**level** v(z − 1). E(a) is the exponent of U₁/U_a, so
+λ(P^a) = (N(P) − 1)·E(a). The ladder is the set of depths a ≥ 1 with
+E(a + 1) > E(a), its members x₁ = 1 < x₂ < … in order. The level map is
+ψ(i) = min(p·i, i + e), multiplying below the **bend** s = e/(p − 1) and
+stepping by e above it. Write p = u·π^e with π a uniformizer and ū the
+residue of the unit u.
+
+The answer, in one line: the ladder is the orbit of 1 under ψ, except
+that when the bend is a power of p the step leaving it overshoots by
+one number w, the width, which is nonzero exactly when f = 1, e is the
+ramification index of a p-power cyclotomic field and μ_p lies in the
+field; so a place hands a walk (p, e, f) and w, and nothing else of its
+ladder varies.
+
+## The ladder is ψ's orbit, save a head at the bend
+Tier: theorem.
+Verifier: clock.py::section_ladder, clock.py::section_control,
+clock.py::section_equal.
+
+A unit z with v(z − 1) = i has v(z^p − 1) = ψ(i) whenever i ≠ s:
+with z = 1 + t, in (1 + t)^p − 1 the term p·t has valuation i + e, t^p
+has p·i, and the middle binomials at least e + 2i, more than the lesser
+of the two. So only the bend can overshoot. This level step is the
+standard description of the p-th power map on the unit filtration of a
+local field (Fesenko and Vostokov, Local Fields and Their Extensions,
+ch. I); what is read off it here is the ladder, the head and the two
+numbers. U₁/U_a is an abelian p-group, and a unit of level exactly 1
+attains its exponent: if y has the largest order and a deeper level,
+then z·y has that order and level 1 for any level-1 z of smaller order.
+The ladder is therefore read off the valuations v(z^(p^k) − 1) of
+level-1 units, which start at 1 and run 1, p, p², … below the bend.
+
+If the bend is not a power of p, every level-1 unit follows the one
+trajectory ψ^k(1), and the ladder is that orbit: 1, 2, 4, 7, 10, … at
+Q₂(2^(1/3)); 1, 2, 4, 8, 14, 20, … at Q₂(2^(1/6)), where ψ(4) = 8 still
+multiplies. If s = p^n, every level-1 unit reaches the bend at step n;
+let A, the arrival, be the least valuation a level-1 unit's p^(n+1)-th
+power reaches, and w = A − s − e ≥ 0. When w ≥ 1 the step leaving the
+bend overshoots, and that overshoot is the place's **head**, of width w.
+Past the bend every step adds e, so the slowest unit is one attaining A,
+and the ladder is
+
+    1, p, …, p^n, A, A + e, A + 2e, … .
+
+So the ladder is fixed by p, e and w, and a ladder's triple is
+(p, e, w); f enters only through w. Z₂ is (2, 1, 1), and (p, e) is the
+family with w left free.
+
+In equal characteristic e is infinite, ψ(i) = p·i, and the orbit is the
+powers of p: the log clock. The ladder's shape holds at 32 places over
+2, 3, 5 and 7 to depths 14 to 56, with the level-1 claim checked
+against the whole group at 346 (place, depth), and the four residue
+fields F₂, F₃, F₄, F₉ in equal characteristic read 1, 2, 4, …, 32 and
+1, 3, 9, 27 to depth 40.
+
+## The head criterion
+Tier: criterion.
+Verifier: clock.py::section_head.
+
+A place has a head, w ≥ 1, iff
+
+    f = 1,   e = (p − 1)·p^n for some n ≥ 0,   and ū = −1.
+
+At the bend write t = β·π^s + …; the coefficient of π^(ps) in
+(1 + t)^p − 1 is β^p + ū·β, an additive map on the residue field whose
+kernel has 1 or p elements (Fesenko and Vostokov, ch. I, (5.7) case
+(2), with θ₀ = ū). Level-1 units reach the bend with every
+nonzero coefficient, since β ↦ β^(p^n) permutes the field, so all of
+them overshoot iff that kernel is the whole field: f = 1, where the map
+is β·(1 + ū), zero iff ū = −1. Given (p − 1) | e, the last clause says
+−ū is a (p − 1)-th power in F_p, which is μ_p ⊂ K, since Q_p(ζ_p) =
+Q_p((−p)^(1/(p−1))) and a unit is a (p − 1)-th power iff its residue is.
+The surviving e are the ramification indices of Q_p(ζ_(p^(n+1))). All
+three clauses bite: the unramified places over 2 have the bend at 1 and
+f = 2 or 3; Q₂(2^(1/3)) and Q₃(3^(1/4)) have e off the form; Q₃(√3),
+Q₃(3^(1/6)), Q₅(5^(1/4)), Q₅((−10)^(1/4)) and Q₇(7^(1/6)) have the bend
+a power of p and no μ_p. Measured heads fall at exactly the criterion's
+16 of the 32 places.
+
+## The width
+Tier: theorem.
+Verifier: proof; tame.py::section_width, wild.py::section_width,
+weld.py::section_head, clock.py::section_width.
+
+The width is not a function of p, e, f and the roots of unity K holds:
+Q₂(√2) and Q₂(√−5) agree in all four and carry w = 1 and 2. It is a
+function of one number read off the coefficients of any Eisenstein
+polynomial of the field. At a place with a head over an odd prime
+(f = 1, s = pⁿ, ū = −1) w = min(l, s), with l = v(u + 1) the departure
+from x^e + p (OBSERVATORY.md#the-tame-readout). At a place with a head
+over 2, f = 1 and e = 2ⁿ ≥ 2, w is the wild departure, where a
+coefficient digit first departs from x^e + 2x^(e/2) + 4x^(e/4) − 6
+(x² + 2x − 6 at e = 2), truncated at 3e/2
+(OBSERVATORY.md#the-wild-readout). At a head, of e ≥ 2 when p = 2
+(its field holds ζ_p), it is the excess over p·s of the seat
+class's highest landing, truncated, as the departure and the wild
+departure are, at s over an odd prime and at 3e/2 over 2 (seat class and
+landing as at OBSERVATORY.md#the-tame-readout), the excess before
+truncation being the weight of a point of Pagano's jump set less p·s, or
+infinite, and over 2 it passes e only where √−1, written i in a field's
+name such as K(i), lies in K
+(OBSERVATORY.md#the-jump-set-as-the-class-maxima). At Z₂, w = 1: every
+level-1 unit overshoots, so the arrival A is at least s + e + 1 = 3, and
+z = 3 attains it, v(z² − 1) = 3. Over Q₂ at e = 2 and f = 1 it is 1, 2
+or 3 as K(i)/K is ramified, unramified or trivial
+(CLOCK.md#a-ramified-quadratic-place-over-2-reads-its-width-off-δ-mod-8).
+Elsewhere it is 1 at Q₃(√−3), Q₅((−5)^(1/4)) and Q₇((−7)^(1/6)), where
+s = 1, and 3 at Q₃((−3)^(1/6)), where u = −1. Over 2 it is 2 at
+Q₂(2^(1/4)) and Q₂((−2)^(1/4)) and 4 at Q₂(2^(1/8)), all three with wild
+departure e/2.
+
+## A ramified quadratic place over 2 reads its width off δ mod 8
+Tier: known.
+Source: A. Ranum, The group of classes of congruent quadratic integers
+with respect to a composite ideal modulus, Trans. Amer. Math. Soc. 11
+(1910) 172–198, types 5, 6 and 7 of its section 35.
+Verifier: carrier.py::section_door, carrier.py::section_control.
+
+Let P be the place over 2 of Q(√δ), δ squarefree and 2 ramified. Ranum
+gives a generating set of the unit group mod P^b, each element with its
+period, sorted by δ ≡ 2 mod 4, 3 mod 8 and 7 mod 8. Read off his table,
+the largest b at which every period divides 4 is 5, 6 and 7 in turn: the
+least v_P(η⁴ − 1) over units η, the door read below. At δ ≡ 2 mod 4 and
+b = 3 he lists two elements of order 2 in his generating set, where N.
+Nakagoshi (Nagoya Math. J. 73 (1979) 41–60, section 9 (ii)) prints a
+cyclic group of order 4; the exponent there divides 4 either way, so 5,
+6 and 7 stand. The proof below reads them again, off the norm.
+
+At P the bend is 2 = 2¹, so the ladder is 1, 2, 4 + w, … and a carrier
+jumping v₂(λ(M)) to 2 sets the depth-1 door to 4 + w
+(CLOCK.md#a-carrier-bears-on-a-place-down-to-a-ladder-member). That door
+is the least v_P(η⁴ − 1) over units η, and v_P is v₂ of the norm, which
+factors through the norm N(η) and the trace Tr = Tr(η):
+
+    N(η⁴ − 1) = (N(η) − Tr + 1)(N(η) + Tr + 1)((N(η) − 1)² + Tr²).
+
+A unit of level 2 or more pays at least 7. At level 1 each outer factor
+pays 1 and the sum of two squares decides. With η = σ + τ√δ: at δ = 2γ,
+γ odd, σ and τ are odd and the last factor is 4(((N(η) − 1)/2)² + σ²),
+two odd squares summing to 2 mod 8, total 5; at δ ≡ 3 mod 4, σ = 2σ′
+and τ odd, it is 16(((N(η) − 1)/4)² + σ′²), where (N(η) − 1)/4 has the
+parity opposite to σ′'s at δ ≡ 3 mod 8, total 6, and the same parity at
+δ ≡ 7 mod 8, where two odd squares give the least, total 7, an odd
+square being 1 mod 8. So w is 1 at δ ≡ 2, 6 mod 8, 2 at δ ≡ 3 and 3 at
+δ ≡ 7. The three are the three behaviours of K(i)/K. δ is a square in K, so
+K(i) = K(√−δ): at δ ≡ 7, −δ ≡ 1 mod 8 is a square in Q₂ and K(i) = K;
+at δ ≡ 3, −δ ≡ 5 mod 8, and K(i) is K joined to Q₂'s unramified
+quadratic, a proper step since K is ramified; at even δ the three
+quadratic subfields of Q₂(√δ, i) are all ramified, so that field is
+totally ramified and K(i)/K is too.
+OBSERVATORY.md#the-last-point-gives-the-break-of-the-next-storey reads
+the same split off the jump set's last point. Nothing finer than δ mod 8
+is read, so the six ramified quadratic extensions of Q₂ fall into four
+residues, Q₂(√2) sharing one with Q₂(√10) and Q₂(√−2) one with Q₂(√−10).
+A brute over units, reading no ladder, gives 5, 6, 7 by residue at all
+1,619 such δ with |δ| ≤ 2000, each equal to the ladder's x₃.
+
+## The two numbers
+Tier: theorem.
+Verifier: clock.py::section_ladder.
+
+The gap at a depth a walk lands on, one past a ladder member, is the
+climb to the next member, and its price is N(P)^gap. Along the ladder
+the gaps are p − 1, p(p − 1), p²(p − 1), … below the bend, each less
+than e; at most e at the step that crosses it; e + w at the one step
+the bend overshoots; and e forever after. So the largest gap a walk can
+land on, the sup, is e + w, and the tail gap is e, priced
+N(P)^e = p^(ef): the sup is the barrier a walk clears once, the tail
+what it pays forever. Q₂(2^(1/8)) has sup 12 and tail 8, Q₂(i) sup 5
+and tail 2, and every place without a head has sup equal to tail. All
+of this is mixed characteristic: in equal characteristic e is infinite,
+the gaps p − 1, p(p − 1), … grow forever, and there is neither tail nor
+finite sup.
+
+## The walk stops at its high-water price
+Tier: theorem.
+Verifier: proof; stop.py::section_walks.
+
+The walk is LIMIT.md's schedule, a move of degree d at door r costing
+κ(d, r) and a degree covered once ν openings are made at it, with the
+ladder S a place hands it. Its **high-water price** H is the largest
+price it ever pays, where the prices paid are bounded. At the step that
+pays H every move the state offers costs at least H, so every degree
+whose opening κ(d, 1) is below H is covered or wholly seated, every
+item of it seated, and no move above H is ever paid. So every degree
+still open to an opening has κ(d, 1) ≥ H, and
+where a wholly seated degree is covered, as when ν = 1 or every degree
+holds at least ν items, the horizon, the least uncovered supplied
+degree, has its opening priced at least H. Where a walk stops is its
+high-water price, whatever sets it; this high-water lemma reads no
+ladder and no clock, and held at all 266 branches read, over 13 ladders,
+three prices and both clocks, the per-item
+(CLOCK.md#under-a-per-item-clock-the-sup-sets-the-stop) and the global
+(CLOCK.md#under-the-global-clock-the-sup-is-a-floor).
+
+At the corner price d·r with every degree supplied and the default
+covering, born {1} (degree 1 born covered) and ν = 1, the horizon is H
+or H + 1, since degree H + 1's opening would pay H + 1 and so stays
+uncovered, and it is H exactly when degree H is never opened. Under a
+per-item clock (CLOCK.md#under-a-per-item-clock-the-sup-sets-the-stop)
+with sup finite and at least 2, on the branch that clocks at every tie,
+degree H is never opened, and the horizon is H. Under any clock a
+**runaway** is an item clocked infinitely often; LIMIT.md's runaway,
+under one notch shared by every item, is the item holding every clock
+move from some point on. A runaway X's pending price is never more than a
+price it pays later, so at most H, and at a
+step whose cheapest move costs H, X's pending price is exactly H. That
+pending move is not X's opening, which costs
+κ(d_X, 1) < κ(d_X, sup) ≤ H, so it is a clock move; it ties degree H's
+opening there, and the branch takes the clock move.
+
+## Under a per-item clock the sup sets the stop
+Tier: theorem.
+Verifier: proof; stop.py::section_path, stop.py::section_walks,
+stop.py::section_fate.
+
+Under a **per-item clock** every item keeps its own notch, next_S of its
+own exponent, next_S(a) being the least member of the ladder S at or
+above a, so
+a clock move on an item at exponent a has door next_S(a) + 1 − a. An
+item's **entry door** r₀ is that of its first move: 1 by an opening,
+which lands on the member 1, and 2 through a covered degree, which lands
+at 2. An opened item's next door is 1 again, and it lands at 2. From one past
+a member x_j an item pays x_(j+1) − x_j and lands one past x_(j+1); so a
+clocked item pays r₀, a second 1 if it opened, and then the ladder's
+gaps in order, and by the two numbers the largest gap is the sup and the
+last the tail. Its doors read no other item, so the price it has
+pending is never above one it pays later: before its entry, κ(d, 1)
+rising to κ(d, 2) once its degree is covered, never back, up to the
+entry it pays. Take κ nondecreasing in the
+door. Greed pays no more than any move the state offers, so for any
+runaway X,
+
+    H = κ(d_X, max(r₀, sup)),
+
+the entry door counting only on the exact ladder 1, 2, 3, …, every
+positive integer, sup 1. After the bend X pays κ(d_X, tail) forever: the
+sup is the barrier paid once, the tail the recurrent price. With bounded
+gaps and κ(d, 1) tending to infinity over the supply, finitely many
+items opening below any bound, a seated item bids at most
+κ(d, max(2, sup)) forever, so finitely many items move and one of them
+is a runaway: the walk stops where the lemma reads H. With unbounded
+gaps, κ unbounded in the door and κ(d, 1) tending to infinity, the
+prices paid are unbounded and every opening is made. Every per-item
+branch read, 149,
+agrees, the first clocked item's doors reading 2, 1, 5, 2, 2, … at
+(2, 2, 3), the ladder of Z[i]'s place over 2, and 2, 1, 2, 4, 12, 8, 8,
+… at Q₂(2^(1/8))'s ladder. At the corner price d·r on the branch that
+clocks at every tie, none of 13 bounded ladders opened in the last half
+of a walk: the exact ladder, the ladders of constant gap 2, 3 and 5,
+and those of the triples (2, 1, 1), (2, 2, 1), (2, 2, 2), (2, 2, 3),
+(3, 2, 1), (2, 4, 2), (5, 4, 1), (2, 8, 4) and (2, 3, 0); the doubling
+ladder 1, 2, 4, 8, … and the square ladder 1, 4, 9, 16, … opened 20
+and 19 times.
+
+κ(d, 1) merely unbounded is not enough. Take LIMIT.md's price,
+κ(d, 1) = 1 at every even d and κ(d, r) = d·r otherwise, with every
+degree supplied, on a ladder whose gaps are all at least 2. Past its
+opening an item's one move that can cost 1 is its second door 1, at even
+d or d = 1, taken or not as the tie-break decides; every door of 2 or
+more costs at least 2, while every even degree offers an opening at
+price 1. So greed opens forever, no item is clocked more than once, and
+no bound on the moved items holds: there is no runaway. On the exact
+ladder the same price lets one item clock at price 1 forever.
+
+## Under the global clock the sup is a floor
+Tier: theorem.
+Verifier: proof; stop.py::section_walks, stop.py::section_excess.
+
+Under the **global clock**, LIMIT.md's one notch T shared by every item,
+the notch walks the ladder member by member, and every exponent is at
+most x_j + 1 while it stands at the member x_(j+1), so the move leaving
+x_(j+1) has door at least x_(j+1) − x_j; its holder's degree is at least
+the runaway's, by LIMIT.md#the-chain. With κ(d′, r′) > κ(d, r) whenever
+d′ ≥ d and r′ > r, and κ nondecreasing in the degree, as d·r, d²·r and
+d + r are, H ≥ κ(d_X, sup) on every branch, and on a branch whose
+runaway is its only holder the per-item argument gives
+H = κ(d_X, max(r₀, sup)) exactly. A strand can lift it: a new holder
+enters at door T + 1, which no gap bounds. At the corner's price d·r on
+the ladder 1, 1 + g, 1 + 2g, …, open degree 2 at the void tie
+κ(1, 2) = κ(2, 1) and clock it; the degree-1 item then takes the clock
+at g + 2 and keeps it at door g. The runaway has degree 1 and sup g, and
+the horizon is g + 2, read 4, 5 and 7 at g = 2, 3 and 5. Of 117 global
+branches, none sat below the floor and every single-holder one sat at
+κ(d_X, max(r₀, sup)); all 20 with a holder change sat above the floor,
+every one at price d·r: d²·r has no void tie, and at d + r the
+degree-2 holder's bid 2 + g stays under the degree-1 item's g + 3, so
+it keeps the clock. So the reading that the horizon is d_X·sup, the
+runaway's degree times the sup, observed under both clocks at the
+corner's price and covering (d·r, born {1}, ν = 1) on the branch that
+clocks at every tie on every ladder read save the exact one (there an
+item can enter paying 2, above its sup 1), holds by theorem under the
+per-item clock over a ladder with finite sup at least 2 and every degree
+supplied, since H = κ(d_X, sup) there by the per-item argument,
+r₀ ≤ 2 ≤ sup, and the horizon is H by the high-water lemma's second
+paragraph; under the global clock d_X·sup is a floor. Under the
+per-item clock the runaway has degree 1: a degree-1 item never bids
+above max(2, sup) = sup, so H ≤ sup, and H = d_X·sup forces d_X = 1.
+
+## A block clock keeps at most one runaway per block
+Tier: theorem.
+Verifier: proof; dial.py::section_bounded, dial.py::section_climbing,
+dial.py::section_tie.
+
+A **block clock** gives each block of items one notch, moved along the
+mover's own ladder; one block is the global clock, singletons the
+per-item one, and a number ring's blocks are its rational primes, since
+a place's door reads the state through one p-adic valuation, though the
+block shares a count, each place reading it as its own notch
+(CLOCK.md#a-rings-door-is-one-valuation-and-its-clock-a-count). Take the
+chain's price, κ(d′, r′) > κ(d, r) whenever d′ ≥ d and r′ > r, with
+κ(d, 1) tending to infinity over the supply. The chain holds inside a
+block whatever ladders its items climb: between two of its clock moves
+only openings and other blocks' moves come, and neither touches its
+notch, so a change of holder falls in degree and a block clocked
+infinitely often has one runaway. While a block is idle, not clocked,
+its clock moves only gain entries, an opening seating an item at door T,
+the block's notch, and a newly covered degree adding one at T + 1, so its
+least pending clock price only falls; and a single holder pays its entry
+door, a second 1 if it opened, and then its ladder's gaps, so every
+price it pays is at most its **crossing price**
+H_b = κ(d, max(r₀, sup)), the subscript naming its block b and sup
+the largest gap its ladder lands on, whether or not the ladder has a
+head. These blocks tick in depth along the mover's ladder and nothing
+but their own moves changes them. A
+number ring's block departs twice: an opening can jump its count and
+raise an idle block's pending price
+(CLOCK.md#a-rings-door-is-one-valuation-and-its-clock-a-count), and it
+ticks in counts, where two ladders in one block part from the depth
+clock (CLOCK.md#a-rings-block-keeps-one-runaway-in-counts). This section
+does not reach a number ring, and
+CLOCK.md#a-lidded-block-locks-the-walk-for-good does.
+
+With bounded gaps finitely many items move. Take any seated item's
+block: idle from some step, its least pending clock price only falls and
+bounds every later price; clocked forever, it keeps one runaway, whose
+doors past its last change of holder are its ladder's gaps, so its
+pending price is bounded. Either way the prices are bounded from some
+step, and κ(d, 1) tending to infinity opens finitely many items below
+the bound; each block changes holder finitely often, by the chain, and
+after that its doors are ladder gaps from a finite set. So finitely many
+prices recur; let B be the largest price paid infinitely often. Past
+some step no price above B is paid, and every idle block pends at least
+B, since greed would otherwise pay its move in place of the B's. If
+every block has a single holder, H = min H_b over the blocks ever
+clocked: the runaway's path never prices above its own H_b and stays
+among the offered moves, and every clocked block's holder pends at
+most its own H_b, so no step pays above the least of them, and a block
+whose path must pass a dearer price waits at it, even when its tail is
+the cheapest of the offered moves; which block attains the minimum is
+the branch's, not the ladders'.
+At most one runaway ever pays above B: a runaway's pending price is
+never more than the next price it pays, a waiting item's door
+T_b + 1 − a only rising with the notch, so when the later of two last
+payments above B is made, the other runaway pends at most B, which greed
+would have paid instead. Two runaways that never pay above B both run or
+not by the tie-break alone. With unbounded gaps and κ unbounded in the
+door, every block holding a seated item is clocked infinitely often: an
+idle one bounds every later price, which a climbing runaway or an unending
+run of openings exceeds. So with every ladder's gaps unbounded and κ
+unbounded in the door, every block holding a seated item keeps one
+runaway.
+
+Over 4096 branches (13 bounded ladders, five partitions, three prices)
+no change of holder rose, no single-holder branch sat off min H_b, and
+none kept two late blocks, clocked in a walk's last quarter, whose
+crossing price exceeds B; 911 kept more than one late block, all at
+headless ladders; late is a finite proxy for
+running forever, so the proof carries the limit. At a gap-3 block beside
+(2, 2, 3) the tail-2 block waits at its bend on 21 of 25 branches, and
+which block runs moves with the branch. With one constant-gap ladder,
+gap 2, 3 or 5, in both blocks, two runaways appear on every branch
+seating both degree-1 items when ties go to the lowest exponent first,
+and one on every branch when they go to the highest; with (2, 2, 3) in
+both, one under either rule. Every block of the four partitions coarser
+than the per-item one, the global clock, a block per slot (an item's
+rank, first or second, among the two of its degree) and blocks by the
+degree plus the slot mod 2 and mod 3, runs at the doubling and square
+ladders, on all 207 branches.
+
+## The admission census is the high-water lemma, item by item
+Tier: theorem.
+Verifier: proof; census.py::section_per_item, census.py::section_closed,
+census.py::section_coarse, census.py::section_excess.
+
+An item's path is the (price, depth landed at) of its moves were it alone
+clocked: an opening at κ(d, 1) to 1 and a second door 1 to 2, or an
+entry at door 2 to 2 once its degree is covered, then the ladder's gaps
+in order. The **admission census** at a bar ρ opens a degree iff
+κ(d, 1) < ρ, enters its other items iff κ(d, 2) < ρ, and rests every
+opened or entered item before the first price on its path at or above ρ.
+Take a per-item clock, a headed ladder whose sup exceeds the entry door
+2, the chain's price nondecreasing in the degree, ties going to the
+lower degree, one opening a degree, and degree 1 supplied and born
+covered, as in every schedule run, and κ(d, 1) tending to infinity over
+the supply, so that a runaway exists. Then the walk seats exactly the
+admission census at H = κ(1, sup), less the runaway. A degree-1 item
+pends its next path price, never above κ(1, sup), so no price paid
+exceeds it, and the runaway pays at least it. At the first step paying H
+every move costs at least H, so a degree-1 item pends exactly H and
+takes it at its crossing. After that it pays its tail, below H, and
+every other pending price stands at or above H, since a per-item pending
+price moves only when its item does, or rises once when the degree is
+covered. So every item paid its path up to its first price at or above H
+and nothing after. No walk is read. Each item resting above depth 1, the
+runaway aside, sits one past a ladder member at or below the bend,
+since the crossing gap is the sup. At (2, 4), κ = d·r, two items a
+degree, the admission census holds w + 3 + ⌈w/2⌉ such items, all at
+depth 3 or 5: 5, 6, 8, 9, 12, 15, 21, 27, 39 at w = 1, 2, 3, 4, 6, 8,
+12, 16 and 24, w swept as a free parameter of the ladder, past the
+widths a place of (2, 4) takes. With one opening a degree the per-item
+moves are a fixed tree hung from the void, each item a chain and a
+degree's later items hung at door 2 from its opener, and greed on it
+is Prim's algorithm, which visits vertices in order of minimax distance
+from the void (Chehreghani, Machine Learning 2020,
+section 4.2): the admission census is the ball of minimax distance below
+H. Prim's order is the fixed-price case of Boyd and Faigle's theorem
+(Discrete Appl. Math. 1990, as stated by Kempner and Levit, arXiv
+math/0307013): on an antimatroid whose prices only fall as the taken set
+grows, greedy is minimax at every prefix; and, Kempner and Levit add,
+the set it holds when it first pays its high-water price maximizes the
+least pending price, the admission census argument's step at H. A walk's
+prices run the other way, never falling as the taken set grows, so the
+theorem does not reach it: the admission census counts the one rise a
+covered degree makes, and a shared notch's rises, off any fixed tree,
+are what lift H.
+
+Two of the hypotheses bite here. At Z₂, (2, 1, 1), the sup is the entry
+door: a second degree-1 item pays H at its entry before the first
+crosses, and whether it sits is a tie between them, off the admission
+census at all three prices. A move at H broken to a higher degree seats
+beyond it; 24 of 58 per-item branches do. With both excluded, every
+per-item branch sits on the admission census. A coarser clock seats
+nothing beyond the admission census on a branch where every block has
+one holder and H = κ(1, sup), under the same two exclusions, since a
+single holder pays its own path: 726 such branches, none beyond. Off
+them the shared notch can lift H. At (2, 2, 3) under the global clock,
+degree 2 opened at the void tie and clocked twice leaves a degree-1
+entry at 8, so degrees 5, 6 and 7 open, which the admission census
+shuts. That is common, not a lone branch: of 1006 global branches, 578
+are not single-holder at κ(1, sup) and 576 of those seat beyond the
+admission census, so a shared notch does more than raise doors.
+
+## Two blocks of a number ring never both run away
+Tier: theorem.
+Verifier: proof; dial.py::section_two_chars, dial.py::section_wide.
+
+A number ring's places over different rational primes read different
+coordinates of the state, so its blocks' notches move independently,
+save the jumps an opening makes, an opening at a number ring's places
+being a place's first move (GROWTH.md#the-lock-prime-law); a place's
+ladder steps by its finite e past the bend, so its gaps are bounded, and
+the price is N(P)^r. Two blocks' recurrent prices are p^(ef) and
+q^(e′f′) with p ≠ q and never tie. A block clocked forever becomes lidded
+(CLOCK.md#a-lidded-block-locks-the-walk-for-good), and then finitely
+many openings follow; past the last of them no count jumps and each
+runaway pends its recurrent price at every step, so greed never again
+pays the dearer one. So no two blocks both run away and no tie-break is
+consulted between blocks: the ring's runaways lie over one rational
+prime, and one place among them runs by
+CLOCK.md#a-rings-block-keeps-one-runaway-in-counts. A function field's
+places all lie over one p: one block. A runaway per block needs two
+blocks of unbounded gaps, two characteristics of equal characteristic,
+which no domain has: the doubling ladder and the tripling one, 1, 3, 9,
+27, …, in two blocks keep both clocked on all 20 branches, one block of
+doubling keeps one on all 32. What does decide a tie is visible in the
+equal-degree case: two items of one degree in one block, on gap 1 and
+gap h, tie at their entry, and in depth whichever enters first holds the
+clock forever unless a lower degree takes it, the wide one on 15, 18 and
+40 of 25, 34 and 92 branches at h = 2, 3, 5. A ring has that case, the
+ring of x³ + 2x + 1 holding two places of norm 59 on gaps 1 and 2, but
+it ticks in counts, where the entry does not settle it: if the wide
+place takes the first tick, both then pend 59², a door of 2 each, and
+the tie recurs once (CLOCK.md#which-place-a-rings-block-runs).
+
+## A ring's door is one valuation and its clock a count
+Tier: theorem.
+Verifier: proof; door.py::section_rings, door.py::section_unit,
+door.py::section_control.
+
+(O/P^b)^× is the residue field's units times the p-group U₁/U_b, so,
+with N = N(P), λ(P^b) = (N − 1)·p^c(b), c(b) the number of ladder
+members below b, and P's **column** is its chain of quotients O/P^b down
+the depths b, each carrying λ(P^b), and its **column count** at depth b
+is c(b), the exponent of λ(P^b)'s p-part. At a seated place, or one
+whose N − 1 already divides L = λ(M), the prime-to-p part is paid, and
+λ(P^(a+r)) divides L iff c(a + r) ≤ V, V = v_p(L) the block's count at
+p, which a seated place's column count never exceeds. So the door is
+m(V + 1) − a, m(j) = x_j + 1 the least depth whose column count reaches
+j: the block clock's T + 1 − a with T = x_(V+1), the block's count V
+read through the place's own ladder. A clock move lands where the column
+count is V + 1 exactly, U_b/U_(b+1) having exponent p, so it raises
+v_p(L) by one and no other coordinate. The block clock above ticks in
+depth along the mover's ladder and every item reads that depth raw; a
+ring ticks in counts. Where a block's places share one ladder the two
+clocks agree move for move, and where they carry two they can part.
+
+Over Z[i], Z[√−5], Z[√2] and the rings of x³ + 2x + 1 and x³ − x − 1
+the engine reads each door both ways, by lcm against the whole of L and
+by the count form; given λ(P^b) = (N − 1)·p^c(b) the argument above
+makes the two equal, so their agreement checks the engine. The formula
+is read against brute unit groups at Z's places over 2, 3, 5 and 7 to
+p^b ≤ 5000 and at Z[i]'s ramified place to depth 10 and its inert place
+over 3 to depth 4.
+The count engine matches dial.py move for move at 477 schedules with one
+ladder a block and parts at 52 of 378 with two. No quadratic ring holds
+two ladders in a block, a split prime's places being conjugate; the ring
+of discriminant −59 holds Z₂'s headed ladder beside the unramified place
+of residue degree 2 over 2, and two over 59.
+
+## The staircase column
+Tier: theorem.
+Verifier: proof; column.py::section_staircase.
+
+The lemma on the levels of a unit's p^k-th powers is known. N. Nakagoshi
+(The structure of the multiplicative group of residue classes modulo
+p^(N+1), Nagoya Math. J. 73 (1979) 41–60, Corollary 8, after Serre,
+1961, and Wyman, 1969) gives the level of every p^k-th power of a unit
+of level i, exactly unless the unit reaches the bend in the kernel of
+the head criterion's map β ↦ β^p + ū·β. The exponent of U₁/U_b is the
+largest order of a level-1 unit, and a unit outside that kernel attains
+it (CLOCK.md#the-ladder-is-ψs-orbit-save-a-head-at-the-bend), so at a
+headless place the column below follows from his corollary; at a place
+with a head every level-1 unit reaching the bend lies in the kernel, f
+being 1, and the width decides (CLOCK.md#the-width). Where μ_p is not in
+K his Theorem 2 gives the whole unit group of P^b. At the ramified place
+over 3, Ranum (1910), types 3 and 4 of section 35, sorts the groups by
+δ ≡ 3 and 6 mod 9.
+
+A column takes the closed form λ(P^b) = (N − 1)·p^⌈(b−1)/e⌉ at every
+depth exactly when e ≤ p − 1 and P has no head. The closed form's
+exponent ⌈(b−1)/e⌉ is the column count c(b) of the ladder 1, 1 + e,
+1 + 2e, …, the staircase, and c fixes the ladder. Below p − 1 the bend
+lies under 1 and every step adds e; at e = p − 1 the bend is 1 = p⁰ and
+the ladder 1, 1 + e + w, …, the staircase iff w = 0; above it
+x₂ = ψ(1) = p < 1 + e. A failing column agrees up to b = p and parts at
+p + 1. In Q(√δ), e ≤ 2, so the closed form fails exactly at the places
+over 2 of residue degree 1 and at the ramified place over 3 when δ ≡ 6
+mod 9, where μ₃ lies in the completion, and not at δ ≡ 3 mod 9. Read at
+39 places, 16 obeying and 23 departing, 0 off.
+
+## A norm does not fix a column
+Tier: property.
+Verifier: proof; column.py::section_ring.
+
+A norm does not fix a column within one ring. In a quadratic field a
+prime is split, inert or ramified, so places of one norm are conjugate
+or the prime's only place, and share a column; in the ring of
+x³ − x − 1, 23 = P·Q² with e = 1 and 2, both of norm 23 and both
+staircases, and the columns part at b = 3, 11,638 against 506.
+
+## A move's price is an index
+Tier: property.
+Verifier: column.py::section_index.
+
+The price N^r of a move from depth a is the additive index
+[P^a : P^(a+r)]. As |(O/P^b)^×| = (N − 1)·N^(b−1), the unit group's
+index is N^r too at a seated place and N^r·(N − 1)/N at an opening, so
+the two readings part there alone, and there the unit group's reading
+breaks a tie the additive one leaves
+(LIMIT.md#attainment-is-the-void-menus).
+
+## A ring's block keeps one runaway, in counts
+Tier: theorem.
+Verifier: proof; door.py::section_unit, door.py::section_rings,
+door.py::section_pairs.
+
+Let R and Y ≠ R be places of one block, R's clock move taking the count
+to V_R and the block's next clock move being Y's, at count V. Y's count
+is at most V_R − 1, so its depth is at most x_(V_R) = m_Y(V_R) − 1 and
+its door at least m_Y(V + 1) − m_Y(V_R) + 1, one of its own gaps and a
+depth or more (two gaps where Y last landed by a clock move, at most at
+m_Y(V_R − 1); a place the walk starts with can sit deeper in its count),
+while R pends m_R(V + 1) − m_R(V_R), one of its own when no jump comes
+between. With one ladder Y's door exceeds R's and the residue degree
+falls: the block clock's chain. With two it can fail. At gap 3 beside
+the exact ladder under d·r the wide item takes the tick, the narrow one
+enters at a rise of 3 against the wide one's 3, and the block changes
+holder at equal degree; 54 changes over the two-ladder schedules, none
+with Y's door below the bound m_Y(V + 1) − m_Y(V_R) + 1, all 54 not
+falling. Past both ladders' tail indices
+(CLOCK.md#which-place-a-rings-block-runs) every gap is the tail gap, g_Y
+on Y's ladder and g_R on R's, so with no jump between the two moves,
+greed taking Y means Y's price at door g_Y + 1 is at most R's at door
+g_R, N(Y)^(g_Y + 1) ≤ N(R)^(g_R), and Y's recurrent price, at door g_Y,
+is strictly below R's. A block clocked forever becomes lidded, so finitely
+many openings follow (CLOCK.md#a-lidded-block-locks-the-walk-for-good)
+and finitely many places move; so finitely many changes happen, and a
+block clocked forever keeps one runaway whatever ladders it holds.
+
+Only an opening moves another block's count: opening a place G over a
+prime q raises the count of the block over each prime p ≠ q to
+v_p(N(G) − 1) when that is larger, at a stroke, unbounded over the
+choice of G since a prime q ≡ 1 mod p^k exists for every k: a jump of
+the count, which every place of the block reads through its own ladder
+and which leaves the bound standing. At Z[i] the inert place over 3
+opens at the third move and lifts v₂(L) from 2 to 3, moving the ramified
+place's door at depth 3 from 5 to 7. With the two blocks clause, a
+number ring keeps one runaway place. No walk read reached the tail
+clause, 0 tail changes in any, so it stands on the proof; a holder that
+loses the clock falls a whole count behind. In the rings no block
+changed holder at all: of 1856 walks seating two places over one prime
+at depths 1 to 4, 252 clocked that block and none clocked both places.
+
+## A carrier bears on a place down to a ladder member
+Tier: theorem.
+Verifier: proof; carrier.py::section_bears, carrier.py::section_floor.
+
+A **carrier** is a place G over another prime whose opening jumps the
+count at p to j = v_p(N(G) − 1), whatever G's own depth. Let P over p
+sit at depth a with v_p(L) = c(a), P's own column count. Seating the
+carrier moves P's door iff j > c(a), m being strictly increasing, and
+c(a) < j iff fewer than j ladder members lie below a. So a carrier bears
+on exactly the depths 1 to x_j, and there it sets the door to
+m(j + 1) − a, which at depth 1 is x_(j+1). The range a ≤ e(j − 1) + 1 is
+the staircase's x_j and holds at every j exactly where the column is a
+staircase (CLOCK.md#the-staircase-column); elsewhere the depths are the
+ladder's own. A norm-5 carrier, j = 2, bears on Z₂ to depth 3 and moves
+its depth-1 door to 4; on Q₂(i), ladder 1, 2, 7, 9, only to depth 2, but
+it moves that door to 7, a price of 2 against 128; on x³ + 2 over 2,
+headless with e ≥ p, to depth 2 against the staircase's 4. Read off the
+whole unit group at 11 places for j ≤ 4, 0 off.
+
+A carrier's norm is at least p^j + 1, attained iff that is a prime
+power: at p = 2 by 3, 5, 9 and 17 for j ≤ 4, first missed at j = 5,
+where the least is 97. A place of residue degree 3 over ℓ has
+N − 1 = (ℓ − 1)(ℓ² + ℓ + 1), and the second factor gives the primes ≡ 1
+mod 3 that divide it from a small ℓ; being odd, it never cheapens a
+carrier for 2. Among the primes p below 24, residue degree 3 is the
+cheaper carrier contributing p once at 7, norm 8 against 29, and at 13,
+norm 27 against 53, and at no other.
+
+A walk buys its carriers. It opens a place only as a least move its
+state offers, at a price N^r of at least N, so every norm a walk opens is at
+most its high-water price H
+(CLOCK.md#the-walk-stops-at-its-high-water-price), and since a carrier's
+norm is at least p^j + 1, a carrier it opens jumps the count to
+j < log_p H; the places of the state it starts from are the only ones it
+holds unpaid. The supply a walk can seat against a door is capped by its
+own high-water price H, not raced against the door.
+
+## Which place a ring's block runs
+Tier: theorem.
+Verifier: proof; race.py::section_blocks, race.py::section_cells,
+race.py::section_rings, race.py::section_entry.
+
+A place over p opens at exponent 1 only while N − 1 does not divide L.
+Seating a place of residue degree f puts p^f − 1 into L, and
+p^(f′) − 1 divides it whenever f′ divides f, so from then on every place
+of the block whose residue degree divides f opens at door m(V + 1), at
+least 2: the shared unit. A place of norm 2 never opens at exponent 1.
+
+Past the tails the race only descends. A place's **tail index** is the
+least j with every gap g_(j′) = x_(j′+1) − x_(j′), j′ ≥ j, of its ladder
+equal to e. For places R and Y ≠ R of the block, let R's clock move land
+at count V_R, at or past every block place's tail index, and the block's
+next clock move be Y's at count V_R + J, J from jumps. R pends
+(1 + J)·e_R. Y's count is at most V_R − 1, a seated place's count never
+exceeding the block's, which was V_R − 1 before R's move, a jump moving
+no depth and an opening at exponent 1 seating its place at count 0, so
+Y's depth is at most x_(V_R) on Y's own ladder, and Y's door spans the
+same J + 1 tail gaps and at least one depth more, and greed taking Y
+means
+f_Y·((1 + J)·e_Y + 1) ≤ (1 + J)·e_R f_R: the local degree ef falls
+strictly, jumps or not, and a holder of least local degree is never
+displaced. With no jump and Y at m_Y(V_Y), the least depth of its count
+V_Y, past its own tail index, its debt V_R + 1 − V_Y, the number of tail
+gaps its door spans, is at least 2 and the condition reads debt·e_Y
+f_Y ≤ e_R f_R, a tie at equality.
+
+Nothing else forces the least, and the race closes at the holder's first
+full move: the **entry lemma**. With no jump, let R's move to count V
+pay door r, V past both tail indices, and Y, seated through it, take the
+next. Y's door rose by e_Y, so greed chose R at
+f_R·r ≤ f_Y·(door_Y − e_Y) and then Y at f_Y·door_Y ≤ f_R·e_R, whence
+r < e_R. A change past the tails leaves by one of two exits: the
+holder's move paid less than its tail gap, or the taker opened after it.
+Once the holder pays one move at its tail door, no place then seated
+takes the tick, so the runaway is the first holder to pay a tail-door
+move past the tails, displaced after it only by a place opened later or
+by a jump. Over 7, a tame e = 3 place beside an unramified f = 2 place
+pays 7, 7, 49 and then 343 forever from the void, with no tie: the f = 2
+place sits at exponent 1 and never pays its own recurrent 49. At e = 5
+the f = 2 place opens after the tame place's door-1 move and takes the
+tick strictly, 49² against 7⁵, then runs at 49. The ring of
+x³ + 2x + 1 has 59 = PQ², P at e = 1 and Q at e = 2, both of norm 59;
+its block over 59 walked alone from the start with P and Q seated at
+exponent 1 ties at 59; P first runs P, and Q first ties
+again at 59², the debt-2 tie, after which P runs at 59 or Q runs at 59².
+Three ends, Q the runaway on one.
+
+Over 338 blocks walked alone, 3748 ends with every tie branched, all 167
+changes of holder past the tails lowered ef, 131 of them at a tie, while
+257 of the 522 before the tails did not: the hypothesis bites. Every one
+of the 167 took an exit, and so did every change from the void: the 28
+of those blocks' walks from the void, among the 167 and all at a tie,
+and the 35 from the void over 7 once the list of place types the blocks
+are drawn from gains tame places of e = 4 and 5, 15 of them strict: a
+change from the void is no tie phenomenon. 695 ends run a place above
+the least local degree seated in their block, 168 with no tie on the
+path. A block walked alone has no jump and no other place's unit; in
+the ring walks no block changed holder, so there the race stands on the
+proof.
+
+## The void tie crosses kinds and the tie-break chooses the place that runs
+Tier: rule (proved for every cubic ring meeting either paragraph's
+hypotheses; walked at six).
+Verifier: race.py::section_rings.
+
+A cubic ring with 2 = PQ at residue degrees 1 and 2 and no place of norm
+3 ties its void at 4: P is Z₂'s place, whose N − 1 = 1 lets it open only
+at door m_P(V + 1), 2 at the void, and Q opens at exponent 1. The tree
+has three ends and one merge. P twice pays 4, 4, then 2 forever, Q never
+seated; the two mixed orders meet at {P: 2, Q: 1} and pay 4, 4, 4, then
+2, Q stranded at 1; Q twice pays 4 forever while P's door widens with
+every count. The place that runs on the three ends is P, P and Q: the
+f = 2 place runs on one branch at twice P's local degree.
+
+A cubic ring in which 5 has an unramified place and a tame ramified
+one, 2 and 3 inert and no other prime below 29 in its discriminant,
+ties its void at 5 across the two kinds, and the shared unit settles it
+at once: the loser opens later only at door m(V + 1). The unramified
+place's side pays 5 forever. The ramified place's pays 5 twice, then
+pends 25, and the ring's other blocks undercut it: a place of norm 7
+where 7 has a root, paid 5, 5, 7, 7, …; else the inert place over 2 at
+8 and then the least degree-1 place of norm 13 to 23, paid 5, 5, 8, 13,
+13, … at norm 13; and with none of them, the ramified place holds at 25
+after the detour.
+Which place runs inside a block is the race's; which block runs is read
+here off the walks, the block clock's crossing prices
+(CLOCK.md#a-block-clock-keeps-at-most-one-runaway-per-block)
+not reaching a ring, where an opening can jump an idle block. Walked at
+discriminants −59, −83 and −107, and 985, −335 and −99095.
+
+## A void walk pays its winner's lone path
+Tier: theorem (the rows, the cell); criterion, in a quadratic field,
+for which fields have their winner in the head-only cell, which of those
+keep it alone forever, and which catch the ramified place over 2.
+Verifier: proof; winner.py::section_lone, winner.py::section_fields,
+winner.py::section_cell, winner.py::section_cell_fields,
+winner.py::section_headless, winner.py::section_control.
+
+A walk from the void first opens its winner W, the place the empty state
+prices lowest. Alone, the block's count is W's column count, so its
+doors are those of its **lone path**, the moves a place makes alone
+forever from a state, here the void, at doors 1, 1, g₁, g₂, … at N
+≥ 3, where it opens at exponent 1 and then pays m(1) − 1 = 1, and 2, g₁,
+g₂, … at N = 2, where N − 1 = 1 is always paid and it opens straight to
+m(1); g_j is the ladder's j-th gap. A rival's price never falls, L only
+growing under lcm, so with W the unique void minimum no walk leaves the
+path while it prices at or under the void price C₀. Three rows follow.
+**HOLDS**: e = 1, N ≥ 3, every door 1, C₀ forever and W the only place
+ever seated. **FALLS**: Z₂, doors 2, 2, 1, 1, …, paid 4, 4, 2, 2, …, W
+again alone. **RISES**: e ≥ 2, where the path rises above C₀ for good,
+headed or not, since the tail price N^e exceeds C₀ at every ramified
+winner but the **head-only cell**, N = 2 and e = 2, where 2^e = 4 = C₀.
+A cell place is always headed (f = 1, e = (2 − 1)·2, ū = 1 = −1 in F₂),
+so its path is 4, 2, 2^(2+w), 4, 4, …, Z[i]'s 4, 2, 32, 4: there the
+head move, the move whose door crosses the head, is the whole rise. Only
+the RISES row can seat a second place strictly, and it need not; with W
+the unique void minimum, a cell walk does it at its third move or never,
+every rival pricing above 4 from the void on.
+
+So a walk leaves its winner only at a path price above C₀, and at N ≥ 3
+the first is the first gap of 2 or more, below the bend, across it, at
+the head or in the tail; only in the cell is the head move the whole
+rise.
+Z[2^(1/3)], headless at both its ramified places, wins at the place over
+3 and leaves it at the third move, paid 3, 3, 5, 5, … against the path's
+9, the price of the gap 2 that crosses the bend. Q(√−183) leaves at the
+head move: its winner, the ramified place over 3 with w = 1, has path
+3, 3, 27, 9, 9, …, and the split 11 undercuts the 27, where the tail's
+9 sits under every rival, the split places over 2 at 16 and every other
+at 11 or more. The least tail price seated need not pick the next
+move: Z[i] pays 4, 2, 9, 9, since its ramified place, whose tail is 4,
+waits at its head move's 32 and the inert 3 is paid at 9 beneath it. In a
+quadratic field Q(√δ) where 2 ramifies, δ ≡ 2 or 3 mod 4, the winner is
+the cell place over 2 exactly when 3 is inert, δ ≡ 2 mod 3. At its third
+move L = 4, which covers norm 5 at 25 and leaves the inert 3 at 9, so a
+head move priced 16 or 32 (δ odd) is always undercut and one priced 8
+(δ even) only by a place of norm 7: a cell field keeps its winner alone
+forever iff δ is even and 7 is inert. Q(√−22) pays 4, 2, 8, 4, 4, ….
+
+A walk leaves W at its first move off W, and leaves it strictly when
+that move pays less than W's lone path would; a place is **caught**
+when a walk whose first move off W is strict seats it at that move or
+later, below every other price then offered, though it priced above C₀
+at the void. Over 242 quadratic fields, 2 ≤ |δ| ≤ 200, every end of every walk
+paid its winner's path up to the move that leaves W, and 770,360 price
+pairs never fell. No HOLDS or FALLS end seated a second place in 40
+moves; 169 RISES ends left W strictly and 18 kept the ramified winner
+alone: 14 in the cell,
+exactly the criterion's fields of the 59 it holds, and 4 outside it,
+rising for good with no rival undercutting them in 40 moves. The cell's
+other 45 fields leave W at step 3, to norm 7 or 9. A catch is not a
+question of characteristic: a ramified place over 2 is caught in 16
+fields, and a ramified place of odd residue characteristic 19 times.
+With 3 | δ, the ramified place over 3 wins at 3, pays 3, 3, bringing
+L to 6, then prices at least 9; the ramified place over 2 has door 3, the
+least depth of its count 2, price 8, and only a place of norm 5 is
+cheaper, 6 being in L. So 2 is caught at the third move exactly when it
+ramifies and 5 is inert, and those are the 16. Q(√−78) pays 3, 3, 8, 8,
+4, 4, the place over 2 the runaway. No other field catches a ramified
+place over 2; a split one is not read here. The ramified place over 2
+prices 4, 8 or at least 64 as V₂ = v₂(L), the count at 2, is 0, 1 or at
+least 2, so it is caught only behind a winner of norm 3 and only while 4
+∤ L. A moved split place over an odd prime leaves its block lidded at
+once (CLOCK.md#a-lidded-block-locks-the-walk-for-good), so a split 3
+holds at 3 forever. With 3 | δ and a place of norm 5, the third move
+opens it and puts 4 into L; a split 5's block is then lidded at 5, and
+a ramified 5's at 25 from its second move, the places of norm below 25
+deciding which runs: Q(√−30) runs its place of norm 17.
+
+## A lidded block locks the walk for good
+Tier: theorem (the lid, the certificate); observation for the tied void.
+Verifier: proof; lid.py::section_lid, lid.py::section_control,
+lid.py::section_certificate, lid.py::section_tie.
+
+A block is **lidded** when its last clock move was R's with no jump
+since, V + 1 ≥ e_R f_R, and V is at or past the tail index of R and of
+every place Y over p with 2f_Y ≤ e_R f_R; its **lid** is
+N(R)^(e_R) = p^(e_R f_R). A state is lidded when one of its blocks is,
+its lid the least of theirs. R pends exactly its block's lid, its door
+being its tail gap. No jump is affordable, since one needs an opening
+(GROWTH.md#the-lock-prime-law) of norm ≡ 1 mod p^(V+1), above p^(V+1)
+and so above the lid. Any other place Y of the block sits at least one
+count behind R, so a clock move of Y has door at least its gap plus one,
+while an opening of Y at exponent 1 moves no count, and one at door
+m_Y(V + 1) costs at least p^(V+2), above the lid; if 2f_Y > e_R f_R, Y's
+clock move costs more than the lid, and otherwise greed taking it means
+f_Y·(e_Y + 1) ≤ e_R f_R, and Y's move leaves the block lidded, its lid
+strictly lower. So
+a lidded block stays lidded, its lid only falls, and every price the
+walk pays afterwards is at most it.
+
+Four statements about a walk over a number ring are therefore one: it
+reaches a lidded state; some block is clocked infinitely often; it makes
+finitely many openings; its prices are bounded infinitely often,
+infinitely many of them under one bound. A block clocked forever is
+lidded at a clock move once V passes its places' tail indices and the
+field's degree less one, which bounds every ef less one. Prices bounded
+infinitely often move places of bounded norm, each opened once, so some
+block is clocked forever. After a lidded state every opening costs its
+norm and at most the lid, so finitely many follow, and the ring then
+runs one place at its N^e forever, at most the lid, one block's constant
+price undercutting every other's
+(CLOCK.md#two-blocks-of-a-number-ring-never-both-run-away). The places
+above the lid, covered or not, are never bought, however many would open
+at exponent 1: which place a locked walk runs is decided among the few
+below it. A walk that never locks clocks every block finitely often and
+opens places forever, the escape
+(CASCADE.md#the-escape-is-a-conjunction); whether its clock moves,
+spread over ever more blocks, can be infinitely many is open. The
+equivalence is the number ring's and not greed's: in equal
+characteristic a block's gaps are unbounded, and a walk whose block is
+clocked forever still makes every opening (LIMIT.md#the-support). When
+every move must be principal the four statements carry over, under the
+element world's own lid (ELEMENT.md#the-element-lid).
+
+Over 250 rings, the 242 quadratic fields with 2 ≤ |δ| ≤ 200 and eight
+cubic rings, every one of 436 ends of 40 moves with every tie branched
+was lidded by its fifth move, at a count of at most 3; no lid was lost
+or rose, and no price passed it. At most seven places sat below an end's
+lid, at Q(√−133) under 41. No lidded block changed holder, so the
+lowering clause stands on the proof; 22 openings jumped a moved block
+not yet lidded. A place of norm 8 with e f = 3 seated at V = 1 leaves
+its block unlidded and pends 8, and an opening of norm 5 jumps the
+count, raising that price to 64; seated at V = 2 its block is lidded
+at 8. Z₂'s tail index is 2: one move of it leaves 4 pending, and a second
+leaves its block lidded at 2.
+
+The lid says that a walk has locked; one state can also say which place
+it runs. Read from any state, a seated place's lone path
+(CLOCK.md#a-void-walk-pays-its-winners-lone-path) has a supremum C*, the
+lid it reaches or a larger price paid on the way. If C* is below every
+other place's price at that state, the walk IS that lone path, with no
+tie, since no rival's price ever falls; the void walk's lone path is
+this read at the first move. At a lidded state C* is the lid, so the
+certificate reads: every rival costs more than the lid. Conversely a
+walk that from some state moves one place forever, with no tie,
+certifies it at its first state from then on lidded at that place. A
+rival tied with the lid at every move lets a walk run a place forever
+uncertified, and the tie's own branch then leaves it; since a price is a
+power of its place's prime, such a rival lies over the lid's prime. Over
+the same 436 ends, of 17,007 certified pairs of a state and a place
+the 16,571 with moves left were each followed by the lone path, price
+for price; at all 18,992 lidded
+readings the holder's lone path paid its lid for 12 moves; every end
+certified by its eighth move. The three cubic rings where 2 splits with
+residue degrees 1 and 2 tie at the void: the norm-2 place pends 4 and
+the norm-4 place opens at 4. Of their three ends one runs the norm-2
+place and never seats the other, one opens both and runs the norm-2
+place, and one runs the norm-4 place (the void tie's section). Past a
+certificate only the runaway's prime moves in L, so a seated place over
+another prime keeps its pending price, and one over the runaway's prime
+sees that price grow with v_p(L): on the end that opens both, the norm-4 place,
+left at exponent 1, pends 2^80 by move 40. A seated place covers the
+opening of a sibling over its prime when the sibling's residue degree
+divides its own, p^(f′) − 1 dividing p^f − 1 exactly when f′ | f; the
+seated norm-2 place has f = 1 and the norm-4 sibling f′ = 2, which does
+not divide it.
+
+## Open fronts
+
+The level map has two regimes and no third, so a tick ladder between
+linear and logarithmic lives in no Dedekind ring with finite residue
+fields; whether a ring outside the principal-unit filtration's reach has
+one is open. A number ring differs from a function field in comparison
+by local degree, in the block partition by residue characteristic, and
+in bounded ladders against the logarithmic clock, which decides locking;
+whether there is a fourth difference is open. Whether a price ladder
+whose door is a function of the seated proportion, which no ring's
+ladder is, makes the walk an urn, a process like Pólya's whose next step
+reads only the proportions already drawn, is open: the void tie's door
+falls at an absolute exponent, a count threshold, and a function of the
+proportions alone takes one value at the counts (1, 1) and (2, 2), which
+a threshold at 2 tells apart.

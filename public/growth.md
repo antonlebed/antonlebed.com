@@ -1,0 +1,516 @@
+# GROWTH — a modulus grown by the cheapest move a demand admits
+
+The object: a state Z/M and a structural **demand** on extensions, grown
+by the greedy move, from Z/M to Z/Mm with m ≥ 2 the least multiplier the
+demand admits. The demands never mention primes: the **independence
+demand** (Z/Mm ≅ Z/M × Z/m), new idempotents, the **dynamics demand**
+(λ, the unit group's exponent, grows), new orders of units, the
+**transparency demand** (M grows, λ fixed), and a rate, the m maximizing
+the idempotent doublings bought per bit. This page asks what each demand
+grows, where it stops if it stops, and what decides where it goes, and
+then asks it again over the ideals of a number ring and over F₂[x],
+where the price of one tick at one place decides the walk. Its verifiers
+are growth.py, standing.py, sizeless.py, module_law.py and sprawl.py,
+with bridges.py for the lock by a single multiplication, cascade.py for
+the full price
+over Z and lid.py for the lock over a number ring.
+
+A trajectory runs from a state, its **seed**, and its limit is a
+supernatural number, a product over the primes (over a Dedekind ring O,
+its places P) with exponents in {0, 1, …, ∞}, each the depth it reaches
+down its prime's or place's **column**, the chain of quotients O/P^b
+(Z/q^b over Z), and the three **fates** are properties of that limit,
+not a partition: **BREADTH**, every prime seated, at a positive
+exponent; **DEPTH**, some prime at infinite exponent; **MORTALITY**, the
+limit a finite integer. Breadth is seating, not "every exponent
+finite", which every integer satisfies. That each greedy law over Z
+below realizes exactly one fate is a fact about greed: a policy free to
+take any move the independence demand admits can seat every prime but
+one, by never taking 2, which is none of the three.
+
+## The three fates
+Tier: theorem.
+Verifier: proof; growth.py::section_a.
+
+The least m ≥ 2 coprime to M is the least prime q not dividing M, since
+every smaller m is built from primes M carries. So greedy independence
+never picks a composite: every new factor Z/q is a field and a squarefree
+seed stays squarefree, with neither demanded. From any seed its picks
+are the primes the seed lacks, in increasing order, so from 1 the
+trajectory is the primorial tower (checked at every M ≤ 10⁵ and on 100
+seeds for 25 steps). New idempotents picks the same q, since the count
+of idempotents, 2^ω(M) with ω(M) the number of distinct primes dividing
+M, rises only with a new prime (checked at every M ≤ 10⁵). The rate
+from p_k#, the product of the first k primes, is the next prime: every
+new prime of m is at least the least absent prime q, so m buys at most
+1/log₂ q doublings per bit, with equality only at m = q (the unique
+maximizer printed for k ≤ 6 over m ≤ 1000). Three demands, one
+attractor, BREADTH.
+
+A finite abelian group realizes exactly the divisors of its exponent
+as orders, since the exponent is some element's order and a cyclic
+group realizes every divisor of its order (checked at every
+3 ≤ M ≤ 1200), so new orders is the
+dynamics demand, and dynamics runs down one prime's column: DEPTH, the
+lock-prime law below.
+
+Transparency's fate is MORTALITY. λ(a) | λ(b) when a | b and λ(lcm) = lcm(λ),
+so {M : λ(M) | L} is closed under lcm, and it is finite; its maximum
+is the **wall**
+
+    W(L) = 2^(v₂(L)+2) · ∏ p^(v_p(L)+1)   over odd p with (p − 1) | L,
+
+at even L, and W(odd L) = 2. A transparent walk stays among the
+divisors of W(λ(seed)) and cannot stop below it, since while M < W the
+least prime factor of W/M is admissible. So it dies at exactly
+W(λ(seed)): at all 99 seeds 2 to 100, seed 73 climbing to
+W(72) = 20,174,525,280 in 13 steps. Nothing here uses greed, since
+every state below W has an admissible prime: under every policy the
+reachable states are the multiples of the seed dividing W, every run
+ends at W and only there, and the longest has Ω(W/seed) moves, Ω
+counting prime factors with multiplicity (searched over every move
+to a state up to 4W at the 80 seeds from 2 to 100 with W ≤ 10⁵).
+
+So the primorial tower is not an attractor of free growth. It is the
+attractor of independence, the CRT axiom read as a demand, and of the
+two demands that pick what independence picks. The scope is
+threshold-greedy laws on Z/M; additive moves and non-cyclic ambients are
+not charted, and the least move softened into a weight, growth at an
+inverse temperature, is THERMAL.md's.
+
+## The wall is Adams' number
+Tier: property (the closed form is Adams' theorem; checked at every
+L ≤ 200).
+Verifier: growth.py::section_b_z.
+
+"λ(M) | L" and "z^L ≡ 1 (mod M) for every unit z" are one condition,
+so W(L) is the number J. F. Adams defined (On the groups J(X) II,
+Topology 3, 1965), the gcd over the integers y of y^s(y^L − 1) for large
+s, and his theorem gives its closed form at even L,
+W(L) = denominator(B_L / 2L):
+
+    L      2    4    6    8    10     12
+    W(L)  24  240  504  480   264  65520
+
+the orders of the image of the J-homomorphism, by the same definition
+and not by coincidence; nothing here uses homotopy. The gcd, taken over
+y up to a cutoff, equals W(L) at two settings of s and the cutoff at
+every L ≤ 200, and the Bernoulli form does at every even L ≤ 200, the
+Bernoulli numbers computed from scratch and checked against
+von Staudt–Clausen first. The
+squarefree kernel of W(L) is the von Staudt–Clausen product ∏ p over
+(p − 1) | L.
+
+## The wall over F₂[x]
+Tier: theorem.
+Verifier: proof; growth.py::section_b_f2.
+
+At an irreducible g of degree d the unit group of F₂[x]/(g^a) has
+exponent (2^d − 1)·2^⌈log₂ a⌉: the units are F_(2^d)^× times the
+1-units 1 + g·F₂[x]/(g^a), and (1 + u)^(2^j) = 1 + u^(2^j) is 1 at every
+such u iff 2^j ≥ a (checked element by element at every g^a of degree
+≤ 9 with d ≤ 4 and a ≤ 5, 26 prime powers). So λ(g^a) | L iff
+(2^d − 1) | L and a ≤ 2^v₂(L), and
+
+    W(L) = ∏ (∏_{deg g = d} g)^(2^v₂(L))   over d with (2^d − 1) | L.
+
+At L = (2ⁿ − 1)·2^v the admissible degrees are the divisors of n and
+W(L) = (x^(2ⁿ) + x)^(2^v): at v = 0 the wall ring is a product of finite
+fields, one F_(2^d) for each irreducible of each degree d dividing n,
+and at v > 0 that polynomial's power, no longer a product of fields. The
+wall exists in both rings for the same reason; its value is the ring's,
+elementary here and Bernoulli over Z.
+
+## The lock-prime law
+Tier: theorem (the door, the lock and its bound, every prime a lock,
+the lock by one multiplication); rule (the condition for a full-price
+first move against the cascade's dead level, compared at every level
+of every odd q < 1000 where the two can differ).
+Verifier: proof; growth.py::section_c, standing.py::section_e,
+bridges.py::section_r, cascade.py::section_w.
+
+The least λ-raising move is always a prime power q^r, the **door
+lemma**: λ(Mm) is the lcm of λ at the prime powers exactly dividing Mm,
+so m's prime-power part at a prime q where λ(q^(v_q(Mm))) does not
+divide λ(M) is a legal move no larger. At each prime q the least raising
+power q^r has a closed-form exponent r, q's **door**. With a = v_q(M)
+and v = v_q(λ): at odd q with a ≥ 1 the door is v − a + 2; an
+**opening**, the first move at a prime M lacks (a = 0), has door 1 when
+(q − 1) does not divide λ and v + 2 when it does; at q = 2 the same scan
+runs over λ(2^j) = 1, 2, 2, 4, … (the formula matches the least raising
+power found by search at every q ≤ 47, over every odd M ≤ 2,000 and the
+states eleven greedy walks visit in their first six steps,
+standing.py::section_e). Least moves at distinct primes are powers of
+distinct primes, so they never tie: greedy dynamics over Z needs no
+tie-break.
+
+A least move is a **deepening** (q | M), a **fresh opening** (q prime
+to λ), a
+**ghost** (q | λ, (q − 1) ∤ λ: a prime whose period already runs in λ
+though q does not divide M), or an opening at
+**full price** q^(v + 2) (2^(v + 3) at 2) with q | λ and (q − 1) | λ.
+At odd q the last is least
+from some state exactly when no prime ≡ 1 (mod q^(v + 1)) lies below its
+price, which agrees with the cascade's dead level at every level of
+every odd q < 1000 where the two can differ
+(CASCADE.md#the-full-price-opening-at-odd-p-is-a-dead-level-over-z). No
+state M ≤ 20,000 has one (10,967 deepenings, 6,782 fresh openings, 2,251
+ghosts), but the prime seed 961440481, whose λ carries every ℓ − 1 for
+the primes 5 ≤ ℓ < 81 and 3² exactly, opens 3 at 81: 28 and 55 are
+composite. Every pick but a ghost leaves v_q(λ) = a_q − 1 (a_q − 2 at
+q = 2 once a_q ≥ 3), which holds q's door at 1, price q, from then on
+(at 2 once a₂ ≥ 3; the one pick landing at a₂ = 2 is from the seed 2,
+where 2's next least move costs 4 and every rival at least 5), while
+every other least move only grows and never costs q. So the first pick
+that is not a ghost **locks** the trajectory onto q: every later pick
+deepens q, which is what a lock onto a place means over every ring
+below. A ghost at a prime q′ is legal only while (q′ − 1) ∤ λ, which
+only gets harder, and a smaller ghost still legal would cost less and
+be picked first, so ghosts come in increasing order, and since a
+ghost adds to λ only primes below it, every one divides λ(seed): the
+lock falls within ω_odd(λ(seed)) + 1 picks, ω_odd counting the odd
+primes dividing λ(seed), and the basin map seed ↦ lock
+is computable. A ghost's **dowry**, the factors of q′ − 1 it adds to λ,
+shuts cheaper locks behind it: seed 11 ghosts 5 and locks 7; seed 71
+ghosts 5, 7 and locks 17; the prime seed 20231, with 20230 = 2·5·7·17²,
+ghosts 5, 7, 17 and locks 19, the bound attained. From the **void**,
+M = 1, the walk's states are 3, 9, 27, …: 2's first door is 2, price 4.
+
+Every prime is some seed's lock. For odd q let B be the lcm of
+{p − 1 : p ≤ q} and of ℓ^(c_ℓ) over the primes ℓ < q, c_ℓ least with
+ℓ^(c_ℓ + 2) > q, and take a prime R ≠ q, the blocker, with R ≡ 1
+(mod B) and R ≢ 1 (mod q), which Dirichlet's theorem provides since
+q ∤ B. The seed qR has λ = R − 1, q's door is 1, price q, every opening
+below q is shut at a price above q, and no ghost fires: the first pick
+deepens q. At q ≤ 47 the least blockers are R = 5, 13, 13, 61, 61, 241,
+2161, 23761, then 55441 for q = 29 to 43, and 1275121; the seed 2 locks
+at 2 with none.
+
+The same construction steers a state already grown: from any M, a
+single multiplication of M by the number built below locks the walk
+onto any prime q. At 2 the multiplier raises 2 to depth
+max(3, v₂(λ) + 2), where 2's door is 1, price 2, the least move there
+is. At odd q it raises q to depth v_q(λ) + 1, so q's door is 1, times a
+prime R′ ≡ 1 (mod B′), R′ ≢ 1 (mod q), not dividing M, where B′ is the
+lcm over the primes ℓ < q of ℓ − 1 and ℓ^(a_ℓ + c_ℓ + 2), a_ℓ the depth
+of ℓ in M and c_ℓ as above: every least move below q then costs more
+than q, R′'s own at least R′, and deepening q moves no rival's price
+down. The basin map is computable, and from any state every value is
+one multiplication away: 200 tested states each lock onto 2, and five
+states, 3¹⁵ and 17⁶ among them, each lock onto 3, 5, 7, 13 and 17,
+each run's 30 picks watched after the multiplication deepening the
+target at price q.
+
+## The two-adic prices
+Tier: theorem.
+Verifier: proof; growth.py::section_c, growth.py::section_d.
+
+The cold openings: from every M ≥ 3 the opening at 2 costs at least 16
+and the opening at 3 at least 9, both attained, while every prime from 5
+to 47 opens at its face value from λ = 2. They are two facts about −1.
+The splitting, Z₂^× ≅ {±1} × (1 + 4Z₂) where every odd Z_p^× is
+procyclic, whose finite shadow is λ(2^a) = 2^(a−2) at a ≥ 3; and the
+evenness, −1 of order 2 in every odd residue field, so λ is even
+wherever an odd prime divides M. A counterfeit column at 2 wearing the
+odd pattern λ*(2^a) = 2^(a−1) turns the splitting off and leaves the
+evenness. On odd M > 1 the real 2-door is v + 3 at v = v₂(λ) and the
+counterfeit v + 2: the "+3" is the splitting's and the floor v = 1 the
+evenness's, so the cold opening at 2 is their conjunction, floor 16 real
+and 8 counterfeit, while at M ≥ 3 prime to 3, 3's door v₃(λ) + 2 is the
+evenness alone and does not move. The splitting also prices the walk
+from 4, which pays 4 then 2, 2, … (λ(4) = λ(8)) where the counterfeit
+pays 2 throughout, and it prices, at a rank-1 characteristic p (a prime
+with an unramified place of norm p over it; over Z every prime is one),
+the carriers (CASCADE.md), the places whose opening lifts v_p(λ): a
+carrier's norm h·p^(v_p(λ)+1) + 1 cheaper than p's opening at full price
+has h ≤ p − 1 at odd p and raises v_p(λ) by one, but at 2 that price
+2^(v+3) admits h ∈ {1, 2, 3} and h = 2 raises it by two; the counterfeit
+admits h = 1 only. That norm, raising v₂(λ) by two, is 2^(v+2) + 1, and
+the prime powers of that form are the Fermat primes from 17 on and 9,
+Mihăilescu's theorem leaving 9 = 2³ + 1 the only proper power (9, 17,
+257 and 65537, the exponents 3 to 20 being the part of v ≥ 1 searched).
+The splitting and the evenness are the two valuations of −1 − 1 = −2:
+its 2-adic depth 1 and its unit at every odd place.
+
+## The module law
+Tier: theorem; observation (the pump's start at the ramified rings run).
+Verifier: proof; module_law.py::section_m, module_law.py::section_control.
+
+At a place P of a Dedekind ring O, with ramification index e over p and
+a residue field of N(P) = p^f elements, (O/P^a)^× splits as
+(O/P)^× × U₁/U_a, U_b being the units ≡ 1 mod P^b, so
+λ(P^a) = (N(P) − 1)·E(a) with E(a) the exponent of U₁/U_a, a power of
+p. A **tick**, one more factor p in λ bought by steps down P's
+column, is a jump of E, and E has two shapes.
+
+In equal characteristic O_P = (O/P)[[t]] and
+(1 + u)^(p^j) = 1 + u^(p^j), so E(a) = p^⌈log_p a⌉ exactly, whatever f
+is: a **log clock** ticking at depths p^j + 1 (2, 3, 5, 9, 17, 33 in
+characteristic 2), whose tick from depth p^j + 1 costs
+N(P)^(p^j(p − 1)), unbounded along any column. In mixed characteristic
+the p-th power of a 1-unit z adds exactly e to v_P(z − 1), v_P the
+valuation at P, once v_P(z − 1) > e/(p − 1), and U₁ has no torsion past
+that bound, so E(a + e) = p·E(a) from a threshold on: a **pump**, one tick
+per e of depth, priced N(P)^e = p^(ef), where ef is the Z_p-rank of U₁.
+So a tick costs p to the rank of the place's 1-unit module: a constant
+in mixed characteristic, unbounded in equal. The threshold is not read
+off e and p alone: Q₂(√−2), Q₂(√−5) and Q₂(i) share e = 2 and f = 1
+and start their pumps at depths 4, 5 and 6, a pump's start being the
+least depth from which E(a + e) = p·E(a) holds at every later a.
+The pump runs from depth 1 at every unramified odd place, from 3 at Z₂,
+and from 6 at Q₂(i), the latest of fourteen local rings run to depth 40.
+
+E is computed from the elements 1 + w·π^b, π a uniformizer and w
+over a basis of the residue field, which span U₁/U_a since each
+U_b/U_(b+1) is the residue field under addition. E from these
+elements equals E read off every element of U₁/U_a at 140 (ring,
+depth) in mixed characteristic and 38 in equal; (N(P) − 1)·E(a) equals
+the exponent of the whole unit group (O/P^a)^× at 126 (ring, depth);
+and the local rings reproduce the exponent of (O/p^b)^× of Q(√−23) and
+Z[√−5] at 38 (field, p, b).
+
+## The lock over a number ring
+Tier: theorem (the ideal world's lock iff its costs are bounded
+infinitely often, at p^(ef) a move; the element world's two rides);
+observation (every ideal walk from 134 seeds over two fields locks
+within 40 moves).
+Verifier: proof; module_law.py::section_n, module_law.py::section_e,
+lid.py::section_lid.
+
+In the **ideal world** of a ring of integers, states are ideals M and a
+move multiplies by an ideal priced by its norm. The door lemma survives:
+if m raises λ, some place P of m raises it alone at no greater norm, so
+every least move is a prime power P^r, and ties sit among places over
+one prime: of one norm when those places share a residue degree, as in
+the quadratic fields run, while a cubic ring where 2 splits with residue
+degrees 1 and 2 ties 4 against 4
+(CLOCK.md#a-lidded-block-locks-the-walk-for-good). A door off the moved
+place never falls, since λ only grows under divisibility, but the moved
+place's own door can: (7) over Q(√−23) pays 23, 23, 27, then 3. So the
+lock is argued through boundedness. If infinitely many moves cost at
+most C, places of norm at most C are moved infinitely often, so some
+block, the places over one rational prime sharing one count
+(CLOCK.md#a-block-clock-keeps-at-most-one-runaway-per-block), is clocked
+forever, and its count, the p-adic valuation of λ that its clock moves
+raise (CLOCK.md#a-rings-door-is-one-valuation-and-its-clock-a-count),
+passes every threshold. That block is then lidded by its last clock
+mover (CLOCK.md#a-lidded-block-locks-the-walk-for-good), whose door is
+exactly e, at the constant price p^(ef); an opening that could jump the
+block's count costs more than that, and every opening bought once the
+block is lidded costs its norm, at most the lid, so finitely many
+follow; a rival in the block is clocked only when its own constant
+price, p^(ef) at its own e and f, is below the lid, and the block is
+then lidded by the rival in turn, at a strictly lower lid; and two
+constant prices at distinct characteristics are powers of distinct
+primes. So a trajectory locks iff its costs are bounded infinitely
+often, and a lock pays p^(ef) per move. Whether costs can diverge
+instead is CASCADE.md's question, open there and not settled here; over
+Z the lock-prime law settles it, and over F₂[x] the sprawl settles it
+the other way.
+
+At Q(√−23) (class number 3, 2 split) over 80 seeds, the void, every
+ideal of norm 2 to 40 and (17), and at Z[√−5] over 54, the void, every
+ideal of norm 2 to 40, a place over 29 and the product of places over
+43 and 89, every trajectory
+locks and every tail pays p^(ef), among them 2 at a split place over 2,
+25 at the inert 5 and at Z[√−5]'s ramified 5, 4 at its wild ramified 2.
+Every move matches a scan of every ideal up to its cost, and every tie
+met in the two fields is a conjugate pair.
+
+The **element world**, states and moves principal, breaks the door lemma.
+Over Q(√−23) no element has norm 2 or 3, so from the void the least
+raising element has norm 6: a place over 3 carrying a place over 2 at
+which λ does not rise, a compound with a flat **passenger**. The walk pays
+6, 6, 6 and then rides (2) = P₂P₂′ at 4, one part flat at every move:
+the flat place over 2 of the first three moves, now at depth 3, ticks at
+every ride, and the other place becomes the passenger, lifted beside it
+(depths 40 and 37 after 40 moves). It rides forever: 4 is the least norm
+of any element but a unit, and (2) always ticks its deeper place. The
+lift is conditional: from (5) the walk pays 23, 23, then 25 on the
+principal prime power (5), which ticks at every depth, and no cheaper
+element ever raises λ again, so the places over 2 are never touched. An
+element of norm below 25 is a product of places over 2, 3 and 23 (13
+splits, but its places are not principal and 26 is past 25): it puts
+depth at most 3 at a place over 2 and at most 2 at one over 3, whose
+unit groups then have exponent dividing 4 and 6, so dividing the 24
+that (5)'s residue field puts in λ, and takes the place over 23 from
+depth 2 to 3, where its 1-units keep exponent 23. None is
+taken, so the depths stay where they are and the argument repeats at
+every move.
+
+## The sprawl over F₂[x]
+Tier: theorem; observation (at least 53 of 60 moves open a place at
+exponent 1, from 63 seeds under two tie-breaks).
+Verifier: proof; sprawl.py::section_s, sprawl.py::section_control.
+
+Price a move by its degree and take a least raising m, a tie at the
+least degree broken by the least or the greatest integer encoding
+(x ↦ 2, so x² + x + 1 is 7). Every pick is again a prime power g^r, and
+at g of degree d and depth a, with c = v₂(λ), the pick is g^r with
+r = 2^c + 1 − a for a deepening, r = 1 for an opening at exponent 1 when
+(2^d − 1) ∤ λ, and r = 2^c + 1 for a clocked opening otherwise, one
+where (2^d − 1) already divides λ and only c can rise; each costs d·r.
+There is no ghost: its condition compares a place with a
+number, and here places live in F₂[x] and λ in Z. A deepening or a
+clocked opening raises c by exactly one and an opening at exponent 1
+leaves it, so a trajectory's other moves number c_final − c_seed. An
+opening at exponent 1 always exists, at a degree at most one past the
+bit length of λ's odd part, while once the clock passes the seed's
+depths every other move has degree at least 2^(c − 1). If the openings
+stopped, the opening at exponent 1 would stand still while the others
+doubled, so openings recur forever under any tie-break and no trajectory
+locks or dies: the module law's log clock at every place at once. Over
+63 seeds, the void and every polynomial of degree 1 to 5, ties broken
+to the least and to the greatest encoding, at least 53 of 60 moves are
+openings at exponent 1.
+
+## The sibling shadow
+Tier: theorem.
+Verifier: proof; sprawl.py::section_s, sprawl.py::section_v.
+
+Once a place of degree d is seated, (2^d − 1) | λ, so each of its
+siblings, the other places of degree d, is clocked at degree d(2^c + 1),
+c = v₂(λ) as in the sprawl, strictly above the seated place's own
+deepening. So the walk opens at most one place of each degree and none
+at a degree its seed seats, under any tie-break. Beyond its seed's
+places its support holds at most one of the roughly 2^d/d places of
+each degree, a set of density zero: the sprawl's infinite support is
+never BREADTH.
+
+From the void, ties broken to the least encoding, the walk has a closed
+form: x², x, x², then the least irreducible of each degree 2, 3, 4, …,
+preceded at each degree 2^j ≥ 4 by x^(2^j), the least monic of that
+degree. With x at depth 2^j + 1 its least move has degree 2^j and
+dominates every other move but the opening at exponent 1, and the
+**frontier**, the least degree δ with 2^δ − 1 not dividing λ, advances by
+one per opening, because 2^n − 1 has a prime factor dividing no earlier
+2^k − 1 at every n ≥ 2 but 6 (Zsigmondy's theorem) and 9 | 63 covers 6.
+x + 1, x's sibling, never enters. The first eleven picks under the least
+encoding are 4, 2, 4, 7, 11, 16, 19, 37, 67, 131, 256; after 60 moves x
+sits at depth 65 and one place of each degree 2 to 54 is open. The limit
+is DEPTH, x at infinite exponent, beside an infinite support of density
+zero.
+
+## The standing-move dichotomy
+Tier: theorem (the dichotomy, the depth reading and the jump);
+observation (the breadth price cap against the greedy cost at D = 3, 4, 5
+and 8, and the greedy move's own family on eleven seeds).
+Verifier: proof; standing.py.
+
+The lock needs nothing about rings. Give a greedy walk a **standing
+family**: recipes, each sending a state to a move admissible there, the
+i-th priced by κ_i(x_i), a nondecreasing function of one integer
+coordinate x_i of the state. In a world with finitely many moves under any
+cost ceiling, where a move recurring infinitely often absorbs the tail,
+being from some step on the only move taken, the walk pays at most the
+**price cap** min_i κ_i(x_i) at every step, so either some price κ_i(x_i) is
+bounded infinitely often and the walk locks, one move absorbing the tail,
+or every price diverges at once. A constant-priced member locks the walk
+outright, and escape is a conjunction over the whole family. A recipe is
+not a fixed move: the least move at 5 costs 5 at M = 71 and 25 at M = 355.
+
+The schema reads all three fates. DEPTH: at each odd prime q the move
+q^(x_q + 2) is priced by the excess x_q(M) = v_q(λ(M)) − v_q(M). The
+deepening door is x_q + 2 exactly and every door at odd q is at most
+that, strict only at an opening costing q: q^(x_q + 2) itself raises λ,
+and a smaller power of q raises it only through a new q − 1, an opening
+(the door, found by search, is checked against q^(x_q + 2) at every odd
+q ≤ 47 over every odd M ≤ 2,000 and every state the greedy walks from
+the eleven seeds 1, 3, 5, 7, 9, 15, 71, 100, 121, 210 and 1001 visit in
+their first six steps, standing.py::section_e, and its least move
+against brute search at every M ≤ 20,000, growth.py::section_c); at odd
+q the excess is at least −1, since q^a | M makes λ carry q^(a−1), and
+the lock-prime law's recurrence invariant is x_q = −1. The lock is the
+price cap sitting on the floor of the coordinate that prices it, and
+along every tail locked at an odd prime the excess reads −1 from the
+first deepening. At q = 2, where λ(2^a) = 2^(a−2) from a = 3, the floor
+falls to −2 from a = 3, and 2's door is x₂ + 3 at every state but 1
+and 2. MORTALITY, a walk that stops and so sits beside the dichotomy: the
+jump to the wall, m = ξ(M) = W(λ(M))/M, is admissible from every state
+below its wall and priced by the headroom ξ alone, which the walk drives
+down to 1, where it ends: 48, 24, 12, 6, 3, 1 off seed 5. BREADTH: fix D ≥ 3
+and give each reduced class mod D the recipe "the least unused prime in
+the class", priced by the walk's count in the class. Dirichlet's theorem
+makes every recipe admissible at every state; the price cap equals the
+greedy cost except at the picks of primes dividing D (at most one per
+seed at each of D = 3, 4, 5, 8, the moduli run); every coordinate
+repeats and every one rises. Breadth is the escape branch with every
+conjunct met, and that every one is met is Dirichlet's theorem in the
+schema's own terms.
+
+A family says something only where its coordinates can repeat. Take the
+greedy move itself as a one-member family, its coordinate M and its
+price the walk's own cost at M: on all eleven locked depth walks it
+meets the hypotheses (the costs never fall), and its coordinate diverges
+while its price stays bounded. So on those eleven walks it meets the
+lock branch, and there the family explains nothing; the content
+lies in choosing coordinates that are projections of the state and stay
+bounded along a lock.
+
+## The properness criterion
+Tier: criterion (proved both ways).
+Verifier: proof; sizeless.py::section_h, sizeless.py::section_i,
+sizeless.py::section_p.
+
+Take size out of the cost. A unital map Z/a → Z/b sends 1 to 1, so it
+exists iff b | a (and is checked so at every 2 ≤ a, b ≤ 60):
+window maps (SIZE.md) order the
+candidate moves by divisibility, and distinct primes are an antichain.
+With no cost at all, independence admits every coprime m: seed 2 may
+pick 9, losing squarefree-ness, and seed 3 may run 5, 7, 11, … with 2
+never entering. Fields and squarefree-ness come back under any
+integer-valued cost γ, bounded below and strictly monotone under proper
+divisibility, Ω for
+one, since a coprime composite has a coprime prime factor that is
+cheaper: every pick is prime under every tie-break
+(sizeless.py::section_f).
+
+Under such a cost a prime p enters under every tie-break iff its
+sublevel set {q prime : γ(q) ≤ γ(p)} is finite. While p is admissible
+each pick costs at most γ(p), so picks come from that set and each
+consumes a member for good. Conversely, an infinite sublevel set feeds
+a tie-break that picks the others forever: under Ω every prime costs
+1, and preferring odd primes starves 2 for as long as the walk runs.
+So every prime arrives under every tie-break iff the cost is proper,
+every sublevel set finite. Size enters "the least m" through
+properness and one choice of order, and nothing else about size bears
+on the destination.
+
+## The route is the deleted place's
+Tier: theorem (the route, and the arrival rule's shape); observation
+(its linear extensions counted over the first 20 primes).
+Verifier: proof; sizeless.py::section_p, sizeless.py::section_r.
+
+Rank the primes by any bijection ρ with the positive integers and price
+m by the sum of a·ρ(p) over p^a ∥ m: the cost is proper and strictly
+monotone, and from 1 the walk takes the primes in the order ρ, as three
+scrambled rankings of the first 30 primes print, one destination and
+three routes. Every proper cost of the criterion's kind, integer-valued,
+bounded below and strictly monotone, buys the destination, and the
+ranking inside it, up to the tie-break among primes of equal cost, buys
+the route: the ascending order of arrival, and with it every feature
+that makes the tower a sequence, is the ranking by size, the deleted
+archimedean place.
+
+One arrival rule reads only the rings Z/q: admit q only once every prime
+factor of q − 1, the order of the unit group of Z/q, already divides
+the modulus. That is the Pratt certificate order. It forces 2 first,
+and while 2 is the only prime seated the admissible primes are exactly
+the Fermat primes; the increasing order is one of its linear extensions.
+Over the first 20 primes it has 8,506,240,142,400 of them against
+20! ≈ 2.4·10¹⁸: the arrival rule provides 18.1 of the 61.1 bits a
+route carries, and the choice of the ascending order provides the other 43.
+
+## Open fronts
+
+The standing-move dichotomy assumes that a move recurring infinitely
+often absorbs the tail; a walk in which some move recurs infinitely
+often without absorbing the tail would fall outside the dichotomy, and
+none is known. Whether the number of ghosts a walk over Z picks before
+its lock is unbounded over seeds is open: it is at most ω_odd(λ(seed)),
+the seed 20231 attains that bound at 3, and no seed to 2,000 picks more
+than 2. The wall over a number ring is not computed here. Over Z it is
+Serre's w_L(Q), the largest M with Gal(Q(μ_M)/Q) ≅ (Z/M)^× of exponent
+dividing L; over a number field K, w_L(K) reads K's cyclotomic
+extensions while the wall over O_K is an ideal read off (O_K/M)^×, and
+how the two are related is not worked out here.

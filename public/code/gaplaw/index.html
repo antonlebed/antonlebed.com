@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>gaplaw.py | Numbers read one place at a time</title>
+<meta name="description" content="gaplaw.py">
+<link rel="alternate" type="text/x-python" href="/code/gaplaw.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>gaplaw.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/sets/#on-the-geometric-walks-tail-the-anchored-gap-is-one-product">SETS: On the geometric walk's tail the anchored gap is one product</a> (rule).</p><p>Cited on: <a href="/sets/">SETS</a>.</p><p>To run it: <a href="/code/flatten.py">flatten.py</a>, <a href="/code/sets.py">sets.py</a> beside it; standard library only.</p></div>
+<pre>"""gaplaw.py -- the anchored gap along a geometric walk, in closed form:
+where the certificate's size profile stops moving, and what the least
+positive value of the anchored box is from there on.
+
+QUESTION. sets.py proves the certificate exact whenever its room D/t*
+falls under the ANCHORED GAP g_hat, the least positive sum c_r w_r over
+the box c_r in [s_r - k, s_r], s the certificate's sizes. On tilted
+cells that gap is tiny and nothing said how tiny. Follow one family of
+cells, the WALK W-n: sets.ring at N = 105, M = 15, k = 3, alpha = 3/10,
+theta = (n - 1)/n (TILT-3 is W-25). What is g_hat as a function of n,
+exactly, and from which n on?
+
+THE OBJECTS. At W-n the atom weights are geometric,
+    w_r = theta^r kappa,   kappa = (1 - theta)/(1 - theta^15),
+so a box vector c is a POLYNOMIAL P_c(x) = sum c_r x^r of degree &lt; 15
+and sum c_r w_r = kappa P_c(theta). Its MOMENTS m_j = sum_r C(r, j) c_r
+are its coefficients at x = 1, P_c(x) = sum_j m_j (x - 1)^j, and its
+FLATTENING is the least j with m_j != 0 (flatten.py's sense). Since
+theta - 1 = -1/n exactly,
+    P_c(theta) = sum_j m_j (-1/n)^j.                           (*)
+The posteriors are block reads of a fiber of seven: with q = theta^15,
+the label owning the fiber block [lo, hi) of atom r has posterior
+(q^lo - q^hi)/(1 - q^7). The FAR PROFILE is s = 111112222233333.
+
+THE HAND ATTACK, on paper before the engine.
+  (1) THE PROFILE IS DECIDED BY EIGHT SIGNS. Atoms 0..4 carry blocks
+      (3, 2, 2), atoms 5..9 (2, 3, 2), atoms 10..14 (2, 2, 3), so the
+      pairs read seven posterior values. The far profile keeps 1 - q^3
+      at atoms 0..4, 1 - q^2 and q^2 - q^5 at atoms 5..9, and all three
+      at atoms 10..14: the level is t = q^2 - q^4, tied at the five
+      middle pairs of atoms 10..14 and nowhere else, and the fill takes
+      all five. The certificate prints that profile at theta whenever
+        O   every value in A exceeds t and every value outside A and
+            the tied block is below it (six distinct comparisons);
+        C1  cov(A + tied block) &gt;= T;
+        C2  cov(A + the tied pairs of atoms 10..13) &lt; T.
+      C2 is the fill test: a tied pair covers t times its cost, so a
+      tied subset closes the deficit iff A plus it covers T, and the
+      costs theta^r kappa fall with r, so the four HEAVIEST tied pairs
+      are the best four; when they fail, every proper sub-block fails
+      and the fill is all five. C2 also puts cov(A) under T, so no
+      value above t is operative, and C1 makes t operative. Every
+      condition clears to the sign of an integer polynomial in theta:
+      a comparison of block numerators, or
+        10 (1 - theta) Phi(X) - 7 (1 - theta^15)(1 - theta^105),
+      Phi(X) = sum over the pairs of X of theta^r (q^lo - q^hi).
+      A sign constant on [theta_n0, 1) is a proof for every real
+      n &gt;= n0: substitute theta = 1 - u, deflate the powers of u,
+      scale u = z/n0, and count sign variations under the
+      Vincent-Collins-Akritas transform, bisecting (0, 1) until each
+      piece reads 0 (no root) or 1 (one root).
+  (2) THE ARGMIN IS ONE PRODUCT, AT ONE SHIFT. The box is
+      c_r in [-2, 1] at atoms 0..4, [-1, 2] at 5..9, [0, 3] at 10..14.
+      V = (x - 1)(x^2 - 1)(x^3 - 1)^2 has coefficients
+      1, -1, -1, -1, 2, 2, -1, -1, -1, 1: its 2s need atoms &gt;= 5 and
+      its -1s atoms &lt;= 9, so x^a V threads the box at a = 1 only. And
+          x V(x) at theta = theta (1 + theta)(1 + theta + theta^2)^2 n^-4
+      exactly, since (theta - 1)^4 = n^-4. Its moments: m_4 = 18 and
+      m_5 = 63 (expand at theta = 1 - u: 18 (1 - u)(1 - u/2)(1 - 2u)^2
+      to first order is 18 - 63 u). So the prediction is
+          g_hat = theta (1 + theta)(1 + theta + theta^2)^2
+                / ((1 + theta + ... + theta^14) n^4)  -&gt;  (6/5) n^-4,
+      a closed form, with no error term left to bound.
+  (3) THE PROOF'S SHAPE. Split the nonzero box vectors by flattening
+      j. A vector flattened past 4 must be absent from the box (a
+      free box of height 3 reaches 6, flatten.py's h(15, 6) = 3, and
+      never 7, h(15, 7) = 4; the anchoring must deny 5 and 6). For
+      j &lt;= 4, (*) gives
+          n^j |P_c(theta)| &gt;= |m_j| - E_j,
+          E_j = X_{j+1}/n + sum_{i &gt;= j+2} B_i n^(j-i),
+      X_{j+1} the largest |m_{j+1}| over the box's vectors with
+      m_0 = ... = m_{j-1} = 0, B_i the largest |m_i| over the whole
+      box, which is coordinatewise: max(sum C(r,i) s_r,
+      -sum C(r,i)(s_r - 3)). Both fall as n grows, so a margin read at
+      n0 holds on the whole tail. Then: j &lt;= 3 has |P| &gt; 18 n^-4 &gt;
+      P_V once |m_j| - E_j &gt; 18 n^(j-4); j = 4 with m_4 &lt;= -1 is
+      negative once E_4 &lt; 1; m_4 &gt;= 19 exceeds P_V once 19 - E_4 &gt; 18;
+      and the least positive m_4 must be 18, whose finitely many
+      vectors are each compared with xV exactly, the difference being
+      (x - 1)^5 times an integer polynomial whose sign the engine of
+      (1) reads on the tail. By coordinates, B_1 = 260 and
+      B_2 = 1235, so E_0 &lt; 0.18 and E_1 &lt; 0.86 at n = 1451 without any
+      search: only j = 2, 3, 4 need the box's own extremes. A tie
+      P_c(theta) = P_V(theta) with c != xV is impossible for n &gt;= 4:
+      theta = (n - 1)/n would be a root of an integer polynomial of
+      leading coefficient at most 3 in size.
+  (4) WHAT IT DOES TO THE TEST. With every atom's mass near 1/15 and
+      every posterior near its block's length over 7, the certificate
+      covers 5/7 in the limit against T = 7/10, so D -&gt; 1/70, t* -&gt;
+      2/7, and the room D/t* -&gt; 1/20, while g_hat -&gt; 0 as n^-4: on the
+      walk's tail the anchored test cannot fire.
+
+THE SLATE, frozen before the engine ran. The figures marked T are
+TRANSPLANTS from an older enumeration of the same cell; (2)'s are
+derived.
+  P1 THE PROFILE. The eight tests keep their far signs on all of
+     [theta_1451, 1), so s(n) = 111112222233333 for every real
+     n &gt;= 1451, and the certificate at n = 1450 prints a different
+     profile, ...33332 (T); the deciding test is C2 (T).
+  P2 THE BOX. No nonzero box vector is flattened past 4 (T); the least
+     positive m_4 is 18 (T); xV is the only shift of V in the box.
+  P3 THE TAILS. The margins of (3) are positive at n0 = 1451 for every
+     j &lt;= 3 and for m_4 != 18 (T: the older enumeration closed them from 880).
+  P4 THE ARGMIN. Every other vector with m_4 = 18 exceeds xV at theta
+     on the whole tail, so g_hat is the closed form of (2) for every
+     n &gt;= 1451 (T for the rung values). The older record read the
+     m_5 of these vectors as a range [63, 72]: if one of them has
+     m_5 &gt; 63 it undercuts xV, and P4 dies -- a transplant in
+     conflict with (2), left to the print.
+  P5 THE ROOM. D/t* sits near 1/20 at the rungs and above g_hat by more
+     than ten orders; CERT = OPT at the rungs read (a guess: every
+     exchange out of the certificate there costs an atom's whole mass).
+
+KILLS, as prints.
+  K1 A test of (1) prints a root bracket inside (0, 1/1451], or a sign
+     at n = 1451 other than its far sign (P1 dies there).
+  K2 The box join prints a nonzero vector with m_0..m_4 = 0 (P2).
+  K3 A margin of (3) prints &lt;= 0 (the proof has a hole at that j).
+  K4 An m_4 = 18 vector whose difference with xV prints a root on the
+     tail or a nonpositive sign (P4).
+  K5 sets.py's anchored_gap at a rung differs from the closed form.
+  KB (bugs) the transcribed profile differs from sets.Anatomy's at a
+     rung; the moment identity (*) fails on a vector.
+
+CONTROLS, run before any verdict is read.
+  C1 (THE ENGINE) A polynomial with a planted root at n = 2000 prints
+     one root in its bracket; the same polynomial with the root planted
+     at n = 1450.5 prints none on (0, 1/1451]; 1 + theta^2 prints none;
+     and the fill test C2, read from n0 = 1400, prints its root
+     (the older record put it at n = 1450.31).
+  C2 (THE JOIN) The meet-in-the-middle extremes equal brute force over
+     the box [-3, 3]^6, which holds flattening-4 vectors of both signs.
+  C3 (THE IDENTITY) (*) holds exactly on 300 random box vectors at
+     three rungs.
+  C4 (THE CELL) sets.ring's walk cells carry the geometric weights of
+     THE OBJECTS, exactly.
+
+THE DESIGN. Polynomials are integer lists, low degree first; theta^15k
+stands for q^k. The box is split into atoms 0..7 (4^8 halves) and
+8..14 (4^7), each half keyed by its moments, and joined on negated
+keys: per key the extremes of the next moment add, which bounds X_{j+1}
+from above (vectors flattened deeper are included, which only widens
+it); the least positive m_4 and the m_4 = 18 vectors come from the
+join on (m_0, ..., m_3). The rungs n = 1450, 1451, 2000, 10^4, 10^5
+are read through sets.py itself.
+
+THE TAIL'S OPTIMUM, a second slate (frozen before its section ran).
+F7 read the optimum 011111133333333 at four rungs. The question: is it
+the optimum at every real n &gt;= 1451, and why that vector?
+  (5) THE HAND ATTACK. A CELL is a pair (atom r, fiber block [lo, hi));
+      its mass is kappa' theta^x (1 - theta^(15 L)), x = r + 15 lo its
+      first point, L its length, so cells of one length are ordered by
+      x alone, a LIGHT cell (L = 2) is below a HEAVY one (L = 3)
+      whenever the heaviest-x heavy cell (x = 74) beats the least-x
+      light one (x = 5), and the heavy block is then every atom's top
+      label. A rule of S slots serving sigma atoms covers at most the sigma
+      heaviest heavy cells plus the S - sigma heaviest light ones. At
+      theta = 1 a heavy cell is 3/105 and a light 2/105, so a rule
+      covers (2S + sigma)/105 against T = 73.5/105: S &lt;= 29 never covers,
+      S = 30 covers iff sigma &gt;= 14, and every such rule costs 30 kappa.
+      Off theta = 1 the cost is kappa sum theta^r s_r, and with
+      u = 1/n, e_r = theta^r - 1 + r u lies in [0, C(r, 2) u^2]; for
+      two 30-slot rules with d = s - s', sum d_r theta^r =
+      -m_1(d) u + sum d_r e_r, and |d_r| &lt;= 3 bounds the second term
+      by 3 C(15, 3) u^2 = 1365 u^2. So once the feasible 30-slot rules
+      are exactly those with sigma &gt;= 14, the one with the largest first
+      moment sum r s_r is strictly cheapest for n &gt; 1365 provided that
+      maximum is unique; a rule of S &gt;= 31 costs at least
+      31 theta^14 kappa &gt; 30 kappa for n &gt;= 434. The first moment's
+      maximum, by counts: sigma = 14 and 30 slots force n_2 + 2 n_3 = 16,
+      so n_3 &lt;= 8, and n_3 = 8, n_1 = 6, n_0 = 1 sorted ascending is
+      0 111111 33333333, moment 273; its nearest rival n_3 = 7, n_2 = 2
+      reads 272; at sigma = 15 the best is 266. Prediction: unique, 273.
+  (6) FOUR SIGNS on [theta_1451, 1), each a coverage or order test:
+        S0  the heavy cell at x = 74 outweighs the light cell at x = 5;
+        S1  the optimum's own cells cover T;
+        S2  the 15 heavy and the 14 least-x light cells cover &lt; T
+            (every rule of &lt;= 29 slots fails);
+        S3  the 13 least-x heavy and 17 least-x light cells cover &lt; T
+            (every 30-slot rule serving &lt;= 13 atoms fails).
+  P6 S0 to S3 are root-free on the tail with those signs.
+  P7 An exhaustive table over all 4^15 size vectors, by atoms, finds
+     the 30-slot vectors serving &gt;= 14 atoms with first moment 273
+     to be one, 011111133333333, and the next moment 272.
+  Then the optimum is 011111133333333 for every real n &gt;= 1451 (rule).
+  K6 any of S0-S3 prints a root on the tail or the wrong sign.
+  K7 the table prints another vector at moment &gt;= 273, or a maximum
+     other than 273.
+  KB at n = 1451 the 45 cell masses, sorted exactly, do not put the
+     predicted cells on top; the table disagrees with brute force on
+     the first six atoms.
+  ADDENDUM, frozen after the first run and before the second. S3 as
+  frozen FAILED (K6): one root on the tail, at n = 1877.348, since its
+  bound spends light cells at atoms 13 and 14, the two it abandons, and
+  no rule can. Replaced by bounds that respect a rule's served set:
+        S3a for each of the 105 pairs of abandoned atoms, the 13 served
+            heavy cells and the 17 least-x light cells at served atoms
+            cover &lt; T;
+        S3b the 12 least-x heavy and 18 least-x light cells cover &lt; T,
+            which bounds every rule serving sigma &lt;= 12 atoms, since by S0
+            trading a heavy cell for a light one lowers the bound.
+  P6' S3a and S3b are root-free on the tail with sign -1. Guess, no
+  derivation: the worst pair of S3a is {13, 14}, the lightest atoms.
+  SECOND ADDENDUM, frozen after the second run. S3a FAILED at one pair,
+  {13, 14}: the rule 322222222233300 covers T on part of the tail. The
+  proof never needed it infeasible. The cost comparison of (5) uses no
+  coverage, so every 30-slot rule of first moment &lt;= 272 costs more
+  than 011111133333333 for n &gt; 1365, feasible or not; only a 30-slot
+  rule of moment &gt;= 273 must fail to cover. So S3a is owed only at the
+  pairs whose served set admits a 30-slot vector (each served size in
+  1..3) of first moment &gt;= 273, and {13, 14}'s best is 3 (3 + ... + 12)
+  = 225. P6'' every pair so admitting passes S3a.
+
+RESOURCE NOTE. Estimated before any run: under two minutes, the
+anchored-gap joins at the rungs the heaviest part; exact integers and
+Fractions, well under 512 MB, run under a memory guard.
+
+FINDINGS (copied from the printed output).
+  F1 THE CONTROLS PASS. C1: the planted root at n = 2000 is bracketed,
+     the one at n = 1450.5 and 1 + theta^2 read root-free, and the fill
+     test read from n0 = 1400 prints exactly one root, at
+     n = 1450.3069. C2: the join equals brute force on [-3, 3]^6 (least
+     positive m_4 = 2, one vector). C3 on 300 vectors, C4 at n = 1451
+     and 2000, the n = 1451 cell also summed directly.
+  F2 THE PROFILE (P1 holds, K1 never fired). The eight tests, of
+     degree 60 to 120 and multiplicity 1 or 2 at theta = 1, are all
+     root-free on the tail with their far signs, so s(n) =
+     111112222233333 for every real n &gt;= 1451. The fill test reads
+     sign +1 at n = 1450, where sets.py prints 111112222233332: the
+     threshold is exact, and the fill test decides it.
+  F3 THE BOX (P2 holds, K2 never fired). No nonzero box vector has
+     m_0 = ... = m_4 = 0, against h(15, 6) = 3 and h(15, 7) = 4 for the
+     free box. The least positive m_4 is 18 and exactly ONE vector
+     attains it: xV, (0, 1, -1, -1, -1, 2, 2, -1, -1, -1, 1, 0, 0, 0,
+     0), m_5 = 63, m_6 = 93. So P4 holds vacuously, and the older
+     "range [63, 72]" was never a range over these vectors: X_5 = 72 is
+     the largest |m_5| over everything with m_0..m_3 = 0.
+  F4 THE MARGINS (P3 holds, K3 never fired). B_1..B_5 = 260, 1235,
+     3880, 8756, 14805; X_1..X_5 = 260, 875, 600, 279, 72; the margins
+     at n0 = 1451 are 0.820, 0.395, 0.582, 0.788 (j = 0..3) and 0.941
+     (j = 4).
+  F5 THE CLOSED FORM (K5 never fired). sets.py's anchored_gap equals
+     kappa xV(theta) exactly at n = 1451, 2000, 10^4 and 10^5, and
+     also at n = 1450, whose box differs (not claimed): g_hat n^4 =
+     1.2028942, 1.2020998, 1.2004200, 1.2000420, toward 6/5.
+  F6 THE ROOM (P5's first half holds, its guess is REFUTED). D/t* =
+     0.0663, 0.0619, 0.0524, 0.0502 at the four rungs from 1451,
+     toward 1/20, at 2.4e11 to 4.2e18 times g_hat; at n = 1450 the fill
+     closes almost exactly and the room is 4e-6. And CERT &gt; OPT at
+     n = 1451 and 2000: the certificate is not the optimum on the tail.
+  F7 THE TAIL'S OPTIMUM (a section added after the first run, to read
+     F6). At n = 1451, 2000, 10^5 and 10^7 the optimum found is the
+     size vector 011111133333333 -- atom 0, the heaviest, gets the
+     empty set -- with cost equal to sets.solve's at the two rungs it
+     reaches, and (CERT - OPT) n = 0.8680899, 0.8676995, 0.8666873,
+     0.8666669, toward 13/15. The difference c = s - s' of the two size
+     vectors is itself a box vector, with moments m_0 = 0, m_1 = -13,
+     m_2 = -60: the two rules buy the same thirty pairs' worth of
+     cost at theta = 1, and by (*) CERT - OPT = kappa (13/n - 60/n^2
+     + ...). The certificate overstates at flattening 1, three orders
+     of n above the least the box allows.
+  F8 THE TAIL'S OPTIMUM IS PROVED (the second slate; P6 and P6' FAILED
+     as frozen, P6'' and P7 hold). KB: at n = 1451 the exact cell order
+     puts the 15 heavy cells on top, then light cells by first point,
+     and the moment table equals brute force on six atoms. S0 (degree
+     119), S1, S2 and S3b (degree 120, multiplicity 2 at theta = 1) are
+     root-free on the tail with signs +1, +1, -1, -1. S3 as frozen had
+     one root, at n = 1877.348 (its bound spent light cells at the two
+     atoms it abandons), and S3a failed at {13, 14} alone, a served set
+     whose best 30-slot moment is 218; 11 of the 105 served sets of 13
+     atoms admit moment &gt;= 273, and all 11 pass S3a. The table: 30
+     slots serving 14 atoms, 7,538,895 vectors, largest moment 273 at
+     one vector; serving 15, 1,787,607 vectors, largest 266; pooled,
+     273 once, 272 twice, and 011111133333333 reads 273. So
+     011111133333333 is the optimal size vector at every real
+     n &gt;= 1451 (rule, proved): every rule of &lt;= 29 slots fails to
+     cover (S2), of &gt;= 31 slots costs more (n &gt;= 434), of 30 slots and
+     moment &lt;= 272 costs more (n &gt; 1365, no coverage used), and of 30
+     slots and moment &gt;= 273 other than it fails to cover (S3a, S3b;
+     the table leaves none serving &gt;= 14 atoms); S1 makes it feasible.
+     So the tail's optimum is the first-moment maximum among the
+     rules tied at theta = 1, where a rule covers (2S + sigma)/105 and the
+     tie set is 30 slots serving &gt;= 14 atoms.
+
+RUN RECORD. python gaplaw.py under a memory guard: the first run raised in
+C1's bracket test (a bracket from z = 0 read as an n), fixed; the
+second failed C2 by design (a width-8 anchored box holds no
+flattening-4 vector, so the comparison was empty) and the control
+moved to [-3, 3]^6; the third passed 12 of 12 in 1.4 s; with F7's
+section, 13 of 13 in 2.1 s, peak commit 81.6 MB. The second slate's
+section: 19 of 20 (S3), then 20 of 21 (S3a at {13, 14}), then after
+the second addendum a failing sanity conjunct in the check itself
+(served atoms 2..14 reach 277, not the 225 bound meant for 0..12),
+corrected; 21 of
+21 in 2.3 s, peak commit 82.0 MB. After a code read, 21 of 21 in 2.2 s,
+peak commit 81.7 MB: KB now checks moment_table itself on six atoms, P2
+asks that xV alone attain 18, and the served set abandoning atoms 13
+and 14 is printed, its bound with one root on the tail and its best
+moment 218.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import random
+import sys
+import time
+from bisect import bisect_left, bisect_right
+from fractions import Fraction as F
+from itertools import product
+from math import comb
+
+import sets
+from flatten import least_height
+
+NR, M, K, C = 105, 15, 3, 7
+FAR = (1,) * 5 + (2,) * 5 + (3,) * 5
+N0 = 1451
+RUNGS = (1450, 1451, 2000, 10000, 100000)
+SEED = 20260928
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  [{'ok' if ok else 'FAIL'}] {name}" + (f"  {detail}" if detail
+                                                     else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+    print("-" * len(title))
+
+
+# ------------------------------------------------------ polynomials
+# Integer lists, low degree first, in theta.
+
+<span id="padd"></span>def padd(a, b):
+    n = max(len(a), len(b))
+    return [(a[i] if i &lt; len(a) else 0) + (b[i] if i &lt; len(b) else 0)
+            for i in range(n)]
+
+
+<span id="pscale"></span>def pscale(a, s):
+    return [x * s for x in a]
+
+
+<span id="pmul"></span>def pmul(a, b):
+    out = [0] * (len(a) + len(b) - 1)
+    for i, x in enumerate(a):
+        if x:
+            for j, y in enumerate(b):
+                out[i + j] += x * y
+    return out
+
+
+<span id="mono"></span>def mono(k, c=1):
+    return [0] * k + [c]
+
+
+<span id="peval"></span>def peval(a, x):
+    v = 0
+    for c in reversed(a):
+        v = v * x + c
+    return v
+
+
+<span id="shift1"></span>def shift1(p):
+    """p(z + 1) (a Taylor shift)."""
+    p = list(p)
+    n = len(p)
+    for i in range(n):
+        for j in range(n - 2, i - 1, -1):
+            p[j] += p[j + 1]
+    return p
+
+
+<span id="variations"></span>def variations(p):
+    s = [x for x in p if x]
+    return sum(1 for a, b in zip(s, s[1:]) if (a &gt; 0) != (b &gt; 0))
+
+
+<span id="var01"></span>def var01(p):
+    """Descartes's bound on the number of roots of p in (0, 1)."""
+    return variations(shift1(list(reversed(p))))
+
+
+<span id="tail_poly"></span>def tail_poly(G, n0):
+    """G at theta = 1 - z/n0, deflated at z = 0, cleared to integers:
+    its roots in (0, 1] are the roots of G on [theta_n0, 1)."""
+    d = len(G) - 1
+    h = [0] * (d + 1)
+    for k, g in enumerate(G):
+        if g:
+            for i in range(k + 1):
+                h[i] += g * comb(k, i) * (-1) ** i
+    while h and h[-1] == 0:
+        h.pop()
+    if not h:
+        raise ValueError("identically zero")
+    m = next(i for i, x in enumerate(h) if x)
+    h = h[m:]
+    e = len(h) - 1
+    return [x * n0 ** (e - i) for i, x in enumerate(h)], m
+
+
+<span id="isolate"></span>def isolate(p, lo=F(0), hi=F(1), depth=0):
+    """Brackets in z of the roots of p in (lo, hi), p read on (0, 1)."""
+    v = var01(p)
+    if v == 0:
+        return []
+    if v == 1:
+        return [(lo, hi)]
+    if depth &gt; 90:
+        raise RuntimeError("isolation did not converge")
+    d = len(p) - 1
+    left = [x * 2 ** (d - i) for i, x in enumerate(p)]
+    right = shift1(left)
+    mid = (lo + hi) / 2
+    out = isolate(left, lo, mid, depth + 1)
+    if right[0] == 0:
+        out.append((mid, mid))
+    return out + isolate(right, mid, hi, depth + 1)
+
+
+<span id="tail_sign"></span>def tail_sign(G, n0=N0):
+    """(sign, roots as z-brackets, multiplicity at theta = 1, the
+    cleared polynomial). A sign is returned only when no root lies in
+    (0, 1] and both ends agree: a proof that G keeps that sign at
+    theta = (n - 1)/n for every real n &gt;= n0."""
+    p, m = tail_poly(G, n0)
+    roots = isolate(p)
+    end = peval(p, 1)
+    s0 = (p[0] &gt; 0) - (p[0] &lt; 0)
+    s1 = (end &gt; 0) - (end &lt; 0)
+    sign = s0 if (not roots and s0 == s1) else None
+    return sign, roots, m, p
+
+
+<span id="refine"></span>def refine(p, n0, a, b, steps=40):
+    """Narrow a one-root z-bracket (a, b) by bisection; returned as n."""
+    fa = peval(p, a)
+    for _ in range(steps):
+        c = (a + b) / 2
+        fc = peval(p, c)
+        if (fc &gt; 0) == (fa &gt; 0):
+            a, fa = c, fc
+        else:
+            b = c
+    return float(F(n0) / b), float(F(n0) / a) if a else float("inf")
+
+
+# ------------------------------------------------------- the walk
+
+<span id="blocks"></span>def blocks():
+    """Per atom, per label, the fiber block (lo, hi) the label owns."""
+    out = []
+    for r in range(M):
+        ys = [K * (r + j * M) // NR for j in range(C)]
+        row = []
+        for y in range(K):
+            js = [j for j in range(C) if ys[j] == y]
+            row.append((js[0], js[-1] + 1))
+        out.append(row)
+    return out
+
+
+<span id="num"></span>def num(lo, hi):
+    """q^lo - q^hi as a polynomial in theta."""
+    return padd(mono(M * lo), mono(M * hi, -1))
+
+
+<span id="phi"></span>def phi(pairs):
+    tot = [0]
+    for r, lo, hi in pairs:
+        tot = padd(tot, pmul(mono(r), num(lo, hi)))
+    return tot
+
+
+<span id="coverage_test"></span>def coverage_test(pairs):
+    """Positive iff cov(pairs) &gt; T = 7/10, kappa/(1 - q^7) cleared."""
+    lhs = pscale(pmul([1, -1], phi(pairs)), 10)
+    rhs = pscale(pmul(padd([1], mono(M, -1)), padd([1], mono(NR, -1))), -7)
+    return padd(lhs, rhs)
+
+
+<span id="theta"></span>def theta(n):
+    return F(n - 1, n)
+
+
+<span id="far_structure"></span>def far_structure():
+    """A, the tied block and the eight tests of the hand attack (1)."""
+    bl = blocks()
+    th = theta(N0)
+    lvl = (2, 4)
+    tied = [(r, *bl[r][y]) for r in range(M) for y in range(K)
+            if bl[r][y] == lvl]
+    A = []
+    for r in range(M):
+        vals = sorted(((peval(num(*b), th), b) for b in bl[r]),
+                      reverse=True)
+        A += [(r, *b) for _, b in vals[:FAR[r]] if b != lvl]
+    t = num(*lvl)
+    inside = {(lo, hi) for _, lo, hi in A}
+    outside = {b for row in bl for b in row} - inside - {lvl}
+    tests = []
+    for b in sorted(inside):
+        tests.append((f"O  q^{b[0]} - q^{b[1]} above the level",
+                      padd(num(*b), pscale(t, -1)), 1))
+    for b in sorted(outside):
+        tests.append((f"O  q^{b[0]} - q^{b[1]} below the level",
+                      padd(num(*b), pscale(t, -1)), -1))
+    tests.append(("C1 cov(A + tied block) &gt;= T",
+                  coverage_test(A + tied), 1))
+    heavy = [x for x in tied if x[0] &lt;= 13]
+    tests.append(("C2 cov(A + tied pairs of atoms 10..13) &lt; T",
+                  coverage_test(A + heavy), -1))
+    return A, tied, tests
+
+
+# -------------------------------------------------------- the box
+
+<span id="half"></span>def half(lows, highs, atoms, top=7):
+    """Every sub-vector over `atoms` with its partial moments."""
+    out = []
+    for vals in product(*[range(lows[r], highs[r] + 1) for r in atoms]):
+        m = tuple(sum(comb(r, j) * x for r, x in zip(atoms, vals))
+                  for j in range(top))
+        out.append((m, vals))
+    return out
+
+
+<span id="group"></span>def group(side, j):
+    g = {}
+    for m, v in side:
+        g.setdefault(m[:j], []).append((m, v))
+    return g
+
+
+<span id="extreme_next"></span>def extreme_next(L, R, j, i):
+    """max |m_i| over box vectors with m_0 = ... = m_{j-1} = 0."""
+    gl, gr = group(L, j), group(R, j)
+    best = 0
+    for key, ls in gl.items():
+        rs = gr.get(tuple(-x for x in key))
+        if not rs:
+            continue
+        lmax, lmin = max(m[i] for m, _ in ls), min(m[i] for m, _ in ls)
+        rmax, rmin = max(m[i] for m, _ in rs), min(m[i] for m, _ in rs)
+        best = max(best, lmax + rmax, -(lmin + rmin))
+    return best
+
+
+<span id="flattened"></span>def flattened(L, R, j):
+    """Every box vector with m_0 = ... = m_{j-1} = 0, as (m, vector)."""
+    gl, gr = group(L, j), group(R, j)
+    out = []
+    for key, ls in gl.items():
+        for mr, vr in gr.get(tuple(-x for x in key), ()):
+            for ml, vl in ls:
+                out.append((tuple(a + b for a, b in zip(ml, mr)), vl + vr))
+    return out
+
+
+<span id="m4_census"></span>def m4_census(L, R):
+    """The least positive m_4 over vectors with m_0..m_3 = 0, and every
+    vector attaining it."""
+    gl, gr = group(L, 4), group(R, 4)
+    least = None
+    for key, ls in gl.items():
+        rs = gr.get(tuple(-x for x in key))
+        if not rs:
+            continue
+        r4 = sorted(m[4] for m, _ in rs)
+        for m, _ in ls:
+            k = bisect_right(r4, -m[4])
+            if k &lt; len(r4):
+                v = m[4] + r4[k]
+                if least is None or v &lt; least:
+                    least = v
+    hits = []
+    for key, ls in gl.items():
+        for mr, vr in gr.get(tuple(-x for x in key), ()):
+            for ml, vl in ls:
+                if ml[4] + mr[4] == least:
+                    hits.append(vl + vr)
+    return least, hits
+
+
+<span id="box_bounds"></span>def box_bounds(s):
+    """B_i, the largest |m_i| over the box, read coordinatewise."""
+    return [max(sum(comb(r, i) * s[r] for r in range(len(s))),
+                -sum(comb(r, i) * (s[r] - K) for r in range(len(s))))
+            for i in range(len(s))]
+
+
+V = pmul(pmul([-1, 1], [-1, 0, 1]), pmul([-1, 0, 0, 1], [-1, 0, 0, 1]))
+XV = pmul(mono(1), V)
+
+
+<span id="closed_form"></span>def closed_form(n):
+    """kappa xV(theta): the predicted anchored gap in cost units."""
+    th = theta(n)
+    kappa = (1 - th) / (1 - th ** M)
+    return kappa * peval(XV, th)
+
+
+# ------------------------------------------------------- controls
+
+<span id="section_controls"></span>def section_controls():
+    section("CONTROLS")
+    s, roots, _, p = tail_sign(pmul([-1999, 2000], [1, 0, 1]))
+    inside = (len(roots) == 1
+              and roots[0][0] &lt; F(N0, 2000) &lt; roots[0][1])
+    s2, r2, _, _ = tail_sign(pmul([-2899, 2901], [1, 0, 1]))
+    s3, r3, _, _ = tail_sign([1, 0, 1])
+    check("C1 engine: planted root at n = 2000 bracketed; none for the "
+          "root at n = 1450.5 or for 1 + theta^2",
+          s is None and inside and s2 == 1 and not r2 and s3 == 1
+          and not r3)
+    _, _, tests = far_structure()
+    c2 = tests[-1][1]
+    _, roots, _, p = tail_sign(c2, 1400)
+    ns = [refine(p, 1400, a, b) for a, b in roots]
+    print(f"  C1 the fill test C2 read from n0 = 1400: {len(roots)} root(s) "
+          f"at n in " + ", ".join(f"({a:.4f}, {b:.4f})" for a, b in ns))
+    check("C1 engine finds the fill test's root near n = 1450.31",
+          len(ns) == 1 and 1450.2 &lt; ns[0][0] &lt; ns[0][1] &lt; 1450.4)
+
+    lows, highs = [-3] * 6, [3] * 6
+    L, R = half(lows, highs, range(3)), half(lows, highs, range(3, 6))
+    full = half(lows, highs, range(6))
+    ok = True
+    for j in range(5):
+        brute = max((abs(m[j + 1]) for m, _ in full
+                     if all(x == 0 for x in m[:j])), default=0)
+        ok &amp;= brute == extreme_next(L, R, j, j + 1)
+    pos = sorted(m[4] for m, _ in full
+                 if all(x == 0 for x in m[:4]) and m[4] &gt; 0)
+    least, hits = m4_census(L, R)
+    ok &amp;= bool(pos) and least == pos[0]
+    ok &amp;= sorted(hits) == sorted(v for m, v in full
+                                 if all(x == 0 for x in m[:4])
+                                 and m[4] == least)
+    deep = sorted(v for m, v in full if all(x == 0 for x in m[:5]))
+    ok &amp;= deep == sorted(v for _, v in flattened(L, R, 5))
+    check("C2 join against brute force on the box [-3, 3]^6", ok,
+          f"least positive m_4 {least}, {len(hits)} vectors, "
+          f"{len(deep)} flattened past 4 (zero included)")
+
+    rng = random.Random(SEED)
+    ok = True
+    for n in (1451, 2000, 100000):
+        th = theta(n)
+        for _ in range(100):
+            c = [rng.randint(x - K, x) for x in FAR]
+            m = [sum(comb(r, j) * c[r] for r in range(M)) for j in range(M)]
+            ok &amp;= peval(c, th) == sum(m[j] * F(-1, n) ** j
+                                      for j in range(M))
+    check("C3 the moment identity on 300 box vectors", ok)
+
+    ok = True
+    for n in (1451, 2000):
+        cell = sets.ring(f"W-{n}", NR, M, K, theta(n), truth=(n == 1451))
+        th = theta(n)
+        kappa = (1 - th) / (1 - th ** M)
+        ok &amp;= all(cell.w[r] == th ** r * kappa for r in range(M))
+        ok &amp;= getattr(cell, "truth_ok", True)
+    check("C4 the walk's weights are theta^r kappa (and the n = 1451 cell "
+          "matches the ring summed directly)", ok)
+
+
+# ---------------------------------------------------- the profile
+
+<span id="section_profile"></span>def section_profile():
+    section("THE PROFILE: eight signs on the tail")
+    A, tied, tests = far_structure()
+    print(f"  A holds {len(A)} pairs, the tied block {len(tied)} "
+          f"(atoms {[r for r, _, _ in tied]})")
+    good = True
+    for label, G, want in tests:
+        sign, roots, m, _ = tail_sign(G)
+        good &amp;= sign == want
+        print(f"  {label:44s} deg {len(G) - 1:3d}  mult@1 {m}  sign "
+              f"{sign}  roots on tail {len(roots)}")
+    check("P1 every test keeps its far sign on n &gt;= 1451, root-free", good)
+    c2 = tests[-1][1]
+    at = peval(c2, theta(1450))
+    print(f"  the fill test at n = 1450 reads sign {(at &gt; 0) - (at &lt; 0)}")
+    rows = {}
+    for n in RUNGS:
+        an = sets.Anatomy(sets.ring(f"W-{n}", NR, M, K, theta(n)))
+        rows[n] = an
+        print(f"  n = {n:6d}  sets.py's profile "
+              f"{''.join(map(str, an.sizes))}")
+    kb = all(tuple(rows[n].sizes) == FAR for n in RUNGS if n &gt;= N0)
+    check("KB the transcription agrees with sets.py at every rung &gt;= 1451, "
+          "and n = 1450 differs",
+          kb and tuple(rows[1450].sizes) != FAR and at &gt;= 0)
+    return rows
+
+
+# -------------------------------------------------------- the box
+
+<span id="fmt"></span>def fmt(c):
+    return "".join(f"{x:3d}" for x in c)
+
+
+<span id="section_box"></span>def section_box():
+    section("THE BOX: flattening, margins, the m_4 = 18 vectors")
+    t0 = time.time()
+    lows, highs = [x - K for x in FAR], list(FAR)
+    L, R = half(lows, highs, range(8)), half(lows, highs, range(8, M))
+    deep = [v for _, v in flattened(L, R, 5) if any(v)]
+    print(f"  halves {len(L)} x {len(R)}, {time.time() - t0:.1f} s; "
+          f"nonzero vectors with m_0..m_4 = 0: {len(deep)}")
+    h6, h7 = least_height(M, 6)[0], least_height(M, 7)[0]
+    print(f"  the free box: h(15, 6) = {h6}, h(15, 7) = {h7}")
+    check("P2 the anchored box holds nothing flattened past 4",
+          not deep and h6 == 3 and h7 == 4)
+
+    B = box_bounds(FAR)
+    X = [extreme_next(L, R, j, j + 1) for j in range(5)]
+    print(f"  B_1..B_5 = {B[1:6]};  X_1..X_5 = {X}")
+    margins = []
+    for j in range(5):
+        E = F(X[j], N0) + sum(F(B[i], N0 ** (i - j))
+                              for i in range(j + 2, M))
+        mg = 1 - E - (18 * F(N0) ** (j - 4) if j &lt; 4 else 0)
+        margins.append(mg)
+        print(f"  j = {j}:  E_j = {float(E):.5f}  margin {float(mg):.5f}")
+    check("P3 every margin is positive at n0 = 1451",
+          all(x &gt; 0 for x in margins))
+
+    least, hits = m4_census(L, R)
+    xv = tuple(XV + [0] * (M - len(XV)))
+    shifts = [a for a in range(M - len(V) + 1)
+              if all(lows[a + i] &lt;= c &lt;= highs[a + i]
+                     for i, c in enumerate(V))]
+    print(f"  least positive m_4 = {least}; {len(hits)} vectors attain it; "
+          f"V threads the box at shifts {shifts}")
+    for c in sorted(hits):
+        m = [sum(comb(r, j) * c[r] for r in range(M)) for j in range(7)]
+        print(f"    {fmt(c)}   m_5 {m[5]:4d}  m_6 {m[6]:5d}"
+              + ("   = xV" if c == xv else ""))
+    check("P2 least positive m_4 is 18, attained by xV alone, the one "
+          "shift of V", least == 18 and shifts == [1] and hits == [xv])
+    return hits, xv
+
+
+<span id="section_argmin"></span>def section_argmin(hits, xv, rows):
+    section("THE ARGMIN AND THE RUNGS")
+    good = True
+    for c in hits:
+        if c == xv:
+            continue
+        D = padd(list(c), pscale(XV, -1))
+        sign, roots, m, _ = tail_sign(D)
+        good &amp;= sign == 1
+        print(f"  {fmt(c)}  minus xV: mult@1 {m}, sign {sign}, "
+              f"roots on tail {len(roots)}")
+    check("P4 every other m_4 = 18 vector exceeds xV on the whole tail",
+          good)
+    ok5 = True
+    for n in RUNGS:
+        an = rows[n]
+        Q = an.sc.Q
+        gA = F(sets.anchored_gap(an), Q)
+        cf = closed_form(n)
+        room = an.room / Q
+        if n &gt;= N0:
+            ok5 &amp;= gA == cf
+        print(f"  n = {n:6d}  g_hat n^4 = {float(gA * n ** 4):.7f}  closed "
+              f"form {'equal' if gA == cf else 'differs'}  room D/t* = "
+              f"{float(room):.6f}  room/g_hat = {float(room / gA):.3e}")
+    check("K5 sets.py's anchored gap equals the closed form at every rung "
+          "&gt;= 1451", ok5)
+    for n in (1451, 2000):
+        an = rows[n]
+        opt, free, fronts = sets.solve(an)
+        print(f"  n = {n}: CERT {'=' if an.cert == opt else '&gt;'} OPT "
+              f"({free} free atoms, fronts {fronts})")
+
+
+<span id="argmin_sizes"></span>def argmin_sizes(an):
+    """OPT with one optimal size vector: the two halves' (coverage,
+    cost) lists joined through a suffix minimum on the right."""
+    sc = an.sc
+
+    def side(atoms):
+        return [(sum(sc.V[r][x] for r, x in zip(atoms, s)),
+                 sum(sc.W[r] * x for r, x in zip(atoms, s)), s)
+                for s in product(range(K + 1), repeat=len(atoms))]
+    L, R = side(range(8)), sorted(side(range(8, M)))
+    best = [None] * (len(R) + 1)
+    for i in range(len(R) - 1, -1, -1):
+        b = best[i + 1]
+        best[i] = i if b is None or R[i][1] &lt; R[b][1] else b
+    vs = [v for v, _, _ in R]
+    out = None
+    for v, c, s in L:
+        j = bisect_left(vs, sc.TQ - v)
+        if j &lt; len(R):
+            k = best[j]
+            if out is None or c + R[k][1] &lt; out[0]:
+                out = (c + R[k][1], s + R[k][2])
+    return out
+
+
+<span id="section_optimum"></span>def section_optimum(rows):
+    section("THE TAIL'S OPTIMUM (added after the first run)")
+    ok, shapes = True, set()
+    for n in (1451, 2000, 100000, 10 ** 7):
+        an = rows[n] if n in rows else sets.Anatomy(
+            sets.ring(f"W-{n}", NR, M, K, theta(n)))
+        opt, s = argmin_sizes(an)
+        if n in (1451, 2000):
+            ok &amp;= opt == sets.solve(an)[0]
+        c = [a - b for a, b in zip(an.sizes, s)]
+        m = [sum(comb(r, j) * c[r] for r in range(M)) for j in range(3)]
+        gain = F(an.cert - opt, an.sc.Q)
+        shapes.add(s)
+        print(f"  n = {n:8d}  OPT sizes {''.join(map(str, s))}  "
+              f"(CERT - OPT) n = {float(gain * n):.7f}  moments of "
+              f"s - s' {m}")
+    check("the size vector's cost equals sets.solve's OPT at 1451 and 2000",
+          ok)
+    print(f"  the same optimal size vector found at every rung: "
+          f"{len(shapes) == 1}")
+
+
+# ------------------------------------------ the tail's optimum, proved
+
+OPT_TAIL = (0,) + (1,) * 6 + (3,) * 8
+
+
+<span id="cells"></span>def cells():
+    """Every (atom, block) as (x, length, (r, lo, hi)), x its first point."""
+    return [(r + M * lo, hi - lo, (r, lo, hi))
+            for r, row in enumerate(blocks()) for lo, hi in row]
+
+
+<span id="cell_num"></span>def cell_num(r, lo, hi):
+    return pmul(mono(r), num(lo, hi))
+
+
+<span id="moment_table"></span>def moment_table(atoms=M):
+    """(S, h) -&gt; {first moment: count} over every size vector, by atoms."""
+    tab = {(0, 0): {0: 1}}
+    for r in range(atoms):
+        nxt = {}
+        for (S, h), mom in tab.items():
+            for x in range(K + 1):
+                key = (S + x, h + (x &gt; 0))
+                d = nxt.setdefault(key, {})
+                for m, c in mom.items():
+                    d[m + r * x] = d.get(m + r * x, 0) + c
+        tab = nxt
+    return tab
+
+
+<span id="best_moment"></span>def best_moment(served):
+    """Largest sum r s_r over s_r in 1..3 on the served atoms, sum 30:
+    the extra slots go two at a time to the heaviest-index atoms."""
+    extra, tot = 30 - len(served), sum(served)
+    for r in sorted(served, reverse=True):
+        x = min(2, extra)
+        tot += r * x
+        extra -= x
+    return tot if extra == 0 else -1
+
+
+<span id="section_tail_proof"></span>def section_tail_proof():
+    section("THE TAIL'S OPTIMUM, PROVED (the second slate)")
+    cs = cells()
+    heavy = sorted(c for c in cs if c[1] == 3)
+    light = sorted(c for c in cs if c[1] == 2)
+    th = theta(N0)
+    mass = {c: peval(cell_num(*c[2]), th) for c in cs}
+    top = sorted(cs, key=lambda c: -mass[c])
+    s2 = heavy + light[:14]
+    ok = set(top[:29]) == set(s2) and set(top[:15]) == set(heavy)
+    check("KB at n = 1451 the exact cell order puts the 15 heavy cells "
+          "on top and the 14 least-x light cells next", ok)
+    rows = blocks()
+    opt = []
+    for r, sz in enumerate(OPT_TAIL):
+        order = sorted(rows[r], key=lambda b: (-(b[1] - b[0]), b[0]))
+        opt += [(r, lo, hi) for lo, hi in order[:sz]]
+    hx, lx = heavy[-1], light[0]
+    tests = [
+        (f"S0 heavy cell x = {hx[0]} outweighs light cell x = {lx[0]}",
+         padd(cell_num(*hx[2]), pscale(cell_num(*lx[2]), -1)), 1),
+        ("S1 the optimum's cells cover T", coverage_test(opt), 1),
+        ("S2 15 heavy + 14 least-x light cells cover &lt; T",
+         coverage_test([c[2] for c in s2]), -1),
+        ("S3b 12 least-x heavy + 18 least-x light cells cover &lt; T",
+         coverage_test([c[2] for c in heavy[:12] + light[:18]]), -1),
+    ]
+    for name, G, want in tests:
+        sign, roots, m, _ = tail_sign(G)
+        print(f"  {name}: degree {len(G) - 1}, multiplicity {m} at 1, "
+              f"sign {sign}, roots on the tail {len(roots)}")
+        check(name, sign == want and not roots)
+    bad, worst, owed = [], None, 0
+    for gone in [(a, b) for a in range(M) for b in range(a + 1, M)]:
+        served = [r for r in range(M) if r not in gone]
+        if best_moment(served) &lt; 273:
+            continue
+        owed += 1
+        sv = [c for c in light if c[2][0] not in gone][:17]
+        G = coverage_test([c[2] for c in heavy if c[2][0] not in gone]
+                          + [c[2] for c in sv])
+        sign, roots, _, _ = tail_sign(G)
+        if sign != -1 or roots:
+            bad.append(gone)
+        v = peval(G, th)
+        if worst is None or v &gt; worst[0]:
+            worst = (v, gone)
+    print(f"  S3a: {owed} of 105 served sets of 13 atoms admit a 30-slot "
+          f"moment &gt;= 273; {len(bad)} failing"
+          + (f" {bad}" if bad else "") + f"; nearest to T at n = 1451 "
+          f"abandons atoms {worst[1]}")
+    gone = (13, 14)
+    sv = [c for c in light if c[2][0] not in gone][:17]
+    sign, roots, _, _ = tail_sign(coverage_test(
+        [c[2] for c in heavy if c[2][0] not in gone] + [c[2] for c in sv]))
+    m1314 = best_moment([r for r in range(M) if r not in gone])
+    verdict = (f"has {len(roots)} root(s) on the tail" if roots
+               else f"reads sign {sign}")
+    print(f"  the served set abandoning atoms 13 and 14: the bound "
+          f"{verdict}, and its best 30-slot moment is {m1314}")
+    check("S3a every 30-slot rule serving 13 atoms at first moment &gt;= 273 "
+          "covers &lt; T", not bad and m1314 == 218)
+
+    tab = moment_table()
+    brute = {}
+    for v in product(range(K + 1), repeat=6):
+        key = (sum(v), sum(1 for x in v if x))
+        m = sum(r * x for r, x in enumerate(v))
+        brute.setdefault(key, {})
+        brute[key][m] = brute[key].get(m, 0) + 1
+    check("KB the moment table equals brute force on six atoms",
+          moment_table(6) == brute)
+    pool = {}
+    for h in (14, 15):
+        for m, c in tab.get((30, h), {}).items():
+            pool[m] = pool.get(m, 0) + c
+        best = max(tab[(30, h)])
+        print(f"  30 slots, {h} atoms served: {sum(tab[(30, h)].values())} "
+              f"vectors, largest first moment {best} "
+              f"({tab[(30, h)][best]} vector(s))")
+    ms = sorted(pool, reverse=True)
+    mo = sum(r * x for r, x in enumerate(OPT_TAIL))
+    print(f"  pooled: largest {ms[0]} ({pool[ms[0]]} vector(s)), next "
+          f"{ms[1]} ({pool[ms[1]]}); 011111133333333 reads {mo}")
+    check("the first moment's maximum is unique and is 011111133333333",
+          ms[0] == mo and pool[ms[0]] == 1)
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_controls()
+    if not all(CHECKS):
+        print("\nCONTROL FAILED: nothing below is read.")
+        sys.exit(1)
+    rows = section_profile()
+    hits, xv = section_box()
+    section_argmin(hits, xv, rows)
+    section_optimum(rows)
+    section_tail_proof()
+    print()
+    print(f"{sum(CHECKS)} of {len(CHECKS)} checks, "
+          f"{time.time() - t0:.1f} s")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/gaplaw.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

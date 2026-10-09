@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tower_growth.py | Numbers read one place at a time</title>
+<meta name="description" content="tower_growth.py">
+<link rel="alternate" type="text/x-python" href="/code/tower_growth.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>tower_growth.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/tower/#the-density-theorem">TOWER: The density theorem</a> (theorem; observation); <a href="/tower/#the-serial-ledger">TOWER: The serial ledger</a> (rule).</p><p>Cited on: <a href="/tower/">TOWER</a>.</p><p>To run it: <a href="/code/crt.py">crt.py</a> beside it; standard library only.</p></div>
+<pre>"""tower_growth.py -- how lambda grows along the primorial rungs: the
+density of transparent rungs, the ledger of lambda's jumps, and the
+serial law that each jump raises one base.
+
+QUESTION. lambda(k) = lcm(p_1 - 1, ..., p_k - 1) is the exponent of the
+unit group of the rung Z/p_k#. A rung k &gt;= 2 is TRANSPARENT when
+lambda(k) = lambda(k - 1), i.e. (p_k - 1) | lambda(k - 1). Does the
+share of transparent rungs tend to 1, how fast, and what does a jump of
+lambda look like when one happens?
+
+THE PROOF THE CHECKS ARE BUILT AROUND (by hand; x = p_k throughout).
+Write L(x) = log lambda(k) = sum over primes q of a_q log q, a_q the
+largest exponent of q dividing some p - 1 with p &lt;= x.
+  (A) Exponents above 1 need q^2 &lt; x, so they cost at most
+      pi(sqrt x) log x = O(sqrt x).
+  (B) The primes q &lt;= x/log x cost at most theta(x/log x) ~ x/log x.
+  (C) A prime q &gt; x/log x dividing p - 1 &lt; x is P+(p - 1), the largest
+      prime factor, with cofactor m = (p - 1)/q &lt; log x, so this part
+      costs at most log x times #{p &lt;= x : P+(p - 1) &gt; x/log x}. That
+      set is covered by the pairs (q, mq + 1) both prime with
+      m &lt; log x, and the upper-bound sieve for prime pairs counts it
+      as &lt;&lt; x loglog x/(log x)^2 (the sum of 1/phi(m) over m &lt; log x
+      gives the loglog, the singular series averaging to a constant).
+      Both primality conditions are needed; either alone leaves x loglog x.
+  So L(x) &lt;&lt; x loglog x/log x.
+  THE WRITE-ONCE BOUND. Every non-transparent rung raises the exponent
+  of at least one prime q (an EVENT at q). Exponents only climb and
+  q^a | p - 1 &lt; x, so q hosts at most floor(log x/log q) events; an
+  event at q &gt; y adds at least log y to L. Hence, for every y,
+      N_nt(k) &lt;= sum_{q &lt;= y} floor(log x/log q) + L(x)/log y,
+  N_nt(k) being the non-transparent rungs among 2..k. With
+  y = x/(log x)^3 the first term is O(x/(log x)^3) and the second is
+  &lt;&lt; x loglog x/(log x)^2, so N_nt(k)/k &lt;&lt; loglog x/log x -&gt; 0.
+  THE CYCLICITY RATIO. Each step adds at most log(p - 1) to L
+  (the new lambda divides the old one times p - 1), so
+  L &lt;= N_nt log x; with log phi(p_k#) = sum log(p - 1)
+  = theta(x) - O(loglog x) and k log x/log phi -&gt; 1, alpha = L/log phi
+  is at most N_nt/k (1 + o(1)). Both ratios are nonnegative and
+  O(loglog x/log x), so N_nt/k - alpha = O(loglog x/log x) as well, and
+  says no more than that both vanish. The write-once bound caps N_nt
+  from above and gives no lower bound on alpha.
+
+THE SERIAL LAW'S CHARACTERIZATION (by hand). Let f(m) be the least
+prime = 1 (mod m). The prime p raises base q iff v_q(p - 1) exceeds
+v_q(p' - 1) for every prime p' &lt; p, iff no prime below p is 1 mod
+q^h with h = v_q(p - 1), iff p = f(q^h); and p = f(q^j) for any j &gt;= 1
+forces p = f(q^h) (q^j | q^h). So p raises q iff p lies in the RECORD
+SET R_q = {f(q^j) : j &gt;= 1}, and "every jump raises exactly one base"
+holds iff the record sets are pairwise disjoint. A DOUBLE BIRTH, a
+prime in two record sets, has witnesses m1, m2 of distinct bases with
+m1 m2 | p - 1, so the smaller is at most sqrt(p - 1): a search that
+takes every prime power m &lt;= X, sets p = f(m), factors t = (p - 1)/m
+and tests p against f(r^{v_r(t)}) for each prime r | t other than m's
+base is complete for every double birth with p - 1 &lt; X^2. The ratio
+p / f(r^{v_r(t)}) is the MARGIN; margin 1 is a double birth.
+
+DESIGN. Standard library and crt.py.
+  W  one walk over every prime p &lt;= 10^7 in order (k to 664,579),
+     factoring p - 1 by trial division and keeping lambda as a map of
+     running maximum exponents. Per step: the events, the increment
+     of L, log(p - 1). At rung milestones k = 50, 200, 1000, 2000,
+     10^4, 10^5 and the last: the transparent share over rungs 2..k,
+     alpha, N_nt/k and their gap, the write-once bound at
+     y = x^(1/2), x^(2/3), x^0.9 and x/(log x)^3 wherever y &gt; 2 (the
+     cell y = x/(log x)^3 at k = 50 has y = 1.43 and is skipped), and
+     the events at
+     q &lt;= sqrt x. At x milestones 10^4, 10^5, 10^6, 10^7: L/x, the
+     rate r = L log x/(x loglog x), and the step (C) census
+     #{p &lt;= x : P+(p - 1) &gt; x/log x} against x loglog x/(log x)^2.
+     The ledger: L at x = 10^5, the running sum of the increments read
+     off the factorizations, against log lcm{p - 1 : p &lt;= 10^5} computed
+     by lcm directly; steps raising two or more bases counted. (That an
+     increment is at most log(p - 1) holds by construction and prints.)
+  S  the serial law. POSITIVE CONTROL first: the same search with 5
+     and 7 deleted from the primes must report a double birth at 13
+     (13 is then the least prime = 1 mod 3 and the least = 1 mod 4).
+     Then a direct walk to
+     k = 2000 against the record test, rung by rung. Then the search
+     to X (argument; default 10^6, complete to p &lt; 10^12; the record
+     run takes X = 10^8, complete to 10^16), printing the 20 smallest
+     margins. Primality by Miller-Rabin with bases 2..17, exact below
+     3.4 * 10^14; the search asserts it stays under that.
+
+PREDICTIONS, fixed before the run (the W numbers at k &lt;= 10^4 and x &lt;=
+10^7 are those of the scripts this one replaces; the rest are new).
+  W1 transparent share 23/49 at k = 50, 1531/1999 at 2000, 8013/9999
+     at 10^4, rising at every rung milestone and between 0.82 and 0.88
+     at the last.
+  W2 N_nt/k and alpha: gap positive and falling at every milestone;
+     alpha(10^4) = 0.1651, N_nt(10^4) = 1986.
+  W3 the write-once bound holds at every (milestone, y) cell; at
+     k = 10^4 and y = sqrt x it reads 176 + 2982.4.
+  W4 events at q &lt;= sqrt x: 117 of 1986 at k = 10^4, the share falling.
+  W5 L/x falls at every x milestone; r lies in [0.74, 0.80] at each;
+     census/scale in [0.45, 0.60].
+  W6 the ledger identity to 1e-9 relative; every increment at most
+     log(p - 1); no step raises two bases, x &lt;= 10^7.
+  S1 the control reports a double birth at p = 13.
+  S2 walk and record test agree at every rung to 2000: 438 jumps bring
+     a new prime and 30 raise an old one.
+  S3 no double birth to X; the smallest margin 7/3 at p = 7; the 20
+     smallest margins all sit at p &lt; 600, the 20th at 34.6.
+
+FINDINGS. Every prediction landed: 11/11 checks PASS (12/12 after
+the audit in RUN RECORD).
+  W1 transparent 23 of 49 rungs at k = 50, 1531 of 1999 at 2000, 8013
+     of 9999 at 10^4, 83339 at 10^5 (0.8334) and 565513 of 664578 at
+     k = 664,579, p_k = 9,999,991 (0.8509).
+  W2 N_nt/k against alpha: 0.5200 / 0.2963 at k = 50, 0.1986 / 0.1651
+     at 10^4, 0.1491 / 0.1318 at the last; the gap falls 0.2237,
+     0.1218, 0.0613, 0.0509, 0.0335, 0.0221, 0.0173.
+  W3 the bound holds in every cell. At the last rung, y = sqrt x gives
+     1001 + 163434.5 against N_nt = 99065 (ratio 1.66), y = x^(2/3)
+     the tightest cell (1.29), y = x/(log x)^3 gives 1.72: the proof's
+     choice of y is not the tightest in range, only the one whose
+     small term provably vanishes.
+  W4 events at q &lt;= sqrt x: 15 of 26 at k = 50, 117 of 1986 at 10^4,
+     667 of 99065 at the last.
+  W5 L/x 0.1866, 0.1653, 0.1456, 0.1317 at x = 10^4..10^7; r 0.7740,
+     0.7787, 0.7660, 0.7637; census/scale 0.485, 0.523, 0.542, 0.557.
+     The census ratio creeps upward; the proof needs it bounded, and
+     in range it is.
+  W6 L = 1317126.096 at x = 10^7, and at x = 10^5 equal to the log of
+     the lcm computed directly; no increment above log(p - 1); no step
+     raises two bases.
+  S1 the control prints DOUBLE BIRTH at 13 (m1 = 4, m2 = 3).
+  S2 438 new-prime jumps and 30 raises of an old base to k = 2000,
+     walk and record test agreeing at every rung.
+  S3 X = 10^6: 78,726 record primes over 78,498 bases, no double
+     birth, complete for p - 1 &lt; 10^12. X = 10^8: 5,762,848 record
+     primes over 5,761,455 bases, no double birth, complete for
+     p - 1 &lt; 10^16; the largest cofactor is 284 (p = 20,829,174,293).
+     Smallest margins 7/3 at p = 7, then 11/3, 29/5, 19/3; the 20th is
+     34.6, at p = 173.
+  Tiers: the density theorem and the cyclicity ratio are
+  theorems, the checks a finite chart of their ingredients. The record
+  characterization is a criterion, proved. The serial law is a rule,
+  verified for every p &lt; 10^16 and open beyond: ruling out a double
+  birth at every scale is beyond a search, and no proof that the
+  record sets of distinct primes are disjoint is known.
+
+RUN RECORD. Default X = 10^6: 11/11, 2.5 s, 77 MB peak commit under
+a memory guard. X = 10^8: 11/11, 89 s, 157 MB peak commit. An audit
+replaced W6's telescoping identity with the lcm at x = 10^5
+(L = 16526.250 both ways) and asserted W3's 176 + 2982.4: 12/12, 3.1 s,
+76 MB peak commit under a memory guard, default X.
+
+Standard library and crt.py.
+
+    python tower_growth.py [X]
+"""
+
+import sys
+from math import isqrt, lcm, log
+
+from crt import primes_up_to
+
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  [{'PASS' if ok else 'FAIL'}] {name}" + (f" -- {detail}" if detail else ""))
+
+
+# ------------------------------------------------------------------ W
+
+X_WALK = 10 ** 7
+K_MILES = (50, 200, 1000, 2000, 10 ** 4, 10 ** 5)
+X_MILES = (10 ** 4, 10 ** 5, 10 ** 6, 10 ** 7)
+
+
+<span id="floor_log"></span>def floor_log(x, q):
+    """The largest a with q^a &lt;= x."""
+    a, v = 0, q
+    while v &lt;= x:
+        a, v = a + 1, v * q
+    return a
+
+
+<span id="walk"></span>def walk():
+    primes = primes_up_to(X_WALK)
+    trial = primes_up_to(isqrt(X_WALK) + 1)
+    k_miles = set(K_MILES) | {len(primes)}
+    expo = {}                     # q -&gt; running max exponent in lambda
+    L = logphi = 0.0
+    n_nt = multi = over = 0       # over: increments above log(p - 1)
+    events = []                   # (k, q), one per raised base
+    big = []                      # P+(p - 1) per prime, for the census
+    rows, xrows = [], []
+    xi = 0
+    for k, p in enumerate(primes, 1):
+        m, fac = p - 1, {}
+        for q in trial:
+            if q * q &gt; m:
+                break
+            if m % q == 0:
+                e = 0
+                while m % q == 0:
+                    m //= q
+                    e += 1
+                fac[q] = e
+        if m &gt; 1:
+            fac[m] = fac.get(m, 0) + 1
+        big.append(max(fac) if fac else 1)
+        inc, raised = 0.0, 0
+        for q, e in fac.items():
+            old = expo.get(q, 0)
+            if e &gt; old:
+                inc += (e - old) * log(q)
+                expo[q] = e
+                raised += 1
+                events.append((k, q))
+        if raised:
+            n_nt += 1
+            multi += raised &gt; 1
+            over += inc &gt; log(p - 1) + 1e-9
+        L += inc
+        if p &gt; 2:
+            logphi += log(p - 1)
+        if k in k_miles:
+            rows.append((k, p, n_nt, L, logphi))
+        while xi &lt; len(X_MILES) and (k == len(primes) or primes[k] &gt; X_MILES[xi]):
+            x = X_MILES[xi]
+            cut = x / log(x)
+            xrows.append((x, L, sum(1 for b in big if b &gt; cut)))
+            xi += 1
+    return rows, xrows, events, L, over, multi
+
+
+<span id="section_w"></span>def section_w():
+    print("W -- the density, the ledger and the write-once bound")
+    rows, xrows, events, L, over, multi = walk()
+    print(f"  {'k':&gt;6} {'p_k':&gt;8} {'trans':&gt;7} {'share':&gt;7} {'N_nt/k':&gt;7} "
+          f"{'alpha':&gt;7} {'gap':&gt;7}")
+    shares, gaps = [], []
+    for k, p, n_nt, Lk, lphi in rows:
+        share = (k - 1 - n_nt) / (k - 1)
+        gap = n_nt / k - Lk / lphi
+        shares.append(share)
+        gaps.append(gap)
+        print(f"  {k:&gt;6} {p:&gt;8} {k - 1 - n_nt:&gt;7} {share:&gt;7.4f} {n_nt / k:&gt;7.4f} "
+              f"{Lk / lphi:&gt;7.4f} {gap:&gt;7.4f}")
+    print("  write-once bound: small + large against N_nt")
+    cells_ok = True
+    for k, p, n_nt, Lk, lphi in rows:
+        for label, y in (("x^1/2", p ** 0.5), ("x^2/3", p ** (2 / 3)),
+                         ("x^0.9", p ** 0.9), ("x/log^3", p / log(p) ** 3)):
+            if y &lt;= 2:
+                continue
+            small = sum(floor_log(p, q) for q in primes_up_to(int(y)))
+            large = Lk / log(y)
+            cells_ok &amp;= n_nt &lt;= small + large
+            if label == "x^1/2" or k == rows[-1][0]:
+                print(f"  k={k:&gt;6} y={label:&gt;8}: {small:&gt;6} + {large:&gt;9.1f} = "
+                      f"{small + large:&gt;9.1f} vs {n_nt:&gt;6} "
+                      f"(ratio {(small + large) / n_nt:.2f})")
+    small_ev = []
+    for k, p, n_nt, Lk, lphi in rows:
+        s = sum(1 for kk, q in events if kk &lt;= k and q * q &lt;= p)
+        small_ev.append(s)
+        print(f"  k={k:&gt;6}: events at q &lt;= sqrt x: {s} of {n_nt}")
+    at = {r[0]: r for r in rows}
+    k4 = at[10 ** 4]
+    check("W1 transparent share 23/49 at 50, 1531/1999 at 2000, 8013/9999 at 10^4",
+          (at[50][0] - 1 - at[50][2], at[2000][0] - 1 - at[2000][2],
+           k4[0] - 1 - k4[2]) == (23, 1531, 8013))
+    check("W1 share rises at every milestone, last in (0.82, 0.88)",
+          all(a &lt; b for a, b in zip(shares, shares[1:])) and 0.82 &lt; shares[-1] &lt; 0.88,
+          f"last {shares[-1]:.4f} at k = {rows[-1][0]}")
+    check("W2 gap positive and falling; alpha(10^4) = 0.1651, N_nt = 1986",
+          all(g &gt; 0 for g in gaps) and all(a &gt; b for a, b in zip(gaps, gaps[1:]))
+          and round(k4[3] / k4[4], 4) == 0.1651 and k4[2] == 1986)
+    check("W3 write-once bound at every (milestone, y) cell with y &gt; 2",
+          cells_ok)
+    p4 = k4[1]
+    small4 = sum(floor_log(p4, q) for q in primes_up_to(int(p4 ** 0.5)))
+    check("W3 at k = 10^4, y = sqrt x: 176 + 2982.4",
+          small4 == 176 and round(k4[3] / log(p4 ** 0.5), 1) == 2982.4,
+          f"{small4} + {k4[3] / log(p4 ** 0.5):.1f}")
+    shares_ev = [s / r[2] for s, r in zip(small_ev, rows)]
+    check("W4 117 of 1986 events at q &lt;= sqrt x at 10^4, share falling",
+          small_ev[K_MILES.index(10 ** 4)] == 117
+          and all(a &gt; b for a, b in zip(shares_ev, shares_ev[1:])))
+    print(f"  {'x':&gt;9} {'L':&gt;11} {'L/x':&gt;7} {'r':&gt;7} {'census':&gt;7} {'/scale':&gt;7}")
+    lx, rs, cs = [], [], []
+    for x, Lx, census in xrows:
+        r = Lx * log(x) / (x * log(log(x)))
+        scale = x * log(log(x)) / log(x) ** 2
+        lx.append(Lx / x)
+        rs.append(r)
+        cs.append(census / scale)
+        print(f"  {x:&gt;9} {Lx:&gt;11.1f} {Lx / x:&gt;7.4f} {r:&gt;7.4f} {census:&gt;7} "
+              f"{census / scale:&gt;7.3f}")
+    check("W5 L/x falls; r in [0.74, 0.80]; census/scale in [0.45, 0.60]",
+          all(a &gt; b for a, b in zip(lx, lx[1:])) and all(0.74 &lt;= r &lt;= 0.80 for r in rs)
+          and all(0.45 &lt;= c &lt;= 0.60 for c in cs))
+    L5 = next(Lx for x, Lx, _ in xrows if x == 10 ** 5)
+    lam5 = lcm(*(p - 1 for p in primes_up_to(10 ** 5)))
+    print(f"  ledger: L = {L:.3f} at x = 10^7; at 10^5 {L5:.3f} against "
+          f"log lcm {log(lam5):.3f}; increments over log(p - 1): {over}; "
+          f"steps raising two bases: {multi}")
+    check("W6 the ledger at x = 10^5 equals log lcm{p - 1}; no step raises "
+          "two bases", abs(L5 - log(lam5)) &lt;= 1e-9 * L5 and multi == 0)
+
+
+# ------------------------------------------------------------------ S
+
+MR_BASES = (2, 3, 5, 7, 11, 13, 17)
+MR_LIMIT = 341_550_071_728_321       # the bases above are exact below this
+
+
+<span id="is_prime"></span>def is_prime(n):
+    if n &lt; 2:
+        return False
+    for a in MR_BASES:
+        if n % a == 0:
+            return n == a
+    d, s = n - 1, 0
+    while d % 2 == 0:
+        d, s = d // 2, s + 1
+    for a in MR_BASES:
+        x = pow(a, d, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(s - 1):
+            x = x * x % n
+            if x == n - 1:
+                break
+        else:
+            return False
+    return True
+
+
+<span id="Least"></span>class Least:
+    """f(m), the least prime = 1 (mod m), with a set of primes treated
+    as absent."""
+
+    def __init__(self, deleted=()):
+        self.deleted = set(deleted)
+        self.cache = {}
+
+    def __call__(self, m):
+        if m in self.cache:
+            return self.cache[m]
+        c = m + 1
+        while not is_prime(c) or c in self.deleted:
+            c += m
+        assert c &lt; MR_LIMIT
+        if m &lt;= 10 ** 5:
+            self.cache[m] = c
+        return c
+
+
+<span id="small_factor"></span>def small_factor(t):
+    out, q = {}, 2
+    while q * q &lt;= t:
+        while t % q == 0:
+            out[q] = out.get(q, 0) + 1
+            t //= q
+        q += 1
+    if t &gt; 1:
+        out[t] = out.get(t, 0) + 1
+    return out
+
+
+<span id="search"></span>def search(X, f):
+    """Every prime power m &lt;= X: p = f(m), and p tested against every
+    other base of p - 1. Returns bases, records, double births, the
+    largest cofactor and the 20 smallest margins."""
+    sieve = bytearray([1]) * (X + 1)
+    sieve[0:2] = b"\x00\x00"
+    for i in range(2, isqrt(X) + 1):
+        if sieve[i]:
+            sieve[i * i::i] = bytearray(len(range(i * i, X + 1, i)))
+    bases = records = 0
+    doubles, margins, tmax = [], [], (0, 0, 0)
+    for q in range(2, X + 1):
+        if not sieve[q]:
+            continue
+        bases += 1
+        m, last = q, 0
+        while m &lt;= X:
+            p = f(m)
+            if p != last:
+                last = p
+                records += 1
+                t = (p - 1) // m
+                if t &gt; tmax[0]:
+                    tmax = (t, p, m)
+                for r, v in small_factor(t).items():
+                    if r == q:
+                        continue
+                    p2 = f(r ** v)
+                    if p2 == p:
+                        doubles.append((p, m, r ** v))
+                    margins.append((p / p2, p, m, r ** v))
+                    if len(margins) &gt; 400:
+                        margins = sorted(margins)[:20]
+            m *= q
+    return bases, records, doubles, tmax, sorted(margins)[:20]
+
+
+<span id="section_s"></span>def section_s(X):
+    print("S -- the serial law")
+    _, _, doubles, _, _ = search(100, Least(deleted=(5, 7)))
+    for p, m1, m2 in doubles:
+        print(f"  control: DOUBLE BIRTH p = {p}, m1 = {m1}, m2 = {m2}")
+    check("S1 control: with 5 and 7 deleted, a double birth at 13",
+          any(p == 13 for p, _, _ in doubles))
+    f = Least()
+    expo, agree, new, bump = {}, True, 0, 0
+    for p in primes_up_to(20000)[:2000]:
+        fac = small_factor(p - 1) if p &gt; 2 else {}
+        by_walk = sorted(q for q, e in fac.items() if e &gt; expo.get(q, 0))
+        by_record = sorted(q for q, e in fac.items() if f(q ** e) == p)
+        agree &amp;= by_walk == by_record
+        if len(by_walk) == 1:
+            new += by_walk[0] not in expo
+            bump += by_walk[0] in expo
+        for q in by_walk:
+            expo[q] = fac[q]
+    check("S2 walk = record test at every rung to 2000; 438 new, 30 raised",
+          agree and (new, bump) == (438, 30), f"{new} new, {bump} raised")
+    bases, records, doubles, tmax, margins = search(X, f)
+    for p, m1, m2 in doubles:
+        print(f"  DOUBLE BIRTH p = {p}, m1 = {m1}, m2 = {m2}")
+    print(f"  X = {X}: {records} record primes over {bases} bases; "
+          f"double births {len(doubles)}; complete for p - 1 &lt; {X * X}")
+    print(f"  largest cofactor t = {tmax[0]} at p = {tmax[1]}, m = {tmax[2]}")
+    print("  20 smallest margins (margin, p, m, m2):")
+    for mg, p, m1, m2 in margins:
+        print(f"    {mg:8.3f} {p:&gt;6} {m1:&gt;4} {m2:&gt;4}")
+    check("S3 no double birth to X", not doubles)
+    check("S3 smallest margin 7/3 at p = 7; the 20 all at p &lt; 600, 20th 34.6",
+          margins[0][1] == 7 and abs(margins[0][0] - 7 / 3) &lt; 1e-12
+          and all(mg[1] &lt; 600 for mg in margins) and round(margins[-1][0], 1) == 34.6)
+
+
+<span id="main"></span>def main():
+    X = int(sys.argv[1]) if len(sys.argv) &gt; 1 else 10 ** 6
+    section_w()
+    section_s(X)
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/tower_growth.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CASCADE — whether the greedy walk over a number ring must lock | Numbers read one place at a time</title>
+<meta name="description" content="CASCADE — whether the greedy walk over a number ring must lock">
+<link rel="alternate" type="text/markdown" href="/cascade.md">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a> › <a href="/walks/">Growth: places priced and compared</a></nav></header>
+<main><article>
+<h1>CASCADE — whether the greedy walk over a number ring must lock</h1>
+<p class="lead">The object: the greedy walk of <a href="/growth/">GROWTH</a> over the ideals of a ring of
+integers, where a trajectory <a href="/growth/#t-locks">locks</a> iff its costs are bounded infinitely
+often. This page asks what a trajectory whose costs diverge would need,
+at each <a href="/cascade/#t-rank-1-characteristic">rank-1 characteristic</a> p of the ring, where the need fails, and
+what a proof that it always fails must answer. Its verifier is
+<a href="/code/cascade/">cascade.py</a>, with <a href="/code/module_law/">module_law.py</a> for the unit groups at one place and
+<a href="/code/growth/">growth.py</a> for the moves over Z.</p>
+<nav class="toc" aria-label="Contents" data-generated="toc"><ol><li><a href="#the-escape-is-a-conjunction">The escape is a conjunction</a> <span>theorem; observation</span></li><li><a href="#the-budget-inequality">The budget inequality</a> <span>theorem; rule</span></li><li><a href="#the-characteristic-sweep">The characteristic sweep</a> <span>rule</span></li><li><a href="#dead-levels-recur-at-eleven-characteristics">Dead levels recur at eleven characteristics</a> <span>rule</span></li><li><a href="#the-residual-is-inhabited-at-every-bound">The residual is inhabited at every bound</a> <span>theorem</span></li><li><a href="#the-shape-of-a-dead-level">The shape of a dead level</a> <span>theorem; rule</span></li><li><a href="#the-full-price-opening-at-odd-p-is-a-dead-level-over-z">The full-price opening at odd p is a dead level over Z</a> <span>criterion; rule</span></li></ol></nav>
+<p>A place over p, of ramification index e and residue degree f, is
+rank-1 when e = f = 1, so its norm is p, its completion is Z_p and its
+1-unit module has Z_p-rank ef = 1
+(<a href="/growth/#the-module-law">GROWTH: The module law</a>); p is then a <dfn id="t-rank-1-characteristic">rank-1 characteristic</dfn> of the
+ring. The <dfn id="t-level">level</dfn> of a state at p is V = v_p(L), L the exponent of the
+unit group. A <dfn id="t-carrier">carrier</dfn> at level V is a place H not over p with
+p^(V+1) dividing N(H) − 1, so that opening H lifts the level. The
+level's candidates are the numbers m·p^(V+1) + 1 with 1 ≤ m ≤ p − 1 at
+odd p, and 2^(V+1) + 1, 2^(V+2) + 1 and 3·2^(V+1) + 1 at p = 2: a
+carrier the walk opens has a candidate for its norm
+(<a href="/cascade/#the-escape-is-a-conjunction">The escape is a conjunction</a>). A level is a <dfn id="t-dead-level">dead level</dfn>
+when no candidate is a prime power. D(p) is the first dead level a walk
+from level 1 meets. The <dfn id="t-carrier-ladder">carrier ladder</dfn> at p is the sequence of
+levels a walk climbs at p; it dies at each dead level it meets, which
+only a pick at a place over p, a greedy move opening or deepening that
+place, crosses. The answer, in one line, for the ideal world: a
+trajectory that never locks must climb a carrier ladder
+forever at every rank-1 characteristic at once, meeting only finitely
+many dead levels at each (theorem); every ladder tried dies (rule, at 2
+and every odd p &lt; 1000), eleven die infinitely often
+(rule, proved by covering); and whether every ladder does is one
+question about primes in a progression, and sifting by the primes
+below 10⁴ empties the first dead level at no p from 100 to 1000
+(observation).</p>
+<h2 id="the-escape-is-a-conjunction">The escape is a conjunction</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>; observation (the mean τ_K over 305 fields, and the
+counts of possible norms, an estimate).<br>
+Verifier: proof; <a href="/code/cascade/#section_c">cascade.py::section_c</a>, <a href="/code/cascade/#section_r">cascade.py::section_r</a>,
+<a href="/code/module_law/">module_law.py</a>.</p>
+<p>Let P be rank-1 over p, at depth a in the state. Since λ(P^b), the
+exponent of the unit group of O/P^b (<a href="/growth/">GROWTH</a>'s λ), is
+(p − 1)p^(b−1) at odd p, the move P^(V+2−a) raises L whatever
+else the state holds, at norm at most p^(V+2); at p = 2 the bound is
+2^(V+3). The greedy move costs no more, so if costs diverge, the level
+diverges, and it does so at every rank-1 characteristic of the ring at
+once: each bounds the cost on its own at every step. One ladder dying
+infinitely often closes the ring's ideal world: it forces every
+trajectory there to lock.</p>
+<p>The rises run through carriers. A rise through a place P′ over p, past
+the pump's threshold (<a href="/growth/#the-module-law">GROWTH: The module law</a>), leaves P′ at the least
+depth whose column count
+(<a href="/clock/#a-rings-door-is-one-valuation-and-its-clock-a-count">CLOCK: A ring's door is one valuation and its clock a count</a>) reaches
+v_p(L), so its next door is exactly e deep, at the constant p^(ef) of
+<a href="/growth/">GROWTH</a>'s module law, and the next move costs at most that; infinitely
+many such rises would bound the costs. So along a divergent trajectory
+all but finitely many rises open a carrier, a rise through a place not
+over p being an opening, since deepening a place adds only its own
+characteristic to L, and a carrier opening the walk makes is a least
+move, so its norm N(H) is below p^(V+2) (2^(V+3) at p = 2) and, a power
+of another prime, never equal to it. At odd p the norm of a carrier the
+walk opens is therefore one of exactly p − 1 numbers, m·p^(V+1) + 1 with
+1 ≤ m ≤ p − 1, the same candidates for every ring; which of the prime
+powers among them are norms of places depends on the ring, so no ring
+has more carrier norms than these. Such a carrier rises one level at odd
+p, so a dead level is crossed only by a pick at a place over p, which
+past the threshold makes the next move cost at most p^(ef); below it
+each place has finitely many picks, and a divergent trajectory has
+finitely many moves that cheap, so it crosses finitely many dead levels.
+At p = 2 a carrier can also rise two levels, from V to V + 2, but only
+through 2^(V+2) + 1, the first candidate of level V + 1 itself, so none
+jumps a dead level. Infinitely many dead levels at one rank-1
+characteristic therefore lock every ideal-world trajectory of the ring;
+finitely many give this argument nothing.</p>
+<p>Every seated characteristic climbs too. Let W = v_q(L) be the level at
+q. A seated place Y over q at exponent h has door μ_Y(W+1) − h, priced
+N(Y)^(μ_Y(W+1)−h), μ_Y(j) the least depth at which Y's column count
+reaches j
+(<a href="/clock/#a-rings-door-is-one-valuation-and-its-clock-a-count">CLOCK: A ring's door is one valuation and its clock a count</a>), and that
+price stands while v_q(L) = W stands, so on a trajectory that never
+locks, where the costs diverge, W diverges at q. An opening over a prime
+q not yet dividing L is that ladder at level 0, pending its own norm at
+once. A clock move at q past its place's tail leaves it pending its tail
+gap's price q^(ef) (<a href="/clock/#the-two-numbers">CLOCK: The two numbers</a>), so, as at a rank-1
+characteristic, all but finitely many rises at q open a carrier for q,
+a place H not over q with q^(W+1) dividing N(H) − 1:
+the escape of <a href="/clock/#a-lidded-block-locks-the-walk-for-good">CLOCK: A lidded block locks the walk for good</a>, openings
+forever and each block clocked finitely often, is this conjunction and
+nothing more, the carrier ladder restated. At a characteristic with a
+rank-1 place the ceiling p^(V+2) (2^(V+3) at 2) binds; elsewhere the
+seated place's ceiling grows like q^(ef·W) past its tail, ef ≥ 2, so
+about q^((ef − 1)W) carrier norms are possible below it, against the
+rank-1 ladder's p − 1 candidates (3 at p = 2): the rank-1 ladders are
+the tight ones.</p>
+<p>The element world, states and moves principal, keeps the ladder at a
+principal rank-1 place: P = (π), at depth a with V = v_p(L) the level
+at p, makes π^(V+2−a) an element (π^(V+3−a) at p = 2); a deepening of
+P′ padded by an ideal in the
+inverse class still costs a bounded amount; and a raising element below
+p^(V+2) (2^(V+3) at 2) holds one carrier at most, since each carrier's
+norm exceeds p^(V+1), so two cost more than p^(2V+2), at least that
+ceiling except at p = 2, V = 0, where two odd norms cost at least 9 &gt; 8.
+An element walk whose costs diverge climbs the ideal world's ladder at
+every principal rank-1 characteristic; one whose costs are bounded
+infinitely often reaches a lidded block and makes finitely many
+openings
+(<a href="/element/#the-element-lid">ELEMENT: The element lid</a>). At a non-principal rank-1 place the door's
+price is padded by the least norm in a class, and the largest of those
+over the classes, τ_K, is an invariant of the field K: over an imaginary
+quadratic field it is the largest leading coefficient of a reduced form,
+at most the square root of a third of the field's absolute discriminant,
+and 1 exactly at class number 1. Q(√−23) has τ_K = 2 against a Minkowski
+bound of 3.05. Over the 305 fields of discriminant down to −1000 the
+mean τ_K is 9.58; τ_K is unbounded over the fields, since class numbers
+grow without bound while a discriminant has at most A² + 2A reduced
+forms of leading coefficient at most A, the first two coefficients
+fixing the third, so the loosened ceiling
+grows with the
+field and no sweep of fields bounds it; the ideal world needs only a
+rank-1 characteristic, the element world one whose place is principal.</p>
+<h2 id="the-budget-inequality">The budget inequality</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a> (the rise through a carrier the walk opens is one level
+at odd p and at most two at 2); rule
+(the walks at 3 and 5, exhaustive to their dead levels, and at 2 the
+two recorded walks, through 9 or through 5 first, to its dead level).<br>
+Verifier: proof; <a href="/code/cascade/#section_b">cascade.py::section_b</a>, <a href="/code/cascade/#section_c">cascade.py::section_c</a>.</p>
+<p>At odd p the norm of a carrier the walk opens, less one, is below
+p^(V+2) and divisible by p^(V+1), so every rise through such a carrier
+is exactly one level: the ceiling is pinned and no carrier the walk
+opens buys a second level. At p = 2 the extra Z/2 of the units of Z₂
+widens the ceiling to 2^(V+3); the candidates are 2^(V+1) + 1,
+2^(V+2) + 1 and 3·2^(V+1) + 1, and the middle one rises two levels. A
+prime power 2^k + 1 is a Fermat prime or 9 (Mihăilescu's theorem), so
+the double rise is rationed by the Fermat primes: for k ≤ 300 the prime
+powers of that form are exactly 3, 5, 9, 17, 257 and 65537. A norm is a
+prime power, so 9 counts in a ring with a place of degree 2 over 3.
+Walking each level to the prime-power candidate that climbs furthest, 2
+climbs through 9, 17, 97, 193 and 257 to level 8 and finds nothing: 513,
+1025 and 1537 are composite. Taking the least norm instead, it climbs
+through 5, 9, 17, 97, 193 and 257 to the same level, since no carrier
+steps over a dead level. 3 dies at level 2 and 5 at 3.</p>
+<h2 id="the-characteristic-sweep">The characteristic sweep</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (verified every odd p &lt; 1000).<br>
+Verifier: <a href="/code/cascade/#section_s">cascade.py::section_s</a>.</p>
+<p>Each odd characteristic is an O(p) computation per level, and all 167
+odd primes below 1000 reach a dead level, certified by Miller–Rabin at
+the primes to 41. Its composite verdicts are proofs, so every level it
+calls dead is dead; its prime verdicts are proofs only below 3.3·10²⁴,
+and past that a false one could only lengthen a ladder, so each D(p)
+printed is proved an upper bound. The dead level is erratic:
+D(19) = D(23) = 1, D(17) = 2 beside D(29) = 8, and D(751) ≤ 33 beside
+the largest printed, D(719) ≤ 62, bounds whose ladders pass 3.3·10²⁴. An
+odd multiplier makes the candidate even, so it could carry only as a
+power of 2, and none does: the working set is the ⌊(p − 1)/2⌋ even
+multipliers. A single dead level can be crossed, so the sweep is
+evidence about the ladders and closes no ring; the rings closed here are
+closed by the recurrences below.</p>
+<h2 id="dead-levels-recur-at-eleven-characteristics">Dead levels recur at eleven characteristics</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (proved by covering at 2 and at ten odd p; the walks
+verified from every start to 300 at 2, 3 and 5).<br>
+Verifier: <a href="/code/cascade/#section_k">cascade.py::section_k</a>.</p>
+<p>A trajectory crosses finitely many dead levels, so what closes a ring is
+a rank-1 characteristic with infinitely many. A prime q other than p
+divides m·p^(V+1) + 1 for one class of m, periodic in V with period the
+order of p mod q. So a set of primes whose classes cover every even
+multiplier at one level covers them every lcm of their orders, and from
+level p − 2 on, where the exponent identity
+(<a href="/cascade/#the-shape-of-a-dead-level">The shape of a dead level</a>) rules out proper powers, each
+such level is dead. At 3 the prime 7 kills every level with V + 1 ≡ 1
+mod 6; at 37 nine primes up to 67 kill one level in 1,680. At 2, 3 kills
+2^(V+1) + 1, 17 kills 2^(V+2) + 1 and 5 kills 3·2^(V+1) + 1 whenever
+V + 1 ≡ 3 mod 8, from V + 1 = 11 on, and no carrier jumps it
+(<a href="/cascade/#the-escape-is-a-conjunction">The escape is a conjunction</a>). None of the three is a
+proper power from V + 1 = 11 on: 2^k + 1 is one only at 9
+(Mihăilescu's theorem), and 3·2^k + 1 = 5^s forces s = 2, k = 3, since
+at odd s, 5^s − 1 ≡ 4 mod 8 forces k = 2 and 13 is no power of 5, and at
+s = 2t the factor 5^t + 1, twice an odd number, must be 6. A walk at odd
+p rises one level at a time, so none steps over a dead level. Coverings
+exist at 3, 5, 7, 11, 13, 17, 19, 23, 31 and 37 and at no other odd p
+below 1000 within the search (primes below 2,000 whose order of p
+divides 5,040), and all 109 levels a covering kills that were checked, to
+level 200 at odd p and 400 at 2, are dead; at 13, 17, 31 and 37 the
+first such level past p − 2 lies beyond 200, so there the covering is
+the proof alone. A ring with a rank-1 characteristic among those eleven
+has its ideal world lock from every seed; from every start to 300 the
+walks at 2, 3 and 5 span at most 8, 4 and 3 levels, the start's
+included. A ring is closed this
+way only if one of its rank-1 characteristics has a known covering: they
+are read prime by prime off how each prime splits, but Q(√(2·3···37))
+has none below 53, and no covering was found at any odd p from 41 to
+997, so no claim on this page closes that ring.</p>
+<h2 id="the-residual-is-inhabited-at-every-bound">The residual is inhabited at every bound</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/cascade/#section_q">cascade.py::section_q</a> prints every odd prime y ≤ 97.</p>
+<p>The <dfn id="t-residual">residual</dfn> at a bound y is the rings none of whose rank-1
+characteristics lies at or below y, the rings a sweep of the
+characteristics up to y cannot close. For every prime y, the field
+Q(√(2·3·5···y)) has every prime up to y in its discriminant, so every
+one ramifies and none is rank-1: its least rank-1 characteristic exceeds
+y (103 at y = 97). No sweep of characteristics empties the residual;
+raising the sweep raises the bar.</p>
+<p>What suffices is weaker than every ladder dying infinitely often. A ring
+is closed as soon as one rank-1 characteristic is, and the rank-1
+characteristics of a degree-n field have density at least 1/n, by
+Chebotarev's density theorem: a Frobenius fixes one of the n roots with
+probability at least 1/n, the stabilizer of a root having index n. So if
+the odd primes with finitely many dead levels have density zero, every
+ring's ideal world locks from every seed, a conditional proved from
+Chebotarev's theorem. A density cannot bound where the first rank-1
+characteristic sits: a density ignores every finite set of primes, and
+the primorial field's first rank-1 characteristic lies past all the
+primes it ramifies.</p>
+<h2 id="the-shape-of-a-dead-level">The shape of a dead level</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a> (the identity and the one-class count, for every odd p
+and level); rule (the enumeration of proper power candidates,
+verified every level of every odd p &lt; 1000); observation (the sieve
+at 10⁴ for every p from 100 to 1000, and the pooled densities).<br>
+Verifier: <a href="/code/cascade/#section_x">cascade.py::section_x</a>.</p>
+<p>The <dfn id="t-exponent-identity">exponent identity</dfn>. A proper power candidate r^s at level V ≥ 1 of
+an odd p has s equal to the order of r mod p^(V+1), s dividing p − 1,
+r &lt; p and s ≥ V + 2. For if the order d were a proper divisor of s, r^s
+would exceed p^(2V+2); if p divided s, r^(s/p) ≡ 1 mod p^V would put r^s
+above p^(V+2); and p^(V+1) dividing (r^s − 1)/(r − 1), with p ∤ r − 1
+since s | p − 1 and s ≥ 2, forces r &lt; p + 1. So no proper power is a
+candidate at V ≥ p − 2, and below that they are enumerable: over every
+level of
+every odd p &lt; 1000 the one is 3⁵ = 2·11² + 1 at p = 11, V = 1. A dead
+level is a finite check plus one question: is there a prime ≡ 1 mod
+p^(V+1) below p^(V+2)?</p>
+<p>The sieve's expected count does not see the level. A prime q other than
+p kills one class of m at every level, so the multipliers surviving a
+sieve below z number about ((p − 1)/2)∏(1 − 1/q) over the odd primes q &lt;
+z other than p, with no V in it, while in the prime number theorem's
+model primes in the range thin like 1/(V + 2). Pooled over the 144
+primes with D(p) ≥ 10, the density of prime-power candidates falls to
+0.245 times its level-1 value by level 10, against the model's 1/4. The
+pool is chosen for a carrier at every level from 1 to 9, so the ratio's
+denominator, the level-1 count, is selected on and its level-10 count is
+not; and its prime verdicts on candidates past 3.3·10²⁴, met at every
+pooled p from 113 on, are probable, not proved. Sifted density changes
+by a factor 1.025 and sits at Mertens's value 2·exp(−γ)/ln z = 0.1219 at
+z = 10⁴ (γ Euler's constant). Covering congruences act through the same
+classes: sifting below 10⁴ empties the first dead level D(p) at no p
+from 100 to 1000; a covering that closed a level would be an alignment
+of its classes against one interval, and averaging over levels cannot
+help a bound with no V in it. What would decide the question is the
+count of primes ≡ 1 mod p^(V+1) below p^(V+2), a range linear in the
+modulus. The model expects about p/((V + 2) ln p) of them, tending to 0,
+so it predicts, as a heuristic carrying no tier, that every ladder dies
+infinitely often; but even the generalized Riemann hypothesis places a
+prime in the progression only below about the modulus squared.</p>
+<h2 id="the-full-price-opening-at-odd-p-is-a-dead-level-over-z">The full-price opening at odd p is a dead level over Z</h2>
+<p class="tag">Tier: <a href="/key/#criterion">criterion</a> (proved both ways); rule (the agreement, compared at
+every level holding a proper power candidate, at every odd p &lt; 1000, the
+only levels where the two can differ; every D(p) a full-price opening).<br>
+Verifier: <a href="/code/cascade/#section_w">cascade.py::section_w</a>, <a href="/code/growth/">growth.py</a>.</p>
+<p>Over Z a least move at an odd p can be an opening at full price: p prime
+to the state's modulus M, p dividing L and p − 1 dividing L, at p^(V+2)
+(<a href="/growth/#the-lock-prime-law">GROWTH: The lock-prime law</a>). It is the least move from some state iff
+no prime ≡ 1 mod p^(V+1) lies below p^(V+2). Only if: such a prime r
+either divides M, lifting v_p(L) past V, or opens at its own door 1,
+price r, since r − 1 does not divide L. If: let B be the lcm of u − 1
+over the primes u below p^(V+2) other than p, of p − 1, and of each
+prime s below p^(V+2) other than p to its least power s^c with s^(c+2)
+above p^(V+2) (2^(c+3) at s = 2), so that its own least move costs more
+than p^(V+2), with its p-part set to exactly p^V, which the hypothesis
+allows since every such u − 1 has v_p at most V; a prime S ≡ 1 mod B
+with v_p(S − 1) = V exactly exists by Dirichlet's theorem, in any class
+1 + kB mod pB with p ∤ k, and from the seed S every cheaper move is
+shut. S itself costs more, since B exceeds p^(V+2): 2^c, above
+p^(V+2)/8, and p^V divide it, which settles every level with p^V ≥ 8,
+and the levels (3, 1), (5, 1) and (7, 1) hold the primes 19, 101 and 197
+≡ 1 mod p^(V+1), outside the hypothesis. Every prime above p^(V+2) costs
+more as well. So the least move opens p at full price. At p = 3, V = 2
+the least such S is 961440481, the seed <a href="/growth/">GROWTH</a>'s lock-prime law shows
+opening 3 at 81.</p>
+<p>So the full-price opening over Z at level V and V being dead read one
+predicate at odd p, save at a level holding a proper power candidate
+and no prime one; the exponent identity rules such a level out at
+V ≥ p − 2, and over every level of every odd p &lt; 1000 there is none: the
+one proper power candidate, 3⁵ at (11, 1), shares
+its level with the prime 727. Every dead level D(p) at odd p below 1000
+is a full-price opening over Z, 3's dead level 2 being the opening at 81
+above: at odd p the full-price opening, the fourth kind of least move
+over Z, is the cascade's dead level read in Z, compared at every level
+of every odd p &lt; 1000 where the two can differ.</p>
+</article></main>
+<footer>Previous: <a href="/element/">ELEMENT — the walk that must stay principal</a> · Next: <a href="/thermal/">THERMAL — the growth walks at finite temperature</a> · <a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/cascade.md">Source text</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

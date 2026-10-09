@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>conductor.py | Numbers read one place at a time</title>
+<meta name="description" content="conductor.py">
+<link rel="alternate" type="text/x-python" href="/code/conductor.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>conductor.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/triple/#the-conductors-primes-are-forced">TRIPLE: The conductor's primes are forced</a> (rule); <a href="/triple/#the-sign-of-the-second-line-is-the-regime">TRIPLE: The sign of the second line is the regime</a> (theorem).</p><p>Cited on: <a href="/triple/">TRIPLE</a>.</p><p>To run it: <a href="/code/cubic.py">cubic.py</a>, <a href="/code/module_law.py">module_law.py</a>, <a href="/code/principal.py">principal.py</a>, <a href="/code/triple.py">triple.py</a> beside it; needs mpmath.</p></div>
+<pre>"""conductor.py -- what the conductor of a complex cubic field hands its
+quadratic resolvent, read as a module under conjugation, and what that
+module decides about the triples of triple.py.
+
+QUESTION. K a complex cubic field, d_K = f^2 d0 with d0 the fundamental
+discriminant of the resolvent k = Q(sqrt d0) and f the conductor; N the
+Galois closure, chi the cubic character of k cutting out N, sigma the
+conjugation of k. triple.py reads the triples of classes over the split
+primes and finds they fill a subgroup R of M = {(a, b, c) : a + b + c =
+0} of index 3^t, t read off f. This file reads WHY off the ray class
+group of k modulo f, built rather than inferred:
+  (a) Which rational primes can divide f at all, and how do they sit
+      in k?
+  (b) The 3-part of (O_k/f)^* splits under sigma into a FIXED (plus) and
+      an INVERTED (minus) part. What are their ranks, prime by prime,
+      and which fixed lines can a field use?
+  (c) At 3-rank 1, what does the SIGN of the second line of the degree-9
+      extension E of k, containing N and unramified over N, say about
+      the regime R = M against R = Delta?
+  (d) At f = 1, where N/k is unramified, what does 3 | h force on the
+      class group of k?
+
+THE ARGUMENT (written before the engine).
+  (1) THE MODULUS IS THE INTEGER f. By conductor-discriminant for N/Q,
+      |d_K| = |d0| N(fr), fr the conductor of chi, so N(fr) = f^2; chi o
+      sigma = chi^-1 makes fr sigma-stable, and the local reading below
+      admits no sigma-stable ideal of norm f^2 carrying chi but (f).
+  (2) THE PLUS PART IS LOCAL. In 1 -&gt; (O_k/f)^*/im(O_k^*) -&gt; Cl_f(k) -&gt;
+      Cl(k) -&gt; 1, 3-parts and then sigma-parts are exact (2 is
+      invertible on a 3-group); sigma inverts Cl(k), since an ideal
+      times its conjugate is principal, so Cl_f(k)_3^+ is
+      ((O_k/f)^*)_3^+. The global units meet the 3-part only at d0 = -3,
+      in a cube root of unity, which sigma inverts.
+  (3) THE ADMISSIBLE PRIMES. At a prime Q of k dividing fr the local
+      component chi_Q is a nontrivial cubic character of the local
+      units, anti-invariant where sigma fixes Q. For q != 3: split q
+      gives two swapped primes, each with the cyclic 3-part of
+      (Z/q^e)^*, nontrivial iff q = 1 mod 3; inert q gives the 3-part of
+      q^2 - 1, which is FIXED when q = 1 mod 3 (it sits in F_q^*, where
+      Frobenius = sigma acts trivially) and INVERTED when q = 2 mod 3 (it
+      sits in the norm-one part, order q + 1); ramified q gives F_q^*,
+      fixed. An anti-invariant chi_Q needs an inverted piece, so: a
+      prime q = 1 mod 3 divides f only when it SPLITS in k, a prime
+      q = 2 mod 3 only when it is INERT. At q = 3, with a = v_3(f):
+      v_3(d_K) = 2a + v_3(d0) &lt;= 5 for a cubic field, so a &lt;= 2, and
+      a = 1 needs 3 | d0 (2 is no cubic field's 3-valuation).
+  (4) THE LOCAL RANKS, prime power by prime power (the plus and minus
+      ranks of the 3-part of (O_k/q^e)^*):
+        split q = 1 mod 3        plus 1, minus 1 (two swapped cyclic
+                                 factors of equal order)
+        inert q = 2 mod 3        plus 0, minus 1
+        3 split, a = 2           plus 1, minus 1 ((Z/9)^* twice)
+        3 inert, a = 2           plus 1, minus 1 (U_1/U_2 = F_9 as an
+                                 additive group, sigma the Frobenius,
+                                 fixing F_3)
+        3 ramified, a = 1        plus 0, minus 1 (Q/Q^2 with sigma(pi) =
+                                 -pi)
+        3 ramified, a = 2        plus 1, minus 2 (order 27; the fixed
+                                 part the image of Z_3's units)
+      So the plus rank of the whole is P = #{q = 1 mod 3 : q | f} +
+      [9 | f], and a fixed line EXISTS at every field with 9 | f.
+  (5) USABILITY. E/N unramified at Q means psi|U_Q lies in &lt;chi_Q&gt; for
+      each character psi of Gal(E/k). A FIXED psi at a sigma-fixed Q
+      must then be trivial there (&lt;chi_Q&gt; holds no nontrivial invariant
+      character), while every nontrivial fixed character is ramified
+      somewhere over f by (2). At a swapped pair the local 3-part is
+      cyclic, generated by chi_Q, so nothing is asked. Hence a USABLE
+      fixed line exists iff some prime of k dividing f is split over Q
+      with nontrivial local 3-part: by (3) and (4), iff t &gt;= 1. The
+      fixed lines that exist and cannot be used are exactly those of a
+      9 | f with 3 not split, at a field with no q = 1 mod 3 dividing f.
+  (6) THE FIXED STEP. Suppose R = Delta at 3-rank 1, and let H' be the
+      cubic unramified extension of K, H'_1 its copy over K_1. The
+      transposition tau fixing K_1 pointwise restricts to sigma on k;
+      any lift stabilizes H'_1 and acts on it as an element of the
+      abelian group Gal(H'_1/K_1), so conjugation by it is trivial on
+      Gal(J/N) = Gal(H'_1/K_1), J = H'_1 N. Order 9 with 2 invertible
+      splits Gal(J/k) into sigma-parts; the minus part meets the fixed
+      Gal(J/N) trivially and maps into Gal(N/k), which sigma inverts, so
+      both parts have order 3: the SECOND LINE IS FIXED, and by (5)
+      usable, so t &gt;= 1. Contrapositive: at 3-rank 1, t = 0 forces
+      R = M. (With the genus field bounding from below, the index law of
+      triple.py is proved at 3-rank 1.)
+  (7) THE INVERTED STEP. Suppose R = M at 3-rank 1. Project the triples
+      to (Cl/3Cl)^3: the image is the whole sum-zero module St, of order
+      9. Let L be its fixed field over N: L/N is unramified, L is Galois
+      over Q (the kernel is S3-stable), and G = Gal(L/k) has order 27
+      and contains St, so it is not cyclic. The commutators [g, m] =
+      (s - 1)m, s a 3-cycle, fill the diagonal D, and G/D is abelian, so
+      G^ab has order 9; a 3-group needs as many generators as its
+      abelianization (Burnside), so G^ab = (Z/3)^2. Its fixed field E'
+      is abelian of type (3, 3) over k, contains N, is unramified over
+      N, and sigma acts on the line St/D by the sign: the SECOND LINE IS
+      INVERTED. So at 3-rank 1 every field carries a type-(3, 3)
+      extension of k containing N and unramified over N, and the regime
+      is the sign of its second line. Predicted consequence the census
+      reads: every field at 3-rank 1 with t = 0 has minus rank of
+      Cl_f(k)_3 at least 2.
+  (8) THE COUNT OF THAT MINUS RANK. Minus parts of the ray class
+      sequence are exact, so rk Cl_f(k)_3^- &gt;= 2 holds when f = 1 and
+      rk_3 Cl(k) &gt;= 2; when f &gt; 1 and rk_3 Cl(k) &gt;= 1 (an unramified
+      character serves, independent of the ramified chi); and when
+      f &gt; 1, rk_3 Cl(k) = 0 and the local minus rank, read one lower at
+      d0 = -3, is at least 2.
+  (9) CONDUCTOR 1. At f = 1 there is no conductor prime, so t = 0, and
+      N/k is unramified. Let 3 | h and take any quotient Cl -&gt; Z/3. The
+      triples' image in the sum-zero triples of Z/3 is an S3-stable
+      subgroup projecting onto each coordinate, so D or St. D gives, by
+      (6), a FIXED unramified character of order 3 of k, impossible
+      since sigma inverts Cl(k). So it is St, and (7) gives E'/k abelian
+      of type (3, 3) and unramified: rk_3 Cl(k) &gt;= 2. Hence
+
+          f = 1 and 3 | h(K)  ==&gt;  3-rank Cl(k) &gt;= 2,
+
+      at every 3-rank of K. The number of cubic fields of discriminant
+      exactly d0 is (3^r - 1)/2, r = rk_3 Cl(d0) (Hasse), a known count
+      used here as the enumeration's control.
+
+PREDICTIONS, fixed before the engine. The population is triple.py's:
+every complex cubic field with |d_K| &lt;= 50000, class groups certified.
+  C  CONTROLS, read before anything else.
+     C1 THE MODULE ENGINE: over a sample of d0 and moduli, the brute
+        unit group's order equals the Euler product read off the
+        splitting types; sigma is multiplicative and an involution; the
+        3-Sylow's order is a power of 3 dividing the order; plus and
+        minus ranks sum to the 3-rank; the ranks over a composite
+        modulus are the sums over its prime powers.
+     C2 THE PINS: d0 = -19, f = 18 (2 and 3 inert): plus 1, minus 2, no
+        usable line. d0 = -11, f = 18 (2 inert, 3 split): plus 1, minus
+        2, a usable line.
+     C3 HASSE'S COUNT (known): at every fundamental d0 with
+        |d0| &lt;= 10000 the fields with d_K = d0 number (3^r - 1)/2.
+  A  THE ADMISSIBLE PRIMES (3). Over all fields: every q = 1 mod 3
+     dividing f splits in k; every q = 2 mod 3 dividing f is inert;
+     v_3(f) &lt;= 2; v_3(f) = 1 only at 3 | d0. Kill: any violation.
+  B  THE LOCAL RANKS AND THE USABLE LINE (4), (5). At every field with
+     f &gt; 1: the plus rank of the 3-part of (O_k/f)^* equals P, and its
+     minus rank equals #{q | f, q != 3} + [9 | f] + [3 exactly divides
+     f] + [9 | f and 3 ramified]; the usable-line predicate, computed
+     from the local modules, equals t &gt;= 1. Kill: any field off in
+     either rank or in usability. The fields where a fixed line exists
+     unusable are printed, and are predicted to be exactly those with
+     9 | f, 3 not split in k, and no q = 1 mod 3 dividing f.
+  S  THE SIGN (6), (7), (8). At 3-rank 1 (fields with at least ten
+     mapped split primes): the triple index is 3 exactly at t = 1 (a
+     re-read of triple.py F2); every field with t = 0 has minus rank of
+     Cl_f(k)_3 at least 2, by (8). Kill: one t = 0 field without. The
+     degenerate fields carrying an inverted line as well are printed,
+     not predicted. The inverted line's USABILITY is automatic by (5)'s
+     local reading wherever sigma-fixed local minus ranks are at most 1,
+     which (4) predicts everywhere but at a ramified 3 with 9 | f; those
+     fields are named.
+  Z  CONDUCTOR 1 (9). Every field with f = 1 and 3 | h has rk_3 Cl(k)
+     &gt;= 2. Kill: one field without. Printed beside it: the f = 1 fields
+     by h, and those with 3 not dividing h by the 3-rank of Cl(k).
+  Z2 THE RANK LAW AT CONDUCTOR 1 (known: Gerth, Acta Arith. 30 (1976)
+     307-322, Theorem 3.4; added as a control after (9)'s converse was
+     found there). Where N/k is unramified, rk_3 Cl(K) = rk_3 Cl(k) - 1,
+     which holds (9) and its converse at once. Predicted: at every field
+     with f = 1 the class group of cubic.py and the form class group of
+     principal.py read ranks one apart. Kill: one field where they do
+     not; a failure is an engine's, not the theorem's.
+  H  THE h = 3 POPULATION TO 13000, re-read under certified class
+     groups: the number of fields and of those with t &gt;= 1. An earlier,
+     uncertified reading of the same population counted 193 fields, 70
+     with t &gt;= 1, three fields left unresolved; the number here is
+     printed, not predicted.
+KILLS, as printed observables: a C line off (nothing below is read); an
+A violation; a B field off; an S field at t = 0 without minus rank 2; a
+Z field with rk_3 Cl(k) &lt;= 1; a Z2 field off the rank law.
+
+FINDINGS. 11/11 checks PASS (9/9 after the audit in RUN RECORD).
+  C  C1 0 bad over 81 discriminant-modulus pairs. C2 both pins as
+     derived: (plus, minus, usable) = (1, 2, no) at d0 = -19 and
+     (1, 2, yes) at d0 = -11. C3 Hasse's count exact at all 3043
+     fundamental d0 with |d0| &lt;= 10000, 1062 fields at f = 1.
+  A  0 violations over 8336 fields. Conductor primes: 272 occurrences
+     of q = 1 mod 3, all split; 1764 of q = 2 mod 3, all inert; q = 3
+     inert 76, ramified 550, split 78.
+  B  Over the 2468 fields with f &gt; 1 the plus and minus ranks match (4)
+     at every field and the usable line is exactly t &gt;= 1. A fixed line
+     exists unusable at 150 fields (3 inert 76, 3 ramified 74), exactly
+     the 150 the shape predicts: existence does not sort, usability
+     does.
+  S  1365 fields at 3-rank 1, the index 3^t at every one. All 1018 with
+     t = 0 carry an inverted second line: 408 at f = 1 with
+     rk_3 Cl(k) &gt;= 2, 495 at f &gt; 1 with rk_3 Cl(k) &gt;= 1, 115 from the
+     local part alone. 121 of the 347 fields with t = 1 meet (8)'s
+     sufficient conditions for an inverted line of the ray class group
+     mod f beyond chi's, unramified over N save possibly at the t = 1
+     fields among the 23 below. 23 fields have a sigma-fixed local minus
+     rank above 1 (a ramified 3 with 9 | f; the least |d_K| among them
+     11907), where the inverted line's usability is not automatic from
+     (5); at t = 0, (7) gives E' there all the same.
+  Z  408 fields with f = 1 and 3 | h (h = 3: 290, 6: 59, 9: 37, 12: 12,
+     15: 7, 21: 2, 33: 1), every one over a resolvent of 3-rank at least
+     2. All 5460 fields with f = 1 and 3 not dividing h sit over a
+     resolvent of 3-rank exactly 1. Z2: the ranks (rk_3 Cl(K),
+     rk_3 Cl(k)) read (0, 1) at 5460 fields and (1, 2) at 408, the rank
+     law at all 5868 with f = 1, none off.
+  H  194 fields at h = 3 to 13000, all with ten or more mapped split
+     primes, 70 at t &gt;= 1, 39 at f = 1.
+  Tiers: A a rule, proved at (3) and verified to 50000; B's ranks a
+  rule, proved at (4), verified; (6) and (7) theorems at 3-rank 1, S2
+  their consequence verified; (9) a theorem, Z its verification, and
+  with its converse a case of Gerth's rank law, which Z2 reads exact.
+
+RUN RECORD. 11/11, 5.0 s wall, peak working set 71.9 MB under a memory
+guard, the population read from triple.py's checkpoint. An audit then
+made C1 read the 3-Sylow subgroup's size against the 3-part of the
+order, added C0 (every field certified) and the S filter's dropped
+count, and printed what follows from other checks rather than checking
+it: B3 (from B1 and B2), S1 (triple.py F2 restricted to 3-rank 1) and
+Z (from Z2). (8)'s count at d0 = -3 subtracts one for the cube roots of
+unity, a lower bound, so S's counts of fields meeting (8) are counts of
+a sufficient condition. The audit run: 9/9, 5.3 s wall, 68 MB peak
+commit under a memory guard; B3, S1 and Z print as before (150 of 150,
+1365 of 1365, 0 of 408), and a broken power map fails C1 at every one
+of 15 cases tried in a scratch run.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import time
+from math import gcd
+
+import principal as PR
+import triple as T
+from module_law import check, section, CHECKS
+
+HASSE_D = 10000        # C3's range of fundamental discriminants
+H3_CAP = 13000         # H's population
+
+
+# ---------------------------------------------------------------------------
+# the ring O_k / m and its unit group as a module under conjugation
+
+<span id="Res"></span>class Res:
+    """O_k / m for k = Q(sqrt d0), elements a + b w with w^2 = t w + n:
+    w = (1 + sqrt d0)/2 when d0 = 1 mod 4, else sqrt(d0/4)."""
+
+    def __init__(self, d0, m):
+        self.d0, self.m = d0, m
+        if d0 % 4 == 1:
+            self.t, self.n = 1, (d0 - 1) // 4
+        else:
+            self.t, self.n = 0, d0 // 4
+
+    def mul(self, x, y):
+        (a, b), (c, d) = x, y
+        m = self.m
+        return ((a * c + b * d * self.n) % m,
+                (a * d + b * c + b * d * self.t) % m)
+
+    def conj(self, x):
+        """sigma(a + b w) = a + b (t - w), since w + sigma(w) = t."""
+        a, b = x
+        return ((a + b * self.t) % self.m, (-b) % self.m)
+
+    def norm(self, x):
+        a, b = x
+        return a * a + a * b * self.t - b * b * self.n
+
+    def one(self):
+        return (1 % self.m, 0)
+
+    def units(self):
+        m = self.m
+        return [(a, b) for a in range(m) for b in range(m)
+                if gcd(self.norm((a, b)) % m, m) == 1]
+
+    def pow(self, x, e):
+        r, base = self.one(), x
+        while e:
+            if e &amp; 1:
+                r = self.mul(r, base)
+            base = self.mul(base, base)
+            e &gt;&gt;= 1
+        return r
+
+
+<span id="splitting"></span>def splitting(d0, q):
+    if d0 % q == 0:
+        return "ram"
+    if q == 2:
+        return "split" if d0 % 8 == 1 else "inert"
+    return "split" if pow(d0 % q, (q - 1) // 2, q) == 1 else "inert"
+
+
+<span id="prime_powers"></span>def prime_powers(n):
+    out, d = [], 2
+    while d * d &lt;= n:
+        e = 0
+        while n % d == 0:
+            n //= d
+            e += 1
+        if e:
+            out.append((d, e))
+        d += 1
+    if n &gt; 1:
+        out.append((n, 1))
+    return out
+
+
+<span id="euler_order"></span>def euler_order(d0, m):
+    num, den = m * m, 1
+    for q, _ in prime_powers(m):
+        s = splitting(d0, q)
+        if s == "split":
+            num, den = num * (q - 1) ** 2, den * q * q
+        elif s == "inert":
+            num, den = num * (q * q - 1), den * q * q
+        else:
+            num, den = num * (q - 1), den * q
+    assert num % den == 0
+    return num // den
+
+
+<span id="rank3"></span>def rank3(R, elems):
+    """The F_3-rank of a 3-group given as its list of elements."""
+    e = R.one()
+    k = sum(1 for x in elems if R.pow(x, 3) == e)
+    r = 0
+    while 3 ** r &lt; k:
+        r += 1
+    assert 3 ** r == k
+    return r
+
+
+<span id="module_full"></span>def module_full(d0, m):
+    """(|units|, |3-part|, rank, plus rank, minus rank) of the 3-part of
+    (O_k/m)^* under sigma, by brute force."""
+    R = Res(d0, m)
+    us = R.units()
+    n = len(us)
+    s3, c = 1, n
+    while c % 3 == 0:
+        c //= 3
+        s3 *= 3
+    if s3 == 1:
+        return n, 1, 0, 0, 0, 1
+    syl = sorted({R.pow(x, c) for x in us})
+    u = (s3 + 1) // 2                      # 2u = 1 mod s3
+    plus, minus = set(), set()
+    for x in syl:
+        sx = R.conj(x)
+        plus.add(R.pow(R.mul(x, sx), u))
+        minus.add(R.pow(R.mul(x, R.pow(sx, s3 - 1)), u))
+    return (n, s3, rank3(R, syl), rank3(R, sorted(plus)),
+            rank3(R, sorted(minus)), len(syl))
+
+
+_MOD = {}
+
+
+<span id="module"></span>def module(d0, m):
+    """(plus rank, minus rank) over m, summed over its prime powers (the
+    CRT step C1 controls), each brute-forced once."""
+    rp = rm = 0
+    for q, e in prime_powers(m):
+        key = (d0, q ** e)
+        if key not in _MOD:
+            _MOD[key] = module_full(d0, q ** e)
+        rp += _MOD[key][3]
+        rm += _MOD[key][4]
+    return rp, rm
+
+
+<span id="usable_fixed"></span>def usable_fixed(d0, f):
+    """(5): a prime of k over a split q | f with nontrivial local
+    3-part."""
+    for q, e in prime_powers(f):
+        if splitting(d0, q) == "split":
+            key = (d0, q ** e)
+            if key not in _MOD:
+                _MOD[key] = module_full(d0, q ** e)
+            if _MOD[key][1] &gt; 1:
+                return True
+    return False
+
+
+<span id="fixed_minus_ranks"></span>def fixed_minus_ranks(d0, f):
+    """[(q, e, minus rank)] at the prime powers of f whose prime sigma
+    fixes (inert or ramified in k)."""
+    out = []
+    for q, e in prime_powers(f):
+        if splitting(d0, q) != "split":
+            module(d0, q ** e)
+            out.append((q, e, _MOD[(d0, q ** e)][4]))
+    return out
+
+
+# ---------------------------------------------------------------------------
+# the class group of k
+
+_R3 = {}
+
+
+<span id="rank3_k"></span>def rank3_k(d0):
+    """rk_3 Cl(k), off principal.py's form class group."""
+    if d0 not in _R3:
+        G = PR.Group(d0)
+        k = sum(1 for i in range(G.h) if G.power(i, 3) == G.e)
+        r = 0
+        while 3 ** r &lt; k:
+            r += 1
+        assert 3 ** r == k
+        _R3[d0] = r
+    return _R3[d0]
+
+
+<span id="fundamental"></span>def fundamental(d0):
+    return T.fund_disc(d0) == (d0, 1)
+
+
+# ---------------------------------------------------------------------------
+# the sections
+
+<span id="section_controls"></span>def section_controls(recs):
+    section("C  CONTROLS")
+    d0s = [d for d in range(-200, -2) if d % 4 in (0, 1) and fundamental(d)]
+    bad = [0, 0, 0, 0, 0]
+    n = 0
+    for d0 in d0s[::7]:
+        for m in (2, 3, 4, 5, 6, 7, 9, 14, 18):
+            R = Res(d0, m)
+            us = R.units()
+            bad[0] += len(us) != euler_order(d0, m)
+            e = R.one()
+            for x in us[:8]:
+                for y in us[:8]:
+                    bad[1] += R.conj(R.mul(x, y)) != \
+                        R.mul(R.conj(x), R.conj(y))
+                bad[1] += R.conj(R.conj(x)) != x
+                bad[1] += R.mul(x, R.pow(x, len(us) - 1)) != e
+            _, s3, r, rp, rm, ns = module_full(d0, m)
+            bad[2] += ns != s3          # the image of x -&gt; x^c, its size;
+            #                             it tests something only at s3 &gt; 1
+            bad[3] += rp + rm != r
+            n += 1
+        for m in (14, 18, 36, 45, 63):
+            _, _, _, rp, rm, _ = module_full(d0, m)
+            bad[4] += (rp, rm) != module(d0, m)
+    check("C1 the module engine: order, sigma, 3-Sylow, ranks, CRT",
+          not any(bad), "%d cases; bad %s" % (n, bad))
+    pins = [(d0, f, module(d0, f) + (usable_fixed(d0, f),), want)
+            for d0, f, want in ((-19, 18, (1, 2, False)),
+                                (-11, 18, (1, 2, True)))]
+    bad_pin = [p for p in pins if p[2] != p[3]]
+    check("C2 the pins at f = 18", not bad_pin,
+          "; ".join("d0 = %d: %s" % (p[0], p[2]) for p in pins))
+    per = {}
+    for r in recs:
+        d0, f = T.fund_disc(r["d"])
+        if f == 1 and -d0 &lt;= HASSE_D:
+            per[d0] = per.get(d0, 0) + 1
+    off, nd = [], 0
+    for d0 in range(-3, -HASSE_D - 1, -1):
+        if d0 % 4 not in (0, 1) or not fundamental(d0):
+            continue
+        nd += 1
+        want = (3 ** rank3_k(d0) - 1) // 2
+        if per.get(d0, 0) != want:
+            off.append((d0, per.get(d0, 0), want))
+    check("C3 Hasse's count at every fundamental |d0| &lt;= %d" % HASSE_D,
+          not off, "%d discriminants, %d fields, off: %s"
+          % (nd, sum(per.values()), off[:5]))
+    return not any(bad) and not bad_pin and not off
+
+
+<span id="section_admissible"></span>def section_admissible(recs):
+    section("A  THE ADMISSIBLE PRIMES")
+    viol, occ = [], {}
+    for r in recs:
+        d0, f = T.fund_disc(r["d"])
+        for q, e in prime_powers(f):
+            s = splitting(d0, q)
+            occ[(q % 3 if q != 3 else 3, s)] = \
+                occ.get((q % 3 if q != 3 else 3, s), 0) + 1
+            if q != 3 and q % 3 == 1 and s != "split":
+                viol.append((r["d"], q, s))
+            if q != 3 and q % 3 == 2 and s != "inert":
+                viol.append((r["d"], q, s))
+            if q == 3 and (e &gt; 2 or (e == 1 and d0 % 3 != 0)):
+                viol.append((r["d"], q, e))
+    for key in sorted(occ):
+        print("  q %s  %-6s %5d occurrences"
+              % ("= 3   " if key[0] == 3 else "= %d mod 3" % key[0],
+                 key[1], occ[key]))
+    check("A every conductor prime sits in k as (3) says", not viol,
+          "%d fields, violations %s" % (len(recs), viol[:5]))
+
+
+<span id="section_ranks"></span>def section_ranks(recs):
+    section("B  THE LOCAL RANKS AND THE USABLE LINE")
+    off, use_off, unusable = [], [], []
+    nf = 0
+    t0 = time.time()
+    for r in recs:
+        d0, f = T.fund_disc(r["d"])
+        if f == 1:
+            continue
+        nf += 1
+        pp = prime_powers(f)
+        n1 = sum(1 for q, _ in pp if q != 3 and q % 3 == 1)
+        other = sum(1 for q, _ in pp if q != 3)
+        a = dict(pp).get(3, 0)
+        ram3 = d0 % 3 == 0
+        P = n1 + (a == 2)
+        Mi = other + (a == 2) + (a == 1) + (a == 2 and ram3)
+        got = module(d0, f)
+        if got != (P, Mi):
+            off.append((r["d"], d0, f, got, (P, Mi)))
+        t = T.lines(d0, f)
+        u = usable_fixed(d0, f)
+        if u != (t &gt;= 1):
+            use_off.append((r["d"], d0, f, u, t))
+        if got[0] &gt; 0 and not u:
+            unusable.append((r["d"], d0, f, splitting(d0, 3)))
+    print("  %d fields with f &gt; 1, %.1f s" % (nf, time.time() - t0))
+    check("B1 plus rank P and minus rank as (4) says, at every field",
+          not off, "off at %d: %s" % (len(off), off[:5]))
+    check("B2 a usable fixed line exactly where t &gt;= 1", not use_off,
+          "off at %d: %s" % (len(use_off), use_off[:5]))
+    pred = unusable
+    shape = all(dict(prime_powers(f)).get(3, 0) == 2 and
+                splitting(d0, 3) != "split" and
+                not any(q % 3 == 1 for q, _ in prime_powers(f) if q != 3)
+                for (_, d0, f, _) in unusable)
+    n_pred = 0
+    for r in recs:
+        d0, f = T.fund_disc(r["d"])
+        if f % 9 == 0 and splitting(d0, 3) != "split" and \
+                not any(q % 3 == 1 for q, _ in prime_powers(f) if q != 3):
+            n_pred += 1
+    print("  a fixed line exists unusable at %d fields (3 inert: %d, "
+          "3 ramified: %d); the shape predicts %d"
+          % (len(pred), sum(1 for x in pred if x[3] == "inert"),
+             sum(1 for x in pred if x[3] == "ram"), n_pred))
+    for x in pred[:12]:
+        print("    d_K = %-7d d0 = %-6d f = %-4d 3 %s" % x)
+    # B3 follows from B1 and B2, so it prints and is not checked
+    print("  B3 (from B1, B2): the unusable fixed lines are the 9 | f, 3 not "
+          "split cases: %s, %d printed, %d predicted"
+          % (shape and len(pred) == n_pred, len(pred), n_pred))
+
+
+<span id="inverted_rank"></span>def inverted_rank(d0, f):
+    """rk Cl_f(k)_3^- is at least 2, by (8)."""
+    r3 = rank3_k(d0)
+    if f == 1:
+        return r3 &gt;= 2
+    loc = module(d0, f)[1] - (1 if d0 == -3 else 0)
+    return r3 &gt;= 1 or loc &gt;= 2
+
+
+<span id="section_sign"></span>def section_sign(recs):
+    section("S  THE SIGN OF THE SECOND LINE, AT 3-RANK 1")
+    rows, thin = [], 0
+    for r in recs:
+        if r["r"] != 1:
+            continue
+        if len(r["triples"]) &lt; T.MIN_SPLIT:
+            thin += 1
+            continue
+        d0, f = T.fund_disc(r["d"])
+        rows.append((r["d"], d0, f, r["t"], T.triple_index(r),
+                     inverted_rank(d0, f),
+                     any(m &gt; 1 for _, _, m in fixed_minus_ranks(d0, f))))
+    idx_off = [x for x in rows if x[4] != 3 ** x[3]]
+    # triple.py's F2 at 3-rank 1, so a print
+    print("  S1 (triple.py F2): the triple index is 3^t at %d of %d "
+          "3-rank 1 fields; %d fields with fewer than %d mapped split "
+          "primes left out" % (len(rows) - len(idx_off), len(rows), thin,
+                               T.MIN_SPLIT))
+    uni = [x for x in rows if x[3] == 0]
+    deg = [x for x in rows if x[3] &gt;= 1]
+    miss = [x for x in uni if not x[5]]
+    check("S2 every t = 0 field has an inverted second line (rank &gt;= 2)",
+          not miss, "%d uniform fields, without: %s"
+          % (len(uni), [x[0] for x in miss][:8]))
+    src = {"f = 1, rk_3 Cl(k) &gt;= 2": 0, "f &gt; 1, rk_3 Cl(k) &gt;= 1": 0,
+           "f &gt; 1, local alone": 0}
+    for x in uni:
+        if x[2] == 1:
+            src["f = 1, rk_3 Cl(k) &gt;= 2"] += 1
+        elif rank3_k(x[1]) &gt;= 1:
+            src["f &gt; 1, rk_3 Cl(k) &gt;= 1"] += 1
+        else:
+            src["f &gt; 1, local alone"] += 1
+    for k_, v in src.items():
+        print("    uniform, %-26s %5d" % (k_, v))
+    both = sum(1 for x in deg if x[5])
+    print("  degenerate fields: %d, of which %d carry an inverted line "
+          "too" % (len(deg), both))
+    wild = [x[0] for x in rows if x[6]]
+    print("  fields with a sigma-fixed local minus rank above 1 (the "
+          "inverted line's usability not automatic): %d %s"
+          % (len(wild), wild[:8]))
+    return rows
+
+
+<span id="section_corner"></span>def section_corner(recs):
+    section("Z  CONDUCTOR 1")
+    byh, miss, off3 = {}, [], {}
+    for r in recs:
+        d0, f = T.fund_disc(r["d"])
+        if f != 1:
+            continue
+        if r["h"] % 3 == 0:
+            byh[r["h"]] = byh.get(r["h"], 0) + 1
+            if rank3_k(d0) &lt; 2:
+                miss.append((r["d"], r["h"], rank3_k(d0)))
+        else:
+            k_ = rank3_k(d0)
+            off3[k_] = off3.get(k_, 0) + 1
+    print("  f = 1 and 3 | h, by h: %s" % sorted(byh.items()))
+    print("  f = 1 and 3 !| h, by rk_3 Cl(k): %s" % sorted(off3.items()))
+    # Z follows from Z2 (3 | h is rk_3 Cl(K) &gt;= 1), so a print
+    print("  Z (from Z2): f = 1 fields with 3 | h and rk_3 Cl(k) &lt; 2: %d of "
+          "%d %s" % (len(miss), sum(byh.values()), miss[:8]))
+    joint, off = {}, []
+    for r in recs:
+        d0, f = T.fund_disc(r["d"])
+        if f != 1:
+            continue
+        rK = sum(1 for n in r["inv"] if n % 3 == 0)
+        rk = rank3_k(d0)
+        joint[(rK, rk)] = joint.get((rK, rk), 0) + 1
+        if rK != rk - 1:
+            off.append((r["d"], tuple(r["inv"]), rk))
+    print("  f = 1, (rk_3 Cl(K), rk_3 Cl(k)): %s" % sorted(joint.items()))
+    check("Z2 rk_3 Cl(K) = rk_3 Cl(k) - 1 at every f = 1 field (Gerth)",
+          not off, "%d fields, off: %s" % (sum(joint.values()), off[:8]))
+
+
+<span id="section_h3"></span>def section_h3(recs):
+    section("H  THE h = 3 POPULATION TO %d" % H3_CAP)
+    h3 = [r for r in recs if r["h"] == 3 and -r["d"] &lt;= H3_CAP]
+    rd = [r for r in h3 if len(r["triples"]) &gt;= T.MIN_SPLIT]
+    print("  %d fields at h = 3, %d with %d or more mapped split primes, "
+          "%d at t &gt;= 1, %d at f = 1"
+          % (len(h3), len(rd), T.MIN_SPLIT,
+             sum(1 for r in rd if r["t"] &gt;= 1),
+             sum(1 for r in rd if T.fund_disc(r["d"])[1] == 1)))
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section("P  THE POPULATION")
+    data = T.population()
+    recs = [r for r in data["recs"] if r["ok"]]
+    check("C0 every field of the population certified",
+          len(recs) == len(data["recs"]),
+          "%d of %d" % (len(recs), len(data["recs"])))
+    if CHECKS[-1] and section_controls(recs):
+        section_admissible(recs)
+        section_ranks(recs)
+        section_sign(recs)
+        section_corner(recs)
+        section_h3(recs)
+    print()
+    print("%d/%d checks PASS, %.1f s" % (sum(CHECKS), len(CHECKS),
+                                         time.time() - t0))
+    if not all(CHECKS):
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/conductor.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

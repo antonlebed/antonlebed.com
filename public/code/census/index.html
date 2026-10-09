@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>census.py | Numbers read one place at a time</title>
+<meta name="description" content="census.py">
+<link rel="alternate" type="text/x-python" href="/code/census.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>census.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/clock/#the-admission-census-is-the-high-water-lemma-item-by-item">CLOCK: The admission census is the high-water lemma, item by item</a> (theorem).</p><p>Cited on: <a href="/clock/">CLOCK</a>.</p><p>To run it: <a href="/code/dial.py">dial.py</a>, <a href="/code/limit.py">limit.py</a>, <a href="/code/stop.py">stop.py</a> beside it; standard library only.</p></div>
+<pre>"""census.py -- the admission census: which items a greedy walk strands,
+read off the menu's prices with no walk run.
+
+QUESTION. stop.py proves the high-water lemma: at the step that pays the
+walk's largest price H every move on the menu costs at least H, so the
+openings made are those priced below H. It proves that under a per-item
+clock H is the runaway's crossing price. Read before, the items a headed
+ladder's transient strands were counted by a formula: an item strands iff
+its entry and every climb door price under the runaway's crossing price,
+resting at the first rung whose exit prices at or above it. That count
+held at every per-item cell read, under three hypotheses on the price
+found by deleting each. Is it the high-water lemma read item by item, so
+that the census is a count of menu prices below H with no walk in it?
+And was the reading beside it right, that a coarser clock only raises
+doors and so seats nothing the per-item census excludes?
+
+THE SCHEDULE is limit.py's, walked by stop.py (per-item and global
+clocks) and by dial.py (any partition into blocks), imported. Born {1},
+nu = 1, two items per degree to 400. A ladder is HEADED when its sup
+exceeds its tail, which by clock.py is a place with w &gt;= 1. The price
+kappa(d, r) is nondecreasing in d at every door and strictly increasing in
+the door, kappa(d, 1) tending to infinity; a tie goes to a clock before an
+opening and to the lower degree first.
+
+An item's PATH is the sequence of (price, depth landed at) its moves would have
+if it alone were clocked, read off the ladder: an opening pays kappa(d, 1)
+and lands at 1; an item of a covered degree enters at door 2 and lands
+at 2; an opened item, at depth 1 = x_1, pays kappa(d, 1) again and lands
+at 2; from one past a member x_j (the ladder's members are x_1 = 1, x_2,
+... in order) it pays kappa(d, x_(j+1) - x_j), x_(j+1) the next member, and
+lands at x_(j+1) + 1. A degree d is not born and not yet opened: its
+first item's path starts with the opening and its other items' with the
+entry at door 2; a born degree's items all start with the entry. THE
+CENSUS at a bar rho: a degree opens iff kappa(d, 1) &lt; rho, its other
+items enter iff kappa(d, 2) &lt; rho, and every entered item rests at the
+depth landed at before the first price on its path at or above rho. A
+STRAND is an entered item other than the runaway resting above depth 1.
+
+THE ARGUMENT (written before the engine).
+  (1) H IS kappa(1, sup), PER-ITEM. Let sup &gt;= 2. A degree-1 item pends its
+      next path price at every step, and every price on its path is at
+      most kappa(1, sup): the entry door is 2 and each gap at most the sup.
+      Greed pays the least price on the menu, so every price paid is at
+      most kappa(1, sup). The runaway X pays kappa(d_X, max(r0, sup)) &gt;=
+      kappa(1, sup) (stop.py). So H = kappa(1, sup), with no walk read.
+  (2) THE FIRST STEP PAYING H. There every move on the menu costs at
+      least H (the lemma) and a degree-1 item pends at most H, so it
+      pends exactly H; the tie goes to the lower degree, so a degree-1
+      item pays it, at its crossing, the one gap of a headed ladder equal
+      to the sup. After it that item pays kappa(1, tail) &lt; H forever, and
+      every other item's pending price stands at or above H: under a
+      per-item clock an item's pending price changes only when it moves,
+      or rises once from kappa(d, 1) to kappa(d, 2) when its degree is covered.
+      So nothing but the runaway moves again.
+      [Ruled after the run (F1): the first step paying H is the crossing
+      only with the sup above the entry door 2; at sup = 2, Z_2, a
+      second degree-1 item pays H at its entry first.]
+  (3) THE CENSUS. Before that step every price paid is below H, and at
+      it every item pends at or above H, so every item has paid every
+      price of its path before its first price at or above H and none
+      after. That is the census at H = kappa(1, sup): the resting place of
+      every item is a function of the ladder, the price and the supply.
+      Each strand rests one past a ladder member at or below the bend,
+      since its path stops at a price at or above kappa(1, sup) and the
+      crossing gap is the sup: the old RUNG LAW (rest at p^j + 1) is a
+      corollary.
+  (4) THE CLOSED FORM AT (2, 4). The ladder (p, e, w) =
+      (2, 4, w), w free, is 1, 2, 4, 4 + 4 + w, then gap 4: gaps 1, 2, 4 + w,
+      4, 4, ... At kappa = d r, H = 4 + w. A degree-1 item enters at
+      2 and pays 1, 2 (rest 5 if not the runaway). A degree d &gt;= 2
+      opens iff d &lt; H and pays d, d, d, 2d:
+      rest 5 if 2d &lt; H, else 3. Its second item enters iff 2d &lt; H and
+      rests at 5. So the strands number 1 + (w + 2) + #{d &gt;= 2 : 2d &lt; 4
+      + w} = w + 3 + ceil(w/2): 5, 6, 8, 9, 12, 15, 21, 27, 39 at w = 1,
+      2, 3, 4, 6, 8, 12, 16, 24, the series recorded by walking, and
+      every strand rests at 3 or 5.
+  (5) A COARSER CLOCK CAN RAISE H. Under dial.py's block clock a single holder
+      pays its own path (dial.py (3)), so on a branch where every block has one
+      holder and H = kappa(1, sup) each holder rests where the census puts it,
+      and every other item has at most opened: the branch seats nothing beyond
+      the census. But the global clock's floor can be exceeded (stop.py).
+      HAND-RUN, global clock, kappa = d r, the ladder (2, 2, 3) = 1, 2, 7, 9,
+      11, ...: open degree 2 at the void tie kappa(2, 1) = 2 = kappa(1, 2),
+      clock it at door 1 (price 2) to 2, notch 2, again at door 1 (price 2) to
+      3, notch 7. Now it bids kappa(2, 5) = 10, a degree-1 entry
+      kappa(1, 8) = 8, and the openings of degrees 3 to 7 are cheaper and made.
+      A degree-1 item takes the clock at 8 and runs away. H = 8 against the
+      census's kappa(1, 5) = 5, and degrees 5, 6 and 7 are open, which the
+      per-item census never opens. The old containment is a theorem on
+      single-holder branches at H = kappa(1, sup) and false off them.
+      [Ruled after the run (F3): a theorem there only with no TIE and
+      sup &gt; 2; a move at price H at a degree above 1 can seat beyond.]
+
+PREDICTIONS, frozen before the engine, each naming what the run PRINTS.
+Ladders: stop.py's headed place ladders (2,1,1), (2,2,1), (2,2,2),
+(2,2,3), (3,2,1), (2,4,2), (5,4,1), (2,8,4); prices d r, d^2 r, d + r.
+  PR1 PER-ITEM. Printed per cell: branches (ties followed over the
+      first moves, then walked clock-first), H against kappa(1, sup), the
+      branches where a move at price H went to a degree above 1 (TIE),
+      and the non-TIE branches whose final seating, the runaway removed,
+      differs from the census at H = kappa(1, sup). KILL: one such branch,
+      or H off kappa(1, sup) on a non-TIE branch.
+  PR2 THE CLOSED FORM. Printed at (2, 4, w), w = 1, 2, 3, 4, 6, 8, 12,
+      16, 24, kappa = d r: the census's strand count, its rest depths, w + 3
+      + ceil(w/2), and the canonical per-item walk's strand count. KILL:
+      any of the three counts apart, or a rest depth other than 3 and 5.
+  PR3 COARSER CLOCKS. Partitions ONE, SLOT, MOD2, MOD3 over the same
+      cells, branches as PR1 [ruled: ties followed over 7 moves, where
+      PR1's code follows 9, then lowest-first]. Printed per partition:
+      branches, those single-holder with H = kappa(1, sup), and among
+      them the branches seating an item beyond the census (an item
+      seated the census leaves unseated, or resting deeper than the
+      census rest). KILL: one. Printed without a prediction: the other
+      branches, how many carry H above kappa(1, sup), and how many seat
+      beyond the census.
+  PR4 THE EXCESS WITNESS. The hand-run at (2, 2, 3), global clock, d r,
+      two moves forced. Printed: H, the runaway's degree, the degrees
+      opened that the census leaves shut. KILL: H = 5, or no such degree.
+
+CONTROLS, run first: the census reproduces stop.py's canonical per-item
+walk at the exact width series' first cell by hand (A(1): strands 5, at
+depths 3 and 5, read off (4)); the census comparator fires on a walk
+state with one item planted a rung deeper and on one with an extra
+opening; the TIE detector fires on a planted log paying H at degree 2.
+[Ruled on audit: S0 sets the census against the hand count A(1); the
+walk meets it in S2.]
+
+FINDINGS (entered after the run, from its printed output).
+  F0 CONTROLS. The census at (2, 4, 1), d r, H 5 reads 5 strands at
+     depths 3 and 5, as the hand count; the comparator fires on a planted
+     deeper item and on a planted extra opening; the TIE detector fires.
+  F1 PER-ITEM (PR1 KILLED as frozen, at one ladder). 58 branches, 24 of
+     them TIE. Every non-TIE branch has H = kappa(1, sup), and every one sits
+     on the census except at (2, 1, 1), off at all three prices, one
+     branch each. There the sup is 2, the entry door itself: a second
+     degree-1 item pays H at its entry before the first crosses, so
+     whether it is seated is a tie among degree-1 items, and step (2)'s
+     "the first step paying H is the crossing" needs the sup above the
+     entry door. The ladder (2, 1, 1) is the one place with e + w = 2,
+     Z_2. With sup &gt; 2 the census holds on every non-TIE branch. All 24
+     TIE branches seat beyond the census (printed at the audit, the
+     deepest item taken as the runaway).
+  F2 THE CLOSED FORM (PR2 hit). At all nine widths the census, w + 3 +
+     ceil(w/2) and the walk agree: 5, 6, 8, 9, 12, 15, 21, 27, 39, every
+     strand at depth 3 or 5.
+  F3 COARSER CLOCKS (PR3 KILLED as frozen). Of the single-holder branches
+     at H = kappa(1, sup), 204, 206, 206 and 158 under ONE, SLOT, MOD2 and
+     MOD3 seat beyond the census. Read after the kill: each is a TIE
+     branch, a move at price exactly H made at a degree above 1, or sits
+     at (2, 1, 1), since the rest print zero beyond.
+     The slate conditioned PR1 on the tie and forgot to condition PR3 on
+     it. With no TIE and sup &gt; 2, 218, 176, 176 and 156 branches, none
+     beyond. Printed without a prediction: under ONE, 578 of 1006
+     branches are not single-holder at kappa(1, sup), all 578 with H above
+     it and 576 of them seating beyond the census; under SLOT, MOD2 and
+     MOD3 every branch is single-holder at kappa(1, sup).
+  F4 THE EXCESS WITNESS (PR4 hit). H 8 against kappa(1, sup) = 5, runaway
+     degree 1, degrees 5, 6 and 7 opened that the census leaves shut.
+
+RUN RECORD. One process, CPython, no numpy: 67 checks, 2.9 s, peak
+commit 16.9 MB under a memory guard; the two frozen kills are held to
+their recorded counts.
+"""
+
+import os
+import sys
+import time
+from collections import Counter
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import limit as L  # noqa: E402
+import stop as SP  # noqa: E402
+import dial as D  # noqa: E402
+
+CHECKS = [0]
+
+
+<span id="check"></span>def check(cond, msg):
+    CHECKS[0] += 1
+    if not cond:
+        raise SystemExit("FAIL: " + msg)
+
+
+# ---------------------------------------------------------------------------
+# the census, read off the ladder, the price and the supply
+
+<span id="path"></span>def path(lad, price, d, opener):
+    """(price, depth landed at) of an item's moves were it alone clocked."""
+    out = [(price(d, 1, True), 1)] if opener else [(price(d, 2, True), 2)]
+    a = out[0][1]
+    for _ in range(60):
+        t = lad.next(a)
+        out.append((price(d, t + 1 - a, False), t + 1))
+        a = t + 1
+    return out
+
+
+<span id="rest"></span>def rest(pth, H):
+    """The landing before the first price at or above H; 0 if none paid."""
+    a = 0
+    for p, land in pth:
+        if p &gt;= H:
+            return a
+        a = land
+    raise SystemExit("FAIL: a path never reaching H")
+
+
+<span id="census"></span>def census(lad, price, sup, H, born=(1,)):
+    """(degree, rest, entry door) -&gt; count, every entered item."""
+    out = Counter()
+    for d, n in sup.items():
+        if not n:
+            continue
+        if d not in born and price(d, 1, True) &gt;= H:
+            continue
+        roles = [False] * n if d in born else [True] + [False] * (n - 1)
+        for opener in roles:
+            a = rest(path(lad, price, d, opener), H)
+            if a:
+                out[(d, a, 1 if opener else 2)] += 1
+    return out
+
+
+<span id="strands"></span>def strands(cen):
+    """Entered items resting above depth 1, less the one runaway."""
+    return sum(n for (d, a, r0), n in cen.items() if a &gt; 1) - 1
+
+
+<span id="fits"></span>def fits(walk, cen):
+    """Items a walk seats beyond the census: per (degree, role), the
+    walk's exponents against the census rests, both sorted down."""
+    def group(items):
+        g = {}
+        for (d, a, r0), n in items:
+            g.setdefault((d, r0 == 1), []).extend([a] * n)
+        return {k: sorted(v, reverse=True) for k, v in g.items()}
+    gw, gc = group(walk), group(cen.items())
+    bad = 0
+    for k, ws in gw.items():
+        cs = gc.get(k, [])
+        bad += max(0, len(ws) - len(cs))
+        bad += sum(w &gt; c for w, c in zip(ws, cs))
+    return bad
+
+
+<span id="is_tie"></span>def is_tie(log, H):
+    """A move at price H made at a degree above 1 (a stop.py log)."""
+    return any(p == H and t[1] &gt; 1 for t, r, p, *_ in log)
+
+
+HEADED = [(2, 1, 1), (2, 2, 1), (2, 2, 2), (2, 2, 3), (3, 2, 1), (2, 4, 2),
+          (5, 4, 1), (2, 8, 4)]
+PRICES = SP.PRICES
+SUP = L.wide(2, 400)
+K, KB, N = 9, 7, 240
+PR3_KILLED = {"ONE": 204, "SLOT": 206, "MOD2": 206, "MOD3": 158}
+
+
+<span id="lad_of"></span>def lad_of(pew):
+    return SP.place_ladder(*pew)
+
+
+# ---------------------------------------------------------------------------
+# the sections
+
+<span id="section_control"></span>def section_control():
+    print("S0  CONTROLS")
+    lad = lad_of((2, 4, 1))
+    price = L.price_power(1)
+    cen = census(lad, price, SUP, 5)
+    depths = {a for (d, a, r0) in cen if a &gt; 1}
+    check(strands(cen) == 5 and depths == {3, 5}, "the hand census A(1)")
+    print(f"  (2,4,1) d r at H 5: {strands(cen)} strands at depths "
+          f"{sorted(depths)}, as the hand count")
+    items = list(cen.items())
+    print(f"  the comparator on the census itself: {fits(items, cen)} "
+          f"(zero by construction)")
+    (d, a, r0), n = next(x for x in items if x[0][1] == 3)
+    deeper = [x for x in items if x[0] != (d, a, r0)] + [((d, 5, r0), 1)]
+    if n &gt; 1:
+        deeper.append(((d, a, r0), n - 1))
+    extra = items + [((40, 1, 1), 1)]
+    f1, f2 = fits(deeper, cen), fits(extra, cen)
+    check(f1 &gt; 0 and f2 &gt; 0, "the comparator did not fire")
+    print(f"  the comparator fires on an item planted a rung deeper ({f1}) "
+          f"and on an extra opening ({f2})")
+    planted = [(("o", 2, 0, 1), 1, 5, (2, 1, 1), False)]
+    check(is_tie(planted, 5) and not is_tie(planted, 4),
+          "the TIE detector did not fire")
+    print("  the TIE detector fires on a planted move at price H, degree 2")
+
+
+<span id="section_per_item"></span>def section_per_item():
+    """PR1."""
+    print(f"S1  PER-ITEM (PR1): ties followed over {K} moves, {N} more "
+          f"clock-first; census at H = kappa(1, sup)")
+    print("  price  ladder    sup  kappa(1,sup)  branches  H off  TIE  off")
+    tot = Counter()
+    for pname, price in PRICES:
+        for pew in HEADED:
+            lad = lad_of(pew)
+            s, tl = SP.sup_tail(lad)
+            check(s &gt; tl, f"headed {pew}")
+            S = L.Sched(lad.name, lad, price)
+            H0 = price(1, s, False)
+            cen = census(lad, price, SUP, H0)
+            # the runaway's census entry; none when its entry is its
+            # crossing, the entry door being the sup
+            run1 = max((k for k in cen if k[0] == 1), key=lambda k: k[1],
+                       default=None)
+            want = cen - Counter({run1: 1}) if run1 else cen
+            row = Counter()
+            for st, log in SP.branches(S, SUP, False, K, N):
+                row["n"] += 1
+                H = max(x[2] for x in log)
+                if is_tie(log, H):
+                    row["tie"] += 1
+                    # beyond the census, the deepest item taken as the
+                    # runaway (added at the audit)
+                    top = max(st.seat, key=lambda k: k[1])
+                    rest_ = st.seat - Counter({top: 1})
+                    row["tie_beyond"] += fits(rest_.items(), want) &gt; 0
+                    continue
+                row["Hoff"] += H != H0
+                top = max((k for k in st.seat if k[0] == 1),
+                          key=lambda k: k[1])
+                got = st.seat - Counter({top: 1})
+                row["off"] += got != want
+            # the frozen kill is printed, not raised, where the entry door
+            # 2 reaches the sup: step (2) of the argument missed that case
+            if s &gt; 2:
+                check(row["Hoff"] == 0 and row["off"] == 0,
+                      f"per-item census at {pname} {pew}")
+            elif row["Hoff"] or row["off"]:
+                tot["killed"] += 1
+            tot += row
+            print(f"  {pname:6s} {lad.name:9s} {s:3d} {H0:13d} {row['n']:9d} "
+                  f"{row['Hoff']:6d} {row['tie']:4d} {row['off']:4d}")
+    print(f"  totals: {tot['n']} branches, {tot['tie']} TIE, off the "
+          f"census {tot['off']}, H off {tot['Hoff']}; cells off with the "
+          f"sup at the entry door 2: {tot['killed']}; TIE branches "
+          f"seating beyond the census {tot['tie_beyond']}")
+    print(f"  PR1 KILLED as frozen, at the sup 2 only: {tot['killed']} cells")
+    check(tot["killed"] == 3, "PR1's frozen kill as recorded: (2, 1, 1) at "
+          "each of the three prices")
+
+
+<span id="section_closed"></span>def section_closed():
+    """PR2."""
+    print("S2  THE CLOSED FORM (PR2): (2,4,w), d r, per-item")
+    price = L.price_power(1)
+    for w in (1, 2, 3, 4, 6, 8, 12, 16, 24):
+        lad = lad_of((2, 4, w))
+        H = price(1, 4 + w, False)
+        cen = census(lad, price, SUP, H)
+        depths = sorted({a for (d, a, r0) in cen if a &gt; 1})
+        form = w + 3 + (w + 1) // 2
+        S = L.Sched(lad.name, lad, price)
+        st, log = SP.run(S, SUP, False, 400)
+        walked = sum(n for (d, a, r0), n in st.seat.items() if a &gt; 1) - 1
+        check(strands(cen) == form == walked and depths == [3, 5],
+              f"the closed form at w = {w}")
+        print(f"  w {w:2d}: census {strands(cen):2d}, w + 3 + ceil(w/2) "
+              f"{form:2d}, walk {walked:2d}, depths {depths}")
+
+
+<span id="section_coarse"></span>def section_coarse():
+    """PR3."""
+    print(f"S3  COARSER CLOCKS (PR3): ties followed over {KB} moves, {N} "
+          f"more lowest-first")
+    print("  part   branches | 1-holder at kappa(1,sup)  beyond | other  "
+          "H above  beyond")
+    for part in ("ONE", "SLOT", "MOD2", "MOD3"):
+        row = Counter()
+        for pname, price in PRICES:
+            for pew in HEADED:
+                lad = lad_of(pew)
+                s, _ = SP.sup_tail(lad)
+                H0 = price(1, s, False)
+                cen = census(lad, price, SUP, H0)
+                C = D.Cell(lad.name, price, D.PARTS[part], D.common(lad))
+                for st, log in D.branches(C, SUP, KB, N):
+                    row["n"] += 1
+                    H = max(x[3] for x in log)
+                    hs, _ = D.holders(log)
+                    single = all(len(set(v)) == 1 for v in hs.values())
+                    lt = D.late(log, 0.25)
+                    runners = {it for b in lt for it in lt[b]}
+                    walk = Counter()
+                    for it, (a, r0) in st.seat.items():
+                        if it not in runners:
+                            walk[(it[0], a, r0)] += 1
+                    bad = fits(walk.items(), cen)
+                    if single and H == H0:
+                        row["pred"] += 1
+                        row["pred_bad"] += bool(bad)
+                        # read after the frozen kill: the tie at H
+                        tie = any(x[3] == H and x[1] &gt; 1 for x in log)
+                        clean = not tie and s &gt; 2
+                        row["clean"] += clean
+                        row["clean_bad"] += clean and bool(bad)
+                    else:
+                        row["other"] += 1
+                        row["above"] += H &gt; H0
+                        row["other_bad"] += bool(bad)
+        check(row["clean_bad"] == 0, f"single-holder containment, {part}")
+        print(f"  PR3 KILLED as frozen under {part}: {row['pred_bad']} "
+              f"single-holder branches beyond")
+        check(row["pred_bad"] == PR3_KILLED[part],
+              f"PR3's frozen kill as recorded, {part}")
+        print(f"  {part:5s} {row['n']:9d} | {row['pred']:20d} "
+              f"{row['pred_bad']:7d} | {row['other']:5d} {row['above']:8d} "
+              f"{row['other_bad']:7d}")
+        print(f"         of the single-holder branches, no TIE and sup &gt; 2: "
+              f"{row['clean']}, beyond {row['clean_bad']}")
+
+
+<span id="section_excess"></span>def section_excess():
+    """PR4."""
+    print("S4  THE EXCESS WITNESS (PR4): (2,2,3), global clock, d r, open "
+          "degree 2 and clock it, then clock-first")
+    lad = lad_of((2, 2, 3))
+    price = L.price_power(1)
+    S = L.Sched(lad.name, lad, price)
+    st, log = SP.run(S, SUP, True, N, first=[("o", 2, 0, 1),
+                                             ("c", 2, 1, 1)])
+    H = max(x[2] for x in log)
+    s, _ = SP.sup_tail(lad)
+    H0 = price(1, s, False)
+    (dX, _), = SP.late(log)
+    shut = sorted(d for d in st.opens if st.opens[d]
+                  and d not in S.born and price(d, 1, True) &gt;= H0)
+    check(H != H0 and shut, "the excess witness")
+    print(f"  H {H} against kappa(1, sup) {H0}; runaway degree {dX}; degrees "
+          f"opened the census leaves shut: {shut}")
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_control()
+    section_per_item()
+    section_closed()
+    section_coarse()
+    section_excess()
+    print(f"ALL CHECKS PASS: {CHECKS[0]} checks, {time.time() - t0:.1f} s")
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/census.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>thermal.py | Numbers read one place at a time</title>
+<meta name="description" content="thermal.py">
+<link rel="alternate" type="text/x-python" href="/code/thermal.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>thermal.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/thermal/#the-zeta-measure">THERMAL: The zeta measure</a> (theorem); <a href="/thermal/#the-hot-limit-is-ẑ">THERMAL: The hot limit is Ẑ</a> (theorem); <a href="/thermal/#the-closure-trichotomy">THERMAL: The closure trichotomy</a> (theorem); <a href="/thermal/#the-grading-and-the-radical">THERMAL: The grading and the radical</a> (theorem); <a href="/thermal/#the-melt-over-f₂x">THERMAL: The melt over F₂[x]</a> (theorem); <a href="/thermal/#the-two-tests">THERMAL: The two tests</a> (criterion); <a href="/thermal/#the-mortality-split">THERMAL: The mortality split</a> (theorem).</p><p>Cited on: <a href="/thermal/">THERMAL</a>.</p><p>To run it: <a href="/code/growth.py">growth.py</a> beside it; standard library only.</p></div>
+<pre>"""thermal.py -- the greedy growth walks at finite temperature: what the
+three fates keep when the least move is softened into a Boltzmann
+choice, over Z and over F_2[x].
+
+QUESTION. growth.py grows a state Z/M by the LEAST multiplier m &gt;= 2
+that a demand admits. Soften the least into a weight: from M pick an
+admissible m with probability m^(-beta) / Psi_M(beta), Psi_M(beta) the sum of m^(-beta) over
+the admissible m, beta &gt; 1 the
+inverse temperature, beta -&gt; infinity recovering the greedy walk. The
+demands are unchanged: independence (m coprime to M), dynamics
+(lambda(Mm) &gt; lambda(M), lambda the exponent of the unit group) and
+transparency (lambda(Mm) = lambda(M), M grows). Which parts of each
+fate survive heat, what does each demand grow at finite beta, and
+does the answer change over F_2[x], whose ticks sit on a log clock?
+
+THE OBJECT. A state is M &gt;= 1; A(M) is the set of admissible m &gt;= 2
+under the demand; Psi_M(beta) = sum of m^(-beta) over A(M). zeta is the
+Riemann zeta function; sigma_beta(n) = sum of d^(-beta) over d | n.
+W(L) is the wall of growth.py, the largest M with lambda(M) | L. Over
+F_2[x] a state is a monic polynomial M, the weight of a monic m is
+|m|^(-beta) = 2^(-beta deg m), and c = v_2(lambda(M)).
+
+THE ARGUMENT (written before the engine).
+  (1) THE ZETA MEASURE (independence). A(M) is the integers &gt;= 2
+      coprime to M. Once p | M no later pick touches p: ENTRY-ONCE.
+      At a pick with p | m write m = p^k u, u coprime to Mp; the
+      weight p^(-k beta) u^(-beta) factors and the range of u does not
+      depend on k, so P(v_p(m) = k | p | m) = p^(-beta(k-1))
+      (1 - p^(-beta)) exactly, whatever the state and the time, and
+      the same factoring over the primes of one pick makes the depths
+      independent. The move m = p is admissible while p does not
+      divide M and Psi_M &lt;= zeta(beta) - 1, so P(p | pick) &gt;=
+      p^(-beta) / (zeta(beta) - 1) at every state: by Levy's
+      extension of Borel-Cantelli every prime enters almost surely.
+      From seed 1 the limit is prod p^(G_p), G_p independent and
+      geometric of ratio p^(-beta), and it is squarefree with
+      probability prod (1 - p^(-beta)) = 1/zeta(beta). As beta -&gt; 1+
+      P(G_p &gt;= k) -&gt; p^(-(k-1)), the law of the p-adic valuation of
+      a Haar-random element of the p-adic integers Z_p given that p
+      divides it, coordinate by coordinate.
+  (2) THE UPWARD CLOSURE (dynamics). a | b implies lambda(a) | lambda(b)
+      (units surject), so m in A(M) and m | m' give m' in A(M). The
+      complement {m &gt;= 2 : lambda(Mm) = lambda(M)} is {m &gt;= 2 : Mm
+      divides W(lambda(M))}, the divisors of W/M: finite. So Psi_M(beta)
+      = zeta(beta) - sigma_beta(xi), xi = W/M.
+  (3) THE OPENING BOUND. m -&gt; pm maps A(M) into itself injectively, so
+      the mass of picks divisible by p is at least p^(-beta) Psi_M:
+      P(p | pick) &gt;= p^(-beta), with no dependence on the state. By
+      Levy's Borel-Cantelli every prime divides infinitely many picks
+      almost surely, v_p(M_t) -&gt; infinity at every p, and the limit
+      ring lim Z/M_t is Z-hat, at every seed and every beta &gt; 1. The
+      greedy walk's lock onto one prime (growth.py) does not survive
+      any heat. Exactly: P(p | pick) = p^(-beta) (zeta - sigma(xi/p)) /
+      (zeta - sigma(xi)), xi = W/M the headroom, sigma(xi/p) read as 0
+      when p does not divide xi.
+  (4) THE GENERAL LAW. (3) used only that A(M) is nonempty and
+      upward-closed and that the weight is multiplicative, so any
+      thermal growth on the divisibility order with those two
+      properties reaches Z-hat almost surely.
+  (5) THE THREE CLOSURE SHAPES. Independence's A(M) avoids the support
+      of M, and that shape alone forces entry-once. Dynamics' A(M) is
+      upward-closed and co-finite, and that shape under the thermal
+      law at finite beta forces Z-hat; the greedy walk (beta =
+      infinity) has the same admissible sets and locks onto one prime
+      (corrected after the run).
+      Transparency's A(M) is the divisors &gt;= 2 of W/M, downward-closed
+      and finite, and that shape alone does NOT force death: A(M) =
+      {2} at every M is downward-closed, finite, never empty, and
+      grows 2^infinity. Transparency dies because every move consumes
+      a factor of W/M, a budget: from any seed every trajectory, at
+      every beta and under every policy, ends at W(lambda(seed))
+      within Omega(W/seed) moves.
+  (6) THE TOMBSTONES. At M = W(lambda(M)) transparency is dead and
+      Psi_M = zeta - 1: dynamics there is the free zeta law on every
+      m &gt;= 2.
+  (7) THE GRADING. Mortality needs no selection (every trajectory);
+      independence's destination needs only a floor, independent of the
+      state, on the probability that an unseated prime divides the
+      pick, p^-beta/(zeta(beta) - 1) under independence (almost surely,
+      by Levy's Borel-Cantelli; never surely: the odd prime
+      squares forever are admissible);
+      the squarefree profile, the increasing route and the lock needed
+      the argmin and melt at every finite beta. From seed 1 the first
+      independence pick is a power of 2 with probability
+      1/((2^beta - 1)(zeta(beta) - 1)).
+  (8) THE RADICAL. The limits: transparency W(lambda(seed)) at every
+      beta; independence the product of all primes at beta = infinity
+      and the zeta measure below; dynamics one column at beta =
+      infinity and Z-hat below. Z-hat / J = prod F_p, J = prod p Z_p
+      the Jacobson radical: cold independence grows the quotient, hot
+      dynamics grows Z-hat, so what hot dynamics holds beyond cold
+      independence is J.
+  (9) OVER F_2[x]. There are 2^d monics of degree d, so the free
+      partition function is r/(1 - r), r = 2^(1 - beta), and 1/zeta
+      of F_2[x] is 1 - r: the crystal probability is 1 - 2^(1 - beta),
+      exactly 1/2 at beta = 2. (1)-(4) transfer word for word, since
+      lambda is divisibility-monotone over F_2[x] and |gm| = |g||m|:
+      hot dynamics reaches the full profinite completion of F_2[x], so
+      x + 1's starvation (sprawl.py) melts too.
+  (10) THE TWO TESTS. Over F_2[x], lambda(g^a) = (2^d - 1)
+      2^(ceil log2 a), so m is admissible iff it passes the CLOCK
+      test (some place of Mm has depth &gt; 2^c) or the ODD test
+      (some place g of m absent from M has 2^(deg g) - 1 not dividing
+      the odd part of lambda(M)). THE FRESH LAW: for d &gt;= 2 and a
+      degree set Delta, 2^d - 1 divides lcm over d' in Delta of
+      2^(d') - 1 iff d divides some d' in Delta, by a primitive prime of 2^d - 1 (Zsigmondy) and,
+      at d = 6, by 9, whose order of 2 is 6.
+  (11) THE MORTALITY SPLIT. Restrict the moves to degree &lt;= D.
+      Every admissible move raises c or passes the odd test at a
+      degree 2..D not fired before, so T &lt;= (D - 1) + (c_T - c_0); a
+      clock at c needs a depth &gt; 2^(c-1), so 2^(c_T - 1) &lt; deg M_0 +
+      D T. T is bounded: every restricted trajectory over F_2[x]
+      halts, at every beta and under every policy. Over Z it need not:
+      from 2^a with a &gt;= 3 and a &gt;= 2 + max v_2(p - 1) over the odd
+      primes p &lt;= B, the move 2 stays admissible forever under the
+      restriction m &lt;= B. So the pick degrees of every infinite F_2[x] trajectory are unbounded (a tail inside degree D would halt). This is the
+      module law's split read as mortality: a pump prices a tick at a
+      constant, a log clock at an unbounded degree.
+
+DESIGN. Standard library; one process. growth.py supplies
+factorization, lambda and the wall over Z, and the F_2[x] arithmetic.
+  C  POSITIVE CONTROLS, before any verdict. C1 zeta by Euler-Maclaurin
+     against pi^2/6 and pi^4/90. C2 lambda(M) against the largest
+     element order of (Z/M)^x at every M &lt;= 300, and over F_2[x]
+     against the element orders at every monic of degree &lt;= 7. C3 the
+     Monte Carlo sampler: exact frequencies of the free law on 2..50
+     at beta = 2 against 200,000 draws.
+  Z  over Z. Z1 closure: every M &lt;= 2000, m &lt;= 200, lambda(Mm) =
+     lambda(M) iff m | W/M, and upward closure inside the range. Z2
+     the normalizer and Z3 the opening probability, brute sums to
+     30,000 with the tail bracketed, at 7 states, beta 1.5, 2, 3,
+     primes 2 to 13. Z4 the tombstones 24, 240, 504. Z5 the walls
+     W(lambda(seed)) at seeds 5, 7, 73. Z6 the lock melts: dynamics
+     from seed 2 at beta = 2 on the menu m &lt;= 500, 100 runs of 40
+     moves, against the greedy walk from 2.
+  I  the zeta measure. I1 the depth law by brute sums to 30,000,
+     states 1, 6, 35, 210, at the first four primes of 2 to 13 not
+     dividing the state (two at 210), beta 1.5, 2, 3, k = 1..4. I2 the
+     Euler product to 2 10^5 against 1/zeta. I3 the route: the first
+     pick from 1 by brute sum. I4 Monte Carlo at beta = 2 from seed 1,
+     menu m &lt;= 10^4, 600 runs of 25 moves.
+  F  over F_2[x]. F1 the irreducible counts by the necklace formula
+     against growth.py's sieve to degree 10, and the Euler product to
+     degree 40 against 1 - 2^(1-beta). F2 divisibility-monotonicity
+     on every pair of monics of degree &lt;= 6. F3 the two tests and
+     F4 upward closure on 20 states (constructed and reached) against
+     every monic of degree &lt;= 9. F5 the fresh law on every Delta in
+     {1..12} and d = 2..14. F6 mortality: moves restricted to D = 4, 6,
+     8, 10, beta 1.5, 2, 3, 50 runs each from x^2, run to the halt.
+     F7 Z's immortal witness: m &lt;= 64 from 2^8, beta = 2, 50
+     runs of 200 moves. F8 the melt's control: D = 10, beta = 2, 100
+     runs from x^2, whether x + 1 ever opens.
+
+PREDICTIONS, fixed before the run.
+  C  zeta within 1e-12; lambda agrees everywhere; each sampled
+     frequency within 5 standard errors.
+  Z1 zero violations of either. Z2 every brute sum inside the bracket.
+     Z3 every probability inside the bracket and at or above
+     p^(-beta); P(5 | pick | M = 6, beta = 2) = 0.19793 to five
+     digits (the replaced record's figure). Z4 W(lambda(M)) = M at all
+     three. Z5 every run ends at 240, 504, 20174525280 within Omega
+     moves. Z6 at least 95 of 100 runs open a second prime by move
+     40; the greedy walk from 2 opens none in 40 moves.
+  I1 agreement inside the bracket. I2 0.6079 at beta = 2 (the
+     squarefree density). I3 P(power of 2) = 0.5169 and P(2) =
+     0.3877 at beta = 2. I4 P(v_2 = 1) in 0.75 +- 0.05, P(v_3 = 1)
+     in 0.889 +- 0.05, every run seats 2, 3 and 5.
+  F1 counts agree; the product inside its bracket; 1/2 at beta = 2.
+     F2, F3, F4, F5 zero violations. F6 every run halts, with T &lt;=
+     (D - 1) + (c_T - c_0) and 2^(c_T - 1) &lt; deg M_0 + D T. F7 no run
+     halts and 2 is admissible at every state visited. F8 x + 1 opens
+     in at least 90 of 100 runs (the replaced record: 96).
+A KILL is any exact disagreement in Z1-Z4, I1-I3 or F1-F5, a
+transparency run ending off its wall or past Omega, an F6 run that
+does not halt or breaks either inequality, or an F7 run that halts.
+A control out of its band voids the verdicts that lean on it. A
+Monte Carlo figure off its band with the controls green is a finding
+to read, not a kill.
+  [Ruled after a later reading: the transparency clause cannot fire,
+  since Z5 drew every move from the divisors of W/M, so every run
+  ended at W within Omega moves by construction; Z5 now checks the
+  three walls alone, the theorem resting on its proof. The
+  controls now stop the run before any verdict when one fails, and C2
+  checks its F_2[x] half, computed and unread before.]
+
+FINDINGS. 31/31 checks PASS at the first slate's close (34 with the
+C2 half over F_2[x] and section B); one frozen figure missed, by the
+slate's own arithmetic, and no kill.
+  C  zeta(2) exact to the last bit, zeta(4) to 2.2e-16; lambda equals
+     the largest element order at every 2 &lt;= M &lt;= 300 and is the unit
+     group's exponent at every monic of degree 1 to 7; the sampler's
+     worst frequency sits 2.43 standard errors off. The lambda control
+     failed on the engine's first run, at M = 2 and 4 (lambda(2) and
+     lambda(4) had been swapped for 1 and 0), and passed once fixed.
+  Z  zero violations of either closure statement over M &lt;= 2000,
+     m &lt;= 200. Every normalizer and every opening probability inside
+     its brute bracket at 7 states x 3 betas x 6 primes, none below
+     p^(-beta); P(5 | pick | 6, beta 2) = 0.1979261. W(lambda(M)) = M
+     at 24, 240 and 504, where every m in 2..1000 is admissible. The
+     walls from 5, 7 and 73 are 240, 504 and 20174525280 (the first
+     slate's 900 sampled runs ended there by construction). The greedy
+     walk from 2 sits at 2^42 after 40 moves; at beta = 2 all 100 hot
+     runs open a second prime by move 40, holding 3 to 10 primes then
+     (mode 5).
+  I  the depth law inside every bracket, the widest 0.0695 (beta 1.5,
+     loose, as the tail bound is); the Euler product to 2 10^5 against
+     1/zeta: 0.382916 / 0.382793 at beta 1.5 (the truncation's excess,
+     inside the bracket), 0.607927 at 2, 0.831907 at 3. The first pick
+     from 1 at beta 2: P(2) = 0.387637, P(a power of 2) = 0.516849,
+     each inside its brute bracket. MISSED: the slate froze 0.3877 and
+     0.5169, a hand rounding of the same closed forms (0.387636...,
+     0.516848...), so the check reads the true digits. Monte Carlo:
+     P(v_2 = 1) 0.742, P(v_3 = 1) 0.892, every run of 600 seating 2, 3
+     and 5 inside 25 moves.
+  F  the necklace counts equal the sieve; the Euler product to degree
+     40 gives 0.500000000000 at beta 2 and 0.750000000000 at beta 3,
+     and 0.292893234 against 0.292893219 at beta 1.5, inside the
+     bracket. The first run FAILED at beta 2 on a float wall: 1 -
+     2^(-2d) rounds to 1.0 once 2d &gt; 53, dropping the factors past
+     degree 26, whose product is near exp(-2^(-d)/d), not 1; the
+     factors are now taken through log1p. Zero violations of lambda's
+     monotonicity (every pair of degree 1 to 6), of the two-test
+     criterion and of upward closure (20 states x 1,022 monics), and
+     of the fresh law
+     (4,096 sets x 13 degrees). All 600 restricted runs halt,
+     both inequalities holding on every run: halt moves 5..6, 6..9,
+     8..11, 10..13 and halt clocks 4, 4..5, 5, 5 at D = 4, 6, 8, 10
+     across the three betas (the clock at the halt is the bit length
+     of D plus one in all but the D = 6 tail, a reading, not a law
+     claimed here). Over Z all 50 runs under the restriction m &lt;= 64 from 2^8
+     are alive after 200 moves, 2 admissible at every state. x + 1
+     opens in 97 of 100 bounded runs at D = 10.
+  Tiers: (1)-(7) and (9) are theorems, their closed forms verified in
+  the ranges printed; (8) is a property of the table; (10) is a
+  criterion with the fresh law proved from Zsigmondy's theorem; (11)
+  is a theorem, the halting holding for every policy, with the Z
+  witness proved. The Monte Carlo sections are controls on the laws,
+  not evidence for them.
+
+RUN RECORD. python thermal.py: 34/34 checks, 9.9 s, peak 32.6 MB
+under a 512 MB ceiling. The slate's word "channel" was renamed "test"
+before the first record was written: a channel is the reduction at
+one place.
+
+THE BILL, a second slate, frozen before its engine (F9). A restricted
+walk over F_2[x] always halts (11). What does it cost an outside
+hand to keep one alive? LIFE SUPPORT at a halted state M with clock
+c: a REVIVAL multiplies in the cheapest monic after which some move
+of degree &lt;= D is admissible; that monic is not a move of the walk,
+and its degree is the BILL.
+  (12) THE BILL FORMULA. bill = min over irreducibles g of degree
+      d &lt;= D of d (2^c + 1 - floor(D/d) - v_g(M)). A halt fails the
+      odd test at every absent g of degree &lt;= D; an injection only
+      adds places and only enlarges lambda, so it opens no odd test,
+      and a revived move must pass the clock test at some place g,
+      adding at most floor(D/d) there. The halt had v_g(M) +
+      floor(D/d) &lt;= 2^c, so the injection gives g at least 2^c + 1 -
+      floor(D/d) - v_g(M), at cost d each. The bound is attained by
+      that power of g alone: it leaves g at 2^c + 1 - floor(D/d) &lt;=
+      2^c, the clock unmoved, and a fresh g changes no odd part, its
+      2^d - 1 already dividing lambda.
+  (13) THE AFTERLIFE. When the bill's place g has degree 1 and
+      D &lt; 2^c, the only admissible move of degree &lt;= D is g^D, which
+      leaves g at 2^c + 1: the clock rises by one, the odd part of
+      lambda is unchanged and the state is halted again, since g now
+      needs 2^c &gt; D more. At that death the bill of g is 2^(c+1) + 1 -
+      D - (2^c + 1) = 2^c - D, while any other place of degree d costs
+      at least d (2^(c+1) + 1 - floor(D/d) - (2^c - floor(D/d))) =
+      d (2^c + 1). So a degree-1 place that leads once leads forever,
+      each revival buys exactly one move, and the bill at a death of
+      clock c is 2^(c-1) - D: bill' = 2 bill + D. Over Z the world
+      from 2^a of (11) needs no revival: the move 2 never dies (F7).
+      Life support prices a move at a degree that doubles with every
+      move bought over F_2[x], and at nothing in that world over Z:
+      the module law's split read as a price.
+  DESIGN F9. Halted states from x^2 at beta = 2, ten runs at each of
+  D = 4, 6, 8, 10. F9a the formula against brute at D = 4 and 6: no
+  monic of degree below the bill revives, and the formula's injection
+  does. F9b six revivals from every halted state, the cheapest
+  injection each time (degree 1 first on a tie, then the least g),
+  then the least admissible move of degree &lt;= D, then on to the next
+  halt; after the first revival led by a degree-1 place with D &lt; 2^c:
+  the menu has one move, the clock rises by one, the odd part holds,
+  the state halts, and the next bill is 2 bill + D.
+  PREDICTIONS. F9a zero disagreements. F9b the recurrence exact on
+  every run past its first degree-1 revival, and that revival reached
+  by the second at every run; at D = 6 the bills 2, 10, 26, 58, 122
+  where the halt sits at clock 4 with a degree-1 place at depth 9 (the
+  replaced record's run). A KILL is any F9a disagreement, or a broken
+  recurrence, a second menu member or a moved odd part after a
+  degree-1 revival. The degree-1 arrival by the second revival is a
+  prediction, not a kill.
+  [Ruled after a later reading: F9a's brute check runs at the states
+  of D = 4 and 6 whose bill is at most 10; F9b now also asks that the
+  one move be g^D and that every revival after the first degree-1 one
+  be degree-1 led, and prints the runs led from their first revival.]
+  THE SLATE'S OWN CORRECTION, made on the first run. The design wrote
+  "the next bill is 2 bill + D" from the first degree-1 revival on;
+  (13) says the bill at each death AFTER it is 2^(c-1) - D, so the
+  recurrence links two such deaths and not the first revival's bill,
+  which depends on that column's depth. The first run checked the
+  design's sentence and printed 10 violations, one per run whose first
+  bill b had 2 b + D != 2^c - D; the check now reads (13). The run is
+  section B, the slate's F9.
+  FINDINGS (F9). 33/33 checks PASS. The formula is the least reviving
+  degree at all 40 halted states, and no smaller monic revives at the
+  20 brute-checked. Every run's first revival is led by a degree-1
+  place (40 of 40); after it, at every death, one admissible move,
+  g^D, the clock up by one, the odd part held, halted again, the bill
+  2^(c-1) - D. The
+  first runs read 4, 12, 28, 60, 124, 252 at D = 4; 1, 10, 26, 58,
+  122, 250 at D = 6; 8, 24, 56, ... at D = 8; 6, 22, 54, ... at
+  D = 10. The replaced record's 2, 10, 26, 58, 122 appears at D = 6;
+  its 2 -&gt; 10 matched the recurrence by coincidence, 2 2 + 6 = 10 =
+  2^4 - 6. (12) and (13) are theorems. 8.8 s, peak 38.8 MB.
+"""
+
+import bisect
+import math
+import os
+import random
+import sys
+import time
+from math import gcd
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import growth  # noqa: E402
+
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  [{'PASS' if ok else 'FAIL'}] {name}"
+          + (f"  ({detail})" if detail else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print("=" * 72)
+    print(title)
+    print("=" * 72)
+
+
+# ------------------------------------------------------------ arithmetic
+
+BETAS = (1.5, 2.0, 3.0)
+SPF_N = 400000
+
+
+<span id="spf_sieve"></span>def spf_sieve(n):
+    spf = list(range(n + 1))
+    for i in range(2, int(n ** 0.5) + 1):
+        if spf[i] == i:
+            for j in range(i * i, n + 1, i):
+                if spf[j] == j:
+                    spf[j] = i
+    return spf
+
+
+SPF = spf_sieve(SPF_N)
+
+
+<span id="fac"></span>def fac(n):
+    """Factorization as a dict, by the sieve below SPF_N, else growth.py."""
+    if n &gt; SPF_N:
+        return growth.factor(n)
+    out = {}
+    while n &gt; 1:
+        p = SPF[n]
+        out[p] = out.get(p, 0) + 1
+        n //= p
+    return out
+
+
+<span id="lam_of"></span>def lam_of(f):
+    """lambda of a factorization, as an integer."""
+    L = 1
+    for p, a in f.items():
+        if p == 2:
+            x = 1 if a == 1 else (2 if a == 2 else 1 &lt;&lt; (a - 2))
+        else:
+            x = (p - 1) * p ** (a - 1)
+        L = L // gcd(L, x) * x
+    return L
+
+
+<span id="mul"></span>def mul(f, g):
+    out = dict(f)
+    for p, a in g.items():
+        out[p] = out.get(p, 0) + a
+    return out
+
+
+<span id="zeta"></span>def zeta(beta):
+    """Euler-Maclaurin with N = 40 and three Bernoulli terms."""
+    N = 40
+    s = sum(n ** -beta for n in range(1, N))
+    s += N ** (1 - beta) / (beta - 1) + 0.5 * N ** -beta
+    b = beta
+    s += b / 12 * N ** (-b - 1)
+    s -= b * (b + 1) * (b + 2) / 720 * N ** (-b - 3)
+    s += b * (b + 1) * (b + 2) * (b + 3) * (b + 4) / 30240 * N ** (-b - 5)
+    return s
+
+
+<span id="divisors"></span>def divisors(n):
+    ds = [1]
+    for p, a in fac(n).items():
+        ds = [d * p ** i for d in ds for i in range(a + 1)]
+    return sorted(ds)
+
+
+<span id="sigma"></span>def sigma(n, beta):
+    return sum(d ** -beta for d in divisors(n)) if n &gt;= 1 else 0.0
+
+
+<span id="tail"></span>def tail(X, beta):
+    """An upper bound for the sum of m^(-beta) over m &gt; X."""
+    return X ** (1 - beta) / (beta - 1)
+
+
+<span id="brute_order_lam"></span>def brute_order_lam(M):
+    """The largest element order of (Z/M)^x."""
+    best = 1
+    for a in range(1, M):
+        if gcd(a, M) != 1:
+            continue
+        x, k = a % M, 1
+        while x != 1 % M:
+            x = x * a % M
+            k += 1
+        best = best // gcd(best, k) * k
+    return best
+
+
+<span id="Sampler"></span>class Sampler:
+    """Draws m in [lo, hi] with probability proportional to m^(-beta)."""
+
+    def __init__(self, lo, hi, beta):
+        self.lo = lo
+        acc, cdf = 0.0, []
+        for m in range(lo, hi + 1):
+            acc += m ** -beta
+            cdf.append(acc)
+        self.cdf, self.total = cdf, acc
+
+    def draw(self, rng):
+        return self.lo + bisect.bisect_left(self.cdf,
+                                            rng.random() * self.total)
+
+
+# ---------------------------------------------------------- C: controls
+
+<span id="section_c"></span>def section_c():
+    section("C  POSITIVE CONTROLS")
+    e2 = abs(zeta(2.0) - math.pi ** 2 / 6)
+    e4 = abs(zeta(4.0) - math.pi ** 4 / 90)
+    print(f"  zeta(2) error {e2:.1e}, zeta(4) error {e4:.1e}")
+    check("C1 zeta within 1e-12 of pi^2/6 and pi^4/90",
+          e2 &lt; 1e-12 and e4 &lt; 1e-12)
+    bad = [M for M in range(2, 301) if lam_of(fac(M)) != brute_order_lam(M)]
+    check("C2 lambda equals the largest element order, 2 &lt;= M &lt;= 300",
+          not bad, str(bad[:5]))
+    badf = []
+    for M in range(2, 1 &lt;&lt; 8):
+        L = growth.lam_f2(M)
+        units = [a for a in range(1, 1 &lt;&lt; growth.pdeg(M))
+                 if gcd_f2(a, M) == 1]
+        ok = all(f2_powmod(a, L, M) == 1 for a in units)
+        for r in fac(L):
+            ok = ok and any(f2_powmod(a, L // r, M) != 1 for a in units)
+        if not ok:
+            badf.append(M)
+    check("C2 over F_2[x] lambda is the unit group's exponent at every "
+          "monic of degree 1 to 7", not badf, str(badf[:5]))
+    rng = random.Random(2)
+    s = Sampler(2, 50, 2.0)
+    n, cnt = 200000, {}
+    for _ in range(n):
+        m = s.draw(rng)
+        cnt[m] = cnt.get(m, 0) + 1
+    worst = 0.0
+    for m in range(2, 51):
+        pr = m ** -2.0 / s.total
+        se = math.sqrt(pr * (1 - pr) / n)
+        worst = max(worst, abs(cnt.get(m, 0) / n - pr) / se)
+    print(f"  sampler: largest deviation {worst:.2f} standard errors")
+    check("C3 the sampler's frequencies within 5 standard errors",
+          worst &lt; 5)
+
+
+<span id="f2_powmod"></span>def f2_powmod(a, n, M):
+    r = 1
+    while n:
+        if n &amp; 1:
+            r = growth.pdivmod(growth.pmul(r, a), M)[1]
+        a = growth.pdivmod(growth.pmul(a, a), M)[1]
+        n &gt;&gt;= 1
+    return r
+
+
+<span id="gcd_f2"></span>def gcd_f2(a, b):
+    while b:
+        a, b = b, growth.pdivmod(a, b)[1]
+    return a
+
+
+# ------------------------------------------------------------ Z: over Z
+
+STATES = (1, 2, 6, 15, 60, 77, 360)
+X = 30000
+
+
+<span id="section_z"></span>def section_z():
+    section("Z  DYNAMICS AND TRANSPARENCY OVER Z")
+    FA = [None] + [fac(n) for n in range(1, 2001)]
+    viol_c = viol_u = 0
+    for M in range(1, 2001):
+        LM = lam_of(FA[M])
+        xi = growth.wall(LM) // M
+        adm = [False] * 201
+        for m in range(2, 201):
+            a = lam_of(mul(FA[M], FA[m])) != LM
+            adm[m] = a
+            if a == (xi % m == 0):
+                viol_c += 1
+        for m in range(2, 201):
+            if adm[m]:
+                for mm in range(2 * m, 201, m):
+                    if not adm[mm]:
+                        viol_u += 1
+    check("Z1 lambda(Mm) = lambda(M) iff m | W/M, M &lt;= 2000, m &lt;= 200",
+          viol_c == 0, f"{viol_c} violations")
+    check("Z1 the admissible set is upward-closed in that range",
+          viol_u == 0, f"{viol_u} violations")
+
+    zs = {b: zeta(b) for b in BETAS}
+    FX = [None] + [fac(n) for n in range(1, X + 1)]
+    bad2 = bad3 = low3 = 0
+    spec = None
+    for M in STATES:
+        fM = fac(M)
+        LM = lam_of(fM)
+        xi = growth.wall(LM) // M
+        adm = [m for m in range(2, X + 1)
+               if lam_of(mul(fM, FX[m])) != LM]
+        for b in BETAS:
+            S = sum(m ** -b for m in adm)
+            Zf = zs[b] - sigma(xi, b)
+            if not (S - 1e-12 &lt;= Zf &lt;= S + tail(X, b)):
+                bad2 += 1
+            for p in (2, 3, 5, 7, 11, 13):
+                Sp = sum(m ** -b for m in adm if m % p == 0)
+                tp = p ** -b * tail(X // p, b)
+                lo, hi = Sp / (S + tail(X, b)), (Sp + tp) / S
+                sDp = sigma(xi // p, b) if xi % p == 0 else 0.0
+                Pf = p ** -b * (zs[b] - sDp) / Zf
+                if not (lo - 1e-12 &lt;= Pf &lt;= hi + 1e-12):
+                    bad3 += 1
+                if Pf &lt; p ** -b - 1e-15:
+                    low3 += 1
+                if (M, b, p) == (6, 2.0, 5):
+                    spec = Pf
+    print(f"  7 states x 3 betas; P(5 | pick | M = 6, beta = 2) = "
+          f"{spec:.7f}")
+    check("Z2 Psi_M = zeta - sigma(W/M) inside every brute bracket",
+          bad2 == 0, f"{bad2} outside")
+    check("Z3 the closed-form opening probability inside every bracket",
+          bad3 == 0, f"{bad3} outside")
+    check("Z3 every opening probability at or above p^(-beta), and "
+          "P(5 | pick | 6, beta 2) = 0.19793", low3 == 0 and
+          abs(spec - 0.19793) &lt; 5e-6)
+
+    tomb = {M: growth.wall(lam_of(fac(M))) for M in (24, 240, 504)}
+    print(f"  W(lambda(M)) at the tombstones: {tomb}")
+    free = all(lam_of(mul(fac(M), fac(m))) != lam_of(fac(M))
+               for M in tomb for m in range(2, 1001))
+    check("Z4 W(lambda(M)) = M at 24, 240, 504 and every m in 2..1000 "
+          "admissible there", all(M == w for M, w in tomb.items()) and free)
+
+    walls = {seed: growth.wall(lam_of(fac(seed))) for seed in (5, 7, 73)}
+    print(f"  transparency walls: {walls}")
+    check("Z5 the walls W(lambda(seed)) are 240, 504 and 20174525280",
+          walls == {5: 240, 7: 504, 73: 20174525280})
+    # the lock melts
+    def greedy(seed, T):
+        f = fac(seed)
+        for _ in range(T):
+            L = lam_of(f)
+            m = 2
+            while lam_of(mul(f, fac(m))) == L:
+                m += 1
+            f = mul(f, fac(m))
+        return f
+
+    g = greedy(2, 40)
+    print(f"  greedy from 2 after 40 moves: {g}")
+    s500 = Sampler(2, 500, 2.0)
+    FS = [None] + [fac(n) for n in range(1, 501)]
+    rng = random.Random(6)
+    opened, hist = 0, {}
+    for _ in range(100):
+        f = {2: 1}
+        first = None
+        for t in range(1, 41):
+            L = lam_of(f)
+            while True:
+                m = s500.draw(rng)
+                if lam_of(mul(f, FS[m])) != L:
+                    break
+            f = mul(f, FS[m])
+            if first is None and len(f) &gt; 1:
+                first = t
+        opened += first is not None
+        hist[len(f)] = hist.get(len(f), 0) + 1
+    print(f"  hot runs opening a second prime by move 40: {opened}/100; "
+          f"primes seated at move 40: {dict(sorted(hist.items()))}")
+    check("Z6 the greedy walk from 2 stays on the 2-column for 40 moves",
+          list(g) == [2])
+    check("Z6 at beta = 2 at least 95 of 100 runs open a second prime "
+          "by move 40", opened &gt;= 95)
+
+
+# ------------------------------------------------- I: the zeta measure
+
+<span id="section_i"></span>def section_i():
+    section("I  THE ZETA MEASURE")
+    zs = {b: zeta(b) for b in BETAS}
+    worst, bad = 0.0, 0
+    for M in (1, 6, 35, 210):
+        ps = [p for p in (2, 3, 5, 7, 11, 13) if M % p][:4]
+        for b in BETAS:
+            for p in ps:
+                mass = {}
+                base = 0.0
+                for m in range(p, X + 1, p):
+                    if gcd(m, M) == 1:
+                        k = 0
+                        n = m
+                        while n % p == 0:
+                            n //= p
+                            k += 1
+                        w = m ** -b
+                        base += w
+                        mass[k] = mass.get(k, 0.0) + w
+                tp = p ** -b * tail(X // p, b)
+                for k in range(1, 5):
+                    law = p ** (-b * (k - 1)) * (1 - p ** -b)
+                    lo = mass.get(k, 0.0) / (base + tp)
+                    hi = (mass.get(k, 0.0) + tp) / base
+                    if not (lo - 1e-12 &lt;= law &lt;= hi + 1e-12):
+                        bad += 1
+                    worst = max(worst, hi - lo)
+    print(f"  widest bracket {worst:.2e}")
+    check("I1 P(v_p = k | p | pick) = p^(-beta(k-1))(1 - p^(-beta)) "
+          "inside every bracket", bad == 0, f"{bad} outside")
+
+    primes = [p for p in range(2, 200001) if SPF[p] == p]
+    for b in BETAS:
+        prod = 1.0
+        for p in primes:
+            prod *= 1 - p ** -b
+        rest = sum(n ** -b for n in range(200001, 200050)) + \
+            tail(200049, b)
+        ok = prod * (1 - rest) - 1e-12 &lt;= 1 / zs[b] &lt;= prod + 1e-12
+        print(f"  beta {b}: Euler product {prod:.6f}, 1/zeta "
+              f"{1 / zs[b]:.6f}")
+        check(f"I2 the crystal probability at beta {b} equals 1/zeta "
+              "inside the bracket", ok)
+    print(f"  1/zeta(2) = {1 / zs[2.0]:.4f}")
+
+    b = 2.0
+    S = sum(m ** -b for m in range(2, X + 1))
+    two = sum((1 &lt;&lt; k) ** -b for k in range(1, 40))
+    P2 = 2 ** -b / (zs[b] - 1)
+    Ppow = 1 / ((2 ** b - 1) * (zs[b] - 1))
+    lo_ok = (two / (S + tail(X, b)) &lt;= Ppow &lt;= two / S
+             and 2 ** -b / (S + tail(X, b)) &lt;= P2 &lt;= 2 ** -b / S)
+    print(f"  from seed 1 at beta 2: P(first pick = 2) = {P2:.6f}, "
+          f"P(a power of 2) = {Ppow:.6f}; bracket held: {lo_ok}")
+    check("I3 the route's first pick: the closed form inside the brute "
+          "bracket, 0.38764 and 0.51685 at beta 2",
+          lo_ok and abs(P2 - 0.38764) &lt; 5e-6 and abs(Ppow - 0.51685) &lt; 5e-6)
+
+    rng = random.Random(9)
+    s = Sampler(2, 10000, 2.0)
+    runs, T = 600, 25
+    d2 = {}
+    d3 = {}
+    seated = 0
+    for _ in range(runs):
+        M = 1
+        f = {}
+        for _ in range(T):
+            while True:
+                m = s.draw(rng)
+                if gcd(m, M) == 1:
+                    break
+            M *= m
+            for p, a in fac(m).items():
+                f[p] = a
+        if 2 in f:
+            d2[f[2]] = d2.get(f[2], 0) + 1
+        if 3 in f:
+            d3[f[3]] = d3.get(f[3], 0) + 1
+        seated += all(p in f for p in (2, 3, 5))
+    p21 = d2.get(1, 0) / sum(d2.values())
+    p31 = d3.get(1, 0) / sum(d3.values())
+    print(f"  {runs} runs of {T}: P(v_2 = 1) {p21:.3f}, P(v_3 = 1) "
+          f"{p31:.3f}, runs seating 2, 3 and 5: {seated}")
+    check("I4 Monte Carlo: P(v_2 = 1) in 0.75 +- 0.05 and P(v_3 = 1) in "
+          "0.889 +- 0.05", abs(p21 - 0.75) &lt;= 0.05 and abs(p31 - 8 / 9)
+          &lt;= 0.05)
+    check("I4 every run seats 2, 3 and 5", seated == runs)
+
+
+# ------------------------------------------------------ F: over F_2[x]
+
+<span id="necklace"></span>def necklace(d):
+    tot = 0
+    for e in range(1, d + 1):
+        if d % e == 0:
+            tot += mobius(e) * 2 ** (d // e)
+    return tot // d
+
+
+<span id="mobius"></span>def mobius(n):
+    f = fac(n)
+    if any(a &gt; 1 for a in f.values()):
+        return 0
+    return -1 if len(f) % 2 else 1
+
+
+<span id="places"></span>def places(f):
+    """A monic's factorization over F_2[x]: {irreducible: depth}."""
+    return growth.pfactor(f) if f &gt; 1 else {}
+
+
+<span id="f2_lam"></span>def f2_lam(st):
+    L = 1
+    for g, a in st.items():
+        x = growth.lam_f2_pp(growth.pdeg(g), a)
+        L = L // gcd(L, x) * x
+    return L
+
+
+<span id="odd"></span>def odd(n):
+    while n % 2 == 0:
+        n //= 2
+    return n
+
+
+<span id="clog2"></span>def clog2(a):
+    return (a - 1).bit_length()
+
+
+<span id="clock_of"></span>def clock_of(st):
+    L = f2_lam(st)
+    return (L &amp; -L).bit_length() - 1, odd(L)
+
+
+<span id="tests"></span>def tests(st, mf, cl=None):
+    """The two-test verdict for the move with places mf at state st."""
+    c, lodd = cl if cl else clock_of(st)
+    clock = any(st.get(g, 0) + a &gt; (1 &lt;&lt; c) for g, a in mf.items())
+    oddt = any(g not in st and lodd % ((1 &lt;&lt; growth.pdeg(g)) - 1)
+                for g in mf)
+    return clock, oddt
+
+
+<span id="admissible"></span>def admissible(st, mf):
+    new = dict(st)
+    for g, a in mf.items():
+        new[g] = new.get(g, 0) + a
+    return f2_lam(new) != f2_lam(st)
+
+
+MONICS = {}
+
+
+<span id="monics_upto"></span>def monics_upto(d):
+    if d not in MONICS:
+        MONICS[d] = [(m, places(m)) for m in range(2, 1 &lt;&lt; (d + 1))]
+    return MONICS[d]
+
+
+<span id="f2_step"></span>def f2_step(st, D, beta, rng):
+    """One restricted thermal move by the two tests (F3); None
+    at a halt."""
+    cl = clock_of(st)
+    menu = [(m, mf) for m, mf in monics_upto(D)
+            if any(tests(st, mf, cl))]
+    if not menu:
+        return None
+    wts = [2.0 ** (-beta * growth.pdeg(m)) for m, _ in menu]
+    m, mf = rng.choices(menu, wts)[0]
+    new = dict(st)
+    for g, a in mf.items():
+        new[g] = new.get(g, 0) + a
+    return new
+
+
+<span id="section_f"></span>def section_f():
+    section("F  OVER F_2[x]")
+    cnt = all(necklace(d) == len(growth.IRR[d]) for d in range(1, 11))
+    check("F1 the necklace counts equal the sieve at degrees 1 to 10", cnt)
+    for b in BETAS:
+        # 1 - 2^(-beta d) rounds to 1.0 once beta d &gt; 53, so the factor is
+        # taken through log1p: I(d) of them is near exp(-2^(-d)/d).
+        prod = math.exp(sum(necklace(d) * math.log1p(-2.0 ** (-b * d))
+                            for d in range(1, 41)))
+        r = 2 ** (1 - b)
+        rest = sum(2.0 ** ((1 - b) * d) for d in range(41, 400))
+        ok = prod * (1 - rest) - 1e-12 &lt;= 1 - r &lt;= prod + 1e-12
+        print(f"  beta {b}: Euler product {prod:.12f}, 1 - 2^(1-beta) "
+              f"{1 - r:.12f}")
+        check(f"F1 the crystal probability at beta {b} is 1 - 2^(1-beta)",
+              ok)
+
+    bad = 0
+    for N in range(2, 1 &lt;&lt; 7):
+        LN = growth.lam_f2(N)
+        for s in range(2, 1 &lt;&lt; 7):
+            if growth.lam_f2(growth.pmul(N, s)) % LN:
+                bad += 1
+    check("F2 lambda(N) | lambda(Ns) on every pair of monics of degree "
+          "1 to 6", bad == 0, f"{bad} violations")
+
+    rng = random.Random(10)
+    battery = [{}, {2: 2}, {2: 5}, {3: 1}, {2: 3, 3: 2}, {7: 1, 2: 1},
+               {11: 1, 2: 9}, {2: 17, 7: 1, 13: 1}]
+    while len(battery) &lt; 20:
+        st, D = {2: 2}, 8
+        for _ in range(rng.randrange(2, 9)):
+            nxt = f2_step(st, D, 2.0, rng)
+            if nxt is None:
+                break
+            st = nxt
+        battery.append(st)
+    bad3 = badu = 0
+    for st in battery:
+        adm = {}
+        for m, mf in monics_upto(9):
+            a = admissible(st, mf)
+            adm[m] = a
+            if a != any(tests(st, mf)):
+                bad3 += 1
+        for m, _ in monics_upto(9):
+            if adm[m]:
+                for s in range(2, 1 &lt;&lt; (10 - growth.pdeg(m))):
+                    mm = growth.pmul(m, s)
+                    if mm in adm and not adm[mm]:
+                        badu += 1
+    check("F3 admissible iff the clock or the odd test passes, 20 "
+          "states x every monic of degree &lt;= 9", bad3 == 0,
+          f"{bad3} violations")
+    check("F4 the admissible set is upward-closed there", badu == 0,
+          f"{badu} violations")
+
+    bad5 = 0
+    for mask in range(1 &lt;&lt; 12):
+        S = [d for d in range(1, 13) if mask &gt;&gt; (d - 1) &amp; 1]
+        L = 1
+        for d in S:
+            x = (1 &lt;&lt; d) - 1
+            L = L // gcd(L, x) * x
+        for d in range(2, 15):
+            if (L % ((1 &lt;&lt; d) - 1) == 0) != any(e % d == 0 for e in S):
+                bad5 += 1
+    check("F5 2^d - 1 | lcm(2^d' - 1 : d' in S) iff d | some d', every "
+          "S in {1..12}, d = 2..14", bad5 == 0, f"{bad5} violations")
+
+    rng = random.Random(11)
+    halted = runs = led = bud = 0
+    table = {}
+    for D in (4, 6, 8, 10):
+        for b in BETAS:
+            for _ in range(50):
+                st = {2: 2}
+                L0 = f2_lam(st)
+                c0 = (L0 &amp; -L0).bit_length() - 1
+                deg0 = 2
+                T = 0
+                while T &lt; 500:
+                    nxt = f2_step(st, D, b, rng)
+                    if nxt is None:
+                        break
+                    st = nxt
+                    T += 1
+                runs += 1
+                L = f2_lam(st)
+                c = (L &amp; -L).bit_length() - 1
+                halted += T &lt; 500
+                led += T &lt;= (D - 1) + (c - c0)
+                bud += (1 &lt;&lt; max(c - 1, 0)) &lt; deg0 + D * T or c == 0
+                table.setdefault(D, []).append((T, c))
+    for D, rows in table.items():
+        Ts = [t for t, _ in rows]
+        cs = [c for _, c in rows]
+        print(f"  D = {D:2d}: halt move {min(Ts)}..{max(Ts)}, halt clock "
+              f"{min(cs)}..{max(cs)}")
+    check("F6 every restricted run halts", halted == runs,
+          f"{halted}/{runs}")
+    check("F6 T &lt;= (D - 1) + (c_T - c_0) and 2^(c_T - 1) &lt; deg M_0 + D T "
+          "on every run", led == runs and bud == runs)
+
+    rng = random.Random(12)
+    s64 = list(range(2, 65))
+    F64 = {m: fac(m) for m in s64}
+    alive = two_ok = 0
+    for _ in range(50):
+        f = {2: 8}
+        ok2 = True
+        died = False
+        for _ in range(200):
+            L = lam_of(f)
+            menu = [m for m in s64 if lam_of(mul(f, F64[m])) != L]
+            if 2 not in menu:
+                ok2 = False
+            if not menu:
+                died = True
+                break
+            m = rng.choices(menu, [m ** -2.0 for m in menu])[0]
+            f = mul(f, F64[m])
+        alive += not died
+        two_ok += ok2
+    print(f"  Z, restricted to m &lt;= 64 from 2^8: {alive}/50 alive after 200 "
+          f"moves, 2 admissible throughout in {two_ok}/50")
+    check("F7 over Z no restricted run halts and 2 stays "
+          "admissible", alive == 50 and two_ok == 50)
+
+    rng = random.Random(13)
+    opens = 0
+    for _ in range(100):
+        st = {2: 2}
+        while True:
+            nxt = f2_step(st, 10, 2.0, rng)
+            if nxt is None:
+                break
+            st = nxt
+        opens += 3 in st
+    print(f"  x + 1 opens in {opens}/100 runs (D = 10, beta 2, from x^2)")
+    check("F8 x + 1 opens in at least 90 of 100 runs", opens &gt;= 90)
+
+
+<span id="f2_menu"></span>def f2_menu(st, D):
+    cl = clock_of(st)
+    return [(m, mf) for m, mf in monics_upto(D) if any(tests(st, mf, cl))]
+
+
+<span id="f2_bill"></span>def f2_bill(st, D):
+    """The bill formula (12): the cheapest revival as (cost, g, j)."""
+    c = clock_of(st)[0]
+    best = None
+    for d in range(1, D + 1):
+        for g in growth.IRR[d]:
+            j = (1 &lt;&lt; c) + 1 - D // d - st.get(g, 0)
+            if best is None or (d * j, d, g) &lt; best[:3]:
+                best = (d * j, d, g, j)
+    return best[0], best[2], best[3]
+
+
+<span id="section_b"></span>def section_b():
+    section("B  THE BILL OVER F_2[x]")
+    rng = random.Random(14)
+    dead = []
+    for D in (4, 6, 8, 10):
+        for _ in range(10):
+            st = {2: 2}
+            while True:
+                nxt = f2_step(st, D, 2.0, rng)
+                if nxt is None:
+                    break
+                st = nxt
+            dead.append((D, st))
+    bad_a = brute = 0
+    for D, st in dead:
+        cost, g, j = f2_bill(st, D)
+        revived = dict(st)
+        revived[g] = revived.get(g, 0) + j
+        bad_a += j &lt; 1 or not f2_menu(revived, D)
+        if D &gt; 6 or cost &gt; 10:
+            continue
+        brute += 1
+        for m, mf in monics_upto(cost - 1):
+            new = dict(st)
+            for h, a in mf.items():
+                new[h] = new.get(h, 0) + a
+            bad_a += bool(f2_menu(new, D))
+    check(f"B1 the bill formula: the least reviving degree, {len(dead)} "
+          f"halted states, {brute} against every smaller monic",
+          bad_a == 0, f"{bad_a} violations")
+    bad_b = late = led0 = 0
+    shown = set()
+    for D, st in dead:
+        st = dict(st)
+        bills, led, first = [], False, None
+        for k in range(6):
+            c = clock_of(st)[0]
+            cost, g, j = f2_bill(st, D)
+            if led:
+                bad_b += not (growth.pdeg(g) == 1 and D &lt; (1 &lt;&lt; c))
+                bad_b += cost != (1 &lt;&lt; (c - 1)) - D
+                if len(bills) &gt; first + 1:
+                    bad_b += cost != 2 * bills[-1] + D
+            bills.append(cost)
+            st[g] = st.get(g, 0) + j
+            menu = f2_menu(st, D)
+            one = growth.pdeg(g) == 1 and D &lt; (1 &lt;&lt; c)
+            odd0 = clock_of(st)[1]
+            m, mf = menu[0]
+            for h, a in mf.items():
+                st[h] = st.get(h, 0) + a
+            if one:
+                bad_b += (len(menu) != 1 or mf != {g: D}
+                          or clock_of(st) != (c + 1, odd0)
+                          or bool(f2_menu(st, D)))
+                if first is None:
+                    first = k
+                led = True
+            else:
+                while True:
+                    nxt = f2_menu(st, D)
+                    if not nxt:
+                        break
+                    for h, a in nxt[0][1].items():
+                        st[h] = st.get(h, 0) + a
+        late += first is None or first &gt; 1
+        led0 += first == 0
+        if D not in shown:
+            shown.add(D)
+            print(f"  D = {D}: bills {bills}, first degree-1 revival at "
+                  f"{first}")
+        if D == 6 and bills[:5] == [2, 10, 26, 58, 122]:
+            shown.add("rec")
+    print(f"  runs led by a degree-1 place from their first revival: "
+          f"{led0} of {len(dead)}; whose first degree-1 revival came after "
+          f"the second: {late}; the bills 2, 10, 26, 58, 122 seen at "
+          f"D = 6: {'rec' in shown}")
+    check("B2 after a degree-1 revival: degree-1 led, one move g^D, the "
+          "clock up by one, the odd part held, halted again, bill "
+          "2^(c-1) - D at clock c, bill' = 2 bill + D",
+          bad_b == 0, f"{bad_b} violations")
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_c()
+    if not all(CHECKS):
+        print("\na control failed: no verdict is read")
+        raise SystemExit(1)
+    section_z()
+    section_i()
+    section_f()
+    section_b()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/thermal.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

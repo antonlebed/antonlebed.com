@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>clock.py | Numbers read one place at a time</title>
+<meta name="description" content="clock.py">
+<link rel="alternate" type="text/x-python" href="/code/clock.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>clock.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/clock/#the-ladder-is-ψs-orbit-save-a-head-at-the-bend">CLOCK: The ladder is ψ's orbit, save a head at the bend</a> (theorem); <a href="/clock/#the-head-criterion">CLOCK: The head criterion</a> (criterion); <a href="/clock/#the-width">CLOCK: The width</a> (theorem); <a href="/clock/#the-two-numbers">CLOCK: The two numbers</a> (theorem).</p><p>Cited on: <a href="/clock/">CLOCK</a>.</p><p>To run it: <a href="/code/module_law.py">module_law.py</a> beside it; standard library only.</p></div>
+<pre>"""clock.py -- what one place charges a growth walk: the tick ladder of a
+place of a Dedekind ring with finite residue field, read as the orbit of
+one map, with one overshoot and one number beside it.
+
+QUESTION. A growth walk raising lambda pays, at a place P, the norm of
+the least climb in depth that raises lambda's p-part: N(P)^r at door r
+(module_law.py). The depths where that p-part jumps are the place's TICK
+LADDER. module_law.py proves the ladder's tail: past a threshold it
+steps by e in mixed characteristic, and it is the powers of p in equal
+characteristic. What is the WHOLE ladder, head included? Is it the orbit
+of the level map psi(i) = min(p i, i + e) from level 1, so that one map
+prices every tick a place ever charges, and if not, what else does a
+place hand the walk?
+
+THE OBJECTS. K is the completion of the ring at P, a complete discrete
+valuation field with residue field F_q, q = p^f, ramification index e
+over p (e is infinite in equal characteristic, where p = 0 in K), pi a
+uniformizer, U_i = 1 + pi^i O_K. E(a) is the exponent of U_1/U_a, a
+power of p, and lambda(P^a) = (q - 1) E(a) (module_law.py). The LADDER
+is the set of depths a &gt;= 1 with E(a + 1) &gt; E(a). The BEND is
+s = e/(p - 1). Write p = u pi^e with u a unit and u_bar its residue.
+psi(i) = min(p i, i + e) (p i when e is infinite); for i &lt; s it is p i,
+for i &gt; s it is i + e.
+
+THE ARGUMENT (written before the engine).
+  (1) THE LEVEL STEP. Let z be in U_i but not U_(i+1), z = 1 + x,
+      v(x) = i. In (1 + x)^p - 1 = p x + sum_(1&lt;j&lt;p) C(p, j) x^j + x^p
+      the middle terms have valuation at least e + 2i &gt; e + i, the
+      term p x has valuation e + i and x^p has p i. So v(z^p - 1) =
+      psi(i) WHENEVER i != s, and v(z^p - 1) &gt;= p s = s + e when
+      i = s (only possible when (p - 1) | e). At i = s write x = c pi^s
+      + (deeper); the coefficient of pi^(ps) in z^p - 1 is
+      c^p + u_bar c in F_q. The map c -&gt; c^p + u_bar c is additive on
+      F_q, with kernel of size 1 or p (the roots of c^(p-1) = -u_bar,
+      with 0). A class at the bend overshoots iff its c is in the
+      kernel.
+  (2) A LEVEL-1 UNIT ATTAINS THE EXPONENT. U_1/U_a is an abelian
+      p-group, so its exponent is the largest order of an element. If y
+      has the largest order p^k and v(y - 1) &gt; 1, take any z with
+      v(z - 1) = 1: if z's order is below p^k then z y has order p^k and
+      v(z y - 1) = 1. So E(a) = max over units z with v(z - 1) = 1 of
+      the order of z in U_1/U_a, which is p^(k_z(a)) with
+      k_z(a) = least k having t_k(z) &gt;= a, t_k(z) = v(z^(p^k) - 1).
+  (3) THE TRAJECTORY OF A LEVEL-1 UNIT. t_0 = 1 and, by (1), t_(k+1) =
+      psi(t_k) at every k with t_k != s. The orbit of 1 below the bend
+      is 1, p, p^2, ..., so the trajectory meets the bend iff s = p^n
+      for some n &gt;= 0, i.e. e = (p - 1) p^n. Otherwise every level-1
+      unit has the one trajectory psi^k(1), k(a) is the least k with
+      psi^k(1) &gt;= a, and E(a + 1) &gt; E(a) iff a is on the orbit: THE
+      LADDER IS THE ORBIT OF 1 UNDER psi. When s = p^n every level-1
+      unit reaches the bend at step n, with bend coefficient c^(p^n),
+      c its level-1 coefficient; as c runs over F_q^x so does c^(p^n).
+      Put A = the least t_(n+1)(z) over level-1 units z, the ARRIVAL,
+      and w = A - s - e &gt;= 0, the WIDTH. Past the bend every step is
+      + e exactly, so the slowest level-1 unit is one attaining A
+      (trajectories past the bend never cross: they add e each step),
+      and THE LADDER IS 1, p, ..., p^n, A, A + e, A + 2e, ... .
+  (4) THE HEAD CRITERION. w &gt;= 1 iff EVERY bend coefficient c^(p^n),
+      c != 0, lies in the kernel of (1), i.e. the kernel is all of F_q,
+      which needs q - 1 &lt;= p - 1, so f = 1, and then c^p = c on F_p
+      makes the map c (1 + u_bar), zero iff u_bar = -1. So:
+          w &gt;= 1  iff  f = 1, e = (p - 1) p^n, and u_bar = -1.
+      Given (p - 1) | e, the third clause is the statement that -u_bar
+      is a (p - 1)-th power in F_p, which is mu_p inside K (K contains
+      mu_p iff it contains a (p - 1)-th root of -p, since
+      Q_p(zeta_p) = Q_p((-p)^(1/(p - 1))), and a unit is a (p - 1)-th
+      power iff its residue is, p - 1 being prime to p). Its e are the
+      ramification indices of Q_p(zeta_(p^(n+1))).
+  (5) THE TWO NUMBERS. The gap at a landing depth a (one past a ladder
+      member) is next(a) + 1 - a with next(a) the least member &gt;= a.
+      Along the ladder the gaps are p^j (p - 1) below the bend, each
+      less than e; at most e at the step crossing it; e + w at the one
+      splice p^n -&gt; A; e forever after.
+      So the sup of the gaps a walk can land on is e + w, the tail
+      gap is e, and nothing else of the ladder varies: a place hands
+      the walk (p, e, f) and the one number w. In equal characteristic
+      e is infinite and psi(i) = p i: the orbit is the powers of p,
+      module_law.py's log clock, and there is no bend.
+  Tier, if the engine agrees: (1)-(3) and (5) are a theorem, (4) a
+  criterion; w's VALUES are observations per place.
+
+DESIGN. Standard library only; one process. The local rings are
+module_law.py's (O_K = Z_p[x]/(g), g Eisenstein or irreducible mod p;
+E by the generators 1 + (a residue lift) pi^i, controlled there
+against the whole group). For an Eisenstein g = x^n + ... + c_0, pi^n = -c_0 (1 + ...),
+so u_bar = -(c_0/p)^(-1) mod p and u_bar = -1 iff c_0/p = 1 mod p; at
+Z_p (unramified, n = 1) u_bar = 1.
+  C  POSITIVE CONTROL, before any verdict: (a) at every place and every
+     a with q^(a-1) &lt;= 20,000, E(a) by generators against the whole of
+     U_1/U_a; (b) at the same (place, a), (2)'s claim: the largest
+     order among units with v(z - 1) = 1 equals E(a).
+  L  THE LADDER at each place to depth D = ceil(s) + 5e + 8 (D &gt;= 12):
+     the measured ladder against (3)'s prediction. Where s is not a
+     p-power, the ladder must equal psi's orbit of 1 below D. Where
+     s = p^n, the ladder must begin 1, p, ..., p^n, its next member A
+     is READ, and every later member below D must be A + je.
+  H  THE HEAD: w = A - s - e &gt;= 1 exactly at the places the criterion
+     of (4) names, and w = 0 at every other place with s = p^n.
+  W  THE WIDTH VALUES, printed per place.
+  Q  EQUAL CHARACTERISTIC: F_2, F_3, F_4, F_9 [[t]] ladders to depth
+     40 are the powers of p (the orbit of psi with e infinite).
+  The places, g low degree first (32 of them):
+     p = 2: Z_2; unramified of degree 2 and 3; x^2 + 2, x^2 - 2,
+       x^2 - 2x + 2 (Q_2(i), i = sqrt -1 in a field's name),
+       x^2 - 2x + 6 (Q_2(sqrt -5)),
+       x^2 + 2x - 2 (Q_2(sqrt 3), the field of sqrt -5 again, since
+       -15 is a square in Q_2), x^2 - 10, x^2 + 10, x^3 + 2, x^4 - 2,
+       x^4 + 2, x^6 - 2, x^8 - 2; with x^2 + 2, x^2 - 2 and Q_2(i)
+       these are all six ramified quadratic fields over Q_2;
+     p = 3: Z_3; unramified of degree 2; x^2 + 3, x^2 - 3, x^2 - 6,
+       x^3 + 3, x^4 - 3, x^6 - 3, x^6 + 3;
+     p = 5: Z_5; x^2 + 5, x^4 + 5, x^4 - 5, x^4 + 10;
+     p = 7: x^2 + 7, x^6 + 7, x^6 - 7.
+
+PREDICTIONS, fixed before the run.
+  C  (a) and (b) hold at every tested (place, a).
+  L  every ladder is (3)'s shape to depth D at all 32 places.
+  H  heads (w &gt;= 1) at exactly: Z_2, the ten Eisenstein places over
+     2 with e in {2, 4, 8}, x^2 + 3, x^2 - 6, x^6 + 3, x^4 + 5, x^6 + 7
+     (16 places). The bend is a p-power and there is no head at: the
+     unramified places over 2 (f &gt;= 2, s = 1), x^6 - 3, x^4 - 5,
+     x^4 + 10, x^6 - 7, x^2 - 3.
+  W  TRANSPLANTED from the records this script replaces: w = 1 at Z_2,
+     x^2 + 2, x^2 - 2 and x^2 + 3; 2 at Q_2(sqrt -5) and x^4 - 2; 3 at
+     Q_2(i); 4 at x^8 - 2. Q_2(sqrt 3): 2, since K(i)/K is unramified
+     there and at e = 2 over Q_2 the width is 1, 2, 3 as K(i)/K is
+     ramified, unramified or split (also a transplant); by the same
+     rule 1 at x^2 - 10 and x^2 + 10, where K(i) = K(sqrt -d) is
+     ramified. x^2 - 6 at 3 is the field of x^2 + 3, so 1. The rest
+     are read.
+  Q  the powers of p, at all four.
+KILLS, as printed observables: any C line off (the instrument fails); any
+place whose measured ladder parts from (3)'s shape below D, or any place
+with w &gt;= 1 outside (4)'s list or w = 0 inside it (the argument fails).
+A width value off its transplant is a finding to read, never a kill: the
+argument does not fix w.
+
+FINDINGS. Every prediction landed: 40/40 checks PASS, no kill fired.
+  C  generators against the whole group at 346 (place, a), 0 off; a
+     unit of level exactly 1 attains E(a) at the same 346, 0 off.
+  L  all 32 ladders have the argument's shape to depth D (14 to 56).
+     Where s is not a p-power the ladder is psi's orbit: 1, 2, 4, 7,
+     10, ... at x^3 + 2; 1, 2, 4, 8, 14, 20, ... at x^6 - 2, where
+     psi(4) = 8 is still the multiplying branch and the next step is
+     + 6. Where s = p^n it is 1, ..., p^n, A, A + e, ...: 1, 2, 7, 9,
+     ... at Q_2(i); 1, 2, 4, 8, 20, 28, ... at x^8 - 2; 1, 3, 12, 18,
+     ... at x^6 + 3.
+  H  heads at exactly the sixteen places of the criterion; the bend a
+     p-power and no head at the seven others: both unramified places
+     over 2 (f = 2, 3), x^2 - 3, x^6 - 3, x^4 - 5, x^4 + 10, x^6 - 7.
+  W  w = 1 at Z_2, x^2 + 2, x^2 - 2, x^2 - 10, x^2 + 10, x^2 + 3,
+     x^2 - 6, x^4 + 5, x^6 + 7; 2 at Q_2(sqrt -5), Q_2(sqrt 3), x^4 - 2,
+     x^4 + 2; 3 at Q_2(i) and x^6 + 3; 4 at x^8 - 2. Every transplant
+     landed; Q_2(sqrt 3) and Q_2(sqrt -5), one field under two
+     polynomials, agree. Over the six ramified quadratic fields of Q_2
+     the width is 1, 2, 3 as K(i)/K is ramified (four fields),
+     unramified (sqrt -5) or trivial (Q_2(i)).
+  Q  the ladder is 1, 2, 4, 8, 16, 32 over F_2 and F_4, and 1, 3, 9, 27
+     over F_3 and F_9.
+  Tiers: the ladder theorem (1)-(3) and the two numbers (5) are a
+  theorem, the head criterion (4) a criterion, their proofs the
+  argument above; the widths are observations per place, and at e = 2
+  over Q_2 a rule, exhaustive over the six fields (since proved at
+  every head: tame.py at odd p, wild.py at 2 for e &gt;= 2).
+
+RUN RECORD. 40/40, 25.3 s wall, 9.0 MB peak commit under a memory guard.
+After the run the Kummer level e/(p - 1) was renamed the BEND, the least
+level p-th powers of level-1 units reach past it the ARRIVAL A, and the
+exponent of the bend n, to keep seat, L and T free for the seated
+places, the invariant lambda and the tick; the rerun printed the same
+40/40 and no number moved.
+"""
+
+from math import ceil
+
+from module_law import Local, LocalEq, check, section, CHECKS
+
+LIMIT = 20000
+
+PLACES = [
+    Local(2, [0, 1], "unr", "Z_2"),
+    Local(2, [1, 1, 1], "unr", "unramified f=2 at 2"),
+    Local(2, [1, 1, 0, 1], "unr", "unramified f=3 at 2"),
+    Local(2, [2, 0, 1], "eis", "x^2 + 2"),
+    Local(2, [-2, 0, 1], "eis", "x^2 - 2"),
+    Local(2, [2, -2, 1], "eis", "Q_2(i)"),
+    Local(2, [6, -2, 1], "eis", "Q_2(sqrt -5)"),
+    Local(2, [-2, 2, 1], "eis", "Q_2(sqrt 3)"),
+    Local(2, [-10, 0, 1], "eis", "x^2 - 10"),
+    Local(2, [10, 0, 1], "eis", "x^2 + 10"),
+    Local(2, [2, 0, 0, 1], "eis", "x^3 + 2"),
+    Local(2, [-2, 0, 0, 0, 1], "eis", "x^4 - 2"),
+    Local(2, [2, 0, 0, 0, 1], "eis", "x^4 + 2"),
+    Local(2, [-2, 0, 0, 0, 0, 0, 1], "eis", "x^6 - 2"),
+    Local(2, [-2] + [0] * 7 + [1], "eis", "x^8 - 2"),
+    Local(3, [0, 1], "unr", "Z_3"),
+    Local(3, [1, 0, 1], "unr", "unramified f=2 at 3"),
+    Local(3, [3, 0, 1], "eis", "x^2 + 3"),
+    Local(3, [-3, 0, 1], "eis", "x^2 - 3"),
+    Local(3, [-6, 0, 1], "eis", "x^2 - 6"),
+    Local(3, [3, 0, 0, 1], "eis", "x^3 + 3"),
+    Local(3, [-3, 0, 0, 0, 1], "eis", "x^4 - 3"),
+    Local(3, [-3, 0, 0, 0, 0, 0, 1], "eis", "x^6 - 3"),
+    Local(3, [3, 0, 0, 0, 0, 0, 1], "eis", "x^6 + 3"),
+    Local(5, [0, 1], "unr", "Z_5"),
+    Local(5, [5, 0, 1], "eis", "x^2 + 5"),
+    Local(5, [5, 0, 0, 0, 1], "eis", "x^4 + 5"),
+    Local(5, [-5, 0, 0, 0, 1], "eis", "x^4 - 5"),
+    Local(5, [10, 0, 0, 0, 1], "eis", "x^4 + 10"),
+    Local(7, [7, 0, 1], "eis", "x^2 + 7"),
+    Local(7, [7, 0, 0, 0, 0, 0, 1], "eis", "x^6 + 7"),
+    Local(7, [-7, 0, 0, 0, 0, 0, 1], "eis", "x^6 - 7"),
+]
+EQUAL = [
+    LocalEq(2, [0, 1], "F_2[[t]]"),
+    LocalEq(3, [0, 1], "F_3[[t]]"),
+    LocalEq(2, [1, 1, 1], "F_4[[t]]"),
+    LocalEq(3, [1, 0, 1], "F_9[[t]]"),
+]
+HEADS = {"Z_2", "x^2 + 2", "x^2 - 2", "Q_2(i)", "Q_2(sqrt -5)",
+         "Q_2(sqrt 3)", "x^2 - 10", "x^2 + 10", "x^4 - 2", "x^4 + 2",
+         "x^8 - 2", "x^2 + 3", "x^2 - 6", "x^6 + 3", "x^4 + 5", "x^6 + 7"}
+WIDTH = {"Z_2": 1, "x^2 + 2": 1, "x^2 - 2": 1, "x^2 + 3": 1,
+         "Q_2(sqrt -5)": 2, "x^4 - 2": 2, "Q_2(i)": 3, "x^8 - 2": 4,
+         "Q_2(sqrt 3)": 2, "x^2 - 6": 1, "x^2 - 10": 1, "x^2 + 10": 1}
+
+
+<span id="bend_power"></span>def bend_power(loc):
+    """n with e = (p - 1) p^n, or None."""
+    e, p = loc.e, loc.p
+    if e % (p - 1):
+        return None
+    s, n = e // (p - 1), 0
+    while s % p == 0:
+        s //= p
+        n += 1
+    return n if s == 1 else None
+
+
+<span id="u_bar_is_minus_one"></span>def u_bar_is_minus_one(loc):
+    if loc.kind == "unr":
+        return loc.p == 2
+    return (loc.g[0] // loc.p) % loc.p == 1
+
+
+<span id="criterion"></span>def criterion(loc):
+    return (loc.f == 1 and bend_power(loc) is not None
+            and u_bar_is_minus_one(loc))
+
+
+<span id="psi"></span>def psi(loc, i):
+    return min(loc.p * i, i + loc.e)
+
+
+<span id="depth"></span>def depth(loc):
+    return max(12, -(-loc.e // (loc.p - 1)) + 5 * loc.e + 8)
+
+
+<span id="ladder"></span>def ladder(loc, D):
+    E = [None] + [loc.E_gen(a) for a in range(1, D + 2)]
+    return [a for a in range(1, D + 1) if E[a + 1] &gt; E[a]]
+
+
+<span id="orbit"></span>def orbit(loc, D):
+    out, i = [], 1
+    while i &lt;= D:
+        out.append(i)
+        i = psi(loc, i)
+    return out
+
+
+<span id="section_control"></span>def section_control():
+    section("C  POSITIVE CONTROL: generators, the whole group, level 1")
+    tested = bad_a = bad_b = 0
+    for loc in PLACES:
+        a = 1
+        while loc.q ** (a - 1) &lt;= LIMIT:
+            tested += 1
+            full = loc.E_full(a)
+            bad_a += full != loc.E_gen(a)
+            N = loc.prec(a)
+            lvl1 = [z for z in loc.reps(a, False)
+                    if loc.val([z[0] - 1] + z[1:], N) == 1]
+            best = max(loc.order_exp(z, a, N) for z in lvl1) if lvl1 else 0
+            bad_b += loc.p ** best != full
+            a += 1
+    check("C(a) E(a) by generators = E(a) over the whole of U_1/U_a",
+          bad_a == 0, f"{tested} (place, a), {bad_a} off")
+    check("C(b) a unit of level exactly 1 attains E(a)",
+          bad_b == 0, f"{tested} (place, a), {bad_b} off")
+
+
+<span id="section_ladder"></span>def section_ladder():
+    section("L  THE LADDER: psi's orbit of 1, one overshoot at the bend")
+    rows = {}
+    for loc in PLACES:
+        D = depth(loc)
+        lad = ladder(loc, D)
+        n = bend_power(loc)
+        if n is None:
+            ok, w = lad == orbit(loc, D), None
+        else:
+            s = loc.e // (loc.p - 1)
+            head = [loc.p ** j for j in range(n + 1)]
+            ok = lad[:n + 1] == head and len(lad) &gt; n + 1
+            if ok:
+                A = lad[n + 1]
+                w = A - s - loc.e
+                ok = w &gt;= 0 and lad[n + 1:] == list(range(A, D + 1, loc.e))
+            else:
+                w = None
+        rows[loc.name] = (ok, n, w)
+        print(f"  {loc.name:20s} p={loc.p} e={loc.e} f={loc.f} "
+              f"n={n} D={D} w={w} ladder {lad[:9]}"
+              f"{' ...' if len(lad) &gt; 9 else ''}")
+        check(f"L {loc.name}: the ladder has (3)'s shape to depth {D}", ok)
+    return rows
+
+
+<span id="section_head"></span>def section_head(rows):
+    section("H  THE HEAD CRITERION: w &gt;= 1 iff f = 1, e = (p-1)p^n, "
+            "u_bar = -1")
+    got = {n for n, (ok, _, w) in rows.items() if w}
+    by_crit = {loc.name for loc in PLACES if criterion(loc)}
+    zero = sorted(n for n, (ok, _, w) in rows.items() if w == 0)
+    print(f"  heads measured: {len(got)}; by the criterion: {len(by_crit)}")
+    print(f"  bend a p-power, no head: {zero}")
+    check("H the measured heads are exactly the criterion's places",
+          got == by_crit, f"off: {sorted(got ^ by_crit)}")
+    check("H the criterion's places are the slate's sixteen",
+          by_crit == HEADS, f"off: {sorted(by_crit ^ HEADS)}")
+
+
+<span id="section_width"></span>def section_width(rows):
+    section("W  THE WIDTH VALUES")
+    for n, (ok, _, w) in rows.items():
+        if w:
+            note = WIDTH.get(n)
+            print(f"  {n:20s} w = {w}"
+                  + ("" if note is None else
+                     f"   (transplant {note}{'' if note == w else ' OFF'})"))
+    off = {n: rows[n][2] for n in WIDTH if rows[n][2] != WIDTH[n]}
+    print(f"  widths off their transplant: {off}")
+
+
+<span id="section_equal"></span>def section_equal():
+    section("Q  EQUAL CHARACTERISTIC: the orbit of p i")
+    for loc in EQUAL:
+        E = [None] + [loc.E_gen(a) for a in range(1, 42)]
+        lad = [a for a in range(1, 41) if E[a + 1] &gt; E[a]]
+        pw = [loc.p ** j for j in range(8) if loc.p ** j &lt;= 40]
+        print(f"  {loc.name:9s} ladder {lad}")
+        check(f"Q {loc.name}: the ladder is the powers of p to 40",
+              lad == pw)
+
+
+<span id="main"></span>def main():
+    section_control()
+    if not all(CHECKS):
+        print("  control failed: run stopped")
+        raise SystemExit(1)
+    rows = section_ladder()
+    section_head(rows)
+    section_width(rows)
+    section_equal()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/clock.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

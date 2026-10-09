@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>audit.py | Numbers read one place at a time</title>
+<meta name="description" content="audit.py">
+<link rel="alternate" type="text/x-python" href="/code/audit.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>audit.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/ruler/#the-sign-law-of-a-stated-interval">RULER: The sign law of a stated interval</a> (property); <a href="/ruler/#the-audit-world-and-its-two-roots">RULER: The audit world and its two roots</a> (property); <a href="/ruler/#the-flip-is-the-sign-of-one-scalar">RULER: The flip is the sign of one scalar</a> (theorem; observation); <a href="/ruler/#the-audits-band-counts-one-sample-of-three">RULER: The audit's band counts one sample of three</a> (observation).</p><p>Cited on: <a href="/ruler/">RULER</a>.</p><p>To run it: no other script; needs numpy.</p></div>
+<pre>"""audit.py -- one published deletion audit's estimator read root by
+root against a target known exactly: where its answer comes from, when
+it lands on the wrong side of one half, and what a statement built on
+its resamples can and cannot say when the target is not identified.
+
+QUESTION. A mixture-proportion deletion audit (Statistical Membership
+Inference, arXiv:2602.01150v2, Proposition 3.1, Lemma 3.2 and
+Algorithm 1, read at source) models the audited feature distribution
+as F_u = kappa F_out + (1 - kappa) F_in, F_in the member class and F_out the
+non-member class, and reports kappa, the FORGETTING RATE. For a scalar
+feature, with
+    d = mu_out - mu_in,  B = d^2,  A = var_u - var_in,
+    G = var_out - var_in + B,
+it returns the minimizer of f(p) = (A - pG + p^2 B)^2 over the
+candidates {0, 1} and the critical points of f in [0, 1] -- the vertex
+v = G/(2B) and the real roots of B p^2 - G p + A. Only the audited
+set's VARIANCE is used, never its mean. Its stated uncertainty is the
+{5%, 95%} quantiles of the estimate over bootstrap resamples of the
+audited set, which the source names a reference range. What does the
+estimator's answer depend on, and what do statements built on its
+resamples cover?
+
+THE WORLDS.
+  DEPTH CELL (a, b). The depth column (forget.py): menu {2, 3} at
+  every state, the dated fiber (2^a 3^b, a + b), T = a + b, every
+  arrangement of a twos and b threes equally likely. The audited datum
+  is the first move; member class = first move 2, non-member = first
+  move 3. The FEATURE of a route is the number of 2-moves in the three
+  positions after the first. So
+      feat_in ~ HG(T - 1, a - 1, 3),  feat_out ~ HG(T - 1, a, 3),
+      feat_u ~ HG(T, a, 3)
+  (population, successes, draws), and the depth cell, unconditioned, is
+  the exact mixture of the two classes at weight kappa = b/T, whose
+  distance from 1/2 is the size of the count leak.
+  The audit's own modelling assumption holds exactly, and every moment
+  is a Fraction. Cells W2 = (12, 3), kappa = 1/5 and W3 = (2, 8), kappa = 4/5.
+  GAUSSIAN DIAL (kappa, gamma). F_in = N(0, 1), F_out = N(2, 1 + gamma), the
+  audited set a genuine kappa-mixture. d = 2, B = 4, G = gamma + 4.
+
+THE ARGUMENT (written before the engine).
+  (A) THE BRIDGE (property). For ANY two-class mixture,
+      var_u = kappa var_out + (1 - kappa) var_in + kappa (1 - kappa) d^2,
+      so A = kappa G - kappa^2 B identically: p = kappa is a root of the
+      population objective in every world, and the roots multiply to
+      A/B, so the other is p2 = A/(B kappa). On the dial
+      A = kappa gamma + 4 kappa (1 - kappa) and p2 = 1 - kappa + gamma/4:
+      EXACT at every gamma. Equal class variances (gamma = 0) give the
+      twin {kappa, 1 - kappa}; unequal ones slide the second root, which
+      leaves the box at gamma = 4 kappa and, for gamma &gt;= 0, never below
+      it. The box, not the data,
+      identifies. At the
+      depth cells, by hand: W2 A = -1017/63700, G = -45/637,
+      B = 9/196, p2 = -113/65; W3 A = 34/225, G = 5/18, B = 1/9,
+      p2 = 17/10. Both cells are IDENTIFIED.
+  (B) THE LEVEL SET (theorem). Write L(p) = G p - B p^2 for the
+      level the objective needs at p; f(p) = (A - L(p))^2, so the
+      estimate is the p in [0, 1] whose L(p) is nearest A-hat. If a
+      replicate's OWN vertex v lies outside [0, 1] (or B-hat = 0 with
+      G-hat != 0), L is strictly monotone on the box and the estimate
+      is the monotone continuous map clamp-then-invert of A-hat; so it
+      lies above 1/2 exactly when A-hat is past the HALF-BOX LEVEL
+          L(1/2) = G/2 - B/4
+      on the side where L takes its values for p &gt; 1/2: A-hat &lt; L(1/2)
+      when L decreases (v &lt;= 0), A-hat &gt; L(1/2) when it increases
+      (v &gt;= 1). The FLIP, the estimate nearer 1 - kappa than kappa, is that
+      event or its complement by the side of 1/2 the truth sits on. At
+      W2 (v = -0.769, kappa = 1/5) and W3 (v = 1.25, kappa = 4/5) both
+      reversals give flip &lt;=&gt; A-hat &lt; L(1/2). With G and B held at the
+      population the flip rate is Phi((L(1/2) - A)/sd(A-hat)), sd from
+      the exact fourth moments: W2 0.387, 0.283, 0.099 and W3 0.270,
+      0.111, 0.003 at n = 50, 200, 1000.
+  (C) INSIDE THE BOX (theorem). With B-hat &gt; 0 and v in [0, 1], L
+      is concave with maximum L(v), and the returned candidate decides:
+      (1) the vertex -- estimate v exactly, above 1/2 iff G-hat &gt; B-hat;
+      (2) an endpoint -- 0 or 1 exactly; (3) the one in-box root -- the
+      level set on that root's branch: on the falling branch (root &gt;=
+      v) above 1/2 iff A-hat &lt; L(1/2) when 1/2 &gt;= v, and always when
+      1/2 &lt; v; on the rising branch (root &lt;= v) above 1/2 iff A-hat &gt;
+      L(1/2) when 1/2 &lt;= v, and never when 1/2 &gt; v; (4) two in-box
+      roots -- both zero f exactly, and the winner is floating-point
+      residue and candidate order. On (1) and (2) the side of 1/2 is a
+      function of the two CLASS samples alone.
+  (D) NO ROOT IN THE BOX (the margin law, observation). A replicate
+      has an in-box root exactly when A-hat lies in the range of L over
+      [0, 1]; otherwise the tool returns a candidate with no root
+      behind it, silently. With G and B at the population the rate is
+      the two-tailed normal probability of A-hat leaving that range:
+      W2 range [G - B, 0] = [-0.1166, 0], W3 [0, 1/6], margins to the
+      near edge 0.0160 and 0.0156; hand rates W2 0.615, 0.413, 0.253
+      and W3 0.416, 0.317, 0.144. L(1/2) lies strictly inside the range
+      (1/2 is interior to the box), so the flip and the no-root event
+      are two cuts of one scalar and meet only beyond the far edge: a
+      flip is a ROOT drifting past 1/2, not the fallback.
+  (E) THE TANGENCY (property). For a {0, 1} feature with class rates
+      mu_in, mu_out and mu_u = kappa mu_out + (1 - kappa) mu_in,
+      var_out - var_in = d (1 - mu_out - mu_in), so
+      A - B kappa^2 = kappa d (1 - 2 mu_u): the two roots coincide at
+      kappa exactly when the audited set is balanced.
+      There the range's edge sits ON the population A, the margin is
+      zero, and a symmetric normal tail cannot describe the rate; the
+      margin law's scope is the non-tangent case.
+  (F) THE IDENTIFIED SET (the sign law's instance). Two one-sided
+      statements are built from the SAME resamples as the tool's band:
+      UPPER, the 95% quantile of the LARGEST in-box root (a resample
+      with no in-box root contributing the box top 1), and LOWER, the
+      5% quantile of the SMALLEST (no root: 0). The truth is always one
+      of the population roots, so reporting the root SET omits a term
+      of known sign: widening to the set can only enlarge. At gamma = 0
+      the pair should close on [1/5, 4/5], the span of the identified
+      set {1/5, 4/5}, and not on a point, the bound on the side of
+      the second root refusing to tighten and the other staying honest
+      while it tightens; with the root set pushed out of the box
+      (gamma = 2, p2 = 1.3) the same
+      statement contracts. Per trial UPPER &gt;= LOWER by construction
+      (the largest root's 95% quantile is at least the smallest's 5%),
+      so the pair is never wrong together: a tautology, printed only as
+      the engine's check on itself. The tool's own band, the {5%, 95%}
+      quantiles of the argmin, chooses a mode and has no such term.
+
+DESIGN. LEVEL: W2 and W3 at n in {50, 200, 1000}, R = 1000 fresh
+replicates each (member, non-member and audited samples of size n),
+no bootstrap; sample variances with ddof 1. Per replicate: A-hat,
+G-hat, B-hat, the estimate, the winning candidate's tag, whether any
+in-box root exists. BAND: cells DIAL(1/5, 0), DIAL(1/5, 2), the
+mirror DIAL(4/5, 0) (the roles of the two bounds should swap), W2 and
+W3, at n in {50, 200, 1000}, R = 200 replicates, BOOT = 200 resamples
+of the audited set, G and B held at the replicate's class values as
+the tool does. A replicate's arms: FIT (the tool's band, nominal 0.90),
+UPPER and LOWER (nominal 0.95 each). The estimator scores candidates
+in the order 0, 1, v, root+, root- and keeps the first strict
+improvement. One seed per (cell, n).
+
+PREDICTIONS (fixed before the engine).
+  P0 CONTROLS, read first. (i) The mixture identity var_u = kappa var_out +
+     (1 - kappa) var_in + kappa (1 - kappa) d^2 holds in Fraction at W2 and W3,
+     and the exact roots are {1/5, -113/65} and {4/5, 17/10}. (ii) The
+     dial's roots from the engine equal kappa and 1 - kappa + gamma/4 to
+     1e-12 at gamma in {0, 1/4, 1/2, 4/5, 1, 2}. (iii) The estimator at
+     the exact population coefficients returns kappa at W2 and W3 to
+     1e-12. (iv) 100,000 draws from each depth sampler recover the
+     exact class variances to 0.005. (v) A well-separated cell, F_in =
+     N(0, 1), F_out = N(3, 4), kappa = 0.3, n = 5000, returns kappa to 0.05.
+  P1 (B) Zero exceptions: on every LEVEL replicate whose own vertex is
+     outside the box (or B-hat = 0, G-hat != 0), the estimate's side of
+     1/2 is the derived one. The replicates set aside are counted.
+  P2 (C) Zero exceptions on cases (1)-(3) over the set-aside; at least
+     one replicate on each branch of case (3), so no hard-coded
+     direction can pass. Case (4) is counted, not scored.
+  P3 (B) At n in {200, 1000} the measured flip rate is within 4
+     standard errors of the hand rate of (B) at both cells (standard
+     error of a rate over R = 1000 at the hand value); n = 50 is
+     printed and weighed, G and B fluctuating hardest there.
+  P4 (D) At n in {200, 1000} the measured no-root rate is within 0.05
+     of (D)'s hand rate at both cells; n = 50 printed and weighed.
+     Among flipped replicates at n in {200, 1000}, the share whose
+     candidate is a root is at least 0.90.
+  P5 (E) A - B kappa^2 = kappa d (1 - 2 mu_u) in Fraction over mu_in, mu_out in
+     {1/10, ..., 9/10} and kappa in {1/10, ..., 9/10}.
+  P6 (F) At DIAL(1/5, 0), UPPER covers &gt;= 0.99 with mean slack above
+     kappa &gt;= 0.45 at every n, and LOWER covers &gt;= 0.90 (0.95 less 3
+     standard errors at R = 200) at every n with its slack falling
+     from n = 50 to 1000. At DIAL(4/5, 0) the same with UPPER and LOWER
+     exchanged.
+  P7 (F) At DIAL(1/5, 2) UPPER's mean slack falls below 0.10 at
+     n = 1000: the statement contracts where the target is identified.
+  P8 The tool's band at W2 and W3 covers at most 0.85 at every one of
+     the six rows, against its nominal 0.90.
+  Printed and weighed, not gated: the FIT band's coverage across the
+  dial; the two bounds at the depth cells, where the box end near the
+  truth is expected to cost the bound on that side.
+
+  P9 (frozen after the first run, before its engine: the band table
+     showed the tool's band and the near-side bound failing at the
+     IDENTIFIED depth cells, where no second root exists, so the term
+     it omits is not a root choice. The tool resamples the audited set
+     alone and holds var_in, G and B at the class samples' values, whose
+     noise enters D-hat at weights 1/2, 1/2 and 1/4.) A FIT3 arm, the
+     same {5%, 95%} quantiles with all three samples resampled, covers
+     above the tool's band at all six depth-cell rows and at least 0.85
+     at n = 1000 at both cells. Kill: FIT3 at or below FIT at half the
+     rows or more; the omitted class noise is then not the band's term.
+
+KILL. P0 off: the engine is broken, nothing is read. P1 or P2 off: the
+level-set law or its in-box replacement is false. P6's coverage off:
+the sign law does not survive non-identification. P7 off: the bound
+is valid by being empty.
+
+FINDINGS. No kill fired. One frozen prediction was wrong, and the
+error is the slate's: P3 held G and B at the population and read the
+spread of A-hat alone, which is how the level set was first derived
+and not how it acts. The event is the sign of ONE scalar at the
+replicate's own coefficients,
+    D-hat = A-hat - (G-hat/2 - B-hat/4)
+          = s_u^2 - s_in^2/2 - s_out^2/2 - dhat^2/4,
+the flip being D-hat &lt; 0 at both cells, and D-hat draws noise from all
+three samples. Its sd by the delta method from the exact moments (the
+third moments entering through cov(s^2, xbar) = mu3/n) is 0.0202 at W2,
+n = 1000, against 0.0240 for A-hat alone; the measured sd was 0.0198.
+So the frozen rate 0.100 at W2, n = 1000 sits 4.2 standard errors
+above the measured 0.060, and the D-law gives 0.063. P3 is gated on
+the D-law, added after the first run and marked as such; the frozen
+form is printed as a record and fails. At R = 1000 a rate reads to
+about 0.015, so the frozen number can meet a single run's rate to
+three decimals and still be the wrong law.
+  controls  exact roots -113/65 and 17/10 in Fraction; dial roots to
+            5.6e-17; the estimator at population coefficients returns
+            kappa to 1.1e-16; samplers to 0.0027; the separated cell 0.2977.
+  level     P1 zero exceptions on 5,431 replicates whose own vertex is
+            off the box (4 more, at W2, n = 50, have B-hat = G-hat = 0
+            and no vertex). Flip rates W2 0.440, 0.275, 0.060 and W3
+            0.322, 0.132, 0.003 against the D-law 0.368, 0.247, 0.063
+            and 0.294, 0.137, 0.007 (frozen 0.388, 0.283, 0.100 and
+            0.274, 0.112, 0.003). The n = 50 rows sit above the D-law
+            by 0.072 and 0.028, printed and weighed: the normal reading
+            of D-hat degrades there.
+  in box    565 replicates set aside, 164/49/0 at W2 and 257/94/1 at
+            W3. P2 zero exceptions on cases (1)-(3), 42 falling-branch
+            and 141 rising-branch roots scored, so both inequalities of
+            case (3) fired; case (4), two in-box roots, 1+1 and 8+2.
+            The side of 1/2 is fixed by the class samples alone on 370
+            of the 565. Cases (1) and (2) hold by the candidate's own
+            definition once the winner is known (v &gt; 1/2 iff G &gt; B);
+            the check carrying content is case (3)'s, and its 42 and
+            141 rows all sit where the inequality decides the side,
+            none on a root beyond v from 1/2; the partition is
+            exhaustive by the engine's tags. First run: the partition
+            count read 166 against
+            164, a replicate with A-hat = 0 exactly (integer features)
+            having its lower root ON the endpoint 0, which wins by
+            candidate order; case (4) was then keyed to the winning
+            candidate, and no law moved.
+  no root   0.551, 0.396, 0.259 at W2 against the margin law's 0.619,
+            0.414, 0.253; 0.407, 0.354, 0.181 at W3 against 0.419,
+            0.318, 0.144, so within 0.037 at n &gt;= 200 and 0.068 at 50.
+            Among flips the winning candidate is a root in 0.616,
+            0.916, 1.000 at W2 and 0.988, 1.000, 1.000 at W3: at n = 50
+            the far-edge fallback carries a third of W2's flips.
+  tangency  the identity A - B kappa^2 = kappa d (1 - 2 mu_u) on all 729 grid
+            points in Fraction.
+  band      (FIT, UPPER, LOWER, FIT3 coverage at n = 50, 200, 1000)
+            DIAL(1/5,0)  FIT 0.870 0.885 0.840; UPPER 1.000 x3, slack
+                         0.794 0.747 0.648; LOWER 1.000 1.000 0.930,
+                         slack 0.194 0.146 0.047.
+            DIAL(4/5,0)  the swap: UPPER 1.000 1.000 0.925, slack
+                         0.197 0.145 0.045; LOWER 1.000 x3, slack
+                         0.797 0.748 0.645.
+            DIAL(1/5,2)  UPPER slack 0.558, 0.181, 0.047: contracts;
+                         UPPER covers 0.960, 0.870, 0.910.
+            W(12,3)      FIT 0.725 0.690 0.710, FIT3 0.945 0.915 0.870;
+                         LOWER 0.980 0.915 0.830.
+            W(2,8)       FIT 0.770 0.760 0.780, FIT3 0.945 0.885 0.885;
+                         UPPER 0.900 0.860 0.875.
+            No trial had both bounds wrong (construction). At
+            DIAL(1/5,0) the pair is [0.006, 0.994], [0.054, 0.947],
+            [0.153, 0.848] in the mean: its excess beyond [1/5, 4/5]
+            is 0.194, 0.146, 0.047 below and 0.194, 0.147, 0.048
+            above, the two ends agreeing to 0.001. The pair closes on
+            the span of the identified set, not on a point.
+            Resampling all three samples lifts the tool's band by 0.10
+            to 0.23 at every depth-cell row: at an identified cell the
+            band's omitted term is the class samples' noise, which its
+            procedure holds fixed. The one-sided bound on the side of
+            the box end nearest the truth fails there too (0.830 to
+            0.915), the same held-fixed noise, which the sign law
+            never covered: the known sign is the root set's, not the
+            counted spread's.
+Rates over R = 200 read to about 0.02 at nominal, over R = 1000 to
+about 0.015 at their largest; the laws and the directions are the
+finding, the rates their instance.
+
+RUN RECORD. python audit.py: run 1 14 of 16 (P2's partition count and
+P3 as frozen); run 2, the partition keyed to the winning candidate and
+P3 gated on the D-law, 16 of 16; run 3 with P9's arm, whose extra draws
+move every band row's stream, 17 of 17, 5.5 s, peak commit 54.8 MB.
+An audit then found P0(ii) computing the dial's roots by its own
+formula rather than through the engine's candidate set; rewired to the
+engine (roots outside the box absent, as the estimator sees them),
+17 of 17, every other print unchanged. A second audit: P2's partition
+conjunct held by the engine's tags and was cut, its branch counts
+now name only the rows where case (3)'s inequality decides (42 and
+141, unchanged), F's tautology is printed rather than checked, and
+the sd of D-hat is printed beside A-hat's and the measured one; at
+gamma = 4/5 the dial's second root is the box's top end, 1, kept by
+box() at this rounding. 16 of 16, 5.7 s, peak commit 54.2 MB.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import sys
+import time
+from fractions import Fraction as F
+from math import comb, erf, sqrt
+
+import numpy as np
+
+NS = (50, 200, 1000)
+R_LEVEL = 1000
+R_BAND = 200
+BOOT = 200
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f"  ({detail})" if detail else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+<span id="phi"></span>def phi(x):
+    return 0.5 * (1.0 + erf(x / sqrt(2.0)))
+
+
+# -------------------------------------------------------------- worlds
+
+<span id="hg_moments"></span>def hg_moments(M, K, w=3):
+    """Mean, variance, fourth and third central moments of HG(M, K, w)."""
+    p = [F(comb(K, c) * comb(M - K, w - c), comb(M, w))
+         for c in range(w + 1)]
+    mu = sum(c * q for c, q in enumerate(p))
+    var = sum((c - mu) ** 2 * q for c, q in enumerate(p))
+    m4 = sum((c - mu) ** 4 * q for c, q in enumerate(p))
+    m3 = sum((c - mu) ** 3 * q for c, q in enumerate(p))
+    return mu, var, m4, m3
+
+
+<span id="Depth"></span>class Depth:
+    """The depth cell (a, b): exact class moments and the three samplers."""
+
+    def __init__(self, a, b):
+        self.a, self.b, self.T = a, b, a + b
+        self.name = f"W({a},{b})"
+        self.pi = F(b, self.T)
+        self.m = hg_moments(self.T - 1, a - 1)
+        self.n = hg_moments(self.T - 1, a)
+        self.u = hg_moments(self.T, a)
+        d = self.n[0] - self.m[0]
+        self.B = d * d
+        self.A = self.u[1] - self.m[1]
+        self.G = self.n[1] - self.m[1] + self.B
+
+    def sd_A(self, n):
+        """Exact sd of A-hat = s_u^2 - s_m^2, sample variances ddof 1."""
+        def v(mom):
+            return float(mom[2]) / n - float(mom[1]) ** 2 * (n - 3) / (
+                n * (n - 1))
+        return sqrt(v(self.u) + v(self.m))
+
+    def sd_D(self, n):
+        """Delta-method sd of D-hat = s_u^2 - s_m^2/2 - s_n^2/2 - dhat^2/4
+        from the exact moments: cov(s^2, xbar) = mu3/n within a sample."""
+        def v(mom):
+            return float(mom[2]) / n - float(mom[1]) ** 2 * (n - 3) / (
+                n * (n - 1))
+        d = float(self.n[0] - self.m[0])
+        vm, vn = float(self.m[1]), float(self.n[1])
+        return sqrt(v(self.u) + v(self.m) / 4 + v(self.n) / 4
+                    + d * d / 4 * (vm + vn) / n
+                    + d / 2 * (float(self.n[3]) - float(self.m[3])) / n)
+
+    def draw(self, rng, n, size=None):
+        shape = (n,) if size is None else (size, n)
+        T, a = self.T, self.a
+        xm = rng.hypergeometric(a - 1, T - a, 3, shape).astype(float)
+        xn = rng.hypergeometric(a, T - 1 - a, 3, shape).astype(float)
+        xu = rng.hypergeometric(a, T - a, 3, shape).astype(float)
+        return xm, xn, xu
+
+
+<span id="Dial"></span>class Dial:
+    """F_in = N(0, 1), F_out = N(2, 1 + gamma), the audited set a
+    kappa-mixture."""
+
+    def __init__(self, pi, gamma):
+        self.pi, self.gamma = F(pi), F(gamma)
+        self.name = f"DIAL({self.pi},{self.gamma})"
+        self.B = F(4)
+        self.G = self.gamma + 4
+        self.A = self.pi * self.gamma + 4 * self.pi * (1 - self.pi)
+
+    def draw(self, rng, n, size=None):
+        shape = (n,) if size is None else (size, n)
+        sn = sqrt(1.0 + float(self.gamma))
+        xm = rng.normal(0.0, 1.0, shape)
+        xn = rng.normal(2.0, sn, shape)
+        pick = rng.random(shape) &lt; float(self.pi)
+        xu = np.where(pick, rng.normal(2.0, sn, shape),
+                      rng.normal(0.0, 1.0, shape))
+        return xm, xn, xu
+
+
+<span id="coefficients"></span>def coefficients(xm, xn, xu):
+    """A, G, B from the three samples (last axis), ddof 1."""
+    d = xn.mean(-1) - xm.mean(-1)
+    B = d * d
+    vm = xm.var(-1, ddof=1)
+    A = xu.var(-1, ddof=1) - vm
+    G = xn.var(-1, ddof=1) - vm + B
+    return A, G, B
+
+
+# ----------------------------------------------------------- estimator
+
+<span id="candidates"></span>def candidates(A, G, B):
+    """The source's candidate set, in its order, nan where absent.
+
+    The critical points of (A - pG + p^2 B)^2 are the roots of
+    (B p^2 - G p + A)(2 B p - G), the source's cubic: the vertex and the
+    level's two roots, root+ the larger; at B = 0 the one root A/G,
+    tagged root+."""
+    A, G, B = np.broadcast_arrays(*map(np.asarray, (A, G, B)))
+    A, G, B = A.astype(float), G.astype(float), B.astype(float)
+    nan = np.full(A.shape, np.nan)
+    pos = B &gt; 0
+    with np.errstate(divide="ignore", invalid="ignore"):
+        v = np.where(pos, G / (2 * B), nan)
+        disc = G * G - 4 * A * B
+        sq = np.sqrt(np.where(disc &gt;= 0, disc, nan))
+        rp = np.where(pos, (G + sq) / (2 * B), nan)
+        rm = np.where(pos, (G - sq) / (2 * B), nan)
+        lin = (~pos) &amp; (G != 0)
+        rp = np.where(lin, A / G, rp)
+
+    def box(x):
+        return np.where((x &gt;= 0) &amp; (x &lt;= 1), x, nan)
+    return np.stack([np.zeros(A.shape), np.ones(A.shape), box(v),
+                     box(rp), box(rm)]), A, G, B
+
+
+<span id="estimate"></span>def estimate(A, G, B):
+    """Estimate, winning candidate (0 end0, 1 end1, 2 vertex, 3 root+,
+    4 root-), the in-box root count, and the candidate stack."""
+    C, A, G, B = candidates(A, G, B)
+    f = (A - C * G + C * C * B) ** 2
+    best = f[0].copy()
+    tag = np.zeros(A.shape, dtype=int)
+    for k in range(1, 5):
+        better = f[k] &lt; best          # an absent candidate is nan: never
+        best = np.where(better, f[k], best)
+        tag = np.where(better, k, tag)
+    est = np.take_along_axis(C, tag[None], 0)[0]
+    nroots = (~np.isnan(C[3])).astype(int) + (~np.isnan(C[4])).astype(int)
+    return est, tag, nroots, C
+
+
+<span id="root_span"></span>def root_span(C):
+    """Smallest and largest in-box root per entry, nan where none."""
+    R = C[3:5]
+    none = np.isnan(R).all(0)
+    lo = np.where(none, np.nan, np.where(np.isnan(R), np.inf, R).min(0))
+    hi = np.where(none, np.nan, np.where(np.isnan(R), -np.inf, R).max(0))
+    return lo, hi
+
+
+<span id="rng_for"></span>def rng_for(cell_index, n):
+    return np.random.default_rng([20260928, cell_index, n])
+
+
+# ------------------------------------------------------------ sections
+
+W2, W3 = Depth(12, 3), Depth(2, 8)
+
+
+<span id="section_controls"></span>def section_controls():
+    section("CONTROLS")
+    ok = True
+    for w, p2 in ((W2, F(-113, 65)), (W3, F(17, 10))):
+        pi = w.pi
+        d2 = w.B
+        ident = w.u[1] == pi * w.n[1] + (1 - pi) * w.m[1] \
+            + pi * (1 - pi) * d2
+        second = w.A / (w.B * pi)
+        print(f"  {w.name}: kappa = {pi}, A = {w.A}, G = {w.G}, B = {w.B}, "
+              f"second root {second}, vertex {float(w.G / (2 * w.B)):.4f}")
+        ok &amp;= ident and w.A - pi * w.G + pi * pi * w.B == 0 and second == p2
+    check("P0(i) mixture identity and exact roots at W2, W3", ok)
+
+    worst = 0.0
+    for g in (F(0), F(1, 4), F(1, 2), F(4, 5), F(1), F(2)):
+        dl = Dial(F(1, 5), g)
+        C = candidates(float(dl.A), float(dl.G), float(dl.B))[0]
+        got = sorted(float(x) for x in C[3:5] if not np.isnan(x))
+        want = sorted(x for x in (0.2, 0.8 + float(g) / 4) if x &lt;= 1)
+        if len(got) != len(want):
+            worst = float("inf")
+            continue
+        worst = max([worst] + [abs(x - y) for x, y in zip(got, want)])
+    check("P0(ii) the engine's in-box dial roots are kappa and "
+          "1 - kappa + gamma/4 where in the box", worst &lt; 1e-12,
+          f"worst {worst:.1e}")
+
+    err = max(abs(float(estimate(float(w.A), float(w.G), float(w.B))[0])
+                  - float(w.pi)) for w in (W2, W3))
+    check("P0(iii) estimator at population coefficients returns kappa",
+          err &lt; 1e-12, f"{err:.1e}")
+
+    rng = np.random.default_rng([20260928, 0])
+    worst = 0.0
+    for w in (W2, W3):
+        xm, xn, xu = w.draw(rng, 100000)
+        for x, mom in ((xm, w.m), (xn, w.n), (xu, w.u)):
+            worst = max(worst, abs(x.var(ddof=1) - float(mom[1])))
+    check("P0(iv) samplers recover the exact class variances",
+          worst &lt; 0.005, f"worst {worst:.4f}")
+
+    xm = rng.normal(0, 1, 5000)
+    xn = rng.normal(3, 2, 5000)
+    xu = np.where(rng.random(5000) &lt; 0.3, rng.normal(3, 2, 5000),
+                  rng.normal(0, 1, 5000))
+    est = float(estimate(*coefficients(xm, xn, xu))[0])
+    check("P0(v) well-separated cell returns 0.3", abs(est - 0.3) &lt;= 0.05,
+          f"{est:.4f}")
+    return all(CHECKS)
+
+
+<span id="section_level"></span>def section_level():
+    section("THE LEVEL SET: where the flip comes from")
+    law_ok, inbox_ok, branches = True, True, [0, 0]
+    rate_ok, frozen_ok, noroot_ok, share_ok = True, True, True, True
+    free_total, aside_total, scored_total = 0, 0, 0
+    for ci, w in enumerate((W2, W3), start=1):
+        pi = float(w.pi)
+        A0, G0, B0 = float(w.A), float(w.G), float(w.B)
+        h0 = G0 / 2 - B0 / 4
+        lo0, hi0 = sorted((0.0, G0 - B0))
+        print(f"  {w.name}: kappa = {pi}, L(1/2) = {h0:.7f}, range "
+              f"[{lo0:.5f}, {hi0:.5f}], A = {A0:.7f}")
+        print("       n   flip  frozen  D-law   noroot  hand  root|flip  "
+              "scored aside  cases 1/2/3/4  degenerate")
+        for n in NS:
+            rng = rng_for(ci, n)
+            xm, xn, xu = w.draw(rng, n, R_LEVEL)
+            A, G, B = coefficients(xm, xn, xu)
+            est, tag, nroots, C = estimate(A, G, B)
+            flip = np.abs(est - (1 - pi)) &lt; np.abs(est - pi)
+            above = est &gt; 0.5
+            h = G / 2 - B / 4
+            degen = (B == 0) &amp; (G == 0)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                v = np.where(B &gt; 0, G / (2 * B), np.nan)
+            lin = (B == 0) &amp; (G != 0)
+            outside = ((B &gt; 0) &amp; ((v &lt; 0) | (v &gt; 1))) | lin
+            falling = ((B &gt; 0) &amp; (v &lt; 0)) | (lin &amp; (G &lt; 0))
+            derived = np.where(falling, A &lt; h, A &gt; h)
+            law_ok &amp;= bool(np.all(derived[outside] == above[outside]))
+            aside = (B &gt; 0) &amp; (v &gt;= 0) &amp; (v &lt;= 1)
+            c1 = aside &amp; (tag == 2)
+            c2 = aside &amp; ((tag == 0) | (tag == 1))
+            c3 = aside &amp; (nroots == 1) &amp; ((tag == 3) | (tag == 4))
+            c4 = aside &amp; (nroots == 2) &amp; ((tag == 3) | (tag == 4))
+            inbox_ok &amp;= bool(np.all(est[c1] == v[c1]))
+            inbox_ok &amp;= bool(np.all(above[c1] == (G[c1] &gt; B[c1])))
+            inbox_ok &amp;= bool(np.all((est[c2] == 0) | (est[c2] == 1)))
+            d3 = np.where(tag == 3, np.where(0.5 &gt;= v, A &lt; h, True),
+                          np.where(0.5 &lt;= v, A &gt; h, False))
+            inbox_ok &amp;= bool(np.all(d3[c3] == above[c3]))
+            # case (3)'s rows where its inequality decides the side; a
+            # root beyond v from 1/2 sits on its side by itself
+            branches[0] += int((c3 &amp; (tag == 3) &amp; (v &lt;= 0.5)).sum())
+            branches[1] += int((c3 &amp; (tag == 4) &amp; (v &gt;= 0.5)).sum())
+            free_total += int(c1.sum() + c2.sum())
+            aside_total += int(aside.sum())
+            scored_total += int(outside.sum())
+            s = w.sd_A(n)
+            hand_flip = phi((h0 - A0) / s)
+            d_law = phi(-(A0 - h0) / w.sd_D(n))
+            hand_nr = phi(-(hi0 - A0) / s) + phi(-(A0 - lo0) / s)
+            fr = float(flip.mean())
+            noroot = float((nroots == 0).mean())
+            share = float(np.isin(tag[flip], (3, 4)).mean()) \
+                if flip.any() else float("nan")
+            se = sqrt(hand_flip * (1 - hand_flip) / R_LEVEL)
+            se_d = sqrt(d_law * (1 - d_law) / R_LEVEL)
+            if n &gt; 50:
+                frozen_ok &amp;= abs(fr - hand_flip) &lt;= 4 * se
+                rate_ok &amp;= abs(fr - d_law) &lt;= 4 * se_d
+                noroot_ok &amp;= abs(noroot - hand_nr) &lt;= 0.05
+                share_ok &amp;= share &gt;= 0.90
+            print(f"    {n:5d}  {fr:.3f} {hand_flip:.3f}   {d_law:.3f}"
+                  f"    {noroot:.3f} "
+                  f"{hand_nr:.3f}   {share:.3f}     {int(outside.sum()):4d} "
+                  f"{int(aside.sum()):4d}   {int(c1.sum())}/{int(c2.sum())}"
+                  f"/{int(c3.sum())}/{int(c4.sum())}   {int(degen.sum())}"
+                  f"   (se {se_d:.3f})")
+            print(f"           sd(D-hat): exact {w.sd_D(n):.4f}, A-hat "
+                  f"alone {w.sd_A(n):.4f}, measured "
+                  f"{float(np.std(A - h, ddof=1)):.4f}")
+    check("P1 the flip is the level set at L(1/2) off the box", law_ok,
+          f"{scored_total} scored")
+    check("P2 the in-box case split, zero exceptions",
+          inbox_ok and min(branches) &gt; 0,
+          f"falling {branches[0]}, rising {branches[1]}; side fixed by "
+          f"the class samples on {free_total} of {aside_total}")
+    print(f"  record: P3 as frozen (G, B at the population, sd of A-hat) "
+          f"{'holds' if frozen_ok else 'FAILS'} at n &gt;= 200")
+    check("P3 flip rate within 4 se of Phi(-D/sd(D-hat)) at n &gt;= 200",
+          rate_ok)
+    check("P4 no-root rate within 0.05 of the margin law at n &gt;= 200",
+          noroot_ok)
+    check("P4 flips are roots, share &gt;= 0.90 at n &gt;= 200", share_ok)
+
+
+<span id="section_tangency"></span>def section_tangency():
+    section("THE TANGENCY: a balanced binary feature")
+    ok = True
+    grid = [F(k, 10) for k in range(1, 10)]
+    for qm in grid:
+        for qn in grid:
+            for pi in grid:
+                d = qn - qm
+                qu = pi * qn + (1 - pi) * qm
+                A = qu * (1 - qu) - qm * (1 - qm)
+                ok &amp;= A - d * d * pi * pi == pi * d * (1 - 2 * qu)
+    check("P5 A - B kappa^2 = kappa d (1 - 2 mu_u) on the 729-point grid", ok)
+
+
+<span id="section_band"></span>def section_band():
+    section("THE BAND AND THE IDENTIFIED SET")
+    cells = (Dial(F(1, 5), 0), Dial(F(1, 5), 2), Dial(F(4, 5), 0), W2, W3)
+    out = {}
+    print("  cell             n    FIT cov width   UPPER cov slack   "
+          "LOWER cov slack   noroot  both-wrong  FIT3")
+    for ci, w in enumerate(cells, start=10):
+        pi = float(w.pi)
+        for n in NS:
+            rng = rng_for(ci, n)
+            rows = []
+            for _ in range(R_BAND):
+                xm, xn, xu = w.draw(rng, n)
+                A, G, B = coefficients(xm, xn, xu)
+                idx = rng.integers(0, n, (BOOT, n))
+                As = xu[idx].var(1, ddof=1) - xm.var(ddof=1)
+                est, tag, nroots, C = estimate(As, G, B)
+                lo, hi = root_span(C)
+                q5, q95 = np.quantile(est, (0.05, 0.95))
+                U = float(np.quantile(np.where(np.isnan(hi), 1.0, hi), 0.95))
+                L = float(np.quantile(np.where(np.isnan(lo), 0.0, lo), 0.05))
+                im = rng.integers(0, n, (BOOT, n))
+                i_n = rng.integers(0, n, (BOOT, n))
+                est3 = estimate(*coefficients(xm[im], xn[i_n], xu[idx]))[0]
+                r5, r95 = np.quantile(est3, (0.05, 0.95))
+                rows.append((q5 &lt;= pi &lt;= q95, q95 - q5, pi &lt;= U, U - pi,
+                             L &lt;= pi, pi - L, float((nroots == 0).mean()),
+                             U &lt; pi and L &gt; pi, r5 &lt;= pi &lt;= r95))
+            a = np.array(rows, dtype=float)
+            r = dict(fit=a[:, 0].mean(), width=a[:, 1].mean(),
+                     up=a[:, 2].mean(), ups=a[:, 3].mean(),
+                     lo=a[:, 4].mean(), los=a[:, 5].mean(),
+                     nr=a[:, 6].mean(), both=int(a[:, 7].sum()),
+                     fit3=a[:, 8].mean())
+            out[w.name, n] = r
+            print(f"  {w.name:14s} {n:5d}   {r['fit']:.3f} {r['width']:.3f}"
+                  f"     {r['up']:.3f} {r['ups']:+.3f}     {r['lo']:.3f} "
+                  f"{r['los']:+.3f}    {r['nr']:.3f}   {r['both']}"
+                  f"         {r['fit3']:.3f}")
+    print("  F the pair is never wrong together, by construction: "
+          f"{sum(r['both'] for r in out.values())} trials (record)")
+
+    def sides(name, far, near):
+        far_ok = all(out[name, n][far] &gt;= 0.99
+                     and out[name, n][far + "s"] &gt;= 0.45 for n in NS)
+        near_ok = all(out[name, n][near] &gt;= 0.90 for n in NS) and \
+            out[name, 1000][near + "s"] &lt; out[name, 50][near + "s"]
+        return far_ok and near_ok
+    check("P6 DIAL(1/5,0): UPPER refuses to tighten, LOWER tightens "
+          "and covers", sides("DIAL(1/5,0)", "up", "lo"))
+    check("P6 DIAL(4/5,0): the roles swap", sides("DIAL(4/5,0)", "lo", "up"))
+    check("P7 DIAL(1/5,2): UPPER's slack below 0.10 at n = 1000",
+          out["DIAL(1/5,2)", 1000]["ups"] &lt; 0.10,
+          f"{out['DIAL(1/5,2)', 1000]['ups']:.3f}")
+    check("P8 the tool's band covers &lt;= 0.85 at every depth-cell row",
+          all(out[w.name, n]["fit"] &lt;= 0.85 for w in (W2, W3) for n in NS))
+    check("P9 FIT3 covers above the tool's band at every depth-cell row "
+          "and &gt;= 0.85 at n = 1000",
+          all(out[w.name, n]["fit3"] &gt; out[w.name, n]["fit"]
+              for w in (W2, W3) for n in NS)
+          and all(out[w.name, 1000]["fit3"] &gt;= 0.85 for w in (W2, W3)))
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    if not section_controls():
+        print("\nCONTROL FAILED: nothing below is read.")
+        sys.exit(1)
+    section_level()
+    section_tangency()
+    section_band()
+    print()
+    print(f"{sum(CHECKS)} of {len(CHECKS)} checks, "
+          f"{time.time() - t0:.1f} s")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/audit.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

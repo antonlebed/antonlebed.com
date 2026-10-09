@@ -1,0 +1,554 @@
+"""winner.py -- which places a greedy walk from the void seats, read off
+its first winner: is the winner-kind trichotomy the winner's lone path,
+and is the catch of a ramified place a question of characteristic?
+
+QUESTION. A walk from the void over a number ring first seats the place
+the empty state prices lowest, its WINNER. The walks over quadratic
+rings read three behaviours off the winner's kind: the paid price holds
+constant at an unramified winner of norm at least 3, falls to 2 and
+stays at a winner of norm 2, and rises through a transient at a
+ramified winner, which is where a second place gets seated. Is that
+trichotomy nothing but the winner's LONE PATH -- its entry door, then
+its ladder's gaps in order -- read against rivals whose prices never
+fall? And a reading made beside it, that the ramified places caught
+late are always of odd residue characteristic, a place over 2 never:
+is that a law, or the walked rings'?
+
+THE OBJECTS. door.py's: a place over p with residue field of N = p^f
+elements, ramification e, width w, ladder x_1 = 1 < x_2 < ..., gaps g_j
+= x_(j+1) - x_j; m(0) = 1, m(j) = x_j + 1; the count V = v_p(L). A
+seated place at exponent a has door m(V + 1) - a; an unseated one has
+door 1 if N - 1 does not divide L and m(V + 1) otherwise; a move costs
+N^door. The WINNER is the place of the first move from the void; its
+LONE PATH is the prices it would pay were it the only place in the
+ring. A DEPARTURE is the first move of a walk that is not the
+winner's; it is STRICT when it pays less than the winner's pending
+price, and a tie otherwise. A place is CAUGHT when it is seated at a
+strict departure or later, strictly below everything else on the menu,
+having priced above the void minimum at the void.
+
+THE ARGUMENT (written before the engine).
+  (1) THE RIVALS NEVER FALL. L only grows under lcm, so once N - 1
+      divides L it always does, and V never falls; m is increasing. So
+      an unseated place's door never falls, and neither does a seated
+      place's while it does not move. This is the old support lemma
+      read in counts.
+  (2) THE LONE PATH. Alone, L is the winner's own lambda. At norm N >=
+      3, N - 1 does not divide 1, so the opening has door 1 and lands
+      at exponent 1 = m(0); from m(c) the door is m(c + 1) - m(c), and
+      the first such move, from exponent 1 to m(1) = 2, has door 1. At
+      N = 2, N - 1 = 1 divides every L, so the place opens only at door
+      m(1) = 2, landing at m(1). The doors are therefore
+          N >= 3:  1, 1, g_1, g_2, g_3, ...
+          N = 2:   2, g_1, g_2, g_3, ...
+      and by the ladder theorem g_1 = min(p - 1, e), plus w when the
+      bend e/(p - 1) is 1, the later gaps rising to the sup e + w and
+      settling at the tail e.
+  (3) THE WALK. While only the winner is seated, its door is its lone
+      path's (L is its lambda), so the walk pays the lone path until
+      the path's next price is not the least on the menu. By (1), a
+      rival's price is at least its void price, which is at least the
+      void minimum n0. Hence the three rows:
+        HOLDS: e = 1 and N >= 3. Every door is 1 (the head criterion's
+          f = 1 clause keeps the unramified places over 2 of f >= 2
+          here), the path pays N = n0 forever, and no rival is ever
+          strictly cheaper: the walk seats one place, save for places
+          tied with it at n0.
+        FALLS: e = 1 and N = 2, the place Z_2 with its head of width 1:
+          doors 2, 2, 1, 1, ..., paid 4, 4, 2, 2, .... The path never
+          exceeds n0 = 4, so again one place, save ties at 4.
+        RISES: e >= 2. The tail door e >= 2 and the sup e + w lift the
+          path above n0 (at N = 2 the sup is at least 3, since a
+          quadratic ramified place over 2 has w >= 1, and 2^3 > 4); a
+          norm-2 winner first dips to 2 at door g_1 = 1. [Ruled by the
+          second sitting: at N = 2, e = 2 the tail price is 4 = n0, so
+          there the sup alone lifts the path.] A rival priced
+          below the path when it gets there is seated at a strict
+          departure, and that is the only way a void walk seats a
+          second place strictly.
+      So the trichotomy is the lone path's shape, and the old proof's
+      "the column climbs strictly" is the door-1 row of (2).
+  (4) THE CATCH IN COUNTS. An unseated ramified place of odd norm q
+      opens at q while q - 1 does not divide L: PINNED at q, whatever
+      the count over q. A ramified place of norm 2 never opens at
+      exponent 1; its price is 2^(m(V_2 + 1)), V_2 = v_2(L), set by the
+      2-adic part of L alone, which every seated place of odd norm feeds
+      through v_2(N - 1). Nothing in either price forbids a catch over
+      2. The quadratic field Q(sqrt(-78)): 2 ramified with w = 1 (-78 =
+      2 * (-39), -39 = 1 mod 8, the class of Q_2(sqrt 2)), ladder 1, 2,
+      5, 7, 9, ...; 3 ramified with w = 0 (-78/3 = -26 = 1 mod 3, the
+      class of Q_3(sqrt 3)), ladder 1, 3, 5, ...; 5, 7, 11 and 17 inert,
+      13 ramified, 19 split. Void: R3 at 3 against R2 at 4. R3 opens (L =
+      2) and clocks at door 1 for 3 (exponent 2, L = 6). R3 now pends
+      m(2) - 2 = 2, for 9; R2, with V_2 = 1, opens at door m(2) = 3, for
+      8; R13 at 13, the rest above. So R2 is caught at step 3 for 8,
+      landing at exponent 3 (V_2 = 2); it pends m(3) - 3 = 3 for 8
+      against R3's 9, pays 8 again (V_2 = 3), and then pends m(4) - 6 =
+      2 for 4, its tail, forever. Paid 3, 3, 8, 8, 4, 4, ...: a place
+      over 2 caught late, and it runs away.
+
+PREDICTIONS, frozen before the engine, each naming what the run PRINTS.
+Every quadratic field Q(sqrt delta), delta squarefree, 2 <= |delta| <= 200, is
+walked from the void over its ring of integers, every tie branched and
+equal states merged, 40 moves.
+  PW1 THE LONE PATH. Every type of race.py's list, each walked alone
+      for 30 moves, pays N^door with the doors of (2). KILL: one move
+      off. Printed: each type's row and its first eight prices.
+  PW2 THE ROWS. On every end of every field, the paid prices up to the
+      departure equal the winner's lone path. KILL: one end off. In the
+      HOLDS and FALLS rows: KILL: a strict departure. Printed: the
+      fields by the winner's row, the ends, and in the RISES row the
+      strict departures and the step of each.
+  PW3 THE RIVALS NEVER FALL. Along every end, the price of every place
+      of norm at most 200 that is unseated, or seated and not moving,
+      never falls from one state to the next. KILL: one fall. Printed:
+      the pairs read.
+  PW4 THE CATCH OVER 2. Q(sqrt(-78)) prints one end, paid 3, 3, 8, 8,
+      4, 4, the ramified place over 2 seated at step 3 at door 3 and
+      running away, no tie. KILL: any of those off. Printed over every
+      field: the caught ramified places by residue characteristic.
+  PW5 CONTROLS. The void walks the older quadratic corpus printed:
+      Z[i] paid 4, 2, 9, 9; Z[sqrt(-30)] 3, 3, 5, 5, 17, 17; Z[sqrt(-6)]
+      3, 3, 5, 5; Q(sqrt(-7)) 4, 4, 2, 2; Q(sqrt(-19)) 4, 4, 4, 4;
+      Z[sqrt(-5)] 3, 3, 3, 3. And the field builder agrees with
+      door.py's at Z[i], Z[sqrt(-5)] and Z[sqrt 2]. KILL: any off.
+
+THE QUADRATIC PLACES. p odd ramified is (p, f, e, w) = (p, 1, 2, 0), save p = 3
+with delta = 3k, k = 2 mod 3, where Q_3(sqrt delta) = Q_3(sqrt -3) holds mu_3
+and the place is headed, w = 1. Over 2: delta = 1 mod 8 splits into two Z_2
+places, delta = 5 mod 8 is inert (f = 2), and a ramified 2 carries e = 2 and
+the width of its square class as clock.py measures it: 1 for delta even, 2 for
+delta = 3 mod 8 (the class of -5), 3 for delta = 7 mod 8 (the class of -1).
+
+FINDINGS (entered after the run, from its printed output).
+  F1 THE LONE PATH (PW1 hit). All 28 types pay the doors of (2): one
+     FALLS (Z_2: 4, 4, 2, 2), ten HOLD, seventeen RISE, each norm-2
+     ramified type dipping to 2 at its second move and then rising to
+     2^(e+w) (Z[i]'s: 4, 2, 32, 4, ...).
+  F2 THE ROWS (PW2 hit). 242 fields, by the winner's row 16 FALLS, 107
+     HOLDS, 119 RISES; 417 ends. Every end pays its winner's lone path
+     up to the departure. No end of the HOLDS or FALLS rows departs at
+     all in 40 moves (198 and 32 ends, the winner alone), void ties
+     included. All 169 strict departures are in the RISES row, all
+     169 at the third move, where the path first exceeds
+     the void price; its other 18
+     ends seat the ramified winner alone for 40 moves: a rise does not
+     force a catch.
+  F3 THE RIVALS NEVER FALL (PW3 hit). 770,360 price pairs, no fall.
+  F4 THE CATCH OVER 2 (PW4 hit). Q(sqrt -78): one end, paid 3, 3, 8, 8,
+     4, 4, the place over 2 seated at step 3 at door 3 and the runaway,
+     no tie. Over every field, a ramified place over 2 is caught in 16
+     fields and one of odd residue characteristic 19 times (p = 5: 10,
+     7: 7, 11: 1, 19: 1): the old reading that only odd-characteristic
+     places are caught was the walked rings'.
+  F5 WHICH FIELDS CATCH A RAMIFIED 2 (derived after the run, checked by
+     the engine). All 16 have 3 | delta, and the derivation is short.
+     With 3 | delta the ramified place over 3 is the unique void minimum
+     at 3 and pays 3, 3 alone, leaving L = 6; its third door is g_1 >=
+     2, at least 9. Then a ramified place over 2 has N - 1 = 1 paid and
+     door m(v_2(L) + 1) = m(2) = x_2 + 1 = 3, since x_2 = psi(1) = 2 at
+     e = 2: price 8. An unramified 2 prices 16 (split) or 64 (inert); a
+     place of norm 7 has 6 | L and prices 49; only a place of norm 5 (4
+     does not divide 6) is cheaper. So with 3 | delta, the place over 2
+     is caught at the third move exactly when 2 ramifies and 5 is inert:
+     the fields delta = 0 mod 3, delta != 1 mod 4, (delta | 5) = -1,
+     which are the printed 16. No catch of a ramified place over 2
+     happens otherwise (proved after the second sitting); a split place
+     over 2 is not read. The place over 2 prices 2^m(V_2 + 1): 4, 8, or
+     at least 2^(5 + w) = 64 once V_2 >= 2, so it is caught only behind
+     a winner cheaper than 4, a place of norm 3, and only while 4 does
+     not divide L. A place of odd norm q with e = f = 1 that has moved
+     caps every later price at q (lid.py's case e f = 1; at q = 2 one
+     move of Z_2 leaves 4 pending): its block's last mover sits at the top of
+     the column with door 1, and only an opening of norm = 1 mod q,
+     dearer than q, could jump the count. A split 3 therefore holds at 3
+     forever, its conjugate covered at 9. With 3 | delta and 5 split or
+     ramified, the third move opens a norm-5 place at 5 (against 8 and
+     at least 9) and puts 4 into L; a split 5 caps the walk at 5, and a
+     ramified 5 pays 5 again and then pends its tail 25 at every later
+     state: its block is lidded at 25 from its second move, V_5 = 1
+     (lid.py), where a jump needs a norm = 1 mod 25, and none below 25
+     is.
+  F6 CONTROLS (PW5 hit). The builder matches door.py at delta = -1, -5, 2;
+     the six void walks print the recorded prefixes on every end.
+
+THE SECOND SITTING: WHAT THE HEAD DECIDES. An older reading said the
+product N^e prices the tail while the walk pays the head, so a ring with
+no head anywhere has no walk. Read on the lone path: is the rise that
+lets a walk leave its winner the head, or the tail?
+
+THE ARGUMENT (written before the engine). The void price C0 is N at N
+>= 3 (door 1) and 4 at N = 2 (door 2). The tail price N^e exceeds C0
+iff e >= 2, save ONE CELL: N = 2, e = 2, where 2^e = 4 = C0. So at every
+ramified winner outside the cell the rise is PERMANENT, carried by the
+tail, headed or not. In the cell the place is always headed (f = 1, e =
+2 = (2 - 1) * 2, u-bar = 1 = -1 in F_2), its ladder 1, 2, 4 + w, 6 + w,
+..., so its path is 4, 2, 2^(2 + w), 4, 4, ...: the head move is the
+WHOLE rise. Every rival's price is at least its void price, above
+C0 = 4 since the winner is the unique minimum, and never falls; so a
+cell walk departs strictly at its third move or never, and if never it
+seats its winner alone forever. In a quadratic field the cell winner is
+the ramified place over 2 exactly when delta is not 1 mod 4 and 3 is inert,
+delta = 2 mod 3 (else a place of norm 3 prices 3). At the third move L =
+lambda(P^3) = 4, so a place of norm q with q - 1 | 4 is covered: norm 5
+prices 25, the inert 3 prices 9, a place of norm 7 prices 7. At w >= 2
+(delta odd) the head move costs 16 or 32 and the inert 3 at 9 undercuts
+it. At w = 1 (delta even) it costs 8 and only a place of norm 7
+undercuts it. So the
+cell field keeps its winner alone forever iff delta is even and 7 is inert.
+Q(sqrt -22): 4, 2, 8, 4, 4, .... A headless ring leaves its winner all
+the same: Z[2^(1/3)], 2 = X^3 and 3 = Y^3, both headless (e = 3 is not
+of the form (p - 1) p^n), wins at Y for 3, pays 3, 3, then pends its
+first gap 2 for 9 while the norm-5 place opens at 5 (4 does not divide
+L = 6) and X prices 8: paid 3, 3, 5, 5, 5, 5, ....
+
+PREDICTIONS, frozen before the engine, each naming what the run PRINTS.
+  PW6 THE CELL. Over race.py's 28 types, the ramified types whose tail
+      price N^e equals the void price are exactly those with N = 2 and e
+      = 2; every other ramified type's exceeds it. KILL: one type off.
+      Printed: the ramified types sorted permanent or cell.
+  PW7 THE CELL'S FIELDS. Over the 242 fields, the cell fields are those
+      with delta != 1 mod 4 and delta = 2 mod 3; every end of every one
+      of them departs strictly at step 3 or not in 40 moves, and the
+      fields with no departure are exactly those with delta even and
+      (delta | 7) = -1. KILL: a departure at another step, or one field
+      off the criterion. Printed: the cell fields, the alone ones, the
+      step-3 takers' norms, and the RISES ends alone outside the cell.
+  PW8 THE HEADLESS RING. Z[2^(1/3)] walked from the void: one end, paid
+      3, 3, 5, 5, 5, 5, its winner the place over 3, departing strictly
+      at step 3. KILL: any of those off.
+
+FINDINGS OF THE SECOND SITTING (entered after the run, from its output).
+  F7 THE CELL (PW6 hit). Of the 17 ramified types, the three of N = 2,
+     e = 2 (widths 1, 2, 3) have tail price 4 = C0; the other fourteen,
+     headed ones among them, have it above.
+  F8 THE CELL'S FIELDS (PW7 hit). 59 cell fields; every departure is strict at
+     step 3, to a place of norm 7 on 66 ends and the inert 3 at 9 on 10.
+     The 14 fields kept alone for 40 moves are exactly the criterion's,
+     delta even and 7 inert, -190 to 194. With them the first sitting's 18
+     RISES ends seating their winner alone are 14 cell ends and 4
+     outside it, where the rise is permanent and no rival undercut it
+     within the 40 moves.
+  F9 THE HEADLESS RING (PW8 hit). Z[2^(1/3)]: one end, winner the place
+     over 3, paid 3, 3, 5, 5, 5, 5, ..., against the path's 3, 3, 9, 27:
+     it leaves its headless winner at step 3 for the norm-5 place.
+  WHAT THE HEAD DECIDES, read again. The tail keeps a ramified winner's
+     path above C0 for good outside the cell, but a walk leaves only at
+     a price above C0, at the earliest the path's first, the first gap of
+     2 or more at N >= 3, and that can be a gap below the bend (F9), the
+     head or the tail. S2 prints "Q(sqrt -183): step 3 paid 11 against
+     the path's 27": the winner is the ramified place over 3 with w = 1,
+     path 3, 3, 27, 9, 9, ..., and the split 11 undercuts its head move,
+     while its tail's 9 sits under every rival (the split places over 2
+     at 16, every other at 11 or more), so without the head that walk
+     would never leave.
+
+RUN RECORD (both sittings). One process, CPython, no numpy: 771,875
+checks, 2.3 s, peak commit 10.7 MB under a memory guard.
+"""
+
+import os
+import sys
+import time
+from collections import Counter
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import door as DR  # noqa: E402
+import race as RC  # noqa: E402
+
+CHECKS = [0]
+N_W, N_LONE, NORM_RIVAL = 40, 30, 200
+
+
+def check(cond, msg):
+    CHECKS[0] += 1
+    if not cond:
+        raise SystemExit("FAIL: " + msg)
+
+
+# ---------------------------------------------------------------------------
+# quadratic fields
+
+def quadratic(m, nmax=DR.NMAX):
+    """The places of Q(sqrt m) of norm up to nmax, over its ring of
+    integers, by the table above."""
+    D = m if m % 4 == 1 else 4 * m
+    out = []
+    for p in DR.primes_to(nmax):
+        if D % p == 0:
+            if p == 2:
+                w = 1 if m % 2 == 0 else {3: 2, 7: 3}[m % 8]
+            else:
+                w = 1 if p == 3 and (m // 3) % 3 == 2 else 0
+            out.append(DR.Place(p, 1, 2, w))
+        elif p == 2:
+            if m % 8 == 1:
+                out += [DR.unram(2, 1), DR.unram(2, 1)]
+            else:
+                out.append(DR.unram(2, 2))
+        elif DR.legendre(m, p) == 1:
+            out += [DR.unram(p, 1), DR.unram(p, 1)]
+        elif p * p <= nmax:
+            out.append(DR.unram(p, 2))
+    return out
+
+
+def field(m):
+    return DR.build(lambda: quadratic(m))
+
+
+def row(q):
+    if q.e >= 2:
+        return "RISES"
+    return "FALLS" if q.N == 2 else "HOLDS"
+
+
+def lone_doors(q, n):
+    """The doors of (2): N >= 3: 1, 1, g_1, ...; N = 2: 2, g_1, ...."""
+    gaps = [DR.member(q.lad, j + 1) - DR.member(q.lad, j)
+            for j in range(1, n + 1)]
+    return ([1, 1] + gaps if q.N >= 3 else [2] + gaps)[:n]
+
+
+def lone_walk(q, n):
+    """(doors, paid) of the place walked as the only place there is."""
+    pls = RC.block([(q.p, q.f, q.e, q.w)])
+    leaves = RC.tree(pls, DR.RSt(), n, Counter(), False)
+    check(len(leaves) == 1, "a lone walk branched")
+    return [t[2] for t in leaves[0].log], leaves[0].paid
+
+
+def price(q, a, L):
+    return q.N ** DR.door_lcm(q, a, L)
+
+
+def replay(pls, log):
+    """The states along a path's log."""
+    st, out = DR.RSt(), []
+    for kind, i, r, pr, b in log:
+        out.append(st)
+        st = DR.rstep(pls, st, (kind, i, st.a.get(i, 0), r), pr, [], [],
+                      Counter())
+    out.append(st)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# the sections
+
+def section_control():
+    print("S0  CONTROLS")
+    for m, ref in ((-1, DR.RINGS[0][1]), (-5, DR.RINGS[1][1]),
+                   (2, DR.RINGS[2][1])):
+        mine = [RC.sig(q) for q in field(m)]
+        theirs = [RC.sig(q) for q in DR.build(ref)]
+        check(mine == theirs, f"PW5: the builder at delta = {m}")
+    print("  the builder's places equal door.py's at delta = -1, -5, 2")
+    want = {-1: [4, 2, 9, 9], -30: [3, 3, 5, 5, 17, 17], -6: [3, 3, 5, 5],
+            -7: [4, 4, 2, 2], -19: [4, 4, 4, 4], -5: [3, 3, 3, 3]}
+    for m, pre in want.items():
+        leaves = RC.tree(field(m), DR.RSt(), N_W, Counter(), True)
+        got = sorted({tuple(p.paid[:len(pre)]) for p in leaves})
+        print(f"  Q(sqrt {m}): {len(leaves)} ends, paid {got}")
+        check(got == [tuple(pre)], f"PW5: the walk at delta = {m}")
+
+
+def section_lone():
+    print("S1  THE LONE PATH")
+    shapes = Counter()
+    for t in RC.TYPES:
+        q = DR.Place(*t)
+        doors, paid = lone_walk(q, N_LONE)
+        check(doors == lone_doors(q, N_LONE), f"PW1: the path at {t}")
+        shapes[row(q)] += 1
+        print(f"  {t} {row(q)}: doors {doors[:8]}, paid {paid[:8]}")
+    print(f"  {len(RC.TYPES)} types, every door on (2); rows {dict(shapes)}")
+
+
+def section_fields():
+    print("S2  THE FIELDS")
+    ms = [m for m in range(-200, 201) if abs(m) >= 2 and RC.squarefree(m)]
+    rows, ends, strict, alone = Counter(), Counter(), Counter(), Counter()
+    departs, caught, pairs = [], set(), 0
+    for m in ms:
+        pls = field(m)
+        rivals = [q for q in pls if q.N <= NORM_RIVAL]
+        leaves = RC.tree(pls, DR.RSt(), N_W, Counter(), True)
+        n0 = leaves[0].paid[0]
+        rws = set()
+        for path in leaves:
+            w = pls[path.log[0][1]]
+            rw = row(w)
+            rws.add(rw)
+            ends[rw] += 1
+            _, lone = lone_walk(w, N_W)
+            dep = next((t for t, x in enumerate(path.log) if x[1] != w.idx),
+                       None)
+            upto = N_W if dep is None else dep
+            check(path.paid[:upto] == lone[:upto], f"PW2: the path at {m}")
+            if dep is None:
+                alone[rw] += 1
+            elif path.paid[dep] < lone[dep]:
+                strict[rw] += 1
+                departs.append((m, rw, dep + 1, path.paid[dep], lone[dep]))
+                check(rw == "RISES", f"PW2: a strict departure in {rw} "
+                      f"at {m}")
+                seen = {w.idx}
+                for t in range(dep, N_W):
+                    i = path.log[t][1]
+                    q = pls[i]
+                    if (i not in seen and t not in path.ties and q.e >= 2
+                            and price(q, 0, 1) > n0):
+                        caught.add((q.p, m))
+                    seen.add(i)
+            states = replay(pls, path.log)
+            for t in range(len(path.log)):
+                mover = path.log[t][1]
+                s0, s1 = states[t], states[t + 1]
+                for q in rivals:
+                    if q.idx == mover:
+                        continue
+                    pairs += 1
+                    check(price(q, s1.a.get(q.idx, 0), s1.L)
+                          >= price(q, s0.a.get(q.idx, 0), s0.L),
+                          f"PW3: a price fell at {m}")
+        for rw in rws:
+            rows[rw] += 1
+    print(f"  {len(ms)} fields; fields by the winner's row {dict(rows)}; "
+          f"ends by row {dict(ends)}")
+    print(f"  ends seating the winner alone for {N_W} moves {dict(alone)}")
+    steps = Counter(x[2] for x in departs)
+    print(f"  strict departures by row {dict(strict)}, by step "
+          f"{dict(sorted(steps.items()))}; the first twelve:")
+    for m, rw, step, got, lone in departs[:12]:
+        print(f"    Q(sqrt {m}): step {step} paid {got} against the "
+              f"path's {lone}")
+    print(f"  price pairs read {pairs}, falls 0")
+    two = sorted(m for p, m in caught if p == 2)
+    odd = Counter(p for p, m in caught if p != 2)
+    print(f"  caught ramified places: over 2 in {len(two)} fields {two}; "
+          f"of odd residue characteristic {sum(odd.values())}, by p "
+          f"{dict(sorted(odd.items()))}")
+    crit = [m for m in ms if m % 3 == 0 and m % 4 != 1
+            and DR.legendre(m, 5) == 4]
+    print(f"  the criterion derived after the run (3 | delta, 2 ramified, 5 "
+          f"inert) names {len(crit)} fields, the same")
+    check(two == crit, "the catch-over-2 criterion")
+
+
+def section_cell():
+    print("S3  THE CATCH OVER 2")
+    pls = field(-78)
+    leaves = RC.tree(pls, DR.RSt(), N_W, Counter(), True)
+    path = leaves[0]
+    r2 = next(q for q in pls if q.p == 2)
+    step = next(t for t, x in enumerate(path.log) if x[1] == r2.idx)
+    late = DR.late_blocks(path.log)
+    names = [pls[i].name for v in late.values() for i in v]
+    print(f"  Q(sqrt -78): {len(leaves)} end, paid {path.paid[:8]}, the "
+          f"place over 2 seated at step {step + 1} at door "
+          f"{path.log[step][2]}, runaway {names}, ties {path.ties}")
+    check(len(leaves) == 1 and path.paid[:6] == [3, 3, 8, 8, 4, 4]
+          and step == 2 and path.log[step][2] == 3
+          and late == {2: {r2.idx}} and not path.ties, "PW4: Q(sqrt -78)")
+
+
+def in_cell(q):
+    return q.N == 2 and q.e == 2
+
+
+def section_cell_fields():
+    print("S4  THE CELL AND ITS FIELDS")
+    perm, cell = [], []
+    for t in RC.TYPES:
+        q = DR.Place(*t)
+        if q.e < 2:
+            continue
+        _, paid = lone_walk(q, N_LONE)
+        tail = q.N ** q.e
+        check((tail == paid[0]) == in_cell(q) and tail >= paid[0]
+              and paid[-1] == tail,
+              f"PW6: the tail at {t}")
+        (cell if in_cell(q) else perm).append(t)
+    print(f"  ramified types: permanent {perm}; cell {cell}")
+    ms = [m for m in range(-200, 201) if abs(m) >= 2 and RC.squarefree(m)]
+    cells, alone, takers, outside = [], [], Counter(), 0
+    for m in ms:
+        pls = field(m)
+        leaves = RC.tree(pls, DR.RSt(), N_W, Counter(), True)
+        w = pls[leaves[0].log[0][1]]
+        is_cell = in_cell(w) and all(p.log[0][1] == w.idx for p in leaves)
+        check(is_cell == (m % 4 != 1 and m % 3 == 2), f"PW7: the cell {m}")
+        stays = False
+        for path in leaves:
+            dep = next((t for t, x in enumerate(path.log) if x[1] != w.idx),
+                       None)
+            if not is_cell:
+                outside += dep is None and row(w) == "RISES"
+                continue
+            if dep is None:
+                stays = True
+                continue
+            _, lone = lone_walk(w, N_W)
+            check(dep == 2 and path.paid[dep] < lone[dep],
+                  f"PW7: a departure at step {dep + 1} in {m}")
+            takers[pls[path.log[dep][1]].N] += 1
+        if is_cell:
+            cells.append(m)
+            if stays:
+                check(len(leaves) == 1, f"PW7: a split end at {m}")
+                alone.append(m)
+    crit = [m for m in cells if m % 2 == 0 and DR.legendre(m, 7) == 6]
+    print(f"  {len(cells)} cell fields {cells}")
+    print(f"  alone for {N_W} moves: {alone}; the criterion (delta even, 7 "
+          f"inert) names {crit}")
+    print(f"  step-3 takers by norm {dict(sorted(takers.items()))}; RISES "
+          f"ends alone outside the cell {outside}")
+    check(alone == crit, "PW7: the alone criterion")
+
+
+def section_headless():
+    print("S5  THE HEADLESS RING")
+
+    def z_cbrt2():
+        out = [DR.Place(2, 1, 3, 0), DR.Place(3, 1, 3, 0)]
+        for p in DR.primes_to(DR.NMAX)[2:]:
+            r = sum((x ** 3 - 2) % p == 0 for x in range(p))
+            if r == 3:
+                out += [DR.unram(p, 1) for _ in range(3)]
+            elif r == 1:
+                out.append(DR.unram(p, 1))
+                if p * p <= DR.NMAX:
+                    out.append(DR.unram(p, 2))
+            elif p ** 3 <= DR.NMAX:
+                out.append(DR.unram(p, 3))
+        return out
+
+    pls = DR.build(z_cbrt2)
+    print(f"  ramified places built headless (e = 3 is not (p - 1) p^n): "
+          f"{all(q.w == 0 for q in pls if q.e > 1)}")
+    leaves = RC.tree(pls, DR.RSt(), N_W, Counter(), True)
+    path = leaves[0]
+    w = pls[path.log[0][1]]
+    _, lone = lone_walk(w, N_W)
+    print(f"  Z[2^(1/3)]: {len(leaves)} end, winner {w.name}, paid "
+          f"{path.paid[:8]}, the path's {lone[:4]}, step 3 to "
+          f"{pls[path.log[2][1]].name}")
+    check(len(leaves) == 1 and path.paid[:6] == [3, 3, 5, 5, 5, 5]
+          and (w.p, w.e) == (3, 3) and path.log[2][1] != w.idx
+          and path.paid[2] < lone[2], "PW8: Z[2^(1/3)]")
+
+
+def main():
+    t0 = time.time()
+    section_control()
+    section_lone()
+    section_fields()
+    section_cell()
+    section_cell_fields()
+    section_headless()
+    print(f"\n{CHECKS[0]} checks, {time.time() - t0:.1f} s")
+
+
+if __name__ == "__main__":
+    main()

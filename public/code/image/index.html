@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>image.py | Numbers read one place at a time</title>
+<meta name="description" content="image.py">
+<link rel="alternate" type="text/x-python" href="/code/image.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>image.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/image/#the-colour-count">IMAGE: The colour count</a> (theorem); <a href="/image/#a-quadratic-rings-ideal-image-is-2t">IMAGE: A quadratic ring's ideal image is 2^t</a> (rule); <a href="/image/#the-locks-rider-erases-a-choice">IMAGE: The lock's rider erases a choice</a> (rule); <a href="/image/#a-curves-image-is-the-continuum">IMAGE: A curve's image is the continuum</a> (rule); <a href="/image/#the-gap">IMAGE: The gap</a> (rule); <a href="/image/#greeds-point">IMAGE: Greed's point</a> (rule).</p><p>Cited on: <a href="/image/">IMAGE</a>.</p><p>To run it: <a href="/code/element.py">element.py</a>, <a href="/code/element_ring.py">element_ring.py</a>, <a href="/code/limit.py">limit.py</a>, <a href="/code/module_law.py">module_law.py</a> beside it; standard library only.</p></div>
+<pre>"""image.py -- the set of limits a greedy growth walk reaches when its
+ties are all followed: a union of orbits of the colour-preserving
+permutations, a finite count over an imaginary quadratic ring where
+the walk locks, the continuum over a curve over F_2 with a rational
+place besides the one removed (the ideal world at limit.py's corner),
+and the lock's rider as what erases a choice rather than what adds
+one.
+
+QUESTION. limit.py and element.py follow ONE greedy walk to its limit.
+Wherever two least moves cost the same, a tie-break picks one, and a
+different pick can reach a different limit. The GREEDY IMAGE of a seed s
+is the set of limits of every branch from s, every tie followed. How big
+is it, what decides its size, and which of a ring's features reach it?
+Three worlds are on the table: Z, where the least move is unique; the
+imaginary quadratic rings Z[sqrt(-5)] and the maximal order of
+Q(sqrt(-23)), where walks lock; and the rings of five curves over F_2 and
+F_2[x], where walks sprawl. And one question carried in from the
+element world: at Q(sqrt(-23)) the lock (2) = P2 P2' carries its rider,
+both places over 2 running away with a gap the seed chose. Does that
+rider move the count?
+
+THE OBJECTS. A place's COLOUR is what the dynamics reads of it: over a
+curve its degree in the ideal world and its (degree, class) in the
+element world (element.py); over a number ring its norm and local kind
+in the ideal world, and those with its class in the element world
+(element_ring.py). sigma(omega) counts the places of colour omega. A
+LIMIT gives every place an exponent in {0, 1, 2, ...} or infinity; a
+lock sends its vehicle's support to infinity and freezes the rest. The SHAPE of a state
+or a limit forgets which place of a colour carries which exponent: per
+colour, the multiset of exponents. G is the group of permutations of the
+places preserving colour; G_s its subgroup fixing the seed s, which is G
+for the void. The RIDER REACH is the union of the supports of the
+minimal riders MINREP(c) over the classes c.
+
+THE ARGUMENT (written before the engine).
+  (1) THE COLOUR COUNT. Everything a menu reads is a function of the
+      colours and the exponents: lambda of a state is an lcm of place
+      contributions read off (degree, exponent), or (norm, kind,
+      exponent) over a number ring; a door is the least r with
+      lambda_P(a + r) not dividing L; a price is d r, or N^r, plus the
+      rider m(-r c); a rider is a least divisor of its class, and a
+      permutation keeping degree or norm and class sends it to a least
+      divisor of the same class, so with every least vehicle on the menu
+      the menu is carried to the menu (on the curves and the two
+      quadratic rings run here each class has one least divisor,
+      element.py; over Q(sqrt(-15)) the class of the places over 2 has
+      two). So
+      for pi in G, menu(pi s) = pi menu(s), the branch tree from pi s is
+      the image of the tree from s, and the limit map commutes with pi.
+      Im(s) is therefore a union of G_s-orbits, and the orbit of a
+      limit X has size
+          |G_s X| = prod over refined colours c' of
+                    sigma(c')! / prod_k n(c', k)!,
+      a colour refined by the seed's exponent, n(c', k) the places of c'
+      at exponent k in X. So
+          |Im(s)| = sum over the limit SHAPES reached of that product:
+      the walk is run only to find the shapes, and the supply prices
+      every orbit. The product over a trajectory's openings of the tie
+      multiplicity is the case of one shape with every opened colour
+      carrying one item at exponent 1. A count of TRAJECTORIES is not a
+      count of limits: the limit forgets the order of seating and the
+      finite exponents at the places it sends to infinity.
+  (2) WHY THE COLOURING IS EXACTLY RIGHT. element.py proves no coarser
+      colouring than (degree, class) prices every menu, and (1) proves
+      that colouring enough to count. So a multinomial over DEGREES
+      alone overcounts the element world's image wherever a class is
+      read, and a price reading anything finer than a colour breaks (1).
+  (3) OVER Z the doors at distinct primes are powers of distinct
+      primes and never tie (growth.py), so every branch is the one walk
+      and the image is a point.
+  (4) AN IMAGINARY QUADRATIC RING, IDEAL WORLD. A door costs N(P)^r, a
+      power of P's rational prime, so equal costs lie over one rational
+      prime, which carries two places only when it splits: every tie is
+      a conjugate pair, one colour of sigma = 2. Conjugates share a
+      ladder: with K the least depth whose lambda does not divide L,
+      once P is seated at depth a &gt;= 1 the unseated conjugate P' has
+      door K against P's K - a, so P' is strictly dearer at every later
+      state and is never seated (STARVATION). On
+      every seed run the walk locks onto one place (growth.py leaves
+      the lock open in general), so there a trajectory makes finitely
+      many ties t, the same t on every branch by (1), and the
+      two members of each tie stand at the limit at different exponents,
+      one of them 0. So the image is ONE orbit, of size exactly 2^t.
+      Over a field of degree n every tie lies over one rational prime,
+      which carries at most n places, so a tie there is at most n wide.
+  (5) THE SAME RINGS, ELEMENT WORLD. At Z[sqrt(-5)], h = 2, every class
+      is its own inverse, so conjugates share a colour and (4)'s single
+      orbit of 2^t should stand; its lock (2) is the ramified place over
+      2 squared and carries no rider. At Q(sqrt(-23)), h = 3, conjugates
+      carry inverse classes, so a tie is between two colours of
+      sigma = 1: every multinomial is 1 and the image is a count of
+      SHAPES. There the lock (2) = P2 P2' sends both places over 2 to
+      infinity, so two branches that differ only in which of the two
+      stands deeper are two states and ONE limit: the lock's rider
+      ERASES a choice, it does not add one. Predicted: every erasure is
+      two branches differing only on the lock vehicle's support, and
+      only a lock whose vehicle carries a rider can erase; the inert
+      (5) lock and the ramified (2) lock of Z[sqrt(-5)] erase nothing.
+  (6) A CURVE OVER F_2, IDEAL WORLD, at limit.py's corner, the curve
+      holding a rational place besides the one removed. The limit of
+      every branch is infinity at one runaway C of degree 1 or 2 and one
+      place at exponent 1 at each opened degree, every supplied degree
+      above 1 opening (limit.py). So the limit shapes are two, C of
+      degree 1 and, where the void menu ties, C of degree 2, and
+          |Im| = sigma(1) prod_(d &gt;= 2) sigma(d)
+                 + sigma(2) prod_(d &gt;= 3) sigma(d),
+      each product over the supplied degrees (sigma(d) &gt; 0), the second
+      term present iff sigma(2) &gt; 0. Each product has
+      infinitely many factors &gt;= 2, so each shape's orbit is already the
+      continuum, and its points are choice functions on the degrees.
+  (7) THE SAME CURVES, ELEMENT WORLD. Past the transient an opening at
+      degree d takes a principal core and pays no rider (element.py),
+      so it chooses one of the sigma(d, 0) principal places of degree
+      d. A declined one is never seated later: as a core it is clocked
+      at d (T + 1) against its seated sibling's d T, both of class 0
+      and so riderless; as a rider it is impossible, a rider place being
+      alone in its colour while (d, 0) holds two or more. So every
+      opened colour outside the rider reach carries one place at
+      exponent 1 (or the runaway) and the rest at 0 in every limit, and
+      contributes sigma(d, 0) to its orbit. Openings never stop, the
+      recurrent price doubling while an opening costs its degree. The
+      image is the continuum wherever sigma(d, 0) &gt;= 2 at infinitely
+      many degrees, which element.py reads at every supplied degree
+      above the principal-free ones to degree 400. The rider reach is
+      finite, so the places a rider can bring back after they were
+      declined are finitely many.
+  (8) THE GAP. Over the three families, under the scopes below, the
+      image is a point, a finite number, or the continuum, and never
+      countably infinite: over Z by
+      (3), over the quadratic rings wherever the walk locks, as on every
+      seed run, because the lock ends the ties, over
+      the curves (at limit.py's corner, a rational place besides the
+      one removed)
+      because one shape's orbit is already the continuum.
+      Erasure needs a lock, a lock ends the openings, and a rider can
+      re-seat only the finitely many places of its reach (finitely many
+      classes, finitely many least divisors each), so neither
+      way of losing a choice can happen at endlessly many openings.
+
+TRANSPLANTS, marked. From an earlier record of the same two number
+rings: at Z[sqrt(-5)]'s norm-40 ideal belt t = 0, 1, 2 at 35, 15, 2
+seeds of 52, and t = 0, 1 at 65, 14 of 79 at Q(sqrt(-23)); in the
+element world two erasures at Q(sqrt(-23)), at the seeds (2) and (2)^2.
+From the same record over the curves: the first ten openings' product
+at about 1.8e11 over F_2[x].
+
+PREDICTIONS, frozen before the engine, each naming what the run PRINTS.
+  IP1 THE COLOUR COUNT, BRUTE. Printed per ring and world (the ideal world
+      over F_2[x], h2 and g2; the element world over h2, h3 and g2),
+      from the void and depth by depth: labelled states reached by an
+      engine over the actual places with lambda read exactly, grouped by
+      shape, against the shapes the walker reading colours alone
+      (limit.py's corner, element.py's element world) reaches, with each
+      group's size against its product of multinomials. KILL: one shape in one
+      set and not the other, or one group off its product.
+  IP2 THE COLOURING IS EXACTLY RIGHT. Printed: the same labelled states
+      grouped by DEGREE alone in the element world, the degree
+      multinomial against the group sizes. KILL of (2): no group off at
+      h3 or g2. And a price reading one place's label in the ideal world
+      over F_2[x]: the groups against the multinomials. KILL of the
+      control: no group off.
+  IP3 THE CURVE CORNER. Printed per ring: the runaway degrees over every
+      branch of limit.py's corner walk, against the two shapes of (6),
+      and log10 of each shape's product over its first ten openings.
+      KILL: a runaway degree outside {1, 2}, or 2 at a ring with
+      sigma(2) = 0, or 1 missing.
+  IP4 THE CURVES' ELEMENT IMAGE. Printed per ring over element.py's
+      branches (every tie followed over the first moves, each walked to
+      300): the rider reach's size, the openings past the transient and
+      the least sigma(d, 0) any of them chose from, the opened colours
+      inside the rider reach, and at every branch's end whether every
+      opened colour outside the reach holds exactly one seated place.
+      KILL: an opening past the transient at a colour with
+      sigma(d, 0) &lt; 2, or an opened colour outside the reach holding a
+      second seated place.
+  IP5 THE QUADRATIC IDEAL IMAGE. Printed per ring over the void and
+      every ideal of norm &lt;= 40: branches followed to their lock, ties
+      per branch, distinct limits and 2^t, each shape's limits asserted
+      equal to its orbit; with starvation asserted at every visited
+      state. KILL: a seed with two branch tie counts, distinct limits
+      off 2^t or off the orbit sum, or one unseated conjugate as cheap
+      as its seated partner.
+  IP6 THE QUADRATIC ELEMENT IMAGE. Printed per ring over the void and
+      every principal ideal of norm &lt;= 40: branches, distinct lock-time
+      states, distinct limits, each shape against its orbit, and for
+      every erasure (two lock-time states, one limit) the places where
+      the two differ and the lock vehicle's support. KILL: distinct
+      limits off the orbit sum; an erasure differing off the lock
+      support; an erasure at a lock whose vehicle carries no rider; or,
+      against (5), no erasure at Q(sqrt(-23)).
+  CONTROLS, run first: element_ring.py's control walks; the limit map
+  made to count a planted pair of states differing off a lock's support
+  as two limits and a pair differing only on it as one; IP2's
+  label-reading price; the menus of the number-ring walker read against
+  the ring's own least raising elements at every visited element state.
+
+FINDINGS (entered after the run, from its printed output).
+  F1 THE COLOUR COUNT (IP1 hit). The labelled engine, over every place of
+     degree &lt;= 9 with lambda read as an integer, reaches exactly the
+     shapes of the walker reading colours alone at every depth, and
+     every shape's
+     group holds exactly its product of multinomials: F_2[x], h2 and g2
+     in the ideal world to depths 9, 9 and 8 (6480, 12096 and 4608
+     labelled states at the last), h2, h3 and g2 in the element world
+     to depth 11 (5440, 11664 and 4208). The depth-8 counts 396, 672 and
+     4608 over two shapes each are an earlier record's, reproduced.
+  F2 THE COLOURING IS EXACTLY RIGHT (IP2 hit). Grouped by degree alone,
+     the element world's states sit off the degree multinomial at every
+     depth of all three rings, from depth 1 on: g2's last depths read
+     21, 68, 69 and 70 groups off. The label-reading price breaks the
+     colour count at every depth of F_2[x], so the brute sees a price that
+     reads more than a colour.
+  F3 THE CURVE CORNER (IP3 hit). The runaway degrees over every branch
+     are {1, 2} at the five rings with a degree-2 place and {1} at h5,
+     which has none. log10 of the degree-1 shape's orbit over its first
+     ten openings reads 11.56 at F_2[x] (the earlier record's 1.8e11
+     leaves out the runaway's own factor sigma(1) = 2), 11.57 to 16.97
+     over the curves; the degree-2 shape reads 13.78 to 16.63.
+  F4 THE CURVES' ELEMENT IMAGE (IP4 MISSED AS FROZEN, the argument
+     standing). The kill fired at F_2[x]: its one principal place of
+     degree 2 is opened past the transient, a choice from one place. The
+     kill asked every opening to choose from two or more, which (7)
+     never needs: it needs infinitely many. Every other opening past
+     the transient chooses from at least 2, at all six rings over 2 to
+     120 branches and 574 to 34,188 openings, and at every branch's end
+     every opened colour outside the rider reach holds one seated
+     place. The rider reach is 0, 1, 2, 3, 4 and 6 places: the h - 1
+     rational points of nonzero class over the elliptic curves, and
+     four rational points and two places of degree 2 at g2, one of
+     which, (2, 13), the walk also opens.
+  F5 THE QUADRATIC IDEAL IMAGE (IP5 hit). Z[sqrt(-5)], 52 seeds: t = 0,
+     1, 2 at 35, 15, 2, with 1, 2, 4 limits; Q(sqrt(-23)), 79 seeds:
+     t = 0, 1 at 65, 14. Every seed's branches share one t, its limits
+     number 2^t and form ONE shape, and starvation held at 4028
+     checks.
+  F6 THE QUADRATIC ELEMENT IMAGE (IP6 hit). Z[sqrt(-5)], 26 seeds:
+     t = 0 at 16 and t = 1 at 10, each t = 1 seed two limits in ONE
+     shape, the conjugates sharing a colour. Q(sqrt(-23)), 27 seeds:
+     t = 0 at 21; t = 1 at 6, four of them two limits over TWO shapes,
+     the conjugates two colours, and two of them two lock-time states
+     and ONE limit. Those two are the seeds (2) and (2)^2, exactly the
+     earlier record's, and at each the two states differ at the two
+     places over 2 and nowhere else, the lock vehicle being (2) =
+     P2 P2', a core and its rider. So the lock's rider erases the one
+     choice it can reach and adds none. 1599 element menus equal the
+     ring's own least raising elements; no two branches merged before
+     their locks.
+
+The slate called (1) the orbit law; it is the COLOUR COUNT here, the
+first name being the element world's for the runaway's class orbit.
+
+RUN RECORD. One process, CPython, no numpy: 393,974 checks, 12.4 s,
+peak 67 MB under a memory guard.
+"""
+
+import os
+import sys
+import time
+from collections import Counter
+from math import factorial, log10
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import element as EL
+import element_ring as ER
+import limit as LM
+import module_law as ML
+
+CHECKS = [0]
+
+
+<span id="check"></span>def check(cond, msg):
+    CHECKS[0] += 1
+    if not cond:
+        raise AssertionError(msg)
+
+
+DCAP = 9            # the labelled universe: every place of degree &lt;= DCAP
+LABEL_CAP = 30000   # labelled states per depth before the brute stops
+LOCK_R = 20         # a lock: LOCK_R consecutive tie-free moves, one vehicle
+MAXN = 60           # moves a number-ring branch has to lock in
+SEED_N = 40         # number-ring seeds up to this norm
+INF = float("inf")
+
+
+<span id="multinomial"></span>def multinomial(sigma, counts):
+    """sigma! / (prod counts! (sigma - sum counts)!)"""
+    rest = sigma - sum(counts)
+    check(rest &gt;= 0, "more items than the colour holds")
+    out = factorial(sigma) // factorial(rest)
+    for k in counts:
+        out //= factorial(k)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# the labelled engine over a curve: actual places, lambda read exactly
+
+
+<span id="Places"></span>class Places:
+    """Every affine place of degree &lt;= DCAP of one ring, labelled, with
+    its colour; the element world's riders mapped onto the one place
+    of their colour."""
+
+    def __init__(self, W):
+        self.W = W
+        pl = W.R.places(DCAP)
+        self.deg = [p[0] for p in pl]
+        self.cls = [p[1] for p in pl]
+        self.n = len(pl)
+        cnt = Counter(zip(self.deg, self.cls))
+        for (d, c), k in cnt.items():
+            check(k == W.n[d][c], f"{W.name}: the count against the"
+                  f" matrix at ({d}, {c})")
+        self.sig_dc = cnt
+        self.sig_d = Counter(self.deg)
+        self.where = {}
+        for i in range(self.n):
+            self.where.setdefault((self.deg[i], self.cls[i]), []).append(i)
+
+
+<span id="lam_int"></span>def lam_int(d, a):
+    return (2 ** d - 1) * EL.pow2ceil(a) if a else 1
+
+
+<span id="lam_state"></span>def lam_state(P, st):
+    L = 1
+    for i, a in enumerate(st):
+        if a:
+            x = lam_int(P.deg[i], a)
+            L = L // gcd(L, x) * x
+    return L
+
+
+<span id="gcd"></span>def gcd(a, b):
+    while b:
+        a, b = b, a % b
+    return a
+
+
+<span id="door"></span>def door(P, st, L, i):
+    r = 1
+    while L % lam_int(P.deg[i], st[i] + r) == 0:
+        r += 1
+    return r
+
+
+<span id="labelled_menu"></span>def labelled_menu(P, st, element, bias=None):
+    """The least moves of the labelled engine as successor states. The
+    ideal world moves one place to its door at d r; the element world
+    moves the core to its door and adds MINREP(-r c) on the places of
+    its colours. bias makes one place dearer by a hair, a price that
+    reads a label. None when the least cost exceeds DCAP, where a place
+    outside the universe could tie."""
+    L = lam_state(P, st)
+    W = P.W
+    best, out = None, set()
+    for i in range(P.n):
+        d = P.deg[i]
+        if best is not None and d &gt; best[0]:
+            continue
+        r = door(P, st, L, i)
+        cost = d * r + (W.m[W.R.neg[W.R.mul(P.cls[i], r)]] if element
+                        else 0)
+        key = (cost, i == bias)
+        if best is not None and key &gt; best:
+            continue
+        s = list(st)
+        s[i] += r
+        if element:
+            for (rd, rc), k in W.rider((d, P.cls[i]), r):
+                (j,) = P.where[(rd, rc)]
+                s[j] += k
+        s = tuple(s)
+        check(lam_state(P, s) != L, "a least move that does not raise")
+        if best is None or key &lt; best:
+            best, out = key, set()
+        out.add(s)
+    if best[0] &gt; DCAP:
+        return None
+    return out
+
+
+<span id="labelled_shape"></span>def labelled_shape(P, st, element, by_degree=False):
+    T = EL.pow2ceil(max(st))
+    c = Counter()
+    for i, a in enumerate(st):
+        if a:
+            col = P.deg[i] if (by_degree or not element) else \
+                (P.deg[i], P.cls[i])
+            c[(col, a)] += 1
+    return (T, tuple(sorted(c.items())))
+
+
+<span id="orbit_size"></span>def orbit_size(P, shape, element, by_degree=False):
+    per = {}
+    for (col, a), k in shape[1]:
+        per.setdefault(col, []).append(k)
+    out = 1
+    for col, ks in per.items():
+        sig = P.sig_d[col] if (by_degree or not element) else P.sig_dc[col]
+        out *= multinomial(sig, ks)
+    return out
+
+
+<span id="free_ideal"></span>def free_ideal(W, n):
+    """limit.py's corner over the ring's supply: shape keys depth by
+    depth, every tie followed."""
+    S = LM.Sched("corner", LM.ladder_b(2), LM.price_power(1))
+    sup = {d: W.supplied[d] for d in range(1, EL.DMAX + 1)}
+    front = {LM.State().key(): LM.State()}
+    out = []
+    for _ in range(n):
+        nxt = {}
+        for st in front.values():
+            for t, _m in LM.menu(S, st, sup)[1]:
+                s2 = LM.apply(S, st, t)
+                nxt.setdefault(s2.key(), s2)
+        front = nxt
+        out.append({(s.T, tuple(sorted(Counter(
+            {de: k for de, k in s.seat.items() if k}).items())))
+            for s in front.values()})
+    return out
+
+
+<span id="free_element"></span>def free_element(W, n):
+    front = {EL.State().key(): EL.State()}
+    out = []
+    for _ in range(n):
+        nxt = {}
+        for st in front.values():
+            for t in EL.menu(W, st)[1]:
+                s2, _rec = EL.apply(W, st, t)
+                nxt.setdefault(s2.key(), s2)
+        front = nxt
+        keys = set()
+        for s in front.values():
+            c = Counter()
+            for cell, v in s.seat.items():
+                for e, k in v.items():
+                    if k:
+                        c[(cell, e)] += k
+            keys.add((s.T, tuple(sorted(c.items()))))
+        out.append(keys)
+    return out
+
+
+<span id="brute"></span>def brute(P, element, bias=None, nmax=12):
+    """The labelled states depth by depth, grouped by shape: per depth
+    (shapes, groups off their product, groups off the DEGREE multinomial,
+    labelled states). Stops before a depth holding more than LABEL_CAP
+    states, counting as it builds so the frontier never outgrows it, or
+    reaching a menu the universe cannot price."""
+    front = {tuple([0] * P.n)}
+    rows = []
+    for depth in range(1, nmax + 1):
+        nxt, over = set(), False
+        for st in front:
+            m = labelled_menu(P, st, element, bias)
+            if m is None or len(nxt | m) &gt; LABEL_CAP:
+                over = True
+                break
+            nxt |= m
+        if over:
+            break
+        front = nxt
+        groups = Counter(labelled_shape(P, s, element) for s in front)
+        off = sum(k != orbit_size(P, sh, element)
+                  for sh, k in groups.items())
+        offd = 0
+        if element:
+            gd = Counter(labelled_shape(P, s, element, True) for s in front)
+            offd = sum(k != orbit_size(P, sh, element, True)
+                       for sh, k in gd.items())
+        rows.append((depth, set(groups), off, offd, len(front)))
+    return rows
+
+
+<span id="section_o"></span>def section_o(worlds):
+    """IP1 and IP2."""
+    print("IP1  THE COLOUR COUNT, BRUTE")
+    for W in worlds:
+        P = Places(W)
+        for element in (False, True):
+            if (W.name, element) not in ORBIT_CASES:
+                continue
+            t0 = time.time()
+            rows = brute(P, element)
+            free = (free_element if element else free_ideal)(W, len(rows))
+            for (depth, shapes, off, offd, n), fk in zip(rows, free):
+                check(shapes == fk, f"{W.name}: the shapes at depth"
+                      f" {depth} part from the identity-free walker's")
+                check(off == 0, f"{W.name}: {off} groups off their orbit"
+                      f" at depth {depth}")
+            world = "element" if element else "ideal"
+            print(f"  {W.name:6s} {world:7s} {P.n} places of degree &lt;="
+                  f" {DCAP}; depths 1..{rows[-1][0]}: labelled states"
+                  f" {[r[4] for r in rows]}, shapes"
+                  f" {[len(r[1]) for r in rows]}; every shape the"
+                  f" walker's and every group its product"
+                  f" ({time.time() - t0:.1f} s)")
+            if element:
+                DEG_OFF[W.name] = [r[3] for r in rows]
+                print(f"  {'':6s} {'':7s} grouped by degree alone, groups"
+                      f" off the degree multinomial per depth"
+                      f" {DEG_OFF[W.name]}")
+    print("IP2  A PRICE THAT READS A LABEL (control)")
+    W = worlds[0]
+    P = Places(W)
+    x = P.where[(1, 0)][0]
+    rows = brute(P, False, bias=x)
+    off = [r[2] for r in rows]
+    check(sum(off) &gt; 0, "control: a label-reading price keeps every orbit")
+    print(f"  {W.name}: one degree-1 place priced a hair dearer on ties:"
+          f" groups off their product per depth {off}")
+
+
+ORBIT_CASES = {("F2[x]", False), ("h2", False), ("g2", False),
+               ("h2", True), ("h3", True), ("g2", True)}
+DEG_OFF = {}
+
+
+# ---------------------------------------------------------------------------
+# the curves' images
+
+
+<span id="first_openings"></span>def first_openings(W, start, k=10):
+    return [d for d in range(start, EL.DMAX + 1) if W.supplied[d]][:k]
+
+
+<span id="section_c"></span>def section_c(worlds):
+    """IP3: the corner's two shapes and their orbits."""
+    print("IP3  THE CURVE CORNER")
+    S = LM.Sched("corner", LM.ladder_b(2), LM.price_power(1))
+    for W in worlds:
+        sup = {d: W.supplied[d] for d in range(1, EL.DMAX + 1)}
+        out, census = LM.branches(S, sup, 10, 290)
+        run = Counter(LM.shape(st)[0] for st, lg in out)
+        want = {1} | ({2} if sup[2] else set())
+        check(set(run) == want, f"{W.name}: runaway degrees {set(run)}")
+        one = log10(sup[1]) + sum(log10(sup[d])
+                                  for d in first_openings(W, 2))
+        two = (log10(sup[2]) + sum(log10(sup[d])
+                                   for d in first_openings(W, 3))
+               if sup[2] else None)
+        print(f"  {W.name:6s} sigma(1..6) {[sup[d] for d in range(1, 7)]};"
+              f" runaway degrees over {len(out)} branches"
+              f" {dict(sorted(run.items()))}; log10 of each shape's orbit"
+              f" over its first ten openings: C of degree 1 {one:.2f}"
+              + (f", C of degree 2 {two:.2f}" if two is not None else
+                 ", no degree-2 shape"))
+
+
+<span id="section_e"></span>def section_e(worlds):
+    """IP4: the element image over the curves."""
+    print("IP4  THE CURVES' ELEMENT IMAGE")
+    for W in worlds:
+        t0 = time.time()
+        reach = {cell for x in range(W.h) for cell, k in W.rep[x]}
+        for cell in reach:
+            check(W.n[cell[0]][cell[1]] == 1, "a rider colour holding two")
+        out, _ = EL.branches(W)
+        least, inside, past, prod, ones = None, set(), 0, None, set()
+        for st, log in out:
+            trans = max([i for i, x in enumerate(log)
+                         if x["open"] and x["rider"]] + [-1])
+            opened = []
+            for i, x in enumerate(log):
+                if not x["open"]:
+                    continue
+                cell = x["t"][0]
+                if cell in reach:
+                    inside.add(cell)
+                if i &gt; trans:
+                    past += 1
+                    check(cell[1] == 0, f"{W.name}: an opening past"
+                          f" the transient not principal")
+                    s = W.n[cell[0]][0]
+                    if s &lt; 2:
+                        ones.add(cell[0])
+                    else:
+                        least = s if least is None else min(least, s)
+                    opened.append(s)
+            for cell in {x["t"][0] for x in log if x["open"]} - reach:
+                check(st.nseat[cell] == 1, f"{W.name}: a declined"
+                      f" sibling of {cell} seated")
+            if prod is None:
+                prod = sum(log10(s) for s in opened[:10])
+        check(all(d &lt;= 2 for d in ones), f"{W.name}: a lone principal"
+              f" place chosen at degree {max(ones or [0])}")
+        print(f"  {W.name:6s} rider reach {len(reach)} place(s)"
+              f" {sorted(reach)}; {len(out)} branches, {past} openings"
+              f" past the transient; degrees opened from a single"
+              f" principal place {sorted(ones)}, every other opening"
+              f" choosing from at least {least}; opened colours inside"
+              f" the reach"
+              f" {sorted(inside)}; every opened colour outside it one"
+              f" seated place at every branch's end; log10 of the first"
+              f" ten such choices {prod:.2f} ({time.time() - t0:.1f} s)")
+
+
+# ---------------------------------------------------------------------------
+# the number rings
+
+
+<span id="colour"></span>def colour(F, C, pl, element):
+    kind = "split" if pl[2] &gt;= 0 else pl[2]
+    base = (pl[0], pl[1], kind)
+    return base + (C.cls[pl],) if element else base
+
+
+TALLY = Counter()
+
+
+<span id="RingWorld"></span>class RingWorld:
+    def __init__(self, F, element):
+        self.F, self.element = F, element
+        self.C = ER.Classes(F)
+        self.S = ER.Supply(self.C)
+        self.name = F.name + (" element" if element else " ideal")
+
+    def menu(self, st, L):
+        F = self.F
+        if self.element:
+            b1, v1 = ER.abstract_menu(self.S, st, L)
+            b2, v2 = ER.ring_menu(F, st, L)
+            check(b1 == b2 and v1 == set(v2), f"{self.name}: the menu"
+                  f" against the ring's least raising elements")
+            TALLY["ring menus"] += 1
+            return sorted(v1, key=lambda v: sorted(v))
+        cost, ties = ML.menu(F, st, L)
+        self.starve(st, L)
+        return [frozenset({pl: r}.items()) for pl, r in ties]
+
+    def starve(self, st, L):
+        F = self.F
+        for p in {pl[1] for pl in st if pl[2] &gt;= 0 and st[pl]}:
+            P, Q = F.over(p)
+            if bool(st.get(P, 0)) != bool(st.get(Q, 0)):
+                s, u = (P, Q) if st.get(P, 0) else (Q, P)
+                cs = s[0] ** ML.door(F, s, st[s], L)
+                cu = u[0] ** ML.door(F, u, 0, L)
+                check(cu &gt; cs, f"{self.name}: starvation at {s}, {u}")
+                TALLY["starvation"] += 1
+
+
+<span id="skey"></span>def skey(st):
+    return tuple(sorted((p, a) for p, a in st.items() if a))
+
+
+<span id="run_seed"></span>def run_seed(RW, seed):
+    """Every branch from seed followed to its lock: per lock-time state,
+    (state, lock vehicle, ties on the branch)."""
+    F = RW.F
+    front = {skey(seed): (dict(seed), F.lam_state(seed), (), 0)}
+    finals = {}
+    for _ in range(MAXN):
+        nxt = {}
+        for k, (st, L, hist, t) in front.items():
+            if (len(hist) == LOCK_R and len(set(hist)) == 1
+                    and not hist[0][1]):
+                finals[k] = (st, hist[0][0], t)
+                continue
+            vs = RW.menu(st, L)
+            tie = len(vs) &gt; 1
+            for v in vs:
+                s2 = dict(st)
+                for pl, a in v:
+                    s2[pl] = s2.get(pl, 0) + a
+                L2 = F.lam_state(s2)
+                check(L2 != L, "a move that does not raise lambda")
+                h2 = (hist + ((v, tie),))[-LOCK_R:]
+                k2 = skey(s2)
+                if k2 in nxt:
+                    TALLY["merges"] += 1
+                nxt.setdefault(k2, (s2, L2, h2, t + tie))
+        front = nxt
+        if not front:
+            break
+    check(not front, f"{RW.name}: a branch from {seed} unlocked after"
+          f" {MAXN} moves")
+    return finals
+
+
+<span id="limit_of"></span>def limit_of(st, vehicle):
+    lim = {p: a for p, a in st.items() if a}
+    for pl, a in vehicle:
+        lim[pl] = INF
+    return tuple(sorted(lim.items()))
+
+
+<span id="orbit_sum"></span>def orbit_sum(RW, seed, limits):
+    """The colour count at a seed: distinct limits grouped by shape, each
+    group against its product of multinomials over the colours refined
+    by the seed. A split colour holds its two conjugates; every other
+    colour one place."""
+    F, C = RW.F, RW.C
+
+    def col(pl):
+        return (colour(F, C, pl, RW.element), seed.get(pl, 0))
+
+    groups = Counter()
+    for lim in limits:
+        d = dict(lim)
+        cols = {}
+        for pl in d:
+            c = col(pl)
+            mates = [q for q in (F.conj(pl), pl) if col(q) == c]
+            cols[c] = sorted(set(mates))
+        shape = tuple(sorted(
+            ((c, tuple(sorted(d.get(q, 0) for q in m)))
+             for c, m in cols.items()), key=repr))
+        groups[shape] += 1
+    total = 0
+    for shape, k in groups.items():
+        size = 1
+        for c, ex in shape:
+            size *= multinomial(len(ex), list(Counter(ex).values()))
+        check(k == size, f"{RW.name}: a shape at seed {seed} holding {k}"
+              f" limits against its orbit {size}")
+        total += size
+    return total, len(groups)
+
+
+<span id="section_r"></span>def section_r(F, element):
+    """IP5 or IP6 at one ring."""
+    RW = RingWorld(F, element)
+    t0 = time.time()
+    seeds = ER.seeds(F) if element else \
+        [{}] + [ideal for n, ideal in F.ideals(SEED_N)]
+    rows = Counter()
+    erase = []
+    for sd in seeds:
+        finals = run_seed(RW, sd)
+        ts = {t for st, v, t in finals.values()}
+        byl = {}
+        for st, v, t in finals.values():
+            byl.setdefault(limit_of(st, v), []).append((st, v))
+        _, nshape = orbit_sum(RW, sd, byl)
+        if not element:
+            check(len(ts) == 1, f"{RW.name}: branch tie counts {ts}")
+            check(nshape == 1, f"{RW.name}: {nshape} shapes at {sd}")
+            check(len(byl) == 2 ** min(ts), f"{RW.name}: {len(byl)}"
+                  f" limits against 2^{min(ts)} at {sd}")
+        for lim, grp in byl.items():
+            if len(grp) &gt; 1:
+                s1, v1 = grp[0]
+                diff = {p for s2, _ in grp[1:] for p in set(s1) | set(s2)
+                        if s1.get(p, 0) != s2.get(p, 0)}
+                supp = {pl for pl, a in v1}
+                check(all(v2 == v1 for _, v2 in grp),
+                      "an erasure across two lock vehicles")
+                check(diff &lt;= supp, f"{RW.name}: an erasure off the lock"
+                      f" support at {sd}")
+                check(len(supp) &gt;= 2, f"{RW.name}: an erasure at a lock"
+                      f" carrying no rider")
+                erase.append((sd, sorted(diff), sorted(v1), len(grp)))
+        rows[(min(ts), max(ts), len(finals), len(byl), nshape)] += 1
+    print(f"  {RW.name}: {len(seeds)} seeds ({time.time() - t0:.1f} s)")
+    print(f"    (least ties, most ties, lock-time states, limits, shapes):"
+          f" seeds {sorted(rows.items())}")
+    for sd, diff, v, n in erase:
+        print(f"    erasure at seed {sd}: {n} states differing at"
+              f" {diff}, one limit, the lock vehicle {v}")
+    return erase
+
+
+<span id="section_q"></span>def section_q():
+    print("IP5, IP6  THE QUADRATIC RINGS")
+    TALLY.clear()
+    er = {}
+    for F in (ML.K5, ML.K23):
+        section_r(F, False)
+    for F in (ML.K5, ML.K23):
+        er[F.name] = section_r(F, True)
+    print(f"  starvation checks {TALLY['starvation']}; ring menus read"
+          f" {TALLY['ring menus']}; branch merges {TALLY['merges']}")
+    check(er[ML.K23.name], "no erasure at Q(sqrt(-23))")
+    check(not er[ML.K5.name], "an erasure at Z[sqrt(-5)]")
+
+
+<span id="section_control"></span>def section_control():
+    print("CONTROLS")
+    ER.section_control()
+    A, B, C = (2, 2, 0), (2, 2, 1), (3, 3, 1)
+    v = frozenset({A: 1, B: 1}.items())
+    s1, s2, s3 = {A: 5, B: 3, C: 1}, {A: 3, B: 5, C: 1}, {A: 5, B: 3, C: 2}
+    check(limit_of(s1, v) == limit_of(s2, v), "control: on the support")
+    check(limit_of(s1, v) != limit_of(s3, v), "control: off the support")
+    print("  the limit map: two states differing on a lock's support read"
+          " one limit, differing off it two")
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_control()
+    rings = [EL.Ring(*x) for x in EL.RINGS]
+    worlds = [EL.World(R) for R in rings]
+    section_o(worlds)
+    for name in ("h3", "g2"):
+        check(sum(DEG_OFF.get(name, [])) &gt; 0, f"{name}: the degree multinomial"
+              " fits the element world")
+    section_c(worlds)
+    section_e(worlds)
+    section_q()
+    print(f"{CHECKS[0]} checks, {time.time() - t0:.1f} s")
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/image.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

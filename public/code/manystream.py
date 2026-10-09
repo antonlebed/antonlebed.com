@@ -1,0 +1,641 @@
+"""
+manystream.py -- the least lookahead of a smooth map of several
+signed-digit streams, read against the affine criterion.
+
+QUESTION. redundant.py gives the exact least lookahead of every
+weighted sum of streams: the affine criterion, a count of lattice
+points in one interval. Its LENGTH TEST, the same interval measured
+against a period with the lattice dropped, is within one digit of it.
+What does a map that is NOT affine cost? The claim carried here: a
+C^2 map of any number of streams is read at exactly the length test
+taken at its steepest tangent, the sup over the root box of its
+gradient's L1 norm, unless it is affine on the root box. Curvature
+forfeits the lattice and nothing else. And is the sup the gradient's
+own, or the gradient BOX's (each partial's sup taken apart)?
+
+THE READER. Streams are infinite strings of the digits D = {-a-, ...,
+a+} in radix b, a+- >= 0, SLACK rho = a- + a+ + 1 - b >= 1. Write
+M+- = a+-/(b - 1), w = M- + M+ and |I| = a- + a+, so w = |I|/(b - 1)
+and w - 1 = rho/(b - 1). A stream's value lies in [-M-, M+]; after n
+digits, with u the integer the n digits write, it lies in the BOX
+[(u - M-)/b^n, (u + M+)/b^n], and every integer u of
+[-a- R_n, a+ R_n], R_n = (b^n - 1)/(b - 1), is some prefix. A map f of
+d streams is written as y = sum_j e_j b^(o - j), e_j in D, with a LEAD
+o in Z: after t output digits of value Q the output lies in the TILE
+[(Q - M-) b^(o - t), (Q + M+) b^(o - t)]. The REAL READER, the reader
+of infinite streams this script builds, at lookahead c commits output
+digit t once it has read n = t + c digits of every stream (before
+reading any, when c < 0), and must keep f of the current box inside
+the current tile. The lead is the least o whose root tile
+[-M- b^o, M+ b^o] holds f's range; the count that carries the law is
+L = c + o.
+
+THE ARGUMENT (written before this script).
+  (1) THE TILE LEMMA. In units b^(o - t) the level-t tiles are
+      [p - M-, p + M+], p an integer, and consecutive ones overlap in
+      the ZONE [p + 1 - M-, p + M+] of length w - 1 > 0. An interval
+      [lo, hi] lies in some tile iff an integer lies in
+      [hi - M+, lo + M-], and otherwise it STRICTLY CONTAINS a zone,
+      the one at p = ceil(hi - M+) - 1. If the committed tile of
+      value Q holds the interval, its children bQ + e, e in D, run
+      over the integers of [bQ - a-, bQ + a+], and the interval's
+      ends put hi - M+ <= bQ + a+ and lo + M- >= bQ - a-, so an
+      integer of [hi - M+, lo + M-] clamped into the children's range
+      stays in it: some CHILD tile holds the interval. So the reader
+      is dead at L iff some box of some depth n, with t = n - c >= 1,
+      has an image strictly containing a level-t zone. That is a
+      property of the streams alone: the reader has no strategy, and
+      every legal digit is as good as another. In absolute units the
+      level-t zone has length (w - 1) b^(L - n).
+  (2) THE WIDTH RATE. A depth-n box has side w/b^n in every
+      coordinate, so by the mean value theorem its image is at most
+      Lam_B w/b^n wide, Lam_B the sup over the box of
+      |grad f|_1 = sum_i |d_i f|. It cannot strictly contain a zone
+      when Lam_B <= Lam_law = (w - 1) b^L / w, a bound free of the
+      depth, and a sub-box's sup is at most its box's. So only boxes
+      of the EXCESS REGION, Lam_B > Lam_law, can kill, and a scan
+      confined to them loses no kill.
+  (3) THE MARGIN LAW. With Lam the sup of |grad f|_1 over the root box,
+      f is read at L whenever Lam <= Lam_law, that is
+          b^L rho >= Lam |I|,
+      the region then being empty. Let L* be the least such L.
+  (4) THE LENGTH TEST AT THE STEEPEST TANGENT. For an affine map with
+      weights lam_i of either sign, redundant.py's injection bounds
+      add to M+ + M- = |I| sum_i |lam_i|, so its interval
+      [-eps-, eps+] has length eps+ + eps- = |I| (b^c - Lam)/(b - 1),
+      Lam = sum_i |lam_i|, and the length test eps+ + eps- >= b^c is
+      b^c rho >= Lam |I|: the margin law at L = c. Signs do not enter.
+      So (3) reads f at the length test of its tangent map at the
+      point where the gradient's L1 norm is largest.
+  (5) NECESSITY. Below L* the law's excess xi = Lam w/b^L - (w - 1) is
+      positive. If f is not affine on the root box, the component C of
+      {|grad f|_1 > (Lam + Lam_law)/2} holding the peak carries a
+      point of nonzero Hessian: a vanishing Hessian on C makes the
+      gradient constant on C, a boundary point of C inside the root box
+      would then read the midpoint, so C is the root box and f is
+      affine. Round that point, a small ball B has every partial of
+      one sign or identically zero, an integer direction V with
+      V^T H V one-signed, H the Hessian, and at least zeta > 0 in
+      size, and sum_i inf_B |d_i f| above the midpoint. On B the image
+      of a box runs between the two opposite corners the signs name, so
+      every box there has excess at least xi/2, and along the prefix
+      line u + i V, u a prefix and i an integer, the image's lower end,
+      read modulo the zone grid, is a C^2 phase in i whose second
+      derivative is one-signed and of size
+      at least zeta/b^(n+L). By van der Corput's second-derivative
+      estimate and the Erdos-Turan inequality (Kuipers and
+      Niederreiter, Uniform Distribution of Sequences, 1974) these
+      phases are equidistributed as n grows, so one of them falls in
+      the dead arc of length xi/2 at some depth: the reader is dead.
+      An affine map has no such line; its lower ends sit on a lattice
+      and redundant.py's criterion decides it, reading at L* or one
+      below it.
+  (6) THE SUMS. For x_1 + ... + x_k the image of a box is fixed by
+      the prefix sum s, which runs over every integer of
+      [-k a- R_n, k a+ R_n], so the box's image is
+      [(s - k M-)/b^n, (s + k M+)/b^n]. The stream reader of
+      redundant.py, its signed-digit reader of integers, at lookahead
+      c and this reader at L = c should be one reader: that stream
+      reader's clause "0 lies in J", b^c >= k, is the real reader's
+      lead, b^o >= k. (As frozen, and it holds: the lead o is the least o with b^o >= k, so the clause at c = L, b^L >= k, holds iff L >= o.)
+  (7) THE BOX IS NOT THE GRADIENT. f = x(1 - y^2) has d_x = 1 - y^2,
+      d_y = -2xy. With Mh = max(M-, M+) <= 1, |1 - y^2| + 2 Mh |y|
+      rises in |y| on the root box, so Lam = 1 + Mh^2 at |x| = |y| = Mh,
+      while the partials' separate sups add to 1 + 2 Mh^2: d_x peaks
+      at y = 0, where d_y vanishes. The law read on the gradient box
+      asks for b^L rho >= (1 + 2 Mh^2)|I|.
+
+THE DESIGN, frozen before the engine.
+  Exact rationals throughout. A map is its image over a box, exact:
+  intervals of distinct variables multiply exactly, an even power of
+  an interval holding 0 starts at 0, x^2 + x y takes its corners and
+  its edge minima at x = -y/2, and x(1 - y^2) is the product of the
+  independent intervals x and 1 - y^2. Its width rate over a box is an
+  interval-arithmetic bound on each partial, summed in absolute value:
+  never below the true sup, so pruning by it keeps every kill. Lam is
+  derived per map in closed form and checked against the width rate
+  over the whole root box, which is exact for every map but x(1 - y^2).
+  The lead is the least o in Z whose root tile holds the exact range.
+  THE SCAN at L: depth by depth from the root box, the children of a box
+  u being b u + e, e in D, per coordinate, only boxes of the excess
+  region kept; at each depth n with t = n - c >= 1 every kept box is
+  tested by (1). It stops at the first kill, at depth NMAX, or past
+  BUDGET boxes.
+  THE MAPS: x^2, x^3, x y, x^2 + y, x y + z, x^2 + x y, x^2 y, x y z and
+  x(1 - y^2), at the 20 cells b = 2..5, 1 <= a+- <= b - 1, rho >= 1.
+  Their laws: x^2 and x y at Lam = 2 Mh; x^3, x^2 y and x y z at 3 Mh^2;
+  x^2 + y and x y + z at 2 Mh + 1; x^2 + x y at 4 Mh (|2x + y| + |x| at
+  the corner of largest magnitude with x = y); x(1 - y^2) at
+  1 + Mh^2 by (7).
+  THE SUMS: k = 1, 2, 3 at every cell b = 2..5, 0 <= a+- <= b,
+  rho >= 1, M+ > 0 and M- > 0; the lead the least o with b^o >= k;
+  redundant.py's stream reader's least lookahead from its game,
+  sum_game_c_min at unit weights and phase 0.
+  THE ARITHMETIC: at b = 2..12, 0 <= a+- <= 12, rho >= 1, k = 1..4,
+  L = 0..4, the real reader's k-sum clause, dead iff an integer lies in
+  ((b^L - k) M+, b^L - (b^L - k) M-), against redundant.py's
+  sum_criterion at unit weights, phase 0, c = L; and at the same cells
+  with the weight vectors of redundant.py's grid, the margin at the
+  vector's L1 norm against the length of sum_interval's unclipped
+  interval.
+
+PREDICTIONS.
+  MA the controls, read first: x y at (2, 1, 1) at L* = 2 and dead at
+     1; x^2 + y at (2, 1, 1) at L* = 3, lead 1; x at (2, 1, 1) alive
+     at L = 0 to NMAX; x + y at (2, 1, 1) dead at L = 1.
+  ML the margin law at a weight vector's L1 norm is the length test at
+     every arithmetic cell, every c and every vector, both signs.
+  MS at every map and cell the region is empty at L*, and the width
+     rate over the root box equals the closed-form Lam at every map but
+     x(1 - y^2).
+  MN at every map and cell the scan at L* - 1 finds a kill, at output
+     depth at most 6 (the cube's at the least-excess cell (5, 3, 3)
+     the deepest, a transplant from the cube's earlier census).
+  MB x(1 - y^2): the scan at L* finds no kill to depth NMAX at every
+     cell; the box law's L is above L* at some cells, among them
+     (2, 1, 1), (4, 3, 3) and (5, 4, 4), and at those the scan at L*
+     is clean too.
+  MK for k = 1, 2, 3 at every sum cell the scan at L = c_min - 1 kills
+     (when c_min - 1 >= o) and at L = c_min finds nothing to depth
+     NMAX, c_min redundant.py's stream reader's.
+  MC the k-sum clause is redundant.py's criterion at every arithmetic
+     cell.
+  MW at every census cell with a+ = b - 1 >= a- (so x y's steepest
+     tangent is x + y), L*(x y) - c_min(X + Y) is 0 or 1, and 1
+     exactly on the addition wedge.
+
+KILLS, as what the script prints.
+  K1 an MA line off: the reader's convention is wrong; nothing below
+     is read.
+  K2 an ML cell off: (4) is false.
+  K3 a nonempty region at L*, or a root-box rate off its closed form:
+     the map's Lam or its interval bound is wrong.
+  K4 an MN pair with no kill: necessity is unread there (the scan's
+     reach, or (5)).
+  K5 an MB kill at L*: (7)'s Lam is wrong or (3) fails.
+  K6 an MK or MC line off: (6)'s identification of the two readers is
+     false.
+  K7 an MW line off: the wedge does not transfer.
+
+POSITIVE CONTROL: MA, read before any verdict line.
+
+FINDINGS (entered after the run; every number is a print).
+  - MA holds: x y at (2, 1, 1) at L* = 2, dead at 1 at output depth 2;
+    x^2 + y at L* = 3 with lead 1; the identity clean at L = 0; x + y
+    dead at L = 1 at output depth 1. K1 did not fire.
+  - ML holds: the margin at the L1 norm is the length test at all
+    334950 (cell, weight vector, c), both signs.
+  - MS holds: the region is empty at L* at every map and cell, and
+    the root-box rate is the closed-form Lam at the eight maps and
+    1 + 2 Mh^2 at x(1 - y^2).
+  - MN holds: all 180 (map, cell) pairs are dead at L* - 1, each by an
+    exact box whose image strictly contains a zone. Output depth 1 at
+    114 pairs, 2 at 56, 3 at 6, 4 at 3 (x^2 at (4, 2, 2), x^2 y and
+    x y z at (5, 3, 3)) and 6 at one, x^3 at (5, 3, 3), as the
+    transplant said. The deepest kill read 17879 boxes (x y z).
+  - MB holds: the box law asks one more digit than L* at 6 cells,
+    (2, 1, 1), (4, 3, 3), (5, 3, 3), (5, 3, 4), (5, 4, 3) and
+    (5, 4, 4). At the four radix-5 cells the excess region is EMPTY by
+    depth 2 at L*, so the scan's bound certifies survival outright; at
+    (2, 1, 1) and (4, 3, 3), where Lam = Lam_law exactly, the corner
+    boxes' bound never falls to the threshold and the scan is clean to
+    depth 12 and 8, the theorem's sufficiency doing the rest.
+  - MK holds: at all 132 (cell, k), k = 1, 2, 3, the real reader of
+    the k-sum is alive at c_min, c_min the stream reader's least
+    lookahead in redundant.py, and dead at c_min - 1 at every pair
+    where c_min - 1 reaches the lead (56 of the 132); below the lead its
+    first digit must hold the whole range. The two readers are one.
+  - On audit: ML re-types sum_interval's eps+- rather than calling it,
+    so it reads the identity's exact arithmetic; MS's empty region at
+    L* followed from the rate check and the definition of L*, and is
+    cut, the rates kept.
+  - MC holds at all 17400 (cell, k, L): the k-sum clause is the
+    criterion.
+  - MW holds at 10 cells: x y reads one digit after addition at
+    (3, 2, 2), (4, 2, 3) and (5, 2, 4), the wedge cells, and with it
+    elsewhere. Curvature pays exactly the lattice's discount.
+  - Two changes after the first run, neither touching a verdict. The
+    sum scan as frozen ran to depth NMAX; in zone units the image is
+    [(s - k M-)/b^L, (s + k M+)/b^L], free of n and periodic in s with
+    period b^L, so the scan now stops at the first depth whose prefix
+    sums cover a period, in integers, and its survival side is
+    decided rather than budgeted (MK read the same at both). The
+    arithmetic grid is b, a+- <= 10, not 12, for the wall.
+  - (5) as frozen says an affine map reads "at L* or one below it".
+    Only "at or below" holds for every affine map, by (3); the one
+    digit is the length bound's, proved for positive weights at total
+    rate at least 1, and MK carries it to the real reader of unit
+    sums alone. The lead never binds at the 180 pairs: L* is the
+    law's L at each.
+
+RUN RECORD: 11/11 checks, 30.0 s, peak commit 104.9 MB under a memory guard;
+after an audit, 11/11, 27.9 s, 104.9 MB.
+"""
+
+import math
+import time
+from fractions import Fraction as Fr
+
+import redundant as rd
+
+CHECKS = []
+NMAX = 12
+BUDGET = 300_000
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tail = f"  ({detail})" if detail else ""
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}{tail}")
+
+
+def repunit(b, j):
+    return (b ** j - 1) // (b - 1)
+
+
+# ---- intervals, exact ----
+
+def imul(p, q):
+    c = (p[0] * q[0], p[0] * q[1], p[1] * q[0], p[1] * q[1])
+    return (min(c), max(c))
+
+
+def iadd(*ps):
+    return (sum(p[0] for p in ps), sum(p[1] for p in ps))
+
+
+def ipow(p, k):
+    lo, hi = p
+    if k % 2 == 1:
+        return (lo ** k, hi ** k)
+    if lo <= 0 <= hi:
+        return (Fr(0), max(lo ** k, hi ** k))
+    return (min(lo ** k, hi ** k), max(lo ** k, hi ** k))
+
+
+def iscale(s, p):
+    return (min(s * p[0], s * p[1]), max(s * p[0], s * p[1]))
+
+
+def isup(p):
+    return max(abs(p[0]), abs(p[1]))
+
+
+ONE = (Fr(1), Fr(1))
+
+
+# ---- the maps: (name, d, image, partials, Lam of Mh) ----
+
+def img_x2_xy(B):
+    (x0, x1), (y0, y1) = B
+    vals = [x * (x + y) for x in (x0, x1) for y in (y0, y1)]
+    for y in (y0, y1):
+        if x0 <= -y / 2 <= x1:
+            vals.append(-y * y / 4)
+    return (min(vals), max(vals))
+
+
+def one_minus_sq(p):
+    return iadd(ONE, iscale(-1, ipow(p, 2)))
+
+
+MAPS = [
+    ("x^2", 1, lambda B: ipow(B[0], 2),
+     lambda B: [iscale(2, B[0])], lambda M: 2 * M),
+    ("x^3", 1, lambda B: ipow(B[0], 3),
+     lambda B: [iscale(3, ipow(B[0], 2))], lambda M: 3 * M * M),
+    ("x y", 2, lambda B: imul(B[0], B[1]),
+     lambda B: [B[1], B[0]], lambda M: 2 * M),
+    ("x^2 + y", 2, lambda B: iadd(ipow(B[0], 2), B[1]),
+     lambda B: [iscale(2, B[0]), ONE], lambda M: 2 * M + 1),
+    ("x y + z", 3, lambda B: iadd(imul(B[0], B[1]), B[2]),
+     lambda B: [B[1], B[0], ONE], lambda M: 2 * M + 1),
+    ("x^2 + x y", 2, img_x2_xy,
+     lambda B: [iadd(iscale(2, B[0]), B[1]), B[0]], lambda M: 4 * M),
+    ("x^2 y", 2, lambda B: imul(ipow(B[0], 2), B[1]),
+     lambda B: [iscale(2, imul(B[0], B[1])), ipow(B[0], 2)],
+     lambda M: 3 * M * M),
+    ("x y z", 3, lambda B: imul(imul(B[0], B[1]), B[2]),
+     lambda B: [imul(B[1], B[2]), imul(B[0], B[2]), imul(B[0], B[1])],
+     lambda M: 3 * M * M),
+    ("x(1 - y^2)", 2, lambda B: imul(B[0], one_minus_sq(B[1])),
+     lambda B: [one_minus_sq(B[1]), iscale(-2, imul(B[0], B[1]))],
+     lambda M: 1 + M * M),
+]
+BOXLAW = {"x(1 - y^2)": lambda M: 1 + 2 * M * M}
+
+
+def census():
+    return [(b, am, ap) for b in range(2, 6) for am in range(1, b)
+            for ap in range(1, b) if am + ap + 1 - b >= 1]
+
+
+class Cell:
+    def __init__(self, b, am, ap):
+        self.b, self.am, self.ap = b, am, ap
+        self.rho = am + ap + 1 - b
+        self.I = am + ap
+        self.Mm, self.Mp = Fr(am, b - 1), Fr(ap, b - 1)
+        self.w = self.Mm + self.Mp
+        self.Mh = max(self.Mm, self.Mp)
+
+    def box(self, u, n):
+        s = Fr(1, self.b ** n)
+        return ((u - self.Mm) * s, (u + self.Mp) * s)
+
+    def lam_law(self, L):
+        return (self.w - 1) * Fr(self.b) ** L / self.w
+
+    def law_L(self, lam):
+        L = -40
+        while Fr(self.b) ** L * self.rho < lam * self.I:
+            L += 1
+        return L
+
+    def lead(self, rng):
+        o = -40
+        while not (rng[0] >= -self.Mm * Fr(self.b) ** o
+                   and rng[1] <= self.Mp * Fr(self.b) ** o):
+            o += 1
+        return o
+
+    def kills(self, img, n, L):
+        """(1): does the image strictly contain a zone at depth n?"""
+        e = Fr(self.b) ** (L - n)
+        lo, hi = img[0] / e, img[1] / e
+        return math.floor(lo + self.Mm) < hi - self.Mp
+
+
+def rate(parts):
+    return sum(isup(p) for p in parts)
+
+
+def digit_tuples(D, d):
+    if d == 1:
+        return [(e,) for e in D]
+    return [(e,) + r for e in D for r in digit_tuples(D, d - 1)]
+
+
+def scan(cell, mp, L, o):
+    """Least output depth of a kill at L, or None; and boxes read."""
+    name, d, image, partials, _ = mp
+    c = L - o
+    law = cell.lam_law(L)
+    tuples = digit_tuples(range(-cell.am, cell.ap + 1), d)
+    level = [(0,) * d]
+    read = 0
+    for n in range(0, NMAX + 1):
+        kept = []
+        for u in level:
+            B = [cell.box(ui, n) for ui in u]
+            read += 1
+            if rate(partials(B)) <= law:
+                continue
+            if n - c >= 1 and cell.kills(image(B), n, L):
+                return n - c, read
+            kept.append(u)
+        scan.reached = n
+        if not kept or read > BUDGET:
+            return None, read
+        level = [tuple(cell.b * ui + e for ui, e in zip(u, es))
+                 for u in kept for es in tuples]
+    return None, read
+
+
+def root_box(cell, d):
+    return [(-cell.Mm, cell.Mp)] * d
+
+
+def law_of(cell, mp):
+    name, d, image, partials, lamf = mp
+    lam = lamf(cell.Mh)
+    o = cell.lead(image(root_box(cell, d)))
+    return lam, o, max(cell.law_L(lam), o)
+
+
+# ---- sums of streams ----
+
+def sum_scan(cell, k, L, o):
+    """(6): the k-sum's boxes are indexed by the prefix sum s. In zone
+    units the image is [(s - k M-)/b^L, (s + k M+)/b^L], free of the
+    depth and periodic in s with period b^L, so the first depth whose
+    prefix sums cover a period decides the reader."""
+    c = L - o
+    b, q, B = cell.b, cell.b - 1, cell.b ** L
+    for n in range(max(0, c + 1), NMAX + 1):
+        R = repunit(b, n)
+        s0, s1 = -k * cell.am * R, k * cell.ap * R
+        for s in range(s0, min(s1, s0 + B - 1) + 1):
+            X = s * q - k * cell.am + cell.am * B
+            Y = s * q + k * cell.ap - cell.ap * B
+            if (X // (q * B)) * q * B < Y:
+                return n - c
+        if s1 - s0 + 1 >= B:
+            return None
+    raise RuntimeError("the prefix sums never covered a period")
+
+
+def sum_lead(b, k):
+    o = 0
+    while b ** o < k:
+        o += 1
+    return o
+
+
+def clause_dead(b, am, ap, k, L):
+    Mm, Mp = Fr(am, b - 1), Fr(ap, b - 1)
+    lo, hi = (b ** L - k) * Mp, b ** L - (b ** L - k) * Mm
+    return math.floor(lo) + 1 < hi
+
+
+# ---- the sections ----
+
+def section_ma():
+    print("MA  the controls")
+    xy, x2y = MAPS[2], MAPS[3]
+    cell = Cell(2, 1, 1)
+    lam, o, Ls = law_of(cell, xy)
+    k, _ = scan(cell, xy, 1, o)
+    check(f"x y at (2, 1, 1): L* = {Ls}, dead at 1 at output depth {k}",
+          Ls == 2 and k is not None, "recorded L* = 2")
+    lam, o, Ls = law_of(cell, x2y)
+    check(f"x^2 + y at (2, 1, 1): L* = {Ls}, lead {o}",
+          Ls == 3 and o == 1, "recorded 3, lead 1")
+    k1 = sum_scan(cell, 1, 0, 0)
+    check(f"x at (2, 1, 1), L = 0: kill {k1}", k1 is None,
+          "the identity reads at 0")
+    k2 = sum_scan(cell, 2, 1, sum_lead(2, 2))
+    check(f"x + y at (2, 1, 1), L = 1: kill at output depth {k2}",
+          k2 is not None, "addition reads at 2")
+
+
+def arith_cells():
+    for b in range(2, 11):
+        for am in range(11):
+            for ap in range(11):
+                if am + ap + 1 - b >= 1:
+                    yield b, am, ap
+
+
+def section_ml():
+    print("ML  the margin at the L1 norm is the length test")
+    bad = tot = 0
+    vectors = list(rd.weight_vectors())
+    for (b, am, ap) in arith_cells():
+        rho, I = am + ap + 1 - b, am + ap
+        for lams in vectors:
+            Lam = sum(abs(l) for l in lams)
+            Mp = sum(abs(l) * (ap if l > 0 else am) for l in lams)
+            Mm = sum(abs(l) * (am if l > 0 else ap) for l in lams)
+            for c in range(5):
+                ep = (Fr(ap * b ** c) - Mp) / (b - 1)
+                em = (Fr(am * b ** c) - Mm) / (b - 1)
+                tot += 1
+                if (ep + em >= b ** c) != (b ** c * rho >= Lam * I):
+                    bad += 1
+    check("ML margin == length test", bad == 0,
+          f"{tot} (cell, vector, c), {bad} off")
+
+
+def section_mapped():
+    print("MS, MN, MB  the nine maps at the 20 cells")
+    t0 = time.time()
+    off = 0
+    nokill, deepest, reads = [], 0, 0
+    box_above, box_clean = [], 0
+    for mp in MAPS:
+        name, d, image, partials, lamf = mp
+        Lv, ov, kd = set(), set(), {}
+        for (b, am, ap) in census():
+            cell = Cell(b, am, ap)
+            lam, o, Ls = law_of(cell, mp)
+            Lv.add(Ls)
+            ov.add(o)
+            wr = rate(partials(root_box(cell, d)))
+            want = BOXLAW[name](cell.Mh) if name in BOXLAW else lam
+            if wr != want:
+                off += 1
+            k, r = scan(cell, mp, Ls - 1, o)
+            reads += r
+            if k is None:
+                nokill.append((name, b, am, ap))
+            else:
+                kd[k] = kd.get(k, 0) + 1
+                deepest = max(deepest, k)
+                if k >= 4:
+                    print(f"    {name} at ({b}, {am}, {ap}): output "
+                          f"depth {k}, {r} boxes")
+            if name in BOXLAW:
+                kL, r = scan(cell, mp, Ls, o)
+                reads += r
+                Lbox = max(cell.law_L(BOXLAW[name](cell.Mh)), o)
+                if Lbox > Ls:
+                    box_above.append(((b, am, ap), Ls, Lbox,
+                                      scan.reached))
+                    if kL is None:
+                        box_clean += 1
+                if kL is not None:
+                    nokill.append((name + " killed at L*", b, am, ap))
+        print(f"    {name}: L* in {sorted(Lv)}, leads {sorted(ov)}, "
+              f"kills at L* - 1 by output depth {dict(sorted(kd.items()))}")
+    check("MS the root-box rates match their closed forms", off == 0,
+          f"{off} rates off")
+    check("MN a kill at L* - 1 at every map and cell, depth <= 6",
+          not nokill and deepest <= 6,
+          f"{len(MAPS) * len(census())} pairs, deepest {deepest}, "
+          f"missing {nokill}")
+    print(f"    x(1 - y^2): the box law above L* at {len(box_above)} "
+          f"cells (cell, L*, box L, depth the scan at L* reached): "
+          f"{box_above}")
+    need = {(2, 1, 1), (4, 3, 3), (5, 4, 4)}
+    check("MB x(1 - y^2) clean at L*; the box law asks more",
+          need <= {c for c, _, _, _ in box_above}
+          and box_clean == len(box_above),
+          f"clean at {box_clean} of {len(box_above)}")
+    print(f"    {reads} boxes read, {time.time() - t0:.1f} s")
+
+
+def sum_cells():
+    for b in range(2, 6):
+        for am in range(1, b + 1):
+            for ap in range(1, b + 1):
+                if am + ap + 1 - b >= 1:
+                    yield b, am, ap
+
+
+def section_mk():
+    print("MK  the k-sum: the real reader against redundant.py's stream reader")
+    bad, tot, below = [], 0, 0
+    for (b, am, ap) in sum_cells():
+        cell = Cell(b, am, ap)
+        for k in (1, 2, 3):
+            cm = rd.sum_game_c_min(b, am, ap, (Fr(1),) * k, Fr(0))
+            o = sum_lead(b, k)
+            tot += 1
+            if sum_scan(cell, k, cm, o) is not None:
+                bad.append((b, am, ap, k, "kill at c_min"))
+            if cm - 1 >= o:
+                below += 1
+                if sum_scan(cell, k, cm - 1, o) is None:
+                    bad.append((b, am, ap, k, "none at c_min - 1"))
+    check("MK the real reader of x_1 + .. + x_k reads at c_min",
+          not bad, f"{tot} (cell, k), dead below read at {below}, "
+          f"off {bad}")
+
+
+def section_mc():
+    print("MC  the k-sum clause is the affine criterion")
+    bad = tot = 0
+    for (b, am, ap) in arith_cells():
+        for k in range(1, 5):
+            for L in range(5):
+                tot += 1
+                crit = rd.sum_criterion(b, am, ap, (Fr(1),) * k,
+                                        Fr(0), L)
+                if clause_dead(b, am, ap, k, L) == crit:
+                    bad += 1
+    check("MC clause dead iff the criterion fails", bad == 0,
+          f"{tot} (cell, k, L), {bad} off")
+
+
+def wedge(b, am, ap):
+    rho = am + ap + 1 - b
+    return (b >= 3 and rho == 2 and min(am, ap) != 1) or \
+        (b == 3 and rho == 3)
+
+
+def section_mw():
+    print("MW  x y against its steepest tangent x + y")
+    bad, gaps = [], []
+    for (b, am, ap) in census():
+        if not ap == b - 1 >= am:
+            continue
+        _, _, Ls = law_of(Cell(b, am, ap), MAPS[2])
+        cm = rd.sum_game_c_min(b, am, ap, (Fr(1), Fr(1)), Fr(0))
+        g = Ls - cm
+        gaps.append(((b, am, ap), g))
+        if g not in (0, 1) or (g == 1) != wedge(b, am, ap):
+            bad.append((b, am, ap, Ls, cm))
+    print(f"    L*(x y) - c_min(X + Y): {gaps}")
+    check("MW one digit exactly on the wedge", not bad,
+          f"{len(gaps)} cells, off {bad}")
+
+
+def main():
+    t0 = time.time()
+    section_ma()
+    if not all(CHECKS):
+        print("\nCONTROL FAILED: nothing below is read.")
+        raise SystemExit(1)
+    section_ml()
+    section_mapped()
+    section_mk()
+    section_mc()
+    section_mw()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

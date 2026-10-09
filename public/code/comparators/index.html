@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>comparators.py | Numbers read one place at a time</title>
+<meta name="description" content="comparators.py">
+<link rel="alternate" type="text/x-python" href="/code/comparators.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>comparators.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/redundant/#the-tile-valued-maps">REDUNDANT: The tile-valued maps</a> (theorem); <a href="/redundant/#the-absolute-value">REDUNDANT: The absolute value</a> (criterion); <a href="/redundant/#the-free-comparator">REDUNDANT: The free comparator</a> (theorem).</p><p>Cited on: <a href="/redundant/">REDUNDANT</a>.</p><p>To run it: <a href="/code/manystream.py">manystream.py</a>, <a href="/code/piecewise.py">piecewise.py</a>, <a href="/code/redundant.py">redundant.py</a> beside it; standard library only.</p></div>
+<pre>"""
+comparators.py -- what a comparator costs a signed-digit reader: the
+maps whose images are tiles, the absolute value's digit-set clause,
+and max and min inside a unit and on its output.
+
+QUESTION. manystream.py reads every C^2 map of signed-digit streams at
+the margin law's L*, and piecewise.py reads a map of one stream smooth
+on pieces by three clauses. A comparator -- max, min, a clamp, a
+rectifier, the absolute value -- is neither smooth nor of one stream,
+and the literature's table gives max and min an on-line delay of 0
+(Ercegovac and Lang, Digital Arithmetic, 2003, Table 9.1). Four
+questions. Which comparators read at lookahead 0, and why? Exactly
+when does |x|? What does a comparator cost inside a unit, as in
+max(x, y) + z or x max(y, z)? And on a unit's output, as in
+max(x y, z)?
+
+THE READER is manystream.py's. Radix b, digits D = {-a-, ..., a+},
+a+- &gt;= 1, SLACK rho = a- + a+ + 1 - b &gt;= 1, M+- = a+-/(b - 1),
+w = M- + M+, |I| = a- + a+. The prefix u of depth n is the BOX
+[(u - M-)/b^n, (u + M+)/b^n], u any integer of [-a- R_n, a+ R_n],
+R_n = (b^n - 1)/(b - 1). The output has a LEAD o, the least o whose
+root tile [-M- b^o, M+ b^o] holds the map's range; output digit t is
+committed after n = t + c input digits, L = c + o. By the tile lemma
+the reader is dead at L iff some box of a depth n with t = n - c &gt;= 1
+has an image strictly containing a level-t ZONE, and an interval lies
+in some level-t tile iff it strictly contains no zone. In units
+b^(o - t) = b^(L - n) the level-t tiles are [p - M-, p + M+], p any
+integer, so at L = 0 the level-t tiles are exactly the translates of
+the depth-n boxes by whole steps b^(-n): the DEPTH-n TILES. Death is
+a property of the set of box images at each depth; the reader has no
+strategy. A reader alive at L is alive at L + 1 (it may ignore a
+digit), so the delay is the least L at which it is alive.
+
+THE ARGUMENT (written before the engine).
+  (1) TILE-VALUED MAPS. If the image of every depth-n box, n &gt;= 0,
+      lies in a depth-n tile, the map is read at L = 0: an interval in
+      a tile strictly contains no zone, and the n = 0 case puts the
+      range in a level-o tile, so the digits committed before any
+      input is read hold it too (a level-t tile lies in a level-(t - 1)
+      tile, every integer p being some bQ + e with e in D). Two
+      boxes of one depth have one width, so the higher top has the
+      higher bottom: the image of max(x, y) over a box is the higher
+      box, of min(x, y) the lower, and every lattice polynomial of
+      streams (max and min nested, as the clamp min(max(x, y), z)) has
+      a box for its image. The rectifier max(x, 0) has the box, the
+      point 0, or [0, hi] inside the box. All of them read at L = 0,
+      their lead 0, so at lookahead 0.
+  (2) THE ABSOLUTE VALUE. |x| sends a box in x &lt;= 0 to its MIRROR
+      [-hi, -lo], whose lower end sits at offset M- - M+ modulo 1 from
+      the depth-n tiles' lower ends. An interval of length w at offset
+      phi in (0, 1) from them strictly contains the zone above its
+      floor. So with a+- &gt;= 1:
+          |x| is read at L = 0 iff (b - 1) | (a+ - a-), else at L = 1.
+      Divisible: every image is a tile, its mirror, or [0, max(-lo,
+      hi)] inside one of the two, and at n = 0 the range [0, M-] or
+      [0, M+] lies in the root box or its mirror; (1) applies. Not
+      divisible: the least-prefix box of depth n0, the least n &gt;= 1
+      with a+ &lt;= a- (b^n - 1), lies in x &lt;= 0 and kills at L = 0. L = 1
+      is the margin law at Lipschitz constant 1, b rho &gt;= |I|, true at
+      rho &gt;= 1. And every L = -1 is dead: a box in x &gt;= 0 is its own
+      image, w long against zones of spacing 1 and length w - 1 in
+      level units b^(-1-n), and strictly contains one. The lead is 0
+      when a- &lt;= a+ and the least o with b^o a+ &gt;= a- otherwise, so at
+      a divisible cell with a- &gt; a+ the lookahead is -o: |x| commits o
+      digits before it reads one. This is the segment lemma's boundary
+      slope seen once more: the piece -x has a single phase, and the
+      range at slope 1 is one point.
+  (3) INSIDE A UNIT. For EVERY map G of streams, the set of images of
+      G(w, max(y, z)) over the depth-n boxes IS the set of G's, by
+      (1): the image at (W, Y, Z) is G's at (W, the higher of Y and Z),
+      and every (W, Y) of G is the case Z = Y. The ranges agree, so
+      the leads do, and by the tile lemma the two maps die at the same
+      L at the same depths. The comparator inside a unit is exactly
+      free, at every map and every cell. min likewise.
+  (4) ON AN OUTPUT. Let G have lead 0 and z be a stream. The constant
+      stream of digit -a- has the depth-n box [-M-, -M- + w/b^n], so
+      max(G(x), z) at (X, that box) has image [lo_G, max(hi_G, -M- +
+      w/b^n)], which strictly contains every zone G's image does: the
+      comparator dies wherever G does. Conversely its image lies in
+      G's or in z's box, and z's box is a depth-n tile, inside a
+      level-t tile when t &lt;= n, that is L &gt;= 0. So max(G(x), z) has
+      G's delay whenever that is not negative, and min(G(x), z) by the
+      constant stream of digit a+. A partner read at the output's
+      scale, b^o z against a G of lead o, is the same argument at any
+      lead where G's lookahead is not negative.
+  (5) THE CLAMP OF A SUM. max(x + y, z) with z at the INPUT scale and
+      x + y at lead 1 is not covered by (4): the bottom stream -M- sits
+      inside the sum's range and max(x + y, -M-) clamps it. The sum's
+      image at the prefix sum s is [(s - 2 M-)/b^n, (s + 2 M+)/b^n],
+      and s -&gt; s + b^L moves it one zone up; every integer of
+      [-2 a- R_n, 2 a+ R_n] is a prefix sum. Take the highest s of a
+      dead box's orbit, s &gt; 2 a+ R_n - b^L. Its zone's index q in
+      [(q + 1 - M-) b^(L - n), (q + M+) b^(L - n)] has
+      q &gt; (2 a+ R_n - 2 M-)/b^L + M- - 2 &gt;= 2 M+ + M- - 2w/b - 2,
+      using n &gt;= L and L &gt;= 1, and the right side is at least -1 iff
+      2 a+ (b - 1) + a- (b - 2) &gt;= b (b - 1), which holds whenever
+      a+ &gt;= 1 (put a- = b - a+ + rho - 1). So q &gt;= 0, the zone's floor
+      (q + 1 - M-) b^(L - n) lies strictly above -M- for t &gt;= 1, and
+      the clamp's image [max(lo, -M-), hi] still strictly contains it.
+      The clamp dies wherever the sum dies; it is dead at L &lt;= 0, where
+      its first digit must hold a range M+ longer than a level-1 tile;
+      and (4)'s upper half holds at L &gt;= 0. So max(x + y, z) has the
+      sum's delay at every cell, and min(x + y, z) by the mirror.
+
+THE SLATE, frozen before the engine ran.
+  XA THE CONTROLS. (i) The identity x: no kill at L = 0 to the scan's
+     depth, a kill at L = -1, at the 20 cells of radices 2..5 with
+     a+- &lt;= b - 1. (ii) x + y at lead 1: the box scan dead at L = 1
+     and L = 2 exactly where manystream.py's sum clause says, at the
+     20 cells. (iii) x y at lead 0, at the 7 cells of radices 2..4
+     whose root box holds its range: the box scan's first kill at
+     L* - 1 at the output depth manystream.scan prints.
+  XB THE TILE-VALUED MAPS. max(x, y), min(x, y) and max(x, 0) at the
+     20 cells, max(x, y, z) and min(max(x, y), z) at the 10 of
+     radices 2..4: every box image to the scan's depth lies in a
+     same-depth tile, no kill at L = 0, and a kill at L = -1.
+  XC THE ABSOLUTE VALUE over the WIDE census, radices 2..6 and
+     1 &lt;= a+- &lt;= 2b - 1 with rho &gt;= 1: the delay is 0 exactly at the
+     cells with (b - 1) | (a+ - a-) and 1 elsewhere, by the box scan
+     (a kill at L = 0 at input depth at most n0 off the clause, none to
+     the scan's depth on it, a kill at L = -1 everywhere) and by
+     piecewise.py's clauses for the two-piece map [-x | x] at every
+     cell. Two consequences, fixed now: asymmetric digit sets read at
+     0 -- (2,1,2), (3,1,3), (4,1,4) among them -- so the reading "|x|
+     reads at 0 iff the set is symmetric" fails off the radix; and the
+     divisible cells with a- &gt; a+ read at a NEGATIVE lookahead,
+     (3,3,1) at -1 and (2,3,1) at -2.
+  XD INSIDE A UNIT. max(x, y) + z against x + z at lead 1, the 10
+     cells of radices 2..4; x max(y, z) against x y at lead 0, the 7
+     representable cells; min in both. At the bare map's delay less
+     one, the fused map dies at the bare map's first kill depth (the
+     witness Z = Y) and no full scan of a shallower depth finds a
+     fused kill; the image sets agree at every depth &lt;= 2 where the
+     triples number at most 40,000.
+  XE ON AN OUTPUT. max(x y, z) and min(x y, z) at lead 0, the 7
+     representable cells: dead at L* - 1 at x y's first kill depth,
+     with z the constant stream of digit -a- (a+ for min). max(x + y,
+     b z) at lead 1, the 20 cells: dead at the sum's delay less one at
+     the sum's depth, z the bottom stream.
+  XF THE CLAMP over radices 2..7 with 1 &lt;= a+- &lt;= b and rho &gt;= 1: at
+     the sum's delay less one, the top of a dead box's orbit has q &gt;= 0
+     and the clamp (z the bottom stream) kills there; at the sum's
+     delay no clamp box of the first output depth kills; min(x + y, z)
+     by the mirror with the top stream.
+
+KILLS, as what the script prints.
+  K1 an XA line off: the engine is not the tile lemma's; nothing
+     below is read.
+  K2 an XB box image in no same-depth tile, or an XB kill at L = 0:
+     (1) is wrong as written.
+  K3 an XC cell whose delay is off the divisibility clause, a kill at
+     depth past n0, or clauses and scan disagreeing: (2) is wrong.
+  K4 an XD fused kill at a depth other than the bare map's, or an
+     image set that differs: (3) is wrong.
+  K5 an XE or XF witness that fails to kill, a q &lt; 0, or a kill at
+     the bare map's delay: (4) or (5) is wrong.
+
+POSITIVE CONTROL: XA, read before any verdict line.
+
+FINDINGS (entered after the run; every number is a print).
+  - XA holds: the identity alive at 0 and dead at -1 at 20 of 20; the
+    box scan dead at L = 1 and 2 exactly where the sum clause says at
+    all 40 (cell, L); x y's first kill at L* - 1 at output depth 2, 1,
+    2, 1, 2, 2, 1 at (2,1,1), (3,1,2), (3,2,2), (4,1,3), (4,2,2),
+    (4,2,3), (4,3,3), manystream.scan's at each. K1 did not fire.
+  - XB holds: no box image outside a same-depth tile, every depth read
+    to 2..6 by cell for the two-stream maps, 6..8 for the rectifier,
+    2..4 for the three-stream ones; alive at 0 and dead at -1 at every
+    cell. K2 did not fire.
+  - XC holds at all 265 cells of the wide census: delay 0 at the 79
+    with (b - 1) | (a+ - a-) and 1 at the rest, dead at -1 everywhere,
+    every kill at 0 by depth n0, and the piecewise clauses agreeing at
+    265 of 265. 50 asymmetric sets read at 0, every radix-2 set among
+    them, and 25 cells read at a negative lookahead, -1 at 20 and -2
+    at 5 ((2,3,1), (3,5,1), (4,7,1), (5,9,1), (6,11,1)). K3 did not
+    fire.
+  - XD holds: each fused map dies at its bare map's first kill depth
+    at every cell (depth 1 for the sums; 2, 1, 2, 1, 2, 2, 1 for the
+    products), with no shallower fused kill; the image sets agree at
+    30 (cell, depth) for the sums and 21 for the products. K4 did not
+    fire.
+  - XE holds: the constant partner kills max(x y, z) and min(x y, z)
+    at x y's depth at the 7 cells, and max(x + y, b z) at the sum's
+    depth 1 at the 20.
+  - XF holds over 104 cells of radices 2..7: the sum's delay is 1 at
+    70, where the clamp is dead at 0 by its range, and 2 at 34, whose
+    68 orbit ends (both mirrors) all have q &gt;= 0, least q 0, the
+    clamp killing at each; no clamp kill at the sum's delay. K5 did
+    not fire.
+  - Four engine repairs before the first run, none touching the slate:
+    the cap is checked before a depth's boxes are built, the mirrored
+    orbit end reads its lowest zone, the clamp's scan at the sum's
+    delay runs over (prefix sum, z) pairs so it cannot pass the cap
+    unread, and the clamp at a sum of delay 1 is read at L = 0 by its
+    range, the orbit lemma needing L &gt;= 1. After the run one print
+    changed: XB now reports each cell's deepest depth read. And (5)'s
+    bound was written ending in - 1 where the derivation gives - 2;
+    the condition it is compared with was the - 2 form's, and XF read
+    q directly, so no line moved.
+
+RUN RECORD: 22/22 checks, 18.1 s, peak commit 31.5 MB under a memory guard;
+after an audit (the skips counted, none), 22/22, 17.5 s, 30.4 MB.
+"""
+
+import itertools
+import math
+import time
+from fractions import Fraction as Fr
+
+import manystream as ms
+import piecewise as pwm
+
+CHECKS = []
+NMAX = 8
+CAP = 40_000
+CAP1 = 3_000
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tail = f"  ({detail})" if detail else ""
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}{tail}")
+
+
+<span id="tag"></span>def tag(cell):
+    return f"({cell.b},{cell.am},{cell.ap})"
+
+
+# ---- intervals, exact ----
+
+<span id="imax"></span>def imax(*ps):
+    return (max(p[0] for p in ps), max(p[1] for p in ps))
+
+
+<span id="imin"></span>def imin(*ps):
+    return (min(p[0] for p in ps), min(p[1] for p in ps))
+
+
+ZERO = (Fr(0), Fr(0))
+
+
+<span id="ident"></span>def ident(B):
+    return B[0]
+
+
+<span id="isum"></span>def isum(B):
+    return ms.iadd(B[0], B[1])
+
+
+<span id="iprod"></span>def iprod(B):
+    return ms.imul(B[0], B[1])
+
+
+# ---- the engine ----
+
+<span id="prefixes"></span>def prefixes(cell, n):
+    R = ms.repunit(cell.b, n)
+    return range(-cell.am * R, cell.ap * R + 1)
+
+
+<span id="boxes"></span>def boxes(cell, n):
+    return [cell.box(u, n) for u in prefixes(cell, n)]
+
+
+<span id="count"></span>def count(cell, n):
+    return len(prefixes(cell, n))
+
+
+<span id="scan"></span>def scan(cell, d, image, L, o, nmax=NMAX, cap=CAP):
+    """((t, n), reached) of the first kill at L over every d-tuple of
+    boxes of each depth, or (None, reached) once a depth would pass
+    the cap."""
+    c = L - o
+    reached = -1
+    for n in range(max(0, c + 1), nmax + 1):
+        if count(cell, n) ** d &gt; cap:
+            break
+        bx = boxes(cell, n)
+        for B in itertools.product(bx, repeat=d):
+            if cell.kills(image(B), n, L):
+                return (n - c, n), n
+        reached = n
+    return None, reached
+
+
+<span id="in_tile"></span>def in_tile(cell, img, n):
+    """Does the interval lie in a depth-n tile [p - M-, p + M+]/b^n?"""
+    s = Fr(cell.b) ** n
+    lo, hi = img[0] * s, img[1] * s
+    return math.ceil(hi - cell.Mp) &lt;= math.floor(lo + cell.Mm)
+
+
+<span id="lead"></span>def lead(cell, d, image):
+    return cell.lead(image(ms.root_box(cell, d)))
+
+
+<span id="small_cells"></span>def small_cells():
+    return [ms.Cell(*t) for t in ms.census()]
+
+
+<span id="product_cells"></span>def product_cells():
+    return [c for c in small_cells() if c.b &lt;= 4
+            and lead(c, 2, iprod) == 0]
+
+
+<span id="sum_delay"></span>def sum_delay(cell):
+    L = 1
+    while ms.clause_dead(cell.b, cell.am, cell.ap, 2, L):
+        L += 1
+    return L
+
+
+<span id="prod_delay"></span>def prod_delay(cell):
+    return max(cell.law_L(2 * cell.Mh), 0)
+
+
+# ---- the sections ----
+
+<span id="section_xa"></span>def section_xa():
+    print("XA  the controls")
+    off = [tag(c) for c in small_cells()
+           if scan(c, 1, ident, 0, 0)[0] is not None
+           or scan(c, 1, ident, -1, 0)[0] is None]
+    check("XA identity alive at L = 0, dead at L = -1, at 20 cells",
+          not off, f"off {off}")
+    off = []
+    for c in small_cells():
+        for L in (1, 2):
+            k, r = scan(c, 2, isum, L, 1, nmax=L)
+            dead = ms.clause_dead(c.b, c.am, c.ap, 2, L)
+            if (k is not None) != dead or (k is None and r &lt; L):
+                off.append((tag(c), L))
+    check("XA x + y dead at L = 1, 2 exactly where the sum clause says",
+          not off, f"off {off}")
+    rows, off = [], []
+    for c in product_cells():
+        Ls = prod_delay(c)
+        k, _ = scan(c, 2, iprod, Ls - 1, 0)
+        mk, _ = ms.scan(c, ms.MAPS[2], Ls - 1, 0)
+        rows.append((tag(c), k and k[0], mk))
+        if k is None or k[0] != mk:
+            off.append(tag(c))
+    print(f"    x y at L* - 1, (cell, box scan's t, manystream's t): "
+          f"{rows}")
+    check("XA x y's first kill depth is manystream.scan's at 7 cells",
+          not off and len(rows) == 7, f"off {off}")
+
+
+<span id="section_xb"></span>def section_xb():
+    print("XB  the tile-valued maps")
+    maps = [("max(x, y)", 2, lambda B: imax(B[0], B[1]), 5),
+            ("min(x, y)", 2, lambda B: imin(B[0], B[1]), 5),
+            ("max(x, 0)", 1, lambda B: imax(B[0], ZERO), 5),
+            ("max(x, y, z)", 3, lambda B: imax(*B), 4),
+            ("min(max(x, y), z)", 3,
+             lambda B: imin(imax(B[0], B[1]), B[2]), 4)]
+    for name, d, image, bmax in maps:
+        cs = [c for c in small_cells() if c.b &lt;= bmax]
+        outside, alive0, dead1, depth = [], [], [], []
+        for c in cs:
+            deepest = -1
+            for n in range(0, NMAX + 1):
+                if count(c, n) ** d &gt; CAP:
+                    break
+                bx = boxes(c, n)
+                if not all(in_tile(c, image(B), n)
+                           for B in itertools.product(bx, repeat=d)):
+                    outside.append((tag(c), n))
+                deepest = n
+            depth.append(deepest)
+            k, _ = scan(c, d, image, 0, lead(c, d, image))
+            alive0.append(k is None)
+            k, _ = scan(c, d, image, -1, lead(c, d, image))
+            dead1.append(k is not None)
+        check(f"XB {name}: images in tiles, alive at 0, dead at -1, "
+              f"{len(cs)} cells", not outside and all(alive0)
+              and all(dead1), f"outside {outside[:3]}; every depth to "
+              f"{min(depth)}..{max(depth)} read, by cell")
+
+
+<span id="wide_cells"></span>def wide_cells():
+    return [ms.Cell(b, am, ap) for b in range(2, 7)
+            for am in range(1, 2 * b) for ap in range(1, 2 * b)
+            if am + ap + 1 - b &gt;= 1]
+
+
+<span id="iabs"></span>def iabs(B):
+    return pwm.iabs(B[0])
+
+
+<span id="n0"></span>def n0(cell):
+    n = 1
+    while cell.ap &gt; cell.am * (cell.b ** n - 1):
+        n += 1
+    return n
+
+
+<span id="section_xc"></span>def section_xc():
+    print("XC  the absolute value")
+    cs = wide_cells()
+    off, agree, deep, asym, neg = [], [], [], [], []
+    for c in cs:
+        o = lead(c, 1, iabs)
+        want = 0 if (c.ap - c.am) % (c.b - 1) == 0 else 1
+        k0, r0 = scan(c, 1, iabs, 0, o, cap=CAP1)
+        km, _ = scan(c, 1, iabs, -1, o, cap=CAP1)
+        got = 1 if k0 is not None else 0
+        if got != want or km is None:
+            off.append((tag(c), got, want, km is None))
+        if k0 is not None and k0[1] &gt; n0(c):
+            deep.append((tag(c), k0[1], n0(c)))
+        f = pwm.PW("|x|", c, [0], [(0, -1), (0, 1)])
+        fl = pwm.Clauses(f).floor(f.law_L())
+        agree.append(fl == want)
+        if want == 0 and c.am != c.ap:
+            asym.append(tag(c))
+        if want == 0 and o &gt; 0:
+            neg.append((tag(c), -o))
+    print(f"    {len(cs)} cells; delay 0 at "
+          f"{sum(1 for c in cs if (c.ap - c.am) % (c.b - 1) == 0)}")
+    print(f"    asymmetric cells at delay 0: {asym}")
+    print(f"    negative lookahead (cell, c): {neg}")
+    check("XC delay 0 iff (b - 1) | (a+ - a-), 1 elsewhere, dead at -1",
+          not off, f"off {off[:4]}")
+    check("XC every kill at L = 0 at input depth &lt;= n0", not deep,
+          f"deep {deep[:4]}")
+    check("XC the piecewise clauses agree at every cell", all(agree),
+          f"{sum(agree)} of {len(agree)}")
+    check("XC (2,1,2), (3,1,3), (4,1,4) asymmetric at delay 0",
+          {"(2,1,2)", "(3,1,3)", "(4,1,4)"} &lt;= set(asym))
+    check("XC (3,3,1) at lookahead -1 and (2,3,1) at -2",
+          ("(3,3,1)", -1) in neg and ("(2,3,1)", -2) in neg)
+
+
+<span id="fused_pairs"></span>def fused_pairs():
+    return [("max(x, y) + z", "x + z", 1,
+             lambda B: ms.iadd(imax(B[0], B[1]), B[2]), isum,
+             [c for c in small_cells() if c.b &lt;= 4], sum_delay),
+            ("min(x, y) + z", "x + z", 1,
+             lambda B: ms.iadd(imin(B[0], B[1]), B[2]), isum,
+             [c for c in small_cells() if c.b &lt;= 4], sum_delay),
+            ("x max(y, z)", "x y", 0,
+             lambda B: ms.imul(B[0], imax(B[1], B[2])), iprod,
+             product_cells(), prod_delay),
+            ("x min(y, z)", "x y", 0,
+             lambda B: ms.imul(B[0], imin(B[1], B[2])), iprod,
+             product_cells(), prod_delay)]
+
+
+<span id="diag"></span>def diag(cell, image, L, o, t_max):
+    """First kill of the fused map over the diagonal boxes Z = Y."""
+    c = L - o
+    for n in range(max(0, c + 1), c + t_max + 1):
+        bx = boxes(cell, n)
+        for X, Y in itertools.product(bx, repeat=2):
+            if cell.kills(image((X, Y, Y)), n, L):
+                return (n - c, n)
+    return None
+
+
+<span id="section_xd"></span>def section_xd():
+    print("XD  inside a unit")
+    for fname, gname, o, fimg, gimg, cs, delay in fused_pairs():
+        off, shallow, sets, rows, capped = [], [], 0, [], 0
+        for c in cs:
+            L = delay(c) - 1
+            kg, _ = scan(c, 2, gimg, L, o)
+            kf = diag(c, fimg, L, o, kg[0] if kg else 3)
+            rows.append((tag(c), kg and kg[0]))
+            if kg is None or kf != kg:
+                off.append((tag(c), kg, kf))
+                continue
+            for t in range(1, kg[0]):
+                n = t + L - o
+                if count(c, n) ** 3 &gt; CAP:
+                    capped += 1
+                    continue
+                k, _ = scan(c, 3, fimg, L, o, nmax=n)
+                if k is not None:
+                    shallow.append((tag(c), k))
+            for n in range(0, 3):
+                if count(c, n) ** 3 &gt; CAP:
+                    break
+                bx = boxes(c, n)
+                fs = {fimg(B) for B in itertools.product(bx, repeat=3)}
+                gs = {gimg(B) for B in itertools.product(bx, repeat=2)}
+                if fs != gs:
+                    off.append((tag(c), "images", n))
+                sets += 1
+        print(f"    {fname} at the bare delay less one, (cell, t): "
+              f"{rows}; shallow depths past the cap, unread: {capped}")
+        check(f"XD {fname} dies at {gname}'s depth, {len(cs)} cells",
+              not off and not shallow,
+              f"off {off[:3]}, shallow {shallow[:3]}, "
+              f"{sets} image sets equal")
+
+
+<span id="const_box"></span>def const_box(cell, n, top):
+    u = cell.ap * ms.repunit(cell.b, n) if top else \
+        -cell.am * ms.repunit(cell.b, n)
+    return cell.box(u, n)
+
+
+<span id="witness"></span>def witness(cell, gimg, cimg, L, o, top, t_max):
+    """First kill of the comparator with its partner the constant
+    stream: ((t, n) or None)."""
+    c = L - o
+    for n in range(max(0, c + 1), c + t_max + 1):
+        Z = const_box(cell, n, top)
+        for X, Y in itertools.product(boxes(cell, n), repeat=2):
+            if cell.kills(cimg((X, Y, Z)), n, L):
+                return (n - c, n)
+    return None
+
+
+<span id="section_xe"></span>def section_xe():
+    print("XE  on an output")
+    b_scaled = lambda c: (lambda B: imax(isum(B),
+                                         ms.iscale(c.b, B[2])))
+    tests = [("max(x y, z)", False, 0, product_cells(), prod_delay,
+              iprod, lambda c: (lambda B: imax(iprod(B), B[2]))),
+             ("min(x y, z)", True, 0, product_cells(), prod_delay,
+              iprod, lambda c: (lambda B: imin(iprod(B), B[2]))),
+             ("max(x + y, b z)", False, 1, small_cells(), sum_delay,
+              isum, b_scaled)]
+    for name, top, o, cs, delay, gimg, mk in tests:
+        off, rows, alive = [], [], 0
+        for c in cs:
+            L = delay(c) - 1
+            kg, _ = scan(c, 2, gimg, L, o)
+            if kg is None:
+                if L &gt;= 1 and o == 1:
+                    off.append((tag(c), "bare alive"))
+                alive += 1
+                continue
+            kw = witness(c, gimg, mk(c), L, o, top, kg[0])
+            rows.append((tag(c), kg[0]))
+            if kw != kg:
+                off.append((tag(c), kg, kw))
+        print(f"    {name}: the bare map dead at its delay less one at "
+              f"{len(rows)} cells, (cell, t) {rows}; alive there, "
+              f"skipped: {alive}")
+        check(f"XE {name} dies at the bare map's depth with the "
+              f"constant partner", not off, f"off {off[:3]}")
+
+
+<span id="clamp_cells"></span>def clamp_cells():
+    return [ms.Cell(b, am, ap) for b in range(2, 8)
+            for am in range(1, b + 1) for ap in range(1, b + 1)
+            if am + ap + 1 - b &gt;= 1]
+
+
+<span id="sum_img"></span>def sum_img(cell, s, n):
+    bn = Fr(cell.b) ** n
+    return ((s - 2 * cell.Mm) / bn, (s + 2 * cell.Mp) / bn)
+
+
+<span id="orbit_tops"></span>def orbit_tops(cell, L, n, mirror):
+    """(s, q, image) for every dead prefix sum's orbit end at depth n:
+    the top of the orbit and the highest zone its image strictly
+    contains, or, mirrored, the bottom and the lowest zone written in
+    the mirrored digit set's index."""
+    R = ms.repunit(cell.b, n)
+    s0, s1 = -2 * cell.am * R, 2 * cell.ap * R
+    bL, e = cell.b ** L, Fr(cell.b) ** (L - n)
+    out = []
+    for s in range(s0, min(s1, s0 + bL - 1) + 1):
+        if not cell.kills(sum_img(cell, s, n), n, L):
+            continue
+        s = s0 + (s - s0) % bL if mirror else s1 - (s1 - s) % bL
+        lo, hi = sum_img(cell, s, n)
+        if mirror:
+            q = -math.floor(lo / e + cell.Mm) - 1
+        else:
+            q = math.ceil(hi / e - cell.Mp) - 1
+        out.append((s, q, (lo, hi)))
+    return out
+
+
+<span id="clamp_scan"></span>def clamp_scan(cell, L, n, mirror):
+    """Does any clamp box of depth n kill at L? The clamp's image is
+    fixed by the prefix sum and z's prefix, so the scan is over pairs."""
+    R = ms.repunit(cell.b, n)
+    Zs = boxes(cell, n)
+    for s in range(-2 * cell.am * R, 2 * cell.ap * R + 1):
+        img = sum_img(cell, s, n)
+        for Z in Zs:
+            cl = imin(img, Z) if mirror else imax(img, Z)
+            if cell.kills(cl, n, L):
+                return True
+    return False
+
+
+<span id="section_xf"></span>def section_xf():
+    print("XF  the clamp of a sum")
+    cs = clamp_cells()
+    off, qs, alive_off, at0 = [], [], [], 0
+    for c in cs:
+        L = sum_delay(c) - 1
+        for mirror in (False, True):
+            if L == 0:
+                at0 += 1
+                if not clamp_scan(c, 0, 0, mirror):
+                    off.append((tag(c), mirror, "alive at 0"))
+            else:
+                tops = orbit_tops(c, L, L, mirror)
+                if not tops:
+                    off.append((tag(c), mirror, "no dead box"))
+                Z = const_box(c, L, mirror)
+                for s, q, img in tops:
+                    cl = imin(img, Z) if mirror else imax(img, Z)
+                    qs.append(q)
+                    if q &lt; 0 or not c.kills(cl, L, L):
+                        off.append((tag(c), mirror, s, q))
+            if clamp_scan(c, L + 1, L + 1, mirror):
+                alive_off.append((tag(c), mirror))
+    print(f"    {len(cs)} cells, {at0 // 2} with the sum's delay 1; "
+          f"{len(qs)} orbit ends, least q {min(qs) if qs else None}")
+    check("XF every orbit end has q &gt;= 0 and the clamp kills there, "
+          "and the clamp is dead at 0 where the sum is",
+          not off, f"off {off[:4]}")
+    check("XF no clamp kill at the sum's delay at the first depth",
+          not alive_off, f"off {alive_off[:4]}")
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_xa()
+    if not all(CHECKS):
+        print("the controls failed; nothing below is read")
+        raise SystemExit(1)
+    for section in (section_xb, section_xc, section_xd, section_xe,
+                    section_xf):
+        t1 = time.time()
+        section()
+        print(f"    ({time.time() - t1:.1f} s)")
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/comparators.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

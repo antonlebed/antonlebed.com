@@ -1,0 +1,748 @@
+"""supply.py -- the element machine over a growing supply of windows:
+a bounded supply is a finite automaton reading its supply, an
+unbounded one is universal, and base extension buys time and never
+possibility.
+
+QUESTION. A machine holds registers over a pool of windows Z/m. Its ops
+act window by window: add, subtract, multiply, write a constant. It
+reads one thing, the ZERO-TEST of a register, true when the register is
+0 in every window. GROW appends a window whose modulus is the supply's
+next value m_g, every register born 0 there. The machine has no size
+read and no read naming a window. Which supplies make it universal, and
+what does BASE EXTENSION (writing into a new window the residue of a
+register's true value) add?
+
+THE OBJECT. A SUPPLY is a sequence m_0, m_1, ... of moduli >= 2. A
+REGISTER is a column of residues, one per window. The FRONTIER
+SINGLETON after a grow is the register that is 1 at the new window and
+0 elsewhere: with ONES a register that is 1 at every earlier window,
+write T := 1, then F := T - ONES and ONES := T, all window by window.
+So the engine's GROW, which appends the window and writes F, is three
+native ops.
+
+THE ARGUMENT (written before the engine).
+  (1) A BOUNDED SUPPLY IS FINITE-STATE. Every op maps each window's
+      COLUMN (its modulus and the registers' residues there) by one
+      function of that column, GROW adds the zero column (then the
+      window-by-window writes above), and the zero-test of r asks
+      whether every column has 0 at r. So the configuration is
+      carried by (instruction, the SET of columns present): how many
+      windows share a column is never read. With every m_g <= C the
+      columns lie in a finite set, the quotient is finite, and halting
+      decides. What it uses is a bounded alphabet, no read naming a
+      window, and no read of multiplicity, together.
+  (1') AMENDED after the first run killed P1 (entered then, before the
+      second run). GROW's modulus is m_g, g the number of windows, which
+      the set of columns forgets: on the supply 2, 3, 2, 3, ... the set
+      alone has two successors. What carries the run is (instruction,
+      set of columns) together with the supply from g on. So on a
+      supply bounded by C the machine is a finite automaton that reads
+      the supply one letter per grow. Halting decides when the supply
+      is eventually periodic, the phase joining the finite quotient.
+      It does not decide on a bounded supply at large: with m_g = 2 +
+      [g in S], the program of f + 1 grows that then asks whether its
+      singleton added to itself is zero halts iff f is in S, so for a
+      noncomputable S no procedure decides halting on that supply.
+  (2) THE POINTED COUNTER. Hold a count v in a register V as the
+      residue v in ONE window, the POINTED one, 0 elsewhere, with its
+      singleton P saved and m_P its modulus. DEC is V := V - P. The
+      zero-test of V is exact while v < m_P. INC grows a window, F its
+      singleton, moves the value there in unary through a work register
+      W (loop V := V - P, W := W + F until V is zero), adds F, and
+      points at F.
+      If the supply has m_g > (the number of grows so far, this one
+      included) at every g,
+      each count sits below its window's modulus, so two pointed
+      counters run a two-counter machine (Minsky 1967, cited): the
+      machine is universal with no import. A supply capped at C lies
+      at count C.
+  (3) THE DOUBLING COUNTER. On any unbounded supply: INC tests
+      zero(V + P), which is true exactly when v = m_P - 1, the window
+      full; then it GROWS and, after every grow, compares the new m_F
+      against 2 m_P by two tallies stepped in lockstep, one on P's
+      window and one on F's, F outlasting when P's tally wraps twice
+      before F's wraps once; it grows until F outlasts, moves the
+      value across, points at F, and adds one. An unbounded supply
+      always yields a window past 2 m_P, so every compare loop ends and
+      the count stays below its window's modulus at every step. Two
+      such counters are Minsky's machine on every unbounded supply,
+      monotone or not. On a supply capped at C, a full window never
+      finds a successor, and the grow budget runs out.
+  (4) THE PRICE. The pointed counter's INC at value v spends v unary
+      passes, so counting to T spends T(T - 1)/2 passes; a value never
+      exceeds its INC count, so the bound is tight. With base
+      extension each INC is one synced write. The quadratic factor is
+      a time cost and crosses no class line: base extension sells
+      time, never possibility.
+  (5) WHY BASE EXTENSION IS NOT NATIVE. A straight-line composite of
+      window-by-window ops is window-by-window, so on a window born at
+      0 it yields a function of that window's own column, a constant,
+      while the value's residue there is not constant. Only a loop
+      through the zero-test crosses windows, and the counters shown
+      pay the value in unary time; no lower bound over all programs is
+      claimed. Without such a loop a DENSE counter (x held in every window) lies:
+      a window born when the count was c0 holds, under adds and unit
+      multipliers, (c - U c0) mod m, U the product of the multipliers
+      since its birth (the difference of two affine runs is multiplied
+      and never added to), and a write of 0 re-syncs it.
+  (6) THE NORMAL FORM. Along a run with op word w_1 .. w_t, the column
+      of a window born at time tau with modulus m is the free evaluation
+      over Z of the suffix w_(tau+1) .. w_t from the zero column, the
+      birth grow's singleton 1, reduced mod m: reduction mod m is a ring
+      map, constants commute with it, and a later grow writes 0 there.
+      So a window's content is a function of its birth time and its
+      modulus alone; the pool is a delay line of the op word, sampled
+      mod the supply. After a run's last grow the configuration lies in
+      a finite set, so a run that grows finitely often halts or repeats
+      a configuration, and simulating until either decides it: halting
+      reduces to whether the run grows forever.
+  ADDED after P1-P5 were read, and written here after its first run,
+  whose print it matches (the slate was not frozen first):
+  P6 section_normal: on 60 seeded random programs of 400 steps on the
+     sqrt, successor and 2, 3, 2, 3, ... supplies, every window at every
+     37th step that is not a zero-test equals its suffix replayed alone
+     from the zero column at
+     its own modulus; the replay with the birth singleton dropped
+     differs somewhere (the positive control, added after P6's first
+     print).
+  K6 a checkpoint off its replay kills (6).
+
+THE PREDICTIONS (fixed before the engine ran).
+  P1 section_bounded: 400 seeded random programs of 12 instructions
+     (add, subtract, multiply, write 0 or 1, grow, zero-test) on the
+     supply 2, 3, 2, 3, ..., run 3000 steps each; the map from
+     (instruction, set of columns) to the next such pair is a function
+     across every run, and every run's pair sequence is eventually
+     periodic from its first repeat.
+  P1' section_bounded (fixed before the second run): over 300 such
+     programs of 1500 steps (150 of 1000 in the gate), (instruction,
+     set of columns) has one successor within each program on the supply of 2s, and so does
+     (instruction, set of columns, g mod 2) on 2, 3, 2, 3, ..., every
+     run periodic from its first repeat; the set alone on 2, 3, 2, 3,
+     ... clashes or goes aperiodic somewhere (the positive control).
+  P2 section_pointed: halts-iff-even (x = 0..6), a transfer and a round
+     trip on pointed counters match a reference two-counter interpreter
+     step for step on the primes, on the even moduli 4, 6, 8, ... and
+     on the successor supply 2, 3, 4, ...; on the successor supply
+     capped at 8 a counter's zero-test first lies at count 8.
+  P3 section_price: counting 0 to T by one pointed counter spends
+     exactly T(T - 1)/2 unary passes for T = 1..60.
+  P4 section_doubling: one doubling counter counts 0 to 50 and back to
+     0 with every zero-test truthful and the register equal to the true
+     count on the supply isqrt(g) + 2, on the supply g + 2 at even g
+     and 2 at odd g, and 0 to 9 and back on max(2, bit length of g);
+     B := 3A from A = 30 then A := B ends at (90, 0) on the first; on
+     the supply of 2s the first full window exhausts a 20000-grow
+     budget at count 1.
+  P5 section_freeze: a dense counter under 300 seeded adds and unit
+     multipliers with grows between, no sync, holds (c - U c0) mod m at
+     every window at every step, and lies at least once.
+
+THE KILLS (observables, fixed before the engine ran).
+  K1 a key of P1 with two successors kills (1).
+  K2 a step of P2 on an uncapped supply at which a counter's residue
+     differs from the reference kills (2); the capped supply not lying
+     at 8 kills the positive control, and P2 is not read.
+  K3 any pass count in P3 off T(T - 1)/2 kills (4).
+  K4 an untruthful zero-test in P4 on an unbounded supply kills (3);
+     the supply of 2s not failing kills its control.
+  K5 a window of P5 off the formula kills (5)'s freeze clause.
+  [Ruled after a later reading: P5 and P6 had replayed their own
+  arithmetic, P5 an induction on a harness list and P6 the engine's
+  step at the same modulus, so neither could fail. P5 now runs the
+  dense counter's ops through the engine's window step, and P6 replays
+  each suffix over Z and reduces once. P4' runs the three two-counter
+  programs on two doubling counters. (5)'s multipliers need not be
+  units: the formula holds for any integer multiplier.]
+
+THE DESIGN. Pure Python. The engine stores a register as its nonzero
+windows, which is exact because the programs of (2)-(4) write no
+nonzero constant and the singletons have one window; section_bounded
+uses a dense engine, every register a full column. The count a
+harness compares against is kept outside the machine and is never
+read by the program, which branches on zero-tests alone.
+
+FINDINGS (entered after the runs, from their printed output).
+  1. P1 KILLED on the first run, on the supply 2, 3, 2, 3, ...: 15 of
+     400 runs were not periodic from their first repeat, so the set of
+     columns is not a quotient there. (Its clash count, 820532, was
+     also inflated by a harness error, one successor map shared across
+     programs; the aperiodic runs are within one program and stand.)
+     Hence (1'). P1' hit on the second run: 0 clashes and 0 aperiodic
+     runs over 150 programs on the 2s with the set alone and on 2, 3,
+     2, 3, ... with the phase added; the set alone on 2, 3, 2, 3, ...
+     gives 867 clashes and 4 aperiodic runs.
+  2. P2 hit: 361 steps over 21 runs equal the reference on each of the
+     three supplies; capped at 8 the first lie is at count 8.
+  3. P3 hit: exactly T(T - 1)/2 passes at every T to 60.
+  4. P4 hit. The first run met the sizes as frozen: 0 -> 50 -> 0 on
+     isqrt(g) + 2 with 0 lies in 8650 grows, and B := 3A from 30 then
+     A := B at (90, 0) in 8651 grows. The gate runs 0 -> 30 -> 0 (2026
+     grows) and B := 3A from 10 (2027); the parity supply runs 0 -> 50
+     -> 0 in 61 grows, the bit-length supply 0 -> 9 -> 0 in 1025; the
+     supply of 2s exhausts its budget at count 1.
+  5. P5 hit: 30 windows over 300 ops, 0 off the formula, the counter
+     lying.
+  6. P6 hit: 10679 window checkpoints, 0 off; without the birth
+     singleton 141 are off.
+  Tiers: (1'), (3), (5) and (6) are theorems, proved above; (2) is a
+  theorem given Minsky's; (4) is a theorem for the pointed counter,
+  proved by its transfer loop and exact at T = 1..60.
+  At the later reading, P4' (the three programs on two doubling
+  counters) equals the reference on two of the doubling supplies; P5
+  through the engine, 0 off; P6 over Z, the counts printed below.
+
+RUN RECORD. 18 checks, 10.4 s, peak 10 MB (the first run, at the frozen
+sizes, 57 s).
+"""
+
+import random
+import sys
+from math import isqrt
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" +
+          (f"  ({detail})" if detail else ""))
+
+
+def section(title):
+    print()
+    print(title)
+
+
+# ----------------------------------------------------------------------
+# the sparse engine
+
+class Machine:
+    def __init__(self, supply, budget=None):
+        self.sup, self.m, self.R = supply, [], {}
+        self.budget = budget
+
+    def reg(self, r):
+        return self.R.setdefault(r, {})
+
+    def grow(self, into):
+        """Append the next window; `into` becomes its singleton."""
+        if self.budget is not None and len(self.m) >= self.budget:
+            raise RuntimeError("grow budget exhausted")
+        g = len(self.m)
+        self.m.append(self.sup(g))
+        self.R[into] = {g: 1}
+
+    def op(self, d, a, b, sign):
+        A, B, out = self.reg(a), self.reg(b), {}
+        for w in set(A) | set(B):
+            x = (A.get(w, 0) + sign * B.get(w, 0)) % self.m[w]
+            if x:
+                out[w] = x
+        self.R[d] = out
+
+    def add(self, d, a, b):
+        self.op(d, a, b, 1)
+
+    def sub(self, d, a, b):
+        self.op(d, a, b, -1)
+
+    def clear(self, d):
+        self.R[d] = {}
+
+    def copy(self, d, a):
+        self.R[d] = dict(self.reg(a))
+
+    def zero(self, r):
+        return not self.reg(r)
+
+    def value(self, r):
+        """The harness's read: the one nonzero residue, or 0."""
+        v = self.reg(r)
+        return next(iter(v.values())) if v else 0
+
+
+class Pointed:
+    """A count held in one window, moved in unary on every INC."""
+
+    def __init__(self, M, name):
+        self.M, self.n = M, name
+        self.V, self.P, self.W, self.F = (name + s for s in "VPWF")
+        self.passes = 0
+        M.grow(self.P)
+        M.clear(self.V)
+
+    def inc(self):
+        M = self.M
+        M.grow(self.F)
+        M.clear(self.W)
+        while not M.zero(self.V):
+            M.sub(self.V, self.V, self.P)
+            M.add(self.W, self.W, self.F)
+            self.passes += 1
+        M.add(self.W, self.W, self.F)
+        M.copy(self.V, self.W)
+        M.copy(self.P, self.F)
+
+    def dec(self):
+        self.M.sub(self.V, self.V, self.P)
+
+    def jz(self):
+        return self.M.zero(self.V)
+
+
+class Doubling:
+    """A count moved only when its window is full, to a window past
+    twice its modulus; a compare after every grow."""
+
+    def __init__(self, M, name):
+        self.M = M
+        self.V, self.P, self.W, self.F, self.T, self.A, self.B = (
+            name + s for s in "VPWFTAB")
+        M.grow(self.P)
+        M.clear(self.V)
+
+    def outlasts(self):
+        M, wraps = self.M, 0
+        M.clear(self.A)
+        M.clear(self.B)
+        while True:
+            M.add(self.A, self.A, self.P)
+            M.add(self.B, self.B, self.F)
+            if M.zero(self.B):
+                return False
+            if M.zero(self.A):
+                wraps += 1
+                if wraps == 2:
+                    return True
+
+    def inc(self):
+        M = self.M
+        M.add(self.T, self.V, self.P)
+        if M.zero(self.T):
+            while True:
+                M.grow(self.F)
+                if self.outlasts():
+                    break
+            M.clear(self.W)
+            while not M.zero(self.V):
+                M.sub(self.V, self.V, self.P)
+                M.add(self.W, self.W, self.F)
+            M.copy(self.V, self.W)
+            M.copy(self.P, self.F)
+        M.add(self.V, self.V, self.P)
+
+    def dec(self):
+        self.M.sub(self.V, self.V, self.P)
+
+    def jz(self):
+        return self.M.zero(self.V)
+
+
+# ----------------------------------------------------------------------
+# two-counter programs
+
+EVEN = [("DEC", 0, 1, 3), ("DEC", 0, 0, 2), ("INC", 1, 2), ("HALT",)]
+TRANSFER = [("DEC", 0, 1, 2), ("INC", 1, 0), ("HALT",)]
+TRIP = [("DEC", 0, 1, 2), ("INC", 1, 0), ("DEC", 1, 3, 4),
+        ("INC", 0, 2), ("HALT",)]
+
+
+def minsky_ref(prog, x, steps):
+    q, c, trace = 0, [x, 0], []
+    for _ in range(steps):
+        trace.append((q, c[0], c[1]))
+        ins = prog[q]
+        if ins[0] == "HALT":
+            break
+        if ins[0] == "INC":
+            c[ins[1]] += 1
+            q = ins[2]
+        elif c[ins[1]] == 0:
+            q = ins[3]
+        else:
+            c[ins[1]] -= 1
+            q = ins[2]
+    return trace
+
+
+def minsky_machine(prog, x, steps, supply, kind):
+    M = Machine(supply)
+    cs = [kind(M, "x"), kind(M, "y")]
+    for _ in range(x):
+        cs[0].inc()
+    q, trace = 0, []
+    for _ in range(steps):
+        trace.append((q, M.value(cs[0].V), M.value(cs[1].V)))
+        ins = prog[q]
+        if ins[0] == "HALT":
+            break
+        c = cs[ins[1]]
+        if ins[0] == "INC":
+            c.inc()
+            q = ins[2]
+        elif c.jz():
+            q = ins[3]
+        else:
+            c.dec()
+            q = ins[2]
+    return trace
+
+
+def primes():
+    ps, n = [], 2
+    while len(ps) < 400:
+        if all(n % p for p in ps if p * p <= n):
+            ps.append(n)
+        n += 1
+    return ps
+
+
+PRIMES = primes()
+
+
+# ----------------------------------------------------------------------
+# sections
+
+def dense_run(prog, supply, steps, period):
+    """Dense engine; returns the sequence of (pc, set of columns,
+    number of windows mod the supply's period)."""
+    nreg = 4
+    cols, pc, keys = [], 0, []
+    for _ in range(steps):
+        keys.append((pc, frozenset(cols), len(cols) % period))
+        ins = prog[pc]
+        k = ins[0]
+        if k == "GROW":
+            m = supply(len(cols))
+            cols = [c[:1] + tuple(0 if i == ins[1] else c[1 + i]
+                                  for i in range(nreg)) for c in cols]
+            cols.append((m,) + tuple(1 % m if i == ins[1] else 0
+                                     for i in range(nreg)))
+            pc = ins[2]
+        elif k == "JZ":
+            z = all(c[1 + ins[1]] == 0 for c in cols)
+            pc = ins[2] if z else ins[3]
+        else:
+            d, a, b, nxt = ins[1], ins[2], ins[3], ins[4]
+            new = []
+            for c in cols:
+                m, r = c[0], list(c[1:])
+                if k == "ADD":
+                    r[d] = (r[a] + r[b]) % m
+                elif k == "SUB":
+                    r[d] = (r[a] - r[b]) % m
+                elif k == "MUL":
+                    r[d] = r[a] * r[b] % m
+                else:
+                    r[d] = b % m
+                new.append((m,) + tuple(r))
+            cols, pc = new, nxt
+    return keys
+
+
+def random_program(rng, n=12, nreg=4):
+    prog = []
+    for _ in range(n):
+        k = rng.choice(["ADD", "SUB", "MUL", "CONST", "GROW", "JZ", "JZ"])
+        if k == "GROW":
+            prog.append(("GROW", rng.randrange(nreg), rng.randrange(n)))
+        elif k == "JZ":
+            prog.append(("JZ", rng.randrange(nreg), rng.randrange(n),
+                         rng.randrange(n)))
+        elif k == "CONST":
+            prog.append(("CONST", rng.randrange(nreg), 0,
+                         rng.randrange(2), rng.randrange(n)))
+        else:
+            prog.append((k, rng.randrange(nreg), rng.randrange(nreg),
+                         rng.randrange(nreg), rng.randrange(n)))
+    return prog
+
+
+def census(supply, period, keep_phase, seed=1, n=150, steps=1000):
+    """Per-program successor clashes and aperiodic runs."""
+    rng = random.Random(seed)
+    clash = aperiodic = grew = keys_seen = 0
+    for _ in range(n):
+        prog = random_program(rng)
+        keys = dense_run(prog, supply, steps, period)
+        if not keep_phase:
+            keys = [k[:2] for k in keys]
+        grew += any(k[1] for k in keys)
+        succ = {}
+        for a, b in zip(keys, keys[1:]):
+            if succ.setdefault(a, b) != b:
+                clash += 1
+        keys_seen += len(succ)
+        first = {}
+        for t, k in enumerate(keys):
+            if k in first:
+                p = t - first[k]
+                aperiodic += any(keys[s] != keys[s - p]
+                                 for s in range(t, len(keys)))
+                break
+            first[k] = t
+    return clash, aperiodic, grew, keys_seen
+
+
+def section_bounded():
+    section("(1) a bounded supply is a finite automaton on its word")
+    for name, sup, per, phase in (
+            ("2s, set alone", lambda g: 2, 1, False),
+            ("2,3 alternating, set and phase", lambda g: 2 + g % 2, 2,
+             True)):
+        clash, aper, grew, ks = census(sup, per, phase)
+        check(f"P1' {name}: one successor, periodic from the first "
+              f"repeat", clash == 0 and aper == 0,
+              f"{ks} keys over 150 programs, {grew} of which grew, "
+              f"{clash} clashes, {aper} aperiodic")
+    clash, aper, grew, ks = census(lambda g: 2 + g % 2, 2, False)
+    check("P1' 2,3 alternating, set alone: the phase is read "
+          "(positive control)", clash > 0 or aper > 0,
+          f"{clash} clashes, {aper} aperiodic")
+
+
+def section_pointed():
+    section("(2) the pointed counter on three supplies, and a cap")
+    supplies = [("primes", lambda g: PRIMES[g]),
+                ("even", lambda g: 2 * g + 4),
+                ("successor", lambda g: g + 2)]
+    for name, sup in supplies:
+        ok, n = True, 0
+        for prog in (EVEN, TRANSFER, TRIP):
+            for x in range(7):
+                ref = minsky_ref(prog, x, 60)
+                got = minsky_machine(prog, x, 60, sup, Pointed)
+                ok &= ref == got
+                n += len(ref)
+        check(f"P2 {name}: the machine equals the reference", ok,
+              f"{n} steps over 21 runs")
+    M = Machine(lambda g: min(g + 2, 8))
+    c, lie = Pointed(M, "x"), None
+    for v in range(1, 12):
+        c.inc()
+        if c.jz() != (v == 0):
+            lie = v
+            break
+    check("P2 capped at 8, the zero-test first lies at count 8 "
+          "(positive control)", lie == 8, f"first lie at {lie}")
+
+
+def section_price():
+    section("(4) the price: T(T - 1)/2 unary passes to count to T")
+    bad = 0
+    for T in range(1, 61):
+        M = Machine(lambda g: g + 2)
+        c = Pointed(M, "x")
+        for _ in range(T):
+            c.inc()
+        bad += c.passes != T * (T - 1) // 2 or M.value(c.V) != T
+    check("P3 exactly T(T - 1)/2 passes for T = 1..60", bad == 0,
+          f"{bad} off")
+
+
+def faithful(sup, top, budget=None):
+    M = Machine(sup, budget)
+    c, lies, true = Doubling(M, "x"), 0, 0
+    for v in list(range(1, top + 1)) + list(range(top - 1, -1, -1)):
+        if v > true:
+            c.inc()
+        else:
+            c.dec()
+        true = v
+        lies += (c.jz() != (true == 0)) or M.value(c.V) != true
+    return lies, len(M.m)
+
+
+def section_doubling():
+    section("(3) the doubling counter on every unbounded supply")
+    sups = [("isqrt(g) + 2", lambda g: isqrt(g) + 2, 30),
+            ("g + 2 or 2 by parity",
+             lambda g: g + 2 if g % 2 == 0 else 2, 50),
+            ("max(2, bit length)", lambda g: max(2, g.bit_length()), 9)]
+    for name, sup, top in sups:
+        lies, grows = faithful(sup, top)
+        check(f"P4 {name}: 0 -> {top} -> 0 faithful", lies == 0,
+              f"{lies} lies, {grows} grows")
+    M = Machine(lambda g: isqrt(g) + 2)
+    a, b = Doubling(M, "a"), Doubling(M, "b")
+    for _ in range(10):
+        a.inc()
+    while not a.jz():
+        a.dec()
+        for _ in range(3):
+            b.inc()
+    while not b.jz():
+        b.dec()
+        a.inc()
+    check("P4 B := 3A from 10, then A := B, ends at (30, 0)",
+          (M.value(a.V), M.value(b.V)) == (30, 0),
+          f"({M.value(a.V)}, {M.value(b.V)}), {len(M.m)} grows")
+    # not on the bit length: EVEN's odd starts count to 58, held first by
+    # the doubling chain's window 95, which the bit length supplies at
+    # g = 2^94
+    for name, sup, _ in sups[:2]:
+        ok, n = True, 0
+        for prog in (EVEN, TRANSFER, TRIP):
+            for x in range(7):
+                ref = minsky_ref(prog, x, 60)
+                got = minsky_machine(prog, x, 60, sup, Doubling)
+                ok &= ref == got
+                n += len(ref)
+        check(f"P4' {name}: two doubling counters equal the reference",
+              ok, f"{n} steps over 21 runs")
+    M = Machine(lambda g: 2, budget=20000)
+    c, at = Doubling(M, "x"), None
+    for v in range(1, 5):
+        try:
+            c.inc()
+        except RuntimeError:
+            at = v - 1
+            break
+    check("P4 on the supply of 2s the budget runs out at count 1 "
+          "(positive control)", at == 1, f"exhausted at count {at}")
+
+
+def section_freeze():
+    """The dense counter in register 0, a constant written to register 1
+    and added or multiplied in, grows naming register 2; every window
+    stepped by step_column, the engine's one op on one window."""
+    section("(5) the freeze: a dense counter without base extension")
+    rng = random.Random(7)
+    cols, born, U = [], [], []
+    c, bad, lied = 0, 0, False
+    pool = PRIMES[3:40]
+
+    def run(ins, grew=False):
+        return [(col[0],) + step_column(col[1:], ins, col[0],
+                                        grew and w == len(cols) - 1)
+                for w, col in enumerate(cols)]
+    for step in range(300):
+        r = rng.random()
+        if r < 0.2 and len(cols) < 30:
+            cols.append((pool[len(cols)],) + (0,) * 4)
+            cols = run(("GROW", 2, 0), grew=True)
+            born.append(c)
+            U.append(1)
+        elif r < 0.6:
+            a = rng.randrange(1, 50)
+            c += a
+            cols = run(("CONST", 1, 0, a, 0))
+            cols = run(("ADD", 0, 0, 1, 0))
+        else:
+            u = rng.choice([1, 2, 3])
+            c *= u
+            cols = run(("CONST", 1, 0, u, 0))
+            cols = run(("MUL", 0, 0, 1, 0))
+            U = [x * u for x in U]
+        for col, c0, x in zip(cols, born, U):
+            h, m = col[1], col[0]
+            bad += h != (c - x * c0) % m
+            lied |= h != c % m
+    check("P5 every window holds (c - U c0) mod m, and the counter lies",
+          bad == 0 and lied, f"{len(cols)} windows over 300 ops, "
+          f"{bad} off the formula")
+
+
+def step_column(col, ins, m, born_here):
+    """One op on one window's column; `born_here` marks the grow that
+    appends this window, whose singleton is 1 there."""
+    k, r = ins[0], list(col)
+    if k == "GROW":
+        r[ins[1]] = 1 % m if born_here else 0
+    elif k == "ADD":
+        r[ins[1]] = (r[ins[2]] + r[ins[3]]) % m
+    elif k == "SUB":
+        r[ins[1]] = (r[ins[2]] - r[ins[3]]) % m
+    elif k == "MUL":
+        r[ins[1]] = r[ins[2]] * r[ins[3]] % m
+    elif k == "CONST":
+        r[ins[1]] = ins[3] % m
+    return tuple(r)
+
+
+def free_eval(word, singleton, bits=4096):
+    """The op word evaluated over Z from zero registers, its first op a
+    grow writing 1 at the register it names when `singleton`, else 0;
+    None once a register passes `bits` bits."""
+    r = [0] * 4
+    for s, ins in enumerate(word):
+        k = ins[0]
+        if k == "GROW":
+            r[ins[1]] = 1 if singleton and s == 0 else 0
+        elif k == "ADD":
+            r[ins[1]] = r[ins[2]] + r[ins[3]]
+        elif k == "SUB":
+            r[ins[1]] = r[ins[2]] - r[ins[3]]
+        elif k == "MUL":
+            r[ins[1]] = r[ins[2]] * r[ins[3]]
+            if r[ins[1]].bit_length() > bits:
+                return None
+        elif k == "CONST":
+            r[ins[1]] = ins[3]
+    return tuple(r)
+
+
+def section_normal():
+    section("(6) a window holds the free evaluation of its own suffix")
+    rng = random.Random(6)
+    supplies = [("sqrt", lambda g: isqrt(g) + 2),
+                ("successor", lambda g: g + 2),
+                ("2,3 alternating", lambda g: 2 + g % 2)]
+    points = bad = blind = huge = 0
+    for name, sup in supplies:
+        for _ in range(20):
+            prog = random_program(rng)
+            cols, born, trace, pc = [], [], [], 0
+            for t in range(400):
+                ins = prog[pc]
+                trace.append(ins)
+                if ins[0] == "GROW":
+                    born.append(t)
+                    cols.append((sup(len(cols)),) + (0,) * 4)
+                    pc = ins[2]
+                elif ins[0] == "JZ":
+                    z = all(c[1 + ins[1]] == 0 for c in cols)
+                    pc = ins[2] if z else ins[3]
+                    continue
+                else:
+                    pc = ins[4]
+                cols = [c[:1] + step_column(c[1:], ins, c[0],
+                                            w == len(cols) - 1
+                                            and ins[0] == "GROW"
+                                            and born[-1] == t)
+                        for w, c in enumerate(cols)]
+                if t % 37 == 0:
+                    for c, b in zip(cols, born):
+                        # replay the suffix alone over Z, from the zero
+                        # column, then reduce once at the window's modulus
+                        x = free_eval(trace[b:], True)
+                        y = free_eval(trace[b:], False)
+                        if x is None or y is None:
+                            huge += 1
+                            continue
+                        points += 1
+                        bad += tuple(v % c[0] for v in x) != c[1:]
+                        blind += tuple(v % c[0] for v in y) != c[1:]
+    check("P6 every window equals its suffix evaluated over Z and reduced "
+          "at its own modulus", bad == 0 and points > 1000,
+          f"{points} window checkpoints over 60 programs, {bad} off, "
+          f"{huge} past 4096 bits skipped")
+    check("P6 control: the replay without its birth singleton differs",
+          blind > 0, f"{blind} checkpoints off")
+
+
+def main():
+    section_bounded()
+    section_pointed()
+    section_price()
+    section_doubling()
+    section_freeze()
+    section_normal()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

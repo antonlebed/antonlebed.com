@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>clocks.py | Numbers read one place at a time</title>
+<meta name="description" content="clocks.py">
+<link rel="alternate" type="text/x-python" href="/code/clocks.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>clocks.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/supply/#one-zero-test-per-register-needs-no-saved-window">SUPPLY: One zero-test per register needs no saved window</a> (theorem); <a href="/supply/#one-zero-test-over-every-register-is-an-automaton-on-the-trip-word">SUPPLY: One zero-test over every register is an automaton on the trip word</a> (theorem); <a href="/supply/#one-trip-reads-whether-the-modulus-it-grows-is-coprime-to-the-earlier-ones">SUPPLY: One trip reads whether the modulus it grows is coprime to the earlier ones</a> (theorem); <a href="/supply/#a-clock-trip-that-reads-coprimality-waits-at-least-of-the-order-of-the-lcm">SUPPLY: A clock trip that reads coprimality waits at least of the order of the lcm</a> (theorem); <a href="/supply/#a-rider-on-a-fixed-schedule-lands-where-the-supply-falls-behind-it">SUPPLY: A rider on a fixed schedule lands where the supply falls behind it</a> (criterion).</p><p>Cited on: <a href="/supply/">SUPPLY</a>.</p><p>To run it: <a href="/code/supply.py">supply.py</a> beside it; standard library only.</p></div>
+<pre>"""clocks.py -- the clock machine over a growing supply of windows: one
+zero-test per register runs Minsky's machine on every unbounded supply
+with no saved window, one zero-test over every register leaves a finite
+automaton reading a word the supply writes, and a trip that tells
+coprimality from old windows waits out their lcm.
+
+QUESTION. Strip the element machine of supply.py to clocks. A BANK is a
+register over the pool of windows Z/m_g, the g-th window grown having
+modulus m_g (g from 1). The ops are
+  TICK(b, s)   add s = +1 or -1 at every window of bank b,
+  PULSE(b, s)  add s at the newest window of bank b only,
+  GROW         append a window, every bank born 0 there,
+and a read. In the PER-BANK class the read is TEST(b), bank b zero at
+every window; in the ONE-READ class it is TEST, every bank zero at every
+window. Both reads are true before any grow. Control is finite. By the
+normal form of supply.py a bank that only ticks holds t - tau mod m at
+the window born at tau: a grow starts a clock at phase 0, and a read is
+a coincidence of clocks. There is no multiply, no copy and no constant,
+so no window but the newest can be addressed. What does each class
+compute?
+
+THE ARGUMENT (written before the engine).
+  (1) THE CLOCK COUNTER (per-bank class). Call bank A ALIGNED at V when
+      every window holds V mod its modulus. Then TICK(A, +1) and
+      TICK(A, -1) keep it aligned, and TEST(A) is true iff C divides V,
+      C the lcm of every modulus grown; so TICK(A, +1), TICK(A, -1)
+      and the zero-test are one op each and truthful while V &lt; C, and
+      TEST(A) true just after TICK(A, +1) means V + 1 = C. A GROW
+      misaligns A, its new window being 0. MIGRATE = GROW, then for
+      each counter bank a ROUND TRIP
+      through a timer bank R at zero: loop {TEST(A)? stop; TICK(A, -1);
+      PULSE(A, +1); TICK(R, +1)}, which holds A's new window at 0 while
+      the old ones count down, so it stops after exactly V steps (V &lt;
+      C_old) with R aligned at V; then loop {TEST(R)? stop; TICK(R, -1);
+      TICK(A, +1)}, which stops after exactly V steps (V &lt; C_new) with A
+      aligned at V. INC = TICK(A, +1); while TEST(A): TICK(A, -1),
+      MIGRATE, TICK(A, +1). A migration raises C or is repeated, so a
+      count reaches N at the least g with lcm(m_1..m_g) &gt; N, and every
+      unbounded supply has C_g unbounded. Two counter banks and one
+      timer run Minsky's two-counter machine (Minsky 1967) on every
+      unbounded supply. Without the pulse the first loop stops at the
+      least s with s = V mod C_old and s = 0 mod m', which need not
+      exist; without the timer the new window stays misaligned.
+  (2) ONE READ OVER EVERY BANK. At a true TEST every window of every
+      bank is 0, so the configuration there is (control state, g). The
+      run from one true read to the next, a TRIP, follows the lasso u v
+      v v ... of false answers from its start state, fixed by that state
+      alone. Let v hold a GROW, and let every window grown in the loop
+      have modulus above 4|v|, |v| counted in unit ops, a GROW and a
+      TEST one each.
+      Take bank b, a TEST position T in v, n_b the net TICK count of one
+      pass. A window born at grow position G in pass i holds at T in
+      pass k the integer c_G + (k - i) n_b once i &lt;= k - 2 (its pulses are
+      spent by the next GROW), c_G fixed by b, G and T. (a) If T reads
+      true in pass k &gt;= 4, the windows born at G in passes k - 3 and
+      k - 2 hold integers that differ by n_b, each at most 4|v| in size
+      and below its modulus, so both are 0 and n_b = 0, for every b.
+      (b) With every n_b = 0, the windows grown before the loop are
+      constant from pass 2 on, those born at G by pass k - 2 all hold
+      c_G, and those born in passes k - 1 and k hold integers fixed by
+      their position; so the
+      answer at T is the same in every pass k &gt;= 3. Hence a first true
+      read falls in u, in a pass &lt;= 3, or never, and a trip that ends
+      grows a bounded number of times. On a supply whose moduli tend to
+      infinity the run is therefore a finite automaton reading, one
+      letter per trip, the TRIP WORD, whose g-th letter is the table of
+      trip outcomes (state and grows added, or never) from each start
+      state at g.
+  (3) A GROW-FREE LOOP IS A CONGRUENCE SYSTEM. With no GROW in v, every
+      window holds at a TEST position in pass k an integer a + (k - 1)
+      d, a and d read off the first two passes, so the position reads
+      true in pass k iff every such integer is 0 mod its window's
+      modulus: a generalized CRT progression in k, or none. The exit is
+      the least (pass, position). The solver below is exact at passes
+      no step engine reaches.
+  (4) THE PRIME READER R: u = GROW; v = TICK(B, +1), TEST, PULSE(B,
+      +1), TEST, PULSE(B, -1). At the first TEST of pass k the old
+      windows hold k and so does the newest (earlier pulses cancel); at
+      the second the newest holds k + 1. With C the lcm of the moduli
+      before the trip and M = m_(g+1), the first reads k = 0 mod lcm(C,
+      M) and the second k = 0 mod C and k = -1 mod M, solvable iff
+      gcd(C, M) = 1. On m_g = g + 1, where C = lcm(1..g + 1) and M = g +
+      2, R exits at its second TEST iff g + 2 is prime, in pass C((-C^-1)
+      mod M); otherwise at its first, in pass C, or qC when g + 2 = q^a
+      with a &gt;= 2. A chain that routes each exit of R through a finite
+      automaton's transition is by (2) that automaton run on the word
+      [n prime], n = 2, 3, ...
+  (5) THE ORDER READER O: u = GROW; v = TICK(B, +1), PULSE(B, -1),
+      TEST, PULSE(B, -1), TEST, PULSE(B, +2). The newest holds k - 1 and
+      k - 2 at the two TESTs, the old windows k. At a prime p = g + 2 &gt;= 3
+      both solve, at C x and C(2x mod p) with x = C^-1 mod p, so O exits
+      at its first TEST iff x &lt; p/2; at a composite g + 2 other than 4
+      neither solves and the trip never ends. So a letter can be a
+      residue of the lcm, not only a fact about which moduli are primes.
+  (6) EVERY READ OF OLD WINDOWS WAITS THEIR LCM. Call DEEP the windows
+      grown before the trip, all but the last of them, and C' the lcm of
+      their moduli. No PULSE reaches a deep window during the trip, so
+      every deep window of bank b holds one integer X_b = a_b + (k - 1)
+      d_b. The deep windows read zero iff C'
+      divides every X_b, so only if each X_b is 0 or has |X_b| &gt;= C'.
+      Below the least pass with K + (k - 1) N &gt;= C', K = max |a_b| and N
+      = max |d_b|, a true read has every X_b = 0 exactly, a condition
+      the program fixes. So two supplies agreeing from the last pre-trip
+      window on give the same exit whenever one exit falls below both
+      supplies' passes, and a trip whose exit tells the deep moduli
+      apart waits at least that pass.
+  (7) A RIDER ON A FIXED SCHEDULE. A count held in the frontier window,
+      moved to each new window in unary and grown K windows per pass
+      from start p, holds, writing m(g) for m_g, v_t = (v_(t-1) + 1)
+      mod m(Kt + p) on a nondecreasing supply (moving it is lossless,
+      v &lt; m_old &lt;= m_new).
+      A fire armed at pass t0 lands at T(t0) = min{t &gt; t0 : m(Kt + p) &lt;=
+      t - t0} and never if that set is empty: v_t = t - t0 until the
+      first wrap, and v_(t-1) &lt; m(K(t - 1) + p) &lt;= m(Kt + p) gives t - t0
+      &lt;= m(Kt + p), so the add wraps iff t - t0 &gt;= m(Kt + p). On m_g =
+      ceil(g/a) every fire lands iff K &lt; a, at T = max(t0 + 1, ceil((p +
+      a t0)/(a - K))), and at K &gt;= a no fire follows the first.
+      AMENDED after the first run (P9's print): at K &gt;= a the condition
+      (a - K) t &gt;= p + a t0 holds for some t &gt; t0 only at K = a, p = t0 =
+      0, where the fire armed at 0 lands once, at t = 1; no other fire
+      lands.
+
+THE PREDICTIONS (fixed before the engine ran).
+  P1 section_counter: on the sqrt pole m_g = max(2, ceil(sqrt g)) the
+     clock counter counts 0 -&gt; 2000 -&gt; 0 with every zero-test truthful
+     and every window of A holding the count mod its modulus after every
+     INC and DEC; so do 0 -&gt; 100 -&gt; 0 on m_g = max(2, bit length of g)
+     and 0 -&gt; 2000 -&gt; 0 on m_g = g at even g and 2 at odd g; each peak
+     is reached at the least g with lcm(m_1..m_g) &gt; N, printed beside
+     it (65, 64 and 18). ADDED at audit, before its run: on the doubling
+     counter's supply, g-th modulus isqrt(g - 1) + 2, 0 -&gt; 30 -&gt; 0 in 10
+     grows. Two counters and one timer on the sqrt pole
+     take B := 3A from A = 300, then A := B, to (900, 0) truthfully. On
+     the supply of 2s a grow budget of 2000 runs out at count 1.
+  P2 section_counter, the arms: without the pulse the first relay
+     hangs (a step cap of 10^5) at count 1; without the timer the
+     counter lies within 0 -&gt; 20 -&gt; 0.
+  P3 section_one_read: the lasso u = TICK(A, -3), v = TICK(A, +1),
+     PULSE(A, +1), TEST, PULSE(A, -1), GROW, PULSE(A, -2) on m_g = g + 1
+     ends its trip in pass 3 with 2 grows from 32 and from 64 windows.
+     Random lassos over two banks (u of 0..3 ops, v of 2..7 holding a
+     GROW and a TEST, steps of 1 or 2), started where every loop modulus
+     exceeds 4|v|, on m_g = g + 1 and on the sqrt pole, end no trip past
+     pass 3 within a cap of 12 passes, every walk the static lasso, and
+     every end within grows(u) + 3 grows(v) grows.
+  P4 section_one_read, the arm: on m_1 = 1001, m_g = 2 for 2 &lt;= g &lt;=
+     2000 and m_g = g beyond, from one window, u = TICK(A, +1), v =
+     GROW, PULSE(A, -2), TICK(A, +2), TEST ends in pass 500; with every
+     loop modulus g + 16 instead it has not ended at pass 600.
+  P5 section_prime: the solver and a step engine agree on every random
+     grow-free trip the step engine ends within 3000 passes, on m_g = g
+     + 1 and on the sqrt pole, and the solver's pass exceeds the cap
+     wherever the step engine does not end.
+  P6 section_prime: on m_g = g + 1, g = 0..200, R exits at its second
+     TEST exactly when g + 2 is prime, in the pass (4) names in each of
+     its three cases.
+  P7 section_prime: O ends exactly when g + 2 is prime or 4, g = 0..200,
+     and at every prime 3 &lt;= p &lt;= 1000 exits at its first TEST iff
+     (lcm(1..p - 1)^-1 mod p) &lt; p/2.
+  P8 section_lcm_wait: over 3000 random trips run on pairs of supplies
+     that share the last pre-trip modulus and every later one and differ
+     in the deep moduli, an exit below both supplies' passes of (6) is
+     the same on both; every pair whose exits differ has both exits at
+     or past the smaller pass; and some pairs differ.
+  P9 section_landing: the criterion of (7) lists the recurrence's fires
+     exactly on the sqrt, bit-length, successor, ceil(g/a) (a = 1..6)
+     and a random nondecreasing supply at K = 1..8, p = 0..5, horizon
+     3000; the ceil(g/a) closed form holds at every fire; on m_g = g -
+     isqrt(g) at K = 1 the fires are 0, 1, 2, 4, 16, 256.
+
+THE KILLS (observables, fixed before the engine ran).
+  K1 a lie printed by P1 on an unbounded supply kills (1); P2's arms
+     not failing kill the credit to the pulse and the timer.
+  K2 a trip in P3 ending at a pass &gt;= 4, or over its grow bound, kills
+     (2); P4's first arm not reaching pass 500 kills its control.
+  K3 a disagreement in P5 kills the solver, and P6-P8 are not read.
+  K4 an exit in P6 off primality kills (4); an exit in P7 off the bit
+     kills (5).
+  K5 a violation in P8 kills (6); no differing pair kills its control.
+  K6 a mismatch in P9 kills (7).
+
+THE CONTROLS. A dense engine (every window a residue, ONES rewritten on
+every grow, the pulse an add of the frontier singleton) runs the clock
+counter beside the offset engine, 0 -&gt; 40 -&gt; 0, and every window of
+every bank agrees after every op. The step engine of P5 is the solver's
+control, and P4 and P8's differing pairs are the arms that must print.
+
+THE DESIGN. Pure Python. The offset engine stores a bank as a tick
+total t and one birth offset per window, window w holding (t - base_w)
+mod m_w, and the integer t - base_w is what (2), (3) and (6) reason
+about. The count a harness compares against is kept outside the
+machine and never read by the program.
+
+ERRATA TO THE SLATE (entered after the first run; no kill moves). The
+sqrt-pole sweep of P3 keeps loops of at most 6 units, so that its start,
+(4|v| + 1)^2 windows, stays small. "Every walk the static lasso" holds
+by construction here, since the engine takes a program as its lasso;
+(2) proves it for a program as a control graph. The first run's no-timer
+arm descended until a zero-test read true, which a lying counter never
+reads, and was killed at 600 s; it now descends by count, the audit
+reading every zero-test.
+
+FINDINGS (entered after the runs, from their printed output).
+  1. P1, P2 hit. The dense and offset engines agree over 661 ops and 17
+     windows. 0 lies on all three supplies, the peaks at 65, 64 and 18
+     grows, each the least g with lcm(m_1..m_g) &gt; N; two counters and a
+     timer end at (900, 0) in 65 grows; the 2s exhaust the budget.
+     Without the pulse the relay hangs at count 1; without the
+     timer the counter lies 39 times. The audit's added run reaches 30
+     in 10 grows on isqrt(g - 1) + 2, 0 lies.
+  2. P3, P4 hit. The witness ends in pass 3 with 2 grows from 32 and
+     from 64 windows. On g + 1, 1465 trips, ends in u 271 and in pass 1
+     220; on the sqrt pole, 698 trips, ends in u 114, pass 1 131, pass 2
+     1; none past pass 3, none over the grow bound. So random search
+     does not reach pass 3, and the witness is the tightness evidence.
+     The arm ends in pass 500 with 500 grows, and at loop moduli g + 16
+     has not ended at pass 600.
+  3. P5 hit: 1573 trips agree, 727 ended within 3000 passes, 846 capped
+     with the solver past the cap or never.
+  4. P6, P7 hit: R's exit and pass as (4) at every g = 0..200; O ends
+     exactly at g + 2 prime or 4, and at the 167 primes from 3 to 1000
+     its first-TEST exits (80) are exactly where lcm^-1 mod p &lt; p/2.
+  5. P8 hit. Deep lcms 9699690 and 19399380: 445 pairs exit equal below
+     both passes, 0 violations; 287 pairs differ, the least ratio of
+     exit to the smaller pass 1.0, so the pass is attained.
+  6. P9 hit after the amendment: 480 of 480 cells, the closed form
+     exact, the boundary supply at 0, 1, 2, 4, 16, 256. The first run
+     printed 6 closed-form misses, all at K = a, p = 0: a slate error at
+     the edge the amendment names, the criterion itself exact.
+  Tiers: (1), (2), (4)-(7) are proved above, (1)'s universality given
+  Minsky's theorem; (3) is the solver's exactness, checked against the
+  step engine.
+
+  At a later reading the per-bank class also ran the three two-counter
+  programs of supply.py on two clock counters and a timer, equal to the
+  reference on the three supplies of P1 (P1'); the supply of 2s hangs
+  at count 1; R and O end in v at every prime tested.
+
+RUN RECORD. 27 checks, 5.3 s, peak 12 MB.
+"""
+
+import os
+import random
+import sys
+from math import gcd, isqrt
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from supply import EVEN, TRANSFER, TRIP, minsky_ref  # noqa: E402
+
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" +
+          (f"  ({detail})" if detail else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+<span id="ceil_sqrt"></span>def ceil_sqrt(g):
+    r = isqrt(g)
+    return r if r * r == g else r + 1
+
+
+<span id="sqrt_pole"></span>def sqrt_pole(g):
+    return max(2, ceil_sqrt(g))
+
+
+<span id="successor"></span>def successor(g):
+    return g + 1
+
+
+<span id="lcm"></span>def lcm(a, b):
+    return a // gcd(a, b) * b
+
+
+<span id="is_prime"></span>def is_prime(n):
+    return n &gt;= 2 and all(n % q for q in range(2, isqrt(n) + 1))
+
+
+# ----------------------------------------------------------------------
+# the engines
+
+<span id="Hang"></span>class Hang(Exception):
+    pass
+
+
+<span id="Offset"></span>class Offset:
+    """Bank b's window w holds (t[b] - base[b][w]) mod m[w]."""
+
+    def __init__(self, supply, nbanks, budget=None):
+        self.sup, self.m, self.budget = supply, [], budget
+        self.t = [0] * nbanks
+        self.base = [[] for _ in range(nbanks)]
+
+    def grow(self):
+        if self.budget is not None and len(self.m) &gt;= self.budget:
+            raise Hang("grow budget")
+        self.m.append(self.sup(len(self.m) + 1))
+        for b, t in enumerate(self.t):
+            self.base[b].append(t)
+
+    def tick(self, b, s):
+        self.t[b] += s
+
+    def pulse(self, b, s):
+        if self.m:
+            self.base[b][-1] -= s
+
+    def integer(self, b, w):
+        return self.t[b] - self.base[b][w]
+
+    def test(self, b):
+        t = self.t[b]
+        for x, m in zip(self.base[b], self.m):
+            if (t - x) % m:
+                return False
+        return True
+
+    def test_all(self):
+        return all(self.test(b) for b in range(len(self.t)))
+
+    def column(self, b):
+        return [(self.t[b] - x) % m for x, m in zip(self.base[b], self.m)]
+
+
+<span id="Dense"></span>class Dense:
+    """Every window a residue; the pulse adds the frontier singleton."""
+
+    def __init__(self, supply, nbanks):
+        self.sup, self.m = supply, []
+        self.R = [[] for _ in range(nbanks)]
+        self.ones, self.front = [], []
+
+    def grow(self):
+        self.m.append(self.sup(len(self.m) + 1))
+        for r in self.R:
+            r.append(0)
+        self.front = [0] * len(self.ones) + [1]
+        self.ones = [1] * len(self.m)
+
+    def _add(self, b, vec, s):
+        self.R[b] = [(x + s * y) % m for x, y, m in
+                     zip(self.R[b], vec, self.m)]
+
+    def tick(self, b, s):
+        self._add(b, self.ones, s)
+
+    def pulse(self, b, s):
+        self._add(b, self.front, s)
+
+    def test(self, b):
+        return not any(self.R[b])
+
+    def column(self, b):
+        return list(self.R[b])
+
+
+<span id="Twin"></span>class Twin:
+    """Both engines in lockstep, compared after every op."""
+
+    def __init__(self, supply, nbanks):
+        self.a, self.d = Offset(supply, nbanks), Dense(supply, nbanks)
+        self.nb, self.ops, self.off = nbanks, 0, 0
+        self.m = self.a.m
+
+    def _cmp(self):
+        self.ops += 1
+        self.off += any(self.a.column(b) != self.d.column(b)
+                        for b in range(self.nb))
+
+    def grow(self):
+        self.a.grow()
+        self.d.grow()
+        self._cmp()
+
+    def tick(self, b, s):
+        self.a.tick(b, s)
+        self.d.tick(b, s)
+        self._cmp()
+
+    def pulse(self, b, s):
+        self.a.pulse(b, s)
+        self.d.pulse(b, s)
+        self._cmp()
+
+    def test(self, b):
+        x = self.a.test(b)
+        self.off += x != self.d.test(b)
+        return x
+
+    def column(self, b):
+        return self.a.column(b)
+
+
+# ----------------------------------------------------------------------
+# the clock counter
+
+<span id="ClockCounters"></span>class ClockCounters:
+    """Counter banks 0..n-1 and the timer bank n; the true counts are
+    the harness's, never read by the program."""
+
+    def __init__(self, E, n, pulse=True, timer=True, cap=10 ** 5):
+        self.E, self.n, self.R = E, n, n
+        self.pulse_on, self.timer_on, self.cap = pulse, timer, cap
+        self.true = [0] * n
+        self.lies = 0
+
+    def migrate(self):
+        E = self.E
+        E.grow()
+        if not self.timer_on:
+            return
+        for X in range(self.n):
+            steps = 0
+            while not E.test(X):
+                E.tick(X, -1)
+                if self.pulse_on:
+                    E.pulse(X, +1)
+                E.tick(self.R, +1)
+                steps += 1
+                if steps &gt; self.cap:
+                    raise Hang("relay")
+            while not E.test(self.R):
+                E.tick(self.R, -1)
+                E.tick(X, +1)
+
+    def inc(self, c):
+        E = self.E
+        E.tick(c, +1)
+        while E.test(c):
+            E.tick(c, -1)
+            self.migrate()
+            E.tick(c, +1)
+        self.true[c] += 1
+        self.audit()
+
+    def dec(self, c):
+        self.E.tick(c, -1)
+        self.true[c] -= 1
+        self.audit()
+
+    def jz(self, c):
+        return self.E.test(c)
+
+    def audit(self):
+        for c in range(self.n):
+            v = self.true[c]
+            col = self.E.column(c)
+            if (self.jz(c) != (v == 0) or
+                    any(x != v % m for x, m in zip(col, self.E.m))):
+                self.lies += 1
+
+
+<span id="held"></span>def held(E, b):
+    """The count bank b holds, read off its windows by the CRT."""
+    s = (0, 1)
+    for x, m in zip(E.column(b), E.m):
+        s = crt(s, (x, m)) if s else None
+    return s[0] if s else None
+
+
+<span id="clock_minsky"></span>def clock_minsky(prog, x, steps, supply):
+    """Minsky's machine on two clock counters and a timer."""
+    K = ClockCounters(Offset(supply, 3), 2)
+    for _ in range(x):
+        K.inc(0)
+    q, trace = 0, []
+    for _ in range(steps):
+        trace.append((q, held(K.E, 0), held(K.E, 1)))
+        ins = prog[q]
+        if ins[0] == "HALT":
+            break
+        if ins[0] == "INC":
+            K.inc(ins[1])
+            q = ins[2]
+        elif K.jz(ins[1]):
+            q = ins[3]
+        else:
+            K.dec(ins[1])
+            q = ins[2]
+    return trace, K.lies
+
+
+<span id="least_g"></span>def least_g(supply, N):
+    C, g = 1, 0
+    while C &lt;= N:
+        g += 1
+        C = lcm(C, supply(g))
+    return g
+
+
+<span id="up_down"></span>def up_down(supply, N, **kw):
+    K = ClockCounters(Offset(supply, 2, kw.pop("budget", None)), 1, **kw)
+    for _ in range(N):
+        K.inc(0)
+    peak = len(K.E.m)
+    for _ in range(N):
+        K.dec(0)
+    return K, peak
+
+
+<span id="section_counter"></span>def section_counter():
+    section("(1) the clock counter: one read per bank, no saved window")
+    T = ClockCounters(Twin(sqrt_pole, 2), 1)
+    for _ in range(40):
+        T.inc(0)
+    while not T.jz(0):
+        T.dec(0)
+    check("control: dense and offset engines agree at every window",
+          T.E.off == 0 and T.lies == 0,
+          f"{T.E.ops} ops, {len(T.E.m)} windows, {T.E.off} off")
+    for name, sup, N in (
+            ("sqrt pole", sqrt_pole, 2000),
+            ("bit length", lambda g: max(2, g.bit_length()), 100),
+            ("g at even g, 2 at odd g", lambda g: g if g % 2 == 0 else 2,
+             2000)):
+        K, peak = up_down(sup, N)
+        want = least_g(sup, N)
+        check(f"P1 {name}: 0 -&gt; {N} -&gt; 0 truthful, peak at the least g "
+              f"with lcm &gt; N", K.lies == 0 and peak == want,
+              f"{K.lies} lies, {peak} grows, least g {want}")
+    K, peak = up_down(lambda g: isqrt(g - 1) + 2, 30)
+    check("P1 the doubling counter's supply isqrt(g - 1) + 2: 0 -&gt; 30 -&gt; 0",
+          K.lies == 0 and peak == 10, f"{K.lies} lies, {peak} grows")
+    K = ClockCounters(Offset(sqrt_pole, 3), 2)
+    for _ in range(300):
+        K.inc(0)
+    while not K.jz(0):
+        K.dec(0)
+        for _ in range(3):
+            K.inc(1)
+    while not K.jz(1):
+        K.dec(1)
+        K.inc(0)
+    check("P1 two counters, one timer: B := 3A, A := B ends at (900, 0)",
+          K.true == [900, 0] and K.lies == 0,
+          f"{K.true}, {K.lies} lies, {len(K.E.m)} grows")
+    for name, sup in (("sqrt pole", sqrt_pole),
+                      ("bit length", lambda g: max(2, g.bit_length())),
+                      ("g at even g, 2 at odd g",
+                       lambda g: g if g % 2 == 0 else 2)):
+        ok, n, lies = True, 0, 0
+        for prog in (EVEN, TRANSFER, TRIP):
+            for x in range(7):
+                ref = minsky_ref(prog, x, 60)
+                got, L = clock_minsky(prog, x, 60, sup)
+                ok &amp;= ref == got
+                n += len(ref)
+                lies += L
+        check(f"P1' {name}: two clock counters and a timer equal the "
+              f"reference", ok and lies == 0,
+              f"{n} steps over 21 runs, {lies} lies")
+    K = ClockCounters(Offset(lambda g: 2, 2, 2000), 1)
+    try:
+        for _ in range(5):
+            K.inc(0)
+        hung = None
+    except Hang as e:
+        hung = str(e)
+    check("P1 the supply of 2s: the grow budget runs out at count 1",
+          hung == "grow budget" and K.true[0] == 1,
+          f"at count {K.true[0]}")
+    try:
+        K = ClockCounters(Offset(sqrt_pole, 2), 1, pulse=False)
+        for _ in range(20):
+            K.inc(0)
+        at = None
+    except Hang:
+        at = K.true[0]
+    check("P2 without the pulse the relay hangs at count 1", at == 1,
+          f"hangs at {at}")
+    K, _ = up_down(sqrt_pole, 20, timer=False)
+    check("P2 without the timer the counter lies", K.lies &gt; 0,
+          f"{K.lies} lies")
+
+
+# ----------------------------------------------------------------------
+# one read over every bank
+
+<span id="run_trip"></span>def run_trip(E, u, v, pass_cap):
+    """Step a trip from a true read; returns (where, pass, index, grows)
+    with where 'u', 'v' or 'cap'."""
+    g0 = len(E.m)
+    for i, op in enumerate(u):
+        if apply(E, op):
+            return ("u", 0, i, len(E.m) - g0)
+    for k in range(1, pass_cap + 1):
+        for i, op in enumerate(v):
+            if apply(E, op):
+                return ("v", k, i, len(E.m) - g0)
+    return ("cap", None, None, len(E.m) - g0)
+
+
+<span id="apply"></span>def apply(E, op):
+    """One op; True when it is a TEST reading true."""
+    if op[0] == "tick":
+        E.tick(op[1], op[2])
+    elif op[0] == "pulse":
+        E.pulse(op[1], op[2])
+    elif op[0] == "grow":
+        E.grow()
+    else:
+        return E.test_all()
+    return False
+
+
+<span id="units"></span>def units(ops):
+    return sum(abs(op[2]) if op[0] in ("tick", "pulse") else 1
+               for op in ops)
+
+
+<span id="random_op"></span>def random_op(rng, grow_ok=True, test_ok=True):
+    kinds = ["tick", "tick", "pulse"] + ["grow"] * grow_ok + \
+        ["test"] * test_ok
+    k = rng.choice(kinds)
+    if k in ("tick", "pulse"):
+        return (k, rng.randrange(2), rng.choice((-2, -1, 1, 2)))
+    return (k,)
+
+
+<span id="fresh"></span>def fresh(supply, nbanks, g):
+    E = Offset(supply, nbanks)
+    for _ in range(g):
+        E.grow()
+    return E
+
+
+<span id="section_one_read"></span>def section_one_read():
+    section("(2) one read over every bank: a trip ends by its third pass")
+    u = [("tick", 0, -3)]
+    v = [("tick", 0, 1), ("pulse", 0, 1), ("test",), ("pulse", 0, -1),
+         ("grow",), ("pulse", 0, -2)]
+    for g in (32, 64):
+        r = run_trip(fresh(successor, 1, g), u, v, 12)
+        check(f"P3 the witness from {g} windows ends in pass 3, 2 grows",
+              r[0] == "v" and r[1] == 3 and r[3] == 2, str(r))
+    rng = random.Random(2)
+    for name, sup, start in (("g + 1", successor, lambda U: 4 * U),
+                             ("sqrt pole", sqrt_pole,
+                              lambda U: (4 * U + 1) ** 2)):
+        by_pass, over, trips = {}, 0, 0
+        for _ in range(4000):
+            u = [random_op(rng) for _ in range(rng.randrange(4))]
+            v = [random_op(rng) for _ in range(rng.randrange(2, 8))]
+            if not any(op[0] == "grow" for op in v) or \
+                    not any(op[0] == "test" for op in v):
+                continue
+            if sup is sqrt_pole and units(v) &gt; 6:
+                continue
+            trips += 1
+            E = fresh(sup, 2, start(units(v)))
+            r = run_trip(E, u, v, 12)
+            if r[0] == "cap":
+                continue
+            by_pass[r[1]] = by_pass.get(r[1], 0) + 1
+            bound = sum(op[0] == "grow" for op in u) + \
+                3 * sum(op[0] == "grow" for op in v)
+            over += r[3] &gt; bound
+        late = sum(n for k, n in by_pass.items() if k &gt;= 4)
+        check(f"P3 {name}: no trip ends past pass 3, grows in bound",
+              late == 0 and over == 0,
+              f"{trips} trips, {sum(by_pass.values())} ended, ends by "
+              f"pass {dict(sorted(by_pass.items()))}, over bound {over}")
+
+    def arm(loop_mod):
+        E = fresh(lambda g: 1001 if g == 1 else loop_mod(g), 1, 1)
+        return run_trip(E, [("tick", 0, 1)],
+                        [("grow",), ("pulse", 0, -2), ("tick", 0, 2),
+                         ("test",)], 600)
+    r = arm(lambda g: 2 if g &lt;= 2000 else g)
+    check("P4 arm: loop moduli 2, the trip ends in pass 500",
+          r[0] == "v" and r[1] == 500, str(r))
+    r = arm(lambda g: g + 16)
+    check("P4 arm: loop moduli g + 16, no end by pass 600",
+          r[0] == "cap", str(r))
+
+
+# ----------------------------------------------------------------------
+# the congruence solver
+
+<span id="solve_one"></span>def solve_one(a, d, m):
+    """x &gt;= 0 with a + x d = 0 mod m, as (r, L): x = r mod L, or None."""
+    a, d = a % m, d % m
+    h = gcd(d, m)
+    if a % h:
+        return None
+    L = m // h
+    if L == 1:
+        return (0, 1)
+    return ((-(a // h)) * pow(d // h, -1, L) % L, L)
+
+
+<span id="crt"></span>def crt(p, q):
+    (r1, L1), (r2, L2) = p, q
+    h = gcd(L1, L2)
+    if (r2 - r1) % h:
+        return None
+    L = L1 // h * L2
+    t = (r2 - r1) // h * pow(L1 // h, -1, L2 // h) % (L2 // h)
+    return ((r1 + L1 * t) % L, L)
+
+
+<span id="solve_trip"></span>def solve_trip(E, u, v):
+    """Exact exit of a trip whose loop is grow-free: (where, pass,
+    index) with where 'u', 'v' or 'never'. Also returns every bank's
+    integer at every window at each TEST of the first two passes, from
+    which (6) reads the deep windows' largest |a| and |d|."""
+    for i, op in enumerate(u):
+        if apply(E, op):
+            return ("u", 0, i), None
+    tests = [i for i, op in enumerate(v) if op[0] == "test"]
+    snaps = []
+    for _ in range(2):
+        snap = {}
+        for i, op in enumerate(v):
+            if op[0] == "test":
+                snap[i] = [[E.integer(b, w) for w in range(len(E.m))]
+                           for b in range(len(E.t))]
+            else:
+                apply(E, op)
+        snaps.append(snap)
+    best = None
+    for i in tests:
+        sys_ = (0, 1)
+        seen = set()
+        for b in range(len(E.t)):
+            for w, m in enumerate(E.m):
+                a = snaps[0][i][b][w]
+                d = snaps[1][i][b][w] - a
+                key = (a % m, d % m, m)
+                if key in seen:
+                    continue
+                seen.add(key)
+                c = solve_one(a, d, m)
+                sys_ = crt(sys_, c) if c and sys_ else None
+                if sys_ is None:
+                    break
+            if sys_ is None:
+                break
+        if sys_ is not None:
+            cand = (sys_[0] + 1, tests.index(i))
+            best = cand if best is None or cand &lt; best else best
+    extent = snaps
+    if best is None:
+        return ("never", None, None), extent
+    return ("v", best[0], tests[best[1]]), extent
+
+
+<span id="reader_R"></span>def reader_R():
+    return [("grow",)], [("tick", 1, 1), ("test",), ("pulse", 1, 1),
+                         ("test",), ("pulse", 1, -1)]
+
+
+<span id="reader_O"></span>def reader_O():
+    return [("grow",)], [("tick", 1, 1), ("pulse", 1, -1), ("test",),
+                         ("pulse", 1, -1), ("test",), ("pulse", 1, 2)]
+
+
+<span id="section_prime"></span>def section_prime():
+    section("(3)-(5) a grow-free trip is a congruence system; the prime "
+            "reader")
+    rng = random.Random(3)
+    agree = ended = capped = 0
+    bad = 0
+    for sup, starts in ((successor, range(0, 7)), (sqrt_pole, range(0, 31))):
+        for _ in range(1200):
+            g = rng.choice(starts)
+            u = [random_op(rng, test_ok=False)
+                 for _ in range(rng.randrange(3))]
+            v = [random_op(rng, grow_ok=False)
+                 for _ in range(rng.randrange(2, 7))]
+            if not any(op[0] == "test" for op in v):
+                continue
+            s = run_trip(fresh(sup, 2, g), u, v, 3000)
+            x, _ = solve_trip(fresh(sup, 2, g), u, v)
+            if s[0] == "cap":
+                capped += 1
+                ok = x[0] == "never" or x[1] &gt; 3000
+            else:
+                ended += 1
+                ok = (s[0], s[1], s[2]) == x
+            agree += ok
+            bad += not ok
+    check("P5 the solver is the step engine", bad == 0,
+          f"{agree} trips agree, {ended} ended within 3000 passes, "
+          f"{capped} capped, {bad} off")
+    offR = 0
+    C = 1
+    for g in range(0, 201):
+        if g:
+            C = lcm(C, g + 1)
+        u, v = reader_R()
+        x, _ = solve_trip(fresh(successor, 2, g), u, v)
+        p = g + 2
+        second = x[2] == 3
+        if is_prime(p):
+            want = (True, C * (-pow(C, -1, p) % p))
+        else:
+            q = min(f for f in range(2, p + 1) if p % f == 0)
+            e = p
+            while e % q == 0:
+                e //= q
+            want = (False, q * C if e == 1 else C)
+        offR += (second, x[1]) != want
+    check("P6 R exits second iff g + 2 is prime, at the pass (4) names",
+          offR == 0, f"g = 0..200, {offR} off")
+    offO = 0
+    for g in range(0, 201):
+        u, v = reader_O()
+        x, _ = solve_trip(fresh(successor, 2, g), u, v)
+        offO += (x[0] != "never") != (is_prime(g + 2) or g + 2 == 4)
+    C, bit_off, ones, n = 1, 0, 0, 0
+    for g in range(1, 999):
+        C = lcm(C, g + 1)
+        p = g + 2
+        if not is_prime(p):
+            continue
+        u, v = reader_O()
+        x, _ = solve_trip(fresh(successor, 2, g), u, v)
+        first = x[0] == "v" and x[2] == 2
+        want = pow(C, -1, p) &lt; p / 2
+        n += 1
+        ones += first
+        bit_off += first != want or x[0] != "v"
+    check("P7 O ends iff g + 2 is prime or 4, g = 0..200", offO == 0,
+          f"{offO} off")
+    check("P7 at each prime 3..1000 O exits first iff lcm^-1 mod p &lt; p/2",
+          bit_off == 0, f"{n} primes, first at {ones}, {bit_off} off")
+
+
+# ----------------------------------------------------------------------
+# the lcm wait
+
+<span id="first_primes"></span>def first_primes(n):
+    ps, q = [], 2
+    while len(ps) &lt; n:
+        if is_prime(q):
+            ps.append(q)
+        q += 1
+    return ps
+
+
+<span id="section_lcm_wait"></span>def section_lcm_wait():
+    section("(6) a read of the deep windows waits out their lcm")
+    rng = random.Random(6)
+    d = 8
+    deepA = first_primes(d)
+    deepB = [4] + [q * (3 if i % 3 == 2 else 1)
+                   for i, q in enumerate(deepA[1:], 1)]
+    near = [7919, 10007, 10009]
+    CA = CB = 1
+    for m in deepA:
+        CA = lcm(CA, m)
+    for m in deepB:
+        CB = lcm(CB, m)
+    print(f"  deep A {deepA} lcm {CA}; deep B {deepB} lcm {CB}")
+
+    def supply(deep):
+        full = deep + near
+        return lambda g: full[g - 1]
+
+    def bound(ext, C):
+        """Least pass at which a deep integer can reach C."""
+        K = N = 0
+        for i in ext[0]:
+            for b in range(len(ext[0][i])):
+                for w in range(d):
+                    a = ext[0][i][b][w]
+                    K = max(K, abs(a))
+                    N = max(N, abs(ext[1][i][b][w] - a))
+        if N == 0:
+            return float("inf")
+        return 1 + max(0, -(-(C - K) // N))
+
+    def key(x):
+        if x[0] == "never":
+            return float("inf")
+        return x[1]
+
+    viol = differ = paid = 0
+    least = None
+    for _ in range(3000):
+        u = [random_op(rng, test_ok=False) for _ in range(rng.randrange(3))]
+        v = [random_op(rng, grow_ok=False)
+             for _ in range(rng.randrange(2, 8))]
+        if not any(op[0] == "test" for op in v):
+            continue
+        xa, ea = solve_trip(fresh(supply(deepA), 2, d + 1), u, v)
+        xb, eb = solve_trip(fresh(supply(deepB), 2, d + 1), u, v)
+        lo = min(bound(ea, CA), bound(eb, CB))
+        if xa != xb:
+            differ += 1
+            if key(xa) &lt; lo or key(xb) &lt; lo:
+                viol += 1
+            r = min(key(xa), key(xb)) / lo
+            least = r if least is None or r &lt; least else least
+        elif key(xa) &lt; lo:
+            paid += 1
+    check("P8 an exit below both passes is the same on both supplies",
+          viol == 0, f"{paid} equal fast exits, {viol} violations")
+    check("P8 control: some exits differ on the two supplies",
+          differ &gt; 0, f"{differ} differing pairs, least exit/pass {least}")
+
+
+# ----------------------------------------------------------------------
+# the rider on a fixed schedule
+
+<span id="fires_recurrence"></span>def fires_recurrence(m, K, p, H):
+    fires, v = [0], 0
+    for t in range(1, H + 1):
+        v = (v + 1) % m(K * t + p)
+        if v == 0:
+            fires.append(t)
+    return fires
+
+
+<span id="fires_criterion"></span>def fires_criterion(m, K, p, H):
+    fires = [0]
+    while True:
+        t0 = fires[-1]
+        T = next((t for t in range(t0 + 1, H + 1)
+                  if m(K * t + p) &lt;= t - t0), None)
+        if T is None:
+            return fires
+        fires.append(T)
+
+
+<span id="section_landing"></span>def section_landing():
+    section("(7) a rider on a fixed schedule lands where the supply "
+            "falls behind it")
+    rng = random.Random(7)
+    stairs, x = [], 1
+    for _ in range(40000):
+        x += rng.random() &lt; 0.3
+        stairs.append(x)
+    supplies = [("sqrt", lambda g: max(1, ceil_sqrt(g))),
+                ("bit length", lambda g: max(1, g.bit_length())),
+                ("successor", lambda g: g + 1),
+                ("staircase", lambda g: stairs[g])]
+    for a in range(1, 7):
+        supplies.append((f"ceil(g/{a})",
+                         lambda g, a=a: max(1, -(-g // a))))
+    cells = off = 0
+    closed_off = 0
+    for name, m in supplies:
+        for K in range(1, 9):
+            for p in range(0, 6):
+                cells += 1
+                f = fires_recurrence(m, K, p, 3000)
+                off += f != fires_criterion(m, K, p, 3000)
+                if name.startswith("ceil"):
+                    a = int(name[7])
+                    if K &gt;= a:
+                        closed_off += f != ([0, 1] if (K, p) == (a, 0)
+                                            else [0])
+                    else:
+                        for t0, T in zip(f, f[1:]):
+                            want = max(t0 + 1, -(-(p + a * t0) // (a - K)))
+                            closed_off += T != want
+    check("P9 the criterion lists the recurrence's fires in every cell",
+          off == 0, f"{cells} cells, {off} off")
+    check("P9 ceil(g/a): every fire lands iff K &lt; a, at the closed form",
+          closed_off == 0, f"{closed_off} off")
+    f = fires_recurrence(lambda g: max(1, g - isqrt(g)), 1, 0, 3000)
+    check("P9 g - isqrt(g) at K = 1 fires at 0, 1, 2, 4, 16, 256",
+          f == [0, 1, 2, 4, 16, 256], str(f))
+
+
+<span id="main"></span>def main():
+    section_counter()
+    section_one_read()
+    section_prime()
+    section_lcm_wait()
+    section_landing()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/clocks.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

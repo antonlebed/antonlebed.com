@@ -1,0 +1,1091 @@
+"""module_law.py -- what one tick of lambda costs at one place of a ring,
+and what that price decides about the greedy walk over a number ring.
+
+QUESTION. Over Z the dynamics demand (lambda(Mm) > lambda(M), m the
+least multiplier) locks onto one prime, and every later pick costs that
+prime (growth.py). Over F_2[x] the same demand never locks
+(sprawl.py). Both walks are driven by one local number: the price, in
+norm, of raising the exponent of the unit group by one factor of p at a
+single place. What is that price at a place of an arbitrary Dedekind
+ring with finite residue fields, and what does it decide about the
+walk over a number ring, where the ideal world and the element world
+come apart?
+
+THE OBJECT. P is a place of a Dedekind ring O whose residue field has
+N(P) = p^f elements (its norm), with ramification index e over p (in
+equal characteristic e is 1 and f the degree). pi is a uniformizer
+of the completion O_P, U_i = 1 + pi^i O_P, and E(a) is the exponent
+of U_1/U_a. A state of the IDEAL WORLD is a nonzero ideal M of O,
+lambda(M) the exponent of (O/M)^x, a move multiplies by an ideal
+m != O priced by its norm, and the greedy move is the least-norm m
+with lambda(Mm) > lambda(M). In the ELEMENT WORLD states and moves
+are principal: a move multiplies by an element z, priced by N(z). A
+place is written with its norm, its residue characteristic p, and
+e, f.
+
+THE ARGUMENT (written before the engine).
+  (1) THE UNIT GROUP AT A PLACE. Reduction mod P splits
+      (O/P^a)^x = (O/P)^x x U_1/U_a (the Teichmuller lift; N(P) - 1
+      is prime to p), so lambda(P^a) = (N(P) - 1) E(a) at a >= 1, E(a)
+      a power of p, and lambda(M) is the lcm over the places of M.
+  (2) GENERATORS. U_i/U_(i+1) is O/P under addition, via
+      1 + z pi^i -> z mod P, so the elements 1 + w pi^i, 1 <= i < a,
+      w over a basis of the residue field, generate U_1/U_a, and E(a)
+      is the largest of their orders. Every E below is computed this
+      way and checked against the whole group where the group is small.
+  (3) EQUAL CHARACTERISTIC. O_P = (O/P)[[t]] and (1 + u)^(p^j) =
+      1 + u^(p^j), so the order of 1 + u is the least p^j with
+      p^j v(u) >= a, and E(a) = p^(ceil(log_p a)) EXACTLY, whatever f
+      is. From a depth a with p^(j-1) < a <= p^j the next tick needs
+      depth p^j + 1: a LOG CLOCK, whose tick from depth p^j + 1 costs
+      N(P)^(p^j (p - 1)), unbounded along any column.
+  (4) MIXED CHARACTERISTIC, THE PUMP. If v(z - 1) = b > e/(p - 1) then
+      v(z^p - 1) = b + e exactly: in (1 + x)^p the term px has
+      valuation e + b, the middle binomials more, x^p valuation
+      pb > e + b. Put b0 = floor(e/(p - 1)) + 1 and E0 = E(b0). A root
+      of unity z != 1 of p-power order has v(z - 1) <= e/(p - 1), so
+      U_b0 is torsion-free and y^E0 lies in U_b0 for every y in U_1;
+      write h(y) = v(y^E0 - 1) >= b0, infinite exactly when
+      y^E0 = 1, and h* for the least finite h(y). Then
+      v(y^(E0 p^j) - 1) = h(y) + je, and for a >= b0 the exponent
+      E(a), a power of p no smaller than E0, is E0 p^j with j the
+      least j >= 0 having h* + je >= a. So E(a + e) = p E(a) for every
+      a >= h*: a LINEAR PUMP, one tick of lambda's p-part per e of
+      depth, priced N(P)^e = p^(ef), and ef is the Z_p-rank of U_1 (the
+      local degree). THE MODULE LAW: the tick price at a place is p to
+      the rank of its 1-unit module, constant in mixed characteristic
+      and unbounded in equal characteristic.
+  (5) SINGLE-PLACE MOVES. If m raises lambda(M) = L, some place P of m
+      has lambda(P^(a_P + r_P)) not dividing L, and P^(r_P) alone
+      raises lambda at norm <= N(m), strictly less unless m is that
+      prime power. So the least raising ideal is a prime power P^r, r
+      least with lambda(P^(a+r)) not dividing L: P's DOOR, priced
+      N(P)^r. Doors tie only at a common prime power, so ties sit
+      among places over one prime: conjugates over a quadratic field,
+      and places of different residue degree where those exist (a
+      cubic ring where 2 splits with degrees 1 and 2 ties 4 against 4).
+  (6) THE LOCK IS THE BOUNDED TAIL (ideal world, O a ring of integers
+      of a number field, where every place has finite rank). Off the
+      moved place a door never falls: L only grows under divisibility,
+      and a door is the least r with a column not dividing L. The
+      moved place's own door can fall. Suppose infinitely many moves
+      cost at most B. They are prime powers of the finitely many
+      places of norm <= B, so some place P is picked infinitely often,
+      its depth goes to infinity, and past h* (4) with P holding the
+      largest p-part among the finitely-often-moved places over p
+      (P OWNS v_p(L)), each pick lands on a jump of E and P's door is
+      exactly e: the constant price p^(ef). Every door off P is then
+      nondecreasing, so every later move costs at most p^(ef), falls
+      among finitely many places, and all but P are picked finitely
+      often. Two places cannot share the tail: at distinct
+      characteristics their constant prices are powers of distinct
+      primes and cannot tie, and at one characteristic the owner's door
+      is e while the other's must climb past the owner's depth. So a
+      trajectory LOCKS (every later pick deepens one place) iff its
+      costs are bounded infinitely often, and a lock's price is
+      p^(ef). Whether costs can diverge instead is the cascade
+      question and is not settled here. Over F_q[x] (3) makes the
+      bounded branch empty: see sprawl.py.
+  (7) THE ELEMENT WORLD BREAKS (5). A principal move need not be a
+      prime power, because P^r need not be principal. Over
+      Q(sqrt(-23)) (class number 3) no element has norm 2 or 3: from
+      the void (lambda = 1) the ideal world picks a place of norm 3,
+      while the element world's least raising element has norm 6, the
+      product of a place over 2 and one over 3 whose 2-part does not
+      raise lambda (N(P) - 1 = 1): a two-place COMPOUND carrying a flat
+      PASSENGER. Once (2) = P2 P2' is the cheapest vehicle, every move
+      is compound with one flat part, and the passenger's depth is
+      LIFTED with the owner's. The lift is conditional: a trajectory
+      whose cheapest vehicle is a principal prime power never lifts
+      (the seed (5), inert, whose own lambda 24 shuts every door below
+      25).
+
+DESIGN. Standard library only; one process.
+  C  POSITIVE CONTROL, before any verdict: E(a) by the generators of
+     (2) against E(a) over every element of U_1/U_a, at every local
+     ring of M below and every a with N(P)^(a-1) <= 20,000; and
+     lambda(P^a) = (N(P) - 1) E(a) against the whole unit group of
+     O_P/P^a (every unit u^lambda = 1, and for each prime l | lambda
+     some unit with u^(lambda/l) != 1) where N(P)^a <= 20,000.
+  M  the module law. Mixed characteristic: Z_p at p = 2, 3, 5;
+     unramified of degree 2 at p = 2, 3, 5; Eisenstein x^2 + 2,
+     x^2 - 2x + 2 (Q_2(i)) and x^2 - 2x + 6 (Q_2(sqrt(-5))) at 2,
+     x^2 + 3 at 3, x^2 + 5 at 5, x^2 + 23 at 23, and the cubes
+     x^3 + 2 at 2 and x^3 + 3 at 3. For each: E(a) for a <= 40 by
+     generators, the least a0 with E(a + e) = p E(a) for every
+     a0 <= a <= 40 - e, and the tick price N(P)^e = p^(ef).
+     Equal characteristic: F_2, F_3, F_4, F_9 [[t]], E(a) against
+     p^ceil(log_p a), the whole group where N(P)^(a-1) <= 20,000 and the
+     generators to a = 40.
+  G  the global cross-check. At Q(sqrt(-23)) and Z[sqrt(-5)] the
+     exponent of (O/p^b O)^x, computed over every element of
+     (Z/p^b)[w]/(w^2 - Tw - N0), against the lcm of lambda(P^(b e))
+     over the places P over p from the local rings of M: this checks
+     the local models against the rings. Every p^(2b) <= 20,000 at
+     p = 2, 3, 5, 7, 11, 23.
+  N  the ideal world at Q(sqrt(-23)) (w^2 = w - 6, class number 3, 2
+     split, 5 and 7 inert, 23 ramified) and at Z[sqrt(-5)] (class
+     number 2, 2 and 5 ramified). Seeds: the void and every ideal of
+     norm 2..40, and at sqrt(-23) the inert (17), at sqrt(-5) the
+     constructed P29 and P43 P89; 40 moves each. At every move: the
+     menu against a scan of every ideal of norm <= the move's cost
+     (none cheaper raises lambda; those at that cost that raise are
+     exactly the menu's ties, all prime powers); off-move doors never
+     fall (places of norm <= 60); a ticking deepening leaves its
+     place owning v_p(L). Per trajectory: the lock (the last 25 moves
+     deepen one place), the tail price p^(ef) of the lock place, the
+     wander (moves before the lock place's first pick), the kinds
+     (deepening, fresh opening, ghost, opening at full price), ties
+     each a conjugate pair at equal r. Specimens: the void; (7) at
+     sqrt(-23); P2^5 at both.
+  E  the element world at Q(sqrt(-23)): the walks from the void and
+     from (5), 40 moves each, moves the least-norm raising element (up
+     to sign), ties broken by the least (y, x) of z = x + y w with
+     y > 0 or y = 0 < x.
+
+PREDICTIONS, fixed before the run (the census figures are those of the
+scripts this one replaces; the argument says why the laws should hold).
+  C  the generators give the whole group's exponent at every tested
+     (ring, a); lambda = (N(P) - 1) E(a) at every tested (ring, a).
+  M1 odd Z_p and odd unramified: E(a) = p^(a - 1), a0 = 1; Z_2:
+     1, 2, 2, 4, 8, ..., a0 = 3; unramified at 2: 2^(a - 1), a0 = 1;
+     x^2 + 3 at 3: 1, 3, 3, 3, 9, ..., a0 = 3; x^2 + 23: a0 = 1. At
+     the wild places at 2, by hand from (4): x^2 + 2 has E0 = E(3) = 4
+     and h* = 5 (from 1 + pi), so E = 1, 2, 4, 4, 4, 8, ..., a0 = 4;
+     Q_2(i) has h* = 7, so E(3..7) = 4 and a0 = 6; Q_2(sqrt(-5)) a0
+     <= 6 (a TRANSPLANT from those two). The cubes (a TRANSPLANT):
+     a0 <= 3e = 9. At every instance the law holds to the top of the
+     range, the tick price p^(ef).
+  M2 equal characteristic: E(a) = p^ceil(log_p a) at every tested a,
+     at all four residue fields.
+  G  every global exponent equals the local lcm.
+  N1 no cheaper raising ideal and no non-prime-power at the least cost,
+     at every move of every trajectory; off-move doors never fall;
+     ownership at every ticking deepening; at least one cost drop.
+  N2 sqrt(-23): 80 seeds, all lock; lock characteristics
+     {2: 24, 3: 46, 5: 1, 13: 8, 29: 1}; no ghost; 15 tie moves, each a
+     conjugate pair at equal r; largest wander 2; the tail price
+     p^(ef) on every trajectory. The void picks the pair of norm-3
+     places (a tie) and pays 3 forever; (7) pays 23, 23, 27, then 3
+     forever; P2^5 pays 2 forever.
+  N3 sqrt(-5): 54 seeds, all lock; lock characteristics
+     {2: 1, 3: 26, 5: 1, 7: 23, 23: 3}; ghosts only at 7, three of
+     them; 21 tie moves, conjugate pairs; largest wander 2; P43 P89
+     picks P5^2 at once and pays 25 forever; P2^5 pays 4 forever.
+  E  the void's element walk pays 6, 6, 6, then 4 for 37 moves; its
+     first move is not a prime power and its 2-part is flat; every
+     norm-4 move is (2) = P2 P2' with exactly one flat part. From (5)
+     it pays 23, 23, then 25 for 38 moves, and both places over 2 stay
+     at depth 0.
+A KILL is any printed disagreement in C, G, N1 or at the top of M's
+range: C and G fail the instrument, N1 and M the argument. A census
+figure off its prediction in N2, N3 or E is a finding to read, since
+those figures are observations the argument does not fix.
+
+FINDINGS. Every prediction landed: 36/36 checks PASS (34 before
+review added the latest pump start, Q_2(i)'s 6, and the element walk's
+place roles, depths 40 and 37, as checks; the (7) walk now runs
+against the scan).
+  C  the generators give the whole group's exponent at 140 (ring, a)
+     in mixed characteristic and 38 in equal, 0 off; lambda =
+     (N(P) - 1) E(a) is the whole unit group's exponent at 126
+     (ring, a), 0 off; the global exponent of (O/p^b O)^x equals the
+     local lcm at 38 (field, p, b), 0 off.
+  M1 the pump holds to a = 40 at all 14 mixed instances. Its start a0:
+     1 at Z_3, Z_5, the three unramified rings of degree 2, x^2 + 5
+     and x^2 + 23; 2 at x^3 + 3; 3 at Z_2, x^2 + 3 and x^3 + 2; 4 at
+     x^2 + 2; 5 at Q_2(sqrt(-5)); 6 at Q_2(i). E(1..9) reads
+     1, 2, 2, 4, 8, 16, 32, 64, 128 at Z_2; 1, 2, 4, 8, ... unramified
+     at 2; 1, 2, 4, 4, 4, 8, 8, 16, 16 at x^2 + 2; 1, 2, 4, 4, 4, 4, 4,
+     8, 8 at Q_2(i); 1, 2, 4, 4, 4, 4, 8, 8, 16 at Q_2(sqrt(-5));
+     1, 3, 3, 3, 9, 9, 27, 27, 81 at x^2 + 3; 1, 2, 4, 4, 8, 8, 8, 16,
+     16 at x^3 + 2; 1, 3, 3, 9, 9, 9, 27, 27, 27 at x^3 + 3. The late
+     starts are the wild places at 2, where e/(p - 1) = e, and they sit
+     at h* - 1 at the two places worked by hand (h* = 5, 7).
+  M2 E(a) = p^ceil(log_p a) at every a <= 40 over F_2, F_3, F_4, F_9:
+     E rises at depths 2, 3, 5, 9, 17, 33 in characteristic 2 and 2, 4,
+     10, 28 in characteristic 3, whatever the residue degree.
+  N  Q(sqrt(-23)): 80 seeds x 40 moves, 3200 moves scanned, 0 cheaper,
+     0 compounds, 0 tie sets off; doors off the moved place never fell;
+     ownership held at 3191 ticking deepenings. All 80 lock, at
+     {2: 24, 3: 46, 5: 1, 13: 8, 29: 1}, each tail at p^(ef); kinds
+     6 fresh openings, 3191 deepenings, 3 openings at full price, no
+     ghost; 15 tie moves, each a conjugate pair at equal r; largest
+     wander 2; every trajectory locked from its lock place's first
+     pick; 15 trajectories with a cost drop. The void pays 3 at every
+     move after the tie of the two norm-3 places; (7) pays 23, 23, 27, 3,
+     3, 3, ...; P2^5 pays 2.
+     Z[sqrt(-5)]: 54 seeds, 2160 moves scanned, all clean; all lock,
+     at {2: 1, 3: 26, 5: 1, 7: 23, 23: 3}; kinds 23 fresh, 2133
+     deepenings, 3 ghosts (all at 7), 1 at full price; 21 tie moves,
+     conjugate pairs; largest wander 2; locked from the first pick
+     everywhere; no cost drop. P43 P89 picks P5^2 at once and pays 25
+     at every move; P2^5 pays 4 = 2^(ef) at the wild ramified place.
+  E  from the void the ideal door is 3, at both norm-3 places, and the
+     least raising elements have norm 6: w - 1 and w, each a place
+     over 2 times a place over 3. The
+     element walk pays 6, 6, 6, then 4 for 37 moves; the first move's
+     2-part is flat; every norm-4 move is (2) with one flat part, and
+     after 40 moves the places over 2 sit at depths 37 and 40, the
+     passenger lifted with the owner. From (5): 23, 23, then 25 for 38
+     moves, both places over 2 at depth 0.
+  Tiers: the module law (1)-(4) is a theorem, its proof the argument
+  above on the standard structure of U_1; single-place moves (5), the
+  lock's characterization (6) and the element world's two rides (7)
+  are theorems; the two censuses are observations in the ranges
+  printed, and whether every trajectory over a number ring has bounded
+  costs is not decided here.
+
+RUN RECORD. 36/36, 11.3 s wall, 10.8 MB peak commit under a memory guard.
+The first run printed 33/34: N3's figures read {2: 2, 3: 26, 5: 1,
+7: 23, 23: 2}, ghosts {7: 2}, 19 tie moves, because the design
+transcribed the replaced census's constructed seeds as P43 P89 and
+P2^5 where its record has P29 and P43 P89 (P2^5, of norm 32, already
+sits among the ideals of norm <= 40). With the recorded seeds every
+figure landed; P29's walk carries the missing ghost, 23-lock and ties.
+After the run the residue field's size was renamed N(P) and the
+valuation h(y), to keep q and c free for the lock-prime law and
+sprawl.py; no number moved.
+"""
+
+import itertools
+from math import gcd, isqrt
+
+CHECKS = []
+NAMES = []    # each check's name beside its verdict, for scripts recording a miss
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    NAMES.append(name)
+    print(f"  [{'PASS' if ok else 'FAIL'}] {name}"
+          + (f" -- {detail}" if detail else ""))
+
+
+def section(title):
+    print()
+    print("=" * 72)
+    print(title)
+    print("=" * 72)
+
+
+def lcm(a, b):
+    return a // gcd(a, b) * b
+
+
+def vp(n, p):
+    v = 0
+    while n % p == 0:
+        n //= p
+        v += 1
+    return v
+
+
+def primes_up_to(n):
+    s = bytearray([1]) * (n + 1)
+    s[0] = s[1] = 0
+    for i in range(2, isqrt(n) + 1):
+        if s[i]:
+            s[i * i::i] = bytearray(len(s[i * i::i]))
+    return [i for i in range(n + 1) if s[i]]
+
+
+def prime_factors(n):
+    out, d = [], 2
+    while d * d <= n:
+        if n % d == 0:
+            out.append(d)
+            while n % d == 0:
+                n //= d
+        d += 1
+    if n > 1:
+        out.append(n)
+    return out
+
+
+# ------------------------------------------- local rings, mixed characteristic
+class Local:
+    """O_P = Z_p[x]/(g), g monic of degree n, carried mod p^N. UNRAMIFIED
+    when g is irreducible mod p (uniformizer p, e = 1, f = n);
+    EISENSTEIN when g is (uniformizer x, e = n, f = 1)."""
+
+    def __init__(self, p, g, kind, name):
+        self.p, self.g, self.kind, self.name = p, g, kind, name
+        self.n = len(g) - 1
+        self.e = self.n if kind == "eis" else 1
+        self.f = 1 if kind == "eis" else self.n
+        self.q = p ** self.f
+        self.E = {}
+
+    def prec(self, a):
+        return -(-a // self.e)
+
+    def mul(self, u, w, mod):
+        n, g = self.n, self.g
+        prod = [0] * (2 * n - 1)
+        for i, ui in enumerate(u):
+            if ui:
+                for j, wj in enumerate(w):
+                    prod[i + j] += ui * wj
+        for d in range(2 * n - 2, n - 1, -1):
+            c = prod[d]
+            if c:
+                prod[d] = 0
+                for k in range(n):
+                    prod[d - n + k] -= c * g[k]
+        return [c % mod for c in prod[:n]]
+
+    def power(self, u, k, mod):
+        r = [1] + [0] * (self.n - 1)
+        while k:
+            if k & 1:
+                r = self.mul(r, u, mod)
+            u = self.mul(u, u, mod)
+            k >>= 1
+        return r
+
+    def val(self, z, N):
+        """v_pi(z) for z known mod p^N, capped at e N."""
+        best, mod = self.e * N, self.p ** N
+        for i, c in enumerate(z):
+            c %= mod
+            if c:
+                v = vp(c, self.p)
+                best = min(best, self.e * v + i if self.kind == "eis" else v)
+        return best
+
+    def is_one(self, z, a, N):
+        return self.val([z[0] - 1] + z[1:], N) >= a
+
+    def pi_pow(self, i, mod):
+        if self.kind == "unr":
+            return [pow(self.p, i, mod)] + [0] * (self.n - 1)
+        return self.power([0, 1] + [0] * (self.n - 2), i, mod)
+
+    def basis(self):
+        if self.kind == "eis":
+            return [[1] + [0] * (self.n - 1)]
+        return [[int(i == k) for i in range(self.n)] for k in range(self.f)]
+
+    def residues(self):
+        """Representatives of F_q as ring elements."""
+        if self.kind == "eis":
+            return [[c] + [0] * (self.n - 1) for c in range(self.p)]
+        return [list(t) for t in itertools.product(range(self.p),
+                                                   repeat=self.n)]
+
+    def order_exp(self, z, a, N):
+        mod, m = self.p ** N, 0
+        while not self.is_one(z, a, N):
+            z = self.power(z, self.p, mod)
+            m += 1
+        return m
+
+    def E_gen(self, a):
+        """E(a) as the largest order among the generators 1 + w pi^i."""
+        if a in self.E:
+            return self.E[a]
+        N = self.prec(a)
+        mod, best = self.p ** N, 0
+        for i in range(1, a):
+            pi = self.pi_pow(i, mod)
+            for w in self.basis():
+                z = self.mul(w, pi, mod)
+                z[0] = (z[0] + 1) % mod
+                best = max(best, self.order_exp(z, a, N))
+        self.E[a] = self.p ** best
+        return self.E[a]
+
+    def reps(self, a, units):
+        """Every element of U_1/U_a (units=False) or of (O/P^a)^x."""
+        N = self.prec(a)
+        mod = self.p ** N
+        pis = [self.pi_pow(i, mod) for i in range(a)]
+        res = self.residues()
+        lo = 0 if units else 1
+        cols = [[self.mul(c, pis[i], mod) for c in res]
+                for i in range(lo, a)]
+        for combo in itertools.product(*cols):
+            z = [0] * self.n
+            for t in combo:
+                z = [(u + v) % mod for u, v in zip(z, t)]
+            if units:
+                if self.val(z, N) == 0:
+                    yield z
+            else:
+                z[0] = (z[0] + 1) % mod
+                yield z
+
+    def E_full(self, a):
+        N = self.prec(a)
+        return self.p ** max(self.order_exp(z, a, N)
+                             for z in self.reps(a, False))
+
+    def lam(self, a):
+        return 1 if a == 0 else (self.q - 1) * self.E_gen(a)
+
+
+def exponent_is(units, lam, pw, is_one):
+    """True iff lam is the exponent of the finite group whose elements are
+    `units`: every u^lam = 1, and for each prime l | lam some
+    u^(lam/l) != 1."""
+    units = list(units)
+    if not all(is_one(pw(u, lam)) for u in units):
+        return False
+    return all(any(not is_one(pw(u, lam // l)) for u in units)
+               for l in prime_factors(lam))
+
+
+def lam_full_ok(loc, a):
+    N = loc.prec(a)
+    mod = loc.p ** N
+    return exponent_is(loc.reps(a, True), loc.lam(a),
+                       lambda u, k: loc.power(u, k, mod),
+                       lambda z: loc.is_one(z, a, N))
+
+
+# ------------------------------------------- local rings, equal characteristic
+class LocalEq:
+    """F[[t]] mod t^a over the residue field F = F_p[y]/(h), elements of F
+    as ints below N(P) (base-p digits, digit k the coefficient of
+    y^k)."""
+
+    def __init__(self, p, h, name):
+        self.p, self.h, self.name = p, h, name
+        self.f = len(h) - 1
+        self.q = p ** self.f
+        dig = [self._digits(v) for v in range(self.q)]
+        self.add = [[self._int([(x + y) % p for x, y in zip(dig[u], dig[v])])
+                     for v in range(self.q)] for u in range(self.q)]
+        self.mult = [[self._int(self._fmul(dig[u], dig[v]))
+                      for v in range(self.q)] for u in range(self.q)]
+
+    def _digits(self, v):
+        out = []
+        for _ in range(self.f):
+            out.append(v % self.p)
+            v //= self.p
+        return out
+
+    def _int(self, d):
+        return sum(c * self.p ** k for k, c in enumerate(d))
+
+    def _fmul(self, u, w):
+        f, p, h = self.f, self.p, self.h
+        prod = [0] * (2 * f - 1)
+        for i, a in enumerate(u):
+            for j, b in enumerate(w):
+                prod[i + j] += a * b
+        for d in range(2 * f - 2, f - 1, -1):
+            c = prod[d]
+            if c:
+                prod[d] = 0
+                for k in range(f):
+                    prod[d - f + k] -= c * h[k]
+        return [c % p for c in prod[:f]]
+
+    def smul(self, u, w, a):
+        out = [0] * a
+        for i in range(a):
+            if u[i]:
+                for j in range(a - i):
+                    if w[j]:
+                        out[i + j] = self.add[out[i + j]][
+                            self.mult[u[i]][w[j]]]
+        return out
+
+    def order_exp(self, z, a):
+        one = [1] + [0] * (a - 1)
+        m = 0
+        while z != one:
+            r = one
+            for _ in range(self.p):
+                r = self.smul(r, z, a)
+            z = r
+            m += 1
+        return m
+
+    def E_gen(self, a):
+        best = 0
+        for i in range(1, a):
+            for k in range(self.f):
+                z = [1] + [0] * (a - 1)
+                z[i] = self.p ** k
+                best = max(best, self.order_exp(z, a))
+        return self.p ** best
+
+    def E_full(self, a):
+        best = 0
+        for tail in itertools.product(range(self.q), repeat=a - 1):
+            best = max(best, self.order_exp([1] + list(tail), a))
+        return self.p ** best
+
+
+def ceil_log(p, a):
+    m = 0
+    while p ** m < a:
+        m += 1
+    return m
+
+
+# ------------------------------------------------------------ the number rings
+class Field:
+    """The ring of integers Z[w], w^2 = T w + N0, of an imaginary quadratic
+    field. A place is (norm, p, r): r the root of w mod p at a split
+    place, -1 inert, -2 ramified."""
+
+    def __init__(self, name, T, N0, ram, pmax=2000):
+        self.name, self.T, self.N0, self.pmax = name, T, N0, pmax
+        self.D = T * T + 4 * N0
+        self.places, self.local, self.split = [], {}, {}
+        for p in primes_up_to(pmax):
+            roots = [r for r in range(p) if (r * r - T * r - N0) % p == 0]
+            if len(roots) == 2:
+                self.split[p] = roots
+                zp = Local(p, [0, 1], "unr", f"Z_{p}")
+                for r in roots:
+                    pl = (p, p, r)
+                    self.places.append(pl)
+                    self.local[pl] = zp
+            elif len(roots) == 1:
+                pl = (p, p, -2)
+                self.places.append(pl)
+                self.local[pl] = Local(p, ram[p], "eis", f"ram {p}")
+            elif p * p <= pmax:
+                pl = (p * p, p, -1)
+                self.places.append(pl)
+                self.local[pl] = Local(p, [-N0, -T, 1], "unr", f"inert {p}")
+        self.places.sort()
+
+    def conj(self, pl):
+        if pl[2] >= 0:
+            return (pl[0], pl[1], (self.T - pl[2]) % pl[1])
+        return pl
+
+    def over(self, p):
+        return [pl for pl in self.places if pl[1] == p]
+
+    def lam(self, pl, a):
+        return self.local[pl].lam(a)
+
+    def price(self, pl):
+        loc = self.local[pl]
+        return pl[1] ** (loc.e * loc.f)
+
+    def lam_state(self, st):
+        L = 1
+        for pl, a in st.items():
+            L = lcm(L, self.lam(pl, a))
+        return L
+
+    def ideals(self, maxnorm):
+        """Every ideal of norm 2..maxnorm, as {place: exponent}."""
+        pls = [pl for pl in self.places if pl[0] <= maxnorm]
+        out = []
+
+        def rec(i, cur, nrm):
+            if cur:
+                out.append((nrm, dict(cur)))
+            for j in range(i, len(pls)):
+                pl = pls[j]
+                n2 = nrm * pl[0]
+                if n2 > maxnorm:
+                    break
+                k = 1
+                while n2 <= maxnorm:
+                    cur[pl] = k
+                    rec(j + 1, cur, n2)
+                    k += 1
+                    n2 *= pl[0]
+                del cur[pl]
+
+        rec(0, {}, 1)
+        out.sort(key=lambda t: (t[0], sorted(t[1].items())))
+        return out
+
+    # ------------------------------------------------ the element world
+    def norm(self, x, y):
+        return x * x + self.T * x * y - self.N0 * y * y
+
+    def elements(self, n):
+        """Elements x + y w of norm n up to sign: y > 0, or y = 0 < x."""
+        out, y = [], 0
+        while -self.D * y * y <= 4 * n:
+            disc = self.D * y * y + 4 * n
+            s = isqrt(disc)
+            if s * s == disc:
+                for x2 in {-self.T * y + s, -self.T * y - s}:
+                    if x2 % 2 == 0 and (y > 0 or x2 > 0):
+                        out.append((y, x2 // 2))
+            y += 1
+        return sorted(out)
+
+    def factor(self, x, y):
+        n = self.norm(x, y)
+        fac = {}
+        for p in prime_factors(n):
+            v = vp(n, p)
+            if p in self.split:
+                c = min(vp(x, p) if x else v, vp(y, p) if y else v)
+                xx, yy = x // p ** c, y // p ** c
+                r0, r1 = self.split[p]
+                rest = v - 2 * c
+                at0 = (xx + yy * r0) % p == 0
+                for r, k in ((r0, c + (rest if at0 else 0)),
+                             (r1, c + (0 if at0 else rest))):
+                    if k:
+                        fac[(p, p, r)] = k
+            elif (p, p, -2) in self.local:
+                fac[(p, p, -2)] = v
+            else:
+                fac[(p * p, p, -1)] = v // 2
+        nn = 1
+        for pl, k in fac.items():
+            nn *= pl[0] ** k
+        assert nn == n, "factorization lost norm"
+        return fac
+
+
+K23 = Field("Q(sqrt(-23))", 1, -6, {23: [23, 0, 1]})
+K5 = Field("Z[sqrt(-5)]", 0, -5, {2: [6, -2, 1], 5: [5, 0, 1]})
+
+
+# ------------------------------------------------------------ the ideal walk
+def door(F, pl, a, L):
+    r = 1
+    while L % F.lam(pl, a + r) == 0:
+        r += 1
+        assert r < 300, "door search ran away"
+    return r
+
+
+def menu(F, st, L):
+    best, ties = None, []
+    for pl in F.places:
+        if best is not None and pl[0] > best:
+            break
+        r = door(F, pl, st.get(pl, 0), L)
+        cost = pl[0] ** r
+        if best is None or cost < best:
+            best, ties = cost, [(pl, r)]
+        elif cost == best:
+            ties.append((pl, r))
+    assert best <= F.pmax, "a door beyond the place list"
+    return best, ties
+
+
+def kind(st, L, pl, r):
+    if st.get(pl, 0):
+        return "deepen"
+    if r == 1:
+        return "ghost" if L % pl[1] == 0 else "fresh"
+    return "full"
+
+
+SCAN_CAP = 700
+SCANS = {}
+
+
+def scan(F, st, L, cost, ties, tally):
+    """Every ideal of norm <= cost: none cheaper raises lambda, and those
+    at the cost that raise are exactly the menu's ties."""
+    if F.name not in SCANS:
+        SCANS[F.name] = F.ideals(SCAN_CAP)
+    at_cost = set()
+    for nrm, m in SCANS[F.name]:
+        if nrm > cost:
+            break
+        L2 = L
+        for pl, k in m.items():
+            L2 = lcm(L2, F.lam(pl, st.get(pl, 0) + k))
+        if L2 != L:
+            if nrm < cost:
+                tally["cheaper"] += 1
+            elif len(m) != 1:
+                tally["compound"] += 1
+            else:
+                (pl, k), = m.items()
+                at_cost.add((pl, k))
+    tally["ties_off"] += at_cost != set(ties)
+    tally["moves"] += 1
+
+
+def walk(F, seed, T, tally=None):
+    st, L = dict(seed), F.lam_state(seed)
+    log, prev, moved = [], None, None
+    probe = [pl for pl in F.places if pl[0] <= 60]
+    for _ in range(T):
+        cost, ties = menu(F, st, L)
+        if tally is not None:
+            assert cost <= SCAN_CAP, "a door above the scan cap"
+            scan(F, st, L, cost, ties, tally)
+            doors = {pl: pl[0] ** door(F, pl, st.get(pl, 0), L)
+                     for pl in probe}
+            if prev is not None:
+                tally["fell"] += sum(prev[pl] > doors[pl]
+                                     for pl in probe if pl != moved)
+            prev = doors
+        pl, r = ties[0]
+        a = st.get(pl, 0)
+        kd = kind(st, L, pl, r)
+        st[pl] = a + r
+        L2 = F.lam_state(st)
+        assert L2 != L, "a move that does not raise lambda"
+        if tally is not None:
+            moved = pl
+            p = pl[1]
+            if a and vp(F.lam(pl, a + r), p) > vp(L, p):
+                tally["own_off"] += vp(L2, p) != vp(F.lam(pl, a + r), p)
+                tally["owned"] += 1
+        log.append((pl, r, cost, kd, ties))
+        L = L2
+    return log, st
+
+
+def lock_of(log, tail=25):
+    pl0 = log[-tail][0]
+    if all(mv[0] == pl0 and mv[3] == "deepen" for mv in log[-tail:]):
+        return pl0
+    return None
+
+
+# ------------------------------------------------------------ the element walk
+def elem_menu(F, st, L, nmax=5000):
+    for n in range(2, nmax + 1):
+        hits = []
+        for (y, x) in F.elements(n):
+            fac = F.factor(x, y)
+            L2 = L
+            for pl, k in fac.items():
+                L2 = lcm(L2, F.lam(pl, st.get(pl, 0) + k))
+            if L2 != L:
+                hits.append(((y, x), fac))
+        if hits:
+            return n, hits
+    raise AssertionError("no raising element below the scan bound")
+
+
+def elem_walk(F, seed, T):
+    st, L = dict(seed), F.lam_state(seed)
+    log = []
+    for _ in range(T):
+        n, hits = elem_menu(F, st, L)
+        yx, fac = hits[0]
+        flat = [pl for pl, k in fac.items()
+                if L % F.lam(pl, st.get(pl, 0) + k) == 0]
+        for pl, k in fac.items():
+            st[pl] = st.get(pl, 0) + k
+        log.append((yx, fac, n, flat, len(hits)))
+        L = F.lam_state(st)
+    return log, st
+
+
+# ------------------------------------------------------------------- sections
+MIXED = [
+    Local(2, [0, 1], "unr", "Z_2"),
+    Local(3, [0, 1], "unr", "Z_3"),
+    Local(5, [0, 1], "unr", "Z_5"),
+    Local(2, [1, 1, 1], "unr", "unramified f=2 at 2"),
+    Local(3, [1, 0, 1], "unr", "unramified f=2 at 3"),
+    Local(5, [2, 0, 1], "unr", "unramified f=2 at 5"),
+    Local(2, [2, 0, 1], "eis", "x^2 + 2 at 2"),
+    Local(2, [2, -2, 1], "eis", "Q_2(i): x^2 - 2x + 2"),
+    Local(2, [6, -2, 1], "eis", "Q_2(sqrt-5): x^2 - 2x + 6"),
+    Local(3, [3, 0, 1], "eis", "x^2 + 3 at 3"),
+    Local(5, [5, 0, 1], "eis", "x^2 + 5 at 5"),
+    Local(23, [23, 0, 1], "eis", "x^2 + 23 at 23"),
+    Local(2, [2, 0, 0, 1], "eis", "x^3 + 2 at 2"),
+    Local(3, [3, 0, 0, 1], "eis", "x^3 + 3 at 3"),
+]
+EQUAL = [
+    LocalEq(2, [0, 1], "F_2[[t]]"),
+    LocalEq(3, [0, 1], "F_3[[t]]"),
+    LocalEq(2, [1, 1, 1], "F_4[[t]]"),
+    LocalEq(3, [1, 0, 1], "F_9[[t]]"),
+]
+AMAX = 40
+LIMIT = 20000
+
+
+def valid(loc):
+    p, g = loc.p, loc.g
+    if loc.kind == "eis":
+        return (g[-1] == 1 and all(c % p == 0 for c in g[:-1])
+                and g[0] % (p * p) != 0)
+    return loc.n == 1 or not any(
+        sum(c * r ** i for i, c in enumerate(g)) % p == 0 for r in range(p))
+
+
+def section_control():
+    section("C  POSITIVE CONTROL: the generators and the whole group")
+    check("C0 every local polynomial is Eisenstein, or irreducible mod p, "
+          "as labelled", all(valid(loc) for loc in MIXED))
+    tested = bad = 0
+    for loc in MIXED:
+        a = 1
+        while loc.q ** (a - 1) <= LIMIT:
+            tested += 1
+            bad += loc.E_full(a) != loc.E_gen(a)
+            a += 1
+    check("C1 E(a) by generators = E(a) over the whole of U_1/U_a, "
+          "mixed characteristic", bad == 0, f"{tested} (ring, a), {bad} off")
+    tested = bad = 0
+    for loc in MIXED:
+        a = 1
+        while loc.q ** a <= LIMIT:
+            tested += 1
+            bad += not lam_full_ok(loc, a)
+            a += 1
+    check("C2 lambda(P^a) = (N(P) - 1) E(a) is the exponent of the whole unit "
+          "group", bad == 0, f"{tested} (ring, a), {bad} off")
+    tested = bad = 0
+    for loc in EQUAL:
+        a = 1
+        while loc.q ** (a - 1) <= LIMIT:
+            tested += 1
+            bad += loc.E_full(a) != loc.E_gen(a)
+            a += 1
+    check("C3 E(a) by generators = E(a) over the whole group, equal "
+          "characteristic", bad == 0, f"{tested} (ring, a), {bad} off")
+
+
+def pump_start(loc, amax=AMAX):
+    E = [None] + [loc.E_gen(a) for a in range(1, amax + 1)]
+    good = {a for a in range(1, amax - loc.e + 1)
+            if E[a + loc.e] == loc.p * E[a]}
+    a0 = amax - loc.e
+    if a0 not in good:
+        return E, None
+    while a0 - 1 in good:
+        a0 -= 1
+    return E, a0
+
+
+def section_m():
+    section("M  THE MODULE LAW: the tick price at a place")
+    table = {}
+    for loc in MIXED:
+        E, a0 = pump_start(loc)
+        table[loc.name] = a0
+        print(f"  {loc.name:26s} e={loc.e} f={loc.f} a0={a0}  "
+              f"E(1..9) = {E[1:10]}")
+    check("M1 the pump E(a + e) = p E(a) holds from some a0 to the top of "
+          "the range at every mixed instance",
+          all(a0 is not None for a0 in table.values()))
+    expect = {"Z_2": 3, "Z_3": 1, "Z_5": 1, "unramified f=2 at 2": 1,
+              "unramified f=2 at 3": 1, "unramified f=2 at 5": 1,
+              "x^2 + 2 at 2": 4, "Q_2(i): x^2 - 2x + 2": 6,
+              "x^2 + 3 at 3": 3, "x^2 + 23 at 23": 1}
+    off = {k: table[k] for k in expect if table[k] != expect[k]}
+    check("M1 the pump starts predicted by hand", not off, f"off: {off}")
+    rest = [table["Q_2(sqrt-5): x^2 - 2x + 6"], table["x^3 + 2 at 2"],
+            table["x^3 + 3 at 3"], table["x^2 + 5 at 5"]]
+    print("  Q_2(sqrt-5), x^3 + 2, x^3 + 3, x^2 + 5 start at", rest)
+    check("M1 Q_2(sqrt-5) starts by 6, the cubes by 9",
+          None not in rest and rest[0] <= 6 and max(rest[1:3]) <= 9)
+    check("M1 the latest start of the fourteen is Q_2(i)'s 6",
+          max(table.values()) == table["Q_2(i): x^2 - 2x + 2"] == 6,
+          f"latest {max(table.values())}")
+    E2 = [MIXED[0].E_gen(a) for a in range(1, 7)]
+    E3 = [MIXED[9].E_gen(a) for a in range(1, 7)]
+    check("M1 Z_2: E = 1, 2, 2, 4, 8, 16; x^2 + 3: E = 1, 3, 3, 3, 9, 9",
+          E2 == [1, 2, 2, 4, 8, 16] and E3 == [1, 3, 3, 3, 9, 9],
+          f"{E2}, {E3}")
+    for loc in EQUAL:
+        Es = [loc.E_gen(a) for a in range(1, AMAX + 1)]
+        bad = sum(Es[a - 1] != loc.p ** ceil_log(loc.p, a)
+                  for a in range(1, AMAX + 1))
+        ticks = [a for a in range(2, AMAX + 1) if Es[a - 1] > Es[a - 2]]
+        print(f"  {loc.name:9s} N(P)={loc.q}: E rises at depths {ticks}")
+        check(f"M2 {loc.name}: E(a) = p^ceil(log_p a), a <= {AMAX}",
+              bad == 0, f"{bad} off")
+
+
+def section_g():
+    section("G  THE GLOBAL CROSS-CHECK: O/p^b O against the local rings")
+    tested = bad = 0
+    for F in (K23, K5):
+        ring = Local(2, [-F.N0, -F.T, 1], "unr", "global")
+        for p in (2, 3, 5, 7, 11, 23):
+            b = 1
+            while p ** (2 * b) <= LIMIT:
+                mod = p ** b
+                pred = 1
+                for pl in F.over(p):
+                    pred = lcm(pred, F.lam(pl, b * F.local[pl].e))
+                units = ([x, y] for x in range(mod) for y in range(mod)
+                         if F.norm(x, y) % p)
+                ok = exponent_is(
+                    units, pred,
+                    lambda u, k, m=mod: ring.power(u, k, m),
+                    lambda z, m=mod: (z[0] - 1) % m == 0 and z[1] % m == 0)
+                tested += 1
+                bad += not ok
+                b += 1
+    check("C4 control: every global unit exponent equals the lcm of the "
+          "local lambdas", bad == 0, f"{tested} (field, p, b), {bad} off")
+
+
+def census(F, extra):
+    seeds = [{}] + [m for n, m in F.ideals(40)] + extra
+    tally = dict(cheaper=0, compound=0, ties_off=0, moves=0, fell=0,
+                 own_off=0, owned=0)
+    locks, ghosts, kinds = {}, {}, {}
+    tie_moves = tie_bad = wander = unlocked = price_bad = 0
+    first_locks = drops = 0
+    for seed in seeds:
+        log, st = walk(F, seed, 40, tally)
+        costs = [mv[2] for mv in log]
+        drops += any(costs[i + 1] < costs[i] for i in range(len(costs) - 1))
+        for (mpl, r, c, kd, ties) in log:
+            kinds[kd] = kinds.get(kd, 0) + 1
+            if kd == "ghost":
+                ghosts[mpl[1]] = ghosts.get(mpl[1], 0) + 1
+            if len(ties) > 1:
+                tie_moves += 1
+                tie_bad += not (len(ties) == 2
+                                and F.conj(ties[0][0]) == ties[1][0]
+                                and ties[0][1] == ties[1][1])
+        pl = lock_of(log)
+        if pl is None:
+            unlocked += 1
+            continue
+        locks[pl[1]] = locks.get(pl[1], 0) + 1
+        price_bad += any(mv[2] != F.price(pl) for mv in log[-25:])
+        w = next(i for i, mv in enumerate(log) if mv[0] == pl)
+        wander = max(wander, w)
+        first_locks += all(mv[0] == pl for mv in log[w:])
+    return dict(seeds=len(seeds), tally=tally,
+                locks=dict(sorted(locks.items())), ghosts=ghosts,
+                kinds=kinds, tie_moves=tie_moves, tie_bad=tie_bad,
+                wander=wander, unlocked=unlocked, price_bad=price_bad,
+                first_locks=first_locks, drops=drops)
+
+
+def report(F, R):
+    t = R["tally"]
+    print(f"  {F.name}: {R['seeds']} seeds x 40 moves, {t['moves']} moves "
+          f"scanned")
+    print(f"    locks by characteristic {R['locks']}, unlocked "
+          f"{R['unlocked']}; kinds {R['kinds']}; ghosts {R['ghosts']}")
+    print(f"    tie moves {R['tie_moves']}; largest wander {R['wander']}; "
+          f"locked from the lock place's first pick: {R['first_locks']}; "
+          f"trajectories with a cost drop: {R['drops']}")
+    print(f"    ownership tested at {t['owned']} ticking deepenings")
+    check(f"N1 {F.name}: no cheaper raising ideal, no compound at the least "
+          f"cost, scan ties = menu ties",
+          t["cheaper"] == 0 and t["compound"] == 0 and t["ties_off"] == 0,
+          f"{t['cheaper']} cheaper, {t['compound']} compounds, "
+          f"{t['ties_off']} tie sets off")
+    check(f"N1 {F.name}: off-move doors never fall; a ticking deepening "
+          f"owns v_p(L)", t["fell"] == 0 and t["own_off"] == 0,
+          f"{t['fell']} falls, {t['own_off']} ownership failures")
+    check(f"N2 {F.name}: every trajectory locks at the price p^(ef)",
+          R["unlocked"] == 0 and R["price_bad"] == 0,
+          f"{R['unlocked']} unlocked, {R['price_bad']} off price")
+    check(f"N2 {F.name}: every tie a conjugate pair at equal r",
+          R["tie_bad"] == 0, f"{R['tie_bad']} of {R['tie_moves']} not")
+
+
+def section_n():
+    section("N  THE IDEAL WORLD: single-place moves and the lock")
+    R23 = census(K23, [{(289, 17, -1): 1}])
+    report(K23, R23)
+    r43, r89 = K5.split[43][0], K5.split[89][0]
+    P43_89 = {(43, 43, r43): 1, (89, 89, r89): 1}
+    P2 = (2, 2, -2)
+    P29 = {(29, 29, K5.split[29][0]): 1}
+    R5 = census(K5, [P29, P43_89])
+    report(K5, R5)
+    check("N1 at least one cost drop (the moved place's door can fall)",
+          R23["drops"] + R5["drops"] > 0)
+    check("N2 sqrt(-23): 80 seeds; locks {2: 24, 3: 46, 5: 1, 13: 8, "
+          "29: 1}; no ghost; 15 tie moves; wander 2",
+          R23["seeds"] == 80 and R23["locks"] == {2: 24, 3: 46, 5: 1,
+                                                 13: 8, 29: 1}
+          and not R23["ghosts"] and R23["tie_moves"] == 15
+          and R23["wander"] == 2)
+    check("N3 sqrt(-5): 54 seeds; locks {2: 1, 3: 26, 5: 1, 7: 23, 23: 3}; "
+          "ghosts {7: 3}; 21 tie moves; wander 2",
+          R5["seeds"] == 54 and R5["locks"] == {2: 1, 3: 26, 5: 1, 7: 23,
+                                               23: 3}
+          and R5["ghosts"] == {7: 3} and R5["tie_moves"] == 21
+          and R5["wander"] == 2)
+    log, _ = walk(K23, {}, 40)
+    check("N2 the void at sqrt(-23): a tie of the two norm-3 places, then "
+          "3 at all 40 moves", len(log[0][4]) == 2
+          and all(mv[2] == 3 and mv[0][1] == 3 for mv in log))
+    t7 = dict(cheaper=0, compound=0, ties_off=0, moves=0, fell=0,
+              own_off=0, owned=0)
+    log, _ = walk(K23, {(49, 7, -1): 1}, 40, t7)
+    costs = [mv[2] for mv in log]
+    print("  (7) at sqrt(-23) pays", costs[:6], "...")
+    check("N2 (7) at sqrt(-23) pays 23, 23, 27, then 3, every move matching "
+          "the scan", costs[:3] == [23, 23, 27] and set(costs[3:]) == {3}
+          and t7["cheaper"] == t7["compound"] == t7["ties_off"] == 0,
+          f"{t7['moves']} moves scanned")
+    log, _ = walk(K23, {(2, 2, K23.split[2][0]): 5}, 40)
+    check("N2 P2^5 at sqrt(-23) pays 2 at all 40 moves",
+          all(mv[2] == 2 for mv in log))
+    log, _ = walk(K5, P43_89, 40)
+    check("N3 P43 P89 at sqrt(-5) picks P5^2 at once and pays 25 at all 40",
+          log[0][0] == (5, 5, -2) and log[0][1] == 2
+          and all(mv[2] == 25 for mv in log))
+    log, _ = walk(K5, {P2: 5}, 40)
+    check("N3 P2^5 at sqrt(-5) pays 4 at all 40",
+          all(mv[2] == 4 for mv in log))
+
+
+def section_e():
+    section("E  THE ELEMENT WORLD at Q(sqrt(-23)): the compound")
+    F = K23
+    P2, P2c = [(2, 2, r) for r in F.split[2]]
+    cost, ties = menu(F, {}, 1)
+    n, hits = elem_menu(F, {}, 1)
+    print(f"  the void: ideal door {cost} at {[t[0] for t in ties]}; least "
+          f"raising element norm {n}: {hits}")
+    check("E the void's ideal move is a norm-3 place; its least raising "
+          "element has norm 6 and is not a prime power",
+          cost == 3 and n == 6 and all(len(h[1]) == 2 for h in hits))
+    log, st = elem_walk(F, {}, 40)
+    norms = [mv[2] for mv in log]
+    print("  void element walk norms:", norms[:8], "...")
+    check("E the void pays 6, 6, 6, then 4 for 37 moves",
+          norms == [6, 6, 6] + [4] * 37)
+    first = log[0]
+    check("E its first move's 2-part is flat, its 3-part raises",
+          len(first[3]) == 1 and first[3][0][1] == 2)
+    fours = [mv for mv in log if mv[2] == 4]
+    check("E every norm-4 move is (2) = P2 P2' with exactly one flat part",
+          all(mv[1] == {P2: 1, P2c: 1} and len(mv[3]) == 1 for mv in fours))
+    pf = first[3][0] if first[3] else None
+    pc = P2c if pf == P2 else P2
+    print(f"  after 40 moves the places over 2 sit at depths "
+          f"{st.get(pf, 0)} (flat in the first moves), {st.get(pc, 0)}")
+    check("E one place over 2 rides flat in the first three moves, then "
+          "ticks at every ride with the other place flat beside it, depths "
+          "40 and 37", pf in (P2, P2c)
+          and all(mv[3] == [pf] and pf in mv[1] for mv in log[:3])
+          and all(mv[3] == [pc] for mv in fours)
+          and (st.get(pf, 0), st.get(pc, 0)) == (40, 37))
+    log, st = elem_walk(F, {(25, 5, -1): 1}, 40)
+    norms = [mv[2] for mv in log]
+    print("  (5) element walk norms:", norms[:6], "...")
+    check("E (5) pays 23, 23, then 25 for 38 moves; the places over 2 stay "
+          "at depth 0", norms == [23, 23] + [25] * 38
+          and st.get(P2, 0) == 0 and st.get(P2c, 0) == 0)
+
+
+def main():
+    section_control()
+    section_g()
+    section_m()
+    section_n()
+    section_e()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

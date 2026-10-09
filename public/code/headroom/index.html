@@ -1,0 +1,1097 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>headroom.py | Numbers read one place at a time</title>
+<meta name="description" content="headroom.py">
+<link rel="alternate" type="text/x-python" href="/code/headroom.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>headroom.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/headroom/#the-headroom">HEADROOM: The headroom</a> (property); <a href="/headroom/#the-ledger">HEADROOM: The ledger</a> (theorem); <a href="/headroom/#the-premium-in-closed-form">HEADROOM: The premium in closed form</a> (theorem); <a href="/headroom/#silence-lands-in-a-blind-class">HEADROOM: Silence lands in a blind class</a> (theorem; rule); <a href="/headroom/#the-closure">HEADROOM: The closure</a> (theorem); <a href="/headroom/#the-resolution-criterion">HEADROOM: The resolution criterion</a> (criterion); <a href="/headroom/#the-non-divisor-bound">HEADROOM: The non-divisor bound</a> (theorem; observation); <a href="/headroom/#no-blindness-is-permanent">HEADROOM: No blindness is permanent</a> (theorem; observation); <a href="/headroom/#the-watchers-guaranteed-blindness">HEADROOM: The watcher's guaranteed blindness</a> (theorem); <a href="/headroom/#the-blind-density-theorem">HEADROOM: The blind-density theorem</a> (theorem); <a href="/headroom/#the-least-resolver-is-unbounded">HEADROOM: The least resolver is unbounded</a> (theorem).</p><p>Cited on: <a href="/headroom/">HEADROOM</a>.</p><p>To run it: <a href="/code/growth.py">growth.py</a> beside it; standard library only.</p></div>
+<pre>"""headroom.py -- what a probe learns of a grown state by offering it
+moves: the headroom xi(M) = W(lambda(M))/M, what a move spends of it and
+what it opens, the closure underneath, what it costs to tell apart two
+states the reading merges, and the density of the probe's blind classes.
+
+QUESTION. growth.py grows Z/M by the cheapest move a demand admits. The
+demands that read lambda (the transparency demand and its complement)
+answer one bit per offered move m: does lambda(Mm) equal lambda(M)?
+What does that family of answers see of a state, how does the thing it
+sees move under a move, and how coarse is it: which states does it
+merge, what does it cost to split them, and how many are merged?
+
+THE OBJECT. lambda is the Carmichael function and W(L) the wall, the
+largest N with lambda(N) | L (growth.py, where the wall is Adams'
+number). The HEADROOM of a state M is xi(M) = W(lambda(M))/M, an
+integer since lambda(M) | lambda(M). A move m sends M to Mm; it is
+TRANSPARENT when lambda(Mm) = lambda(M). The PROBE is the family of
+lambda-reading demands; its READING of M is xi(M). Two distinct states
+with one reading are a BLIND PAIR, and the states sharing a reading,
+when two or more do, a BLIND CLASS. Along a move, the WALL GAIN is
+Gamma(M, m) = W(lambda(Mm))/W(lambda(M)), the BURN is gcd(m, xi(M)),
+the UNPAID PART is u(M, m) = m/gcd(m, xi(M)), and the PREMIUM is
+G(M, m) = Gamma(M, m)/u(M, m). A move m RESOLVES a blind pair
+(M1, M2) when xi(M1 m) != xi(M2 m); R is the set of resolvers;
+kappa(xi) is the least integer &gt;= 2 not dividing xi.
+
+THE ARGUMENT (written before the engine).
+  (1) THE HEADROOM. {M : lambda(M) | L} is closed under lcm, so every
+      member divides W(L). lambda(M) | lambda(Mm) always; so m is
+      transparent iff Mm | W(lambda(M)) iff m | xi(M). A lambda-reading
+      demand's whole response to M is the indicator of the divisors of
+      xi(M): the reading is one number. By the wall's closed form, at
+      an odd prime l with (l - 1) | lambda (a DOOR of lambda),
+      v_l(xi) = v_l(lambda) + 1 - v_l(M); at a non-door odd l, v_l(xi)
+      = v_l(M) = 0 (l | M forces (l - 1) | lambda); at 2, v_2(xi) =
+      v_2(lambda) + 2 - v_2(M) at even lambda and 1 - v_2(M) at odd.
+      Neither the reading nor the support determines the other: 855 and
+      2565 share the support {3, 5, 19} and read 161616 and 53872; 10
+      and 11 read 24 on the supports {2, 5} and {11}.
+  (2) THE LEDGER. xi(Mm) = xi(M) Gamma/m. Mm divides its own wall
+      Gamma W(lambda(M)) = Gamma xi(M) M, so m | Gamma xi; prime by
+      prime, v_l(u) = max(0, v_l(m) - v_l(xi)) &lt;= v_l(Gamma). So G is
+      an integer and
+          xi(Mm) = (xi(M)/gcd(m, xi(M))) G(M, m):
+      the burn is truncated subtraction in the exponents, and a move
+      never destroys more headroom than it spends. SPLITTING: Gamma
+      telescopes, Gamma(M, ab) = Gamma(M, a) Gamma(Ma, b), so
+          G(M, a) G(Ma, b) = G(M, ab) k,  k = u(M, ab)/(u(M, a) u(Ma, b))
+      inverted, and k is an integer: with x = v_l(xi(M)), a_l, b_l the
+      exponents and g_l = v_l(G(M, a)), v_l(xi(Ma)) = x - min(a_l, x) +
+      g_l, and min(a_l + b_l, x) &lt;= min(a_l, x) + min(b_l, x -
+      min(a_l, x) + g_l) in both cases a_l &gt;= x and a_l &lt; x. Equality
+      holds iff at every l | b, g_l = 0 or b_l &lt;= x - a_l. So a split
+      move never undercounts the premium, and of the four parts only
+      the wall gain is a function of the endpoints.
+  (3) THE PREMIUM IN CLOSED FORM. lambda(Mm) = lcm(lambda(M),
+      lambda(l^(c_l + e_l)) : l | m), c_l = v_l(M), e_l = v_l(m), and
+      c_l = v_l(W(lambda(M))) - v_l(xi(M)), whose first term is a
+      function of lambda(M). So G(M, m) is a function of lambda(M), m
+      and the exponents v_l(xi(M)) at the primes l of m, and of
+      nothing else; at a move prime to M every c_l is 0 and G is a
+      function of lambda(M) and m. The exponents are needed: lambda(3) =
+      lambda(8) = 2, and m = 3 has premium 7 at 3 (xi = 8) and 1 at 8
+      (xi = 3). The primes of a move interact: at lambda = 1, 5 opens
+      the doors 3, 5, 7 opens 3, 7, and 35 opens 3, 5, 7 and 13, since
+      13 - 1 = 12 takes its 4 from lambda(5) and its 3 from lambda(7).
+      On a prime q not dividing M the wall gain's odd part is the
+      COHORT (odd p newly doors of lambda' = lambda(Mq), each at
+      v_p(lambda') + 1) times the BUMPS at the old odd doors, each at
+      v_p(lambda') - v_p(lambda). From the state 1 the cohort of q is
+      {p odd prime : (p - 1) | (q - 1)}.
+  (4) SILENCE. A prime q not dividing M with (q - 1) not dividing
+      lambda = lambda(M) is SILENT at M when G(M, q) = 1: the reading
+      does not move while lambda does. Then u = q and W(L') = q W(lambda),
+      L' = lcm(lambda, q - 1). Every door of L' other than q is a door
+      of lambda at the same exponent, and v_2(L') = v_2(lambda); so
+      every door p != q of q - 1 has (p - 1) | g = gcd(q - 1, lambda)
+      and v_p(q - 1) &lt;= v_p(lambda), whence v_p(q - 1) = v_p(g), and
+      v_2(q - 1) = v_2(g).
+      Hence W(q - 1) = q W(g): every prime silent at M lies in the
+      blind class xi = W(g). At lambda = 2 silence is exactly membership
+      of the class xi = 24. At odd lambda nothing is silent: W's 2-part
+      is 2 and a prime q &gt; 2 sends it to at least 8. Conversely every
+      prime q = 1 (mod lambda) with xi(q) = W(lambda), q not dividing
+      M, is silent at M. Off that class lie the silent q with lambda
+      not dividing q - 1: since lambda(W(lambda)) = lambda at lambda =
+      lambda(M) ((5), idempotence) and lambda(W(g)) | g, W(g) !=
+      W(lambda) at every proper divisor g, so they read another class.
+  (5) THE CLOSURE. M -&gt; M* = W(lambda(M)) is inflationary (M | M*),
+      monotone (M | M' gives lambda(M) | lambda(M'), and W is monotone
+      under divisibility) and idempotent (lambda(M*) = lambda(M): one
+      way by M | M*, the other by the definition of W). The fixed
+      points are the TOMBSTONES, xi = 1, and every W(L) is one. A
+      tombstone above 2 is divisible by 24 (lambda even, so 2^3 and the
+      door 3); 2 is the only tombstone with odd lambda. The tombstones
+      are one infinite blind class: W(2^k) &gt;= 2^(k+2).
+  (6) BLINDNESS AND ITS CURE. A blind pair has different lambdas, since
+      M = W(lambda)/xi. A divisor d of xi keeps the pair blind (both
+      read xi/d). RESOLUTION CRITERION: d resolves iff the wall gains
+      differ, since xi(M_i d) = xi Gamma_i/d. So every resolver is a
+      non-divisor of xi, and the least one is at least kappa(xi), a
+      prime power (a least non-divisor p^a r, r &gt; 1 prime to p, has
+      both parts dividing xi, hence their product). NO PERMANENT
+      BLINDNESS: a prime q = 1 (mod lcm(lambda_1, lambda_2)) not
+      dividing M_1 M_2 (Dirichlet) sends both lambdas to q - 1; the
+      walls agree and the readings W(q - 1)/(M_i q) differ. The next
+      reading is no function of the reading and the move: 2 and 24
+      read 1, and 5 sends them to 24 and 2. On multipliers d prime to
+      M_1 M_2, Gamma_i depends on d only through lambda(d), so R is a
+      union of lambda-fibres there. A WATCHER sees the readings at
+      M_i d for the divisors d of a move it is handed; the moves that
+      keep a pair blind at every such reading are those whose divisors
+      all miss R, a divisor-closed family containing every divisor of
+      xi, so a pair survives at least tau(xi) - 1 moves with
+      certainty. A move blind at its end but split inside (9 and 513,
+      reading 56, under 57 = 3 19, split at 3) is a resolver whose
+      multiple is not one: R is not an up-set.
+  (7) THE BLIND-DENSITY THEOREM. For every even lambda, the primes
+      q = 1 (mod lambda) with xi(q) = W(lambda) have a positive
+      relative density among the primes. Within that progression the
+      conditions read v_p(q - 1) &lt;= v_p(lambda) at every door p of
+      lambda and (p - 1) not dividing q - 1 at every odd prime p off
+      them, p != q: all DECREASING events in the valuation vector
+      (v_l(q - 1))_l. Under the prime measure the coordinates are
+      independent (Dirichlet: the density of the residue class 1 mod
+      D is prod 1/phi(l^a) over l^a || D), each a chain, so Harris's
+      inequality gives P(E and F) &gt;= P(E) P(F) for decreasing E, F.
+      Write delta_T for the relative density, inside the progression,
+      of the conditions at the doors and at the p &lt;= T, a residue
+      condition, and eps(T) for the upper density among all primes of
+      the q with (p - 1) | (q - 1) for some prime p &gt; T, p != q; inside
+      the progression that event has relative upper density at most
+      phi(lambda) eps(T). The class share lies in [delta_T -
+      phi(lambda) eps(T), delta_T], and delta_T' &gt;= delta_T (1 -
+      phi(lambda) eps(T)) for T' &gt; T. So if eps(T) -&gt; 0 the class has
+      density lim delta_T &gt; 0. eps(T) &lt;&lt; (log T)^(-c), uniformly in
+      x, is Theorem 3 of Luca, Pizarro-Madariaga and Pomerance, "On
+      the counting function of irregular primes", Indag. Math. 26
+      (2015) 147-161, its two parameters at 1 and -1, and the
+      lambda = 2 case of
+      the theorem is Theorem 3 of Pomerance and Wagstaff, "The
+      denominators of the Bernoulli numbers" (Acta Arith., doi
+      10.4064/aa210601-16-11; arXiv:2105.13252) for the denominator
+      6q, both read
+      in full;
+      theirs never caps a valuation, so the class at a general lambda
+      is their set cut by a residue condition. The record's own
+      derivation of the tail, redundant with the 2015 theorem, is
+      Erdos and Wagstaff's Theorem 2 carried to the shifted primes:
+      their three classes
+      for q - 1 = (p - 1) n, against loglog p, with every count by
+      Pollack's Theorem 1.1 ("Nonnegative multiplicative functions on
+      sifted sets, and the square roots of -1 modulo shifted primes",
+      Glasgow Math. J. 62 (2020) 187-199; a Shiu bound over a sifted
+      set) applied
+      to z^Omega on {n : dn + 1 prime}. The Chernoff exponents are
+      d1 = 1/3 - (2/3) log(3/2) = 0.0630 for the "few factors" classes
+      and eta = (7/6) log(7/6) - 1/6 = 0.0132 for the third, whose
+      union over t_i = exp(i^(2/eta)) costs a square root, so eps(T)
+      &lt;&lt; (log T)^(-eta/2). The proof needs only d1 &gt; 0.
+      THE TAIL, step by step. q - 1 = (p - 1) n with p &gt; T prime,
+      p != q, n &gt;= 2; L = loglog p; Omega_p(n) counts the prime
+      factors of n below p with multiplicity. Every q counted by
+      eps(T) falls in one of three classes. (1) Omega(p - 1) &lt; (2/3)
+      L. (2) Omega_p(n) &lt; (2/3) L. (3) both at least (2/3) L, whence
+      Omega_p(q - 1) &gt;= (4/3) L, since every prime of p - 1 is below
+      p. The tool is Pollack's Theorem 1.1: f multiplicative with
+      f(l^v) &lt;= A^v and f(n) &lt;&lt;_e n^e, E_l a union of at most k
+      nonzero classes mod l for each prime l &lt;= x, S the integers in
+      no E_l; then the sum of f over S in (x - y, x] is &lt;&lt; (y/log x)
+      exp(sum_(l &lt;= x) (f(l) - nu(l))/l) for x^a &lt; y &lt;= x. For the
+      set {n : dn + 1 prime} take E_l = {-1/d} at l not dividing d:
+      exp(-sum nu(l)/l) is the Brun-Titchmarsh 1/log x, and the l | d
+      return at most d/phi(d). The Chernoff step takes f =
+      z^Omega_p, z &lt; 1 for "few factors", z &gt; 1 for "many".
+       (1) z = 2/3 on {n &lt;= y : n + 1 prime}: #{p &lt;= y : Omega(p - 1)
+           &lt; (2/3) loglog y} &lt;&lt; y/(log y)^(1 + d1). Each such p
+           carries pi(x; p - 1, 1) &lt;&lt; x/(phi(p - 1) log(x/p)) primes
+           q. Summed over p &lt;= sqrt(x) by parts this is &lt;&lt; pi(x)
+           (loglog T)/(log T)^d1; over p &gt; sqrt(x), dyadically in
+           x/p, it is &lt;&lt; pi(x) (loglog x)^2/(log x)^d1. Both vanish.
+       (2) p &lt;= sqrt(x), d = p - 1, X = x/d: z = 2/3 on {n &lt;= X :
+           dn + 1 prime} gives &lt;&lt; (d/phi(d)) (X/log X) (log p)^(-d1)
+           class-(2) primes, and the sum over p &gt; T of 1/(phi(p - 1)
+           (log p)^d1) tends to 0. For p &gt; sqrt(x), n &lt; sqrt(x) &lt; p,
+           so Omega(n) &lt; (2/3) loglog x; the same tool with f = 1 on
+           the two conditions p prime and n(p - 1) + 1 prime bounds
+           each n's count by &lt;&lt; (n/phi(n)) x/(n log^2 x), and the sum
+           of 1/phi(n) over n &lt;= sqrt(x) with Omega(n) &lt; (2/3) loglog
+           x is &lt;&lt; (log x)^(1 - d1): total &lt;&lt; pi(x)/(log x)^d1.
+       (3) z = 7/6 on {n &lt;= x : n + 1 prime} gives #{q &lt;= x :
+           Omega_t(q - 1) &gt;= (7/6) loglog t} &lt;&lt; pi(x) (log t)^(-eta),
+           uniformly in t &lt;= x. With t_i = exp(i^(2/eta)), a q with
+           Omega_p(q - 1) &gt;= (4/3) loglog p for some p in
+           [t_(i-1), t_i) has Omega_(t_i)(q - 1) &gt;= (7/6) loglog t_i
+           once i is large, and sum over t_i &gt; T of (log t_i)^(-eta)
+           = sum i^(-2) is &lt;&lt; (log T)^(-eta/2).
+      This is Erdos and Wagstaff's proof of their Theorem 2 (Lemmas
+      1 to 4) with each integer count replaced by its shifted-prime
+      count. The dyadic sum in (1) costs a second loglog x, which
+      changes nothing.
+      COROLLARIES. The silent set at every even lambda has positive
+      density ((4), converse). Every reading W(lambda), lambda even,
+      hosts infinitely many blind pairs, so the least resolver is
+      unbounded: along L_n = lcm(1, ..., n) every prime r &lt;= n + 1 is
+      a door (2 by the wall's 2-part) at an exponent with
+      r^(v_r(W) + 1) &gt; n + 1, so kappa(W(L_n)) &gt; n + 1.
+      The class xi = 24 is a Bernoulli class: by von Staudt-Clausen
+      the denominator of B_(q-1) is the product of the p with
+      (p - 1) | (q - 1), so for q &gt;= 11 the class is exactly the primes
+      with denom(B_(q-1)) = 6q; 5 and 7 have that denominator and read
+      48 and 72.
+
+DESIGN. Standard library; one process. growth.py supplies value,
+lambda on a factorization and at a prime power, a Miller-Rabin test,
+its prime list, merge_max, the Bernoulli numbers and the wall, which
+C2 alone calls, beside wall_f, this file's copy of the wall formula,
+which C2 and every other wall read use. fac factors through a
+smallest-prime-factor sieve to 10^7, which also backs is_prime and
+the prime lists.
+  C  POSITIVE CONTROLS. C1 lambda against the unit group's exponent
+     at every M &lt;= 300. C2 the wall formula against the brute largest
+     M &lt;= 2 W(L) with lambda(M) | L, even L &lt;= 24: every admissible M
+     divides the true wall, so a wall above the formula's would be at
+     least twice it. C1 and C2 run before any verdict. C3 the exact
+     product-measure density of a residue condition against its prime
+     count below 10^7 (delta_T at T = 7), its own check, run as D2's
+     first row and read before D2's.
+  H  the headroom. H1 m transparent iff m | xi(M), every M &lt; 400, m &lt;
+     200. H2 the exponent formula of xi at 2, at every door of lambda
+     and at every prime of M or xi, every M &lt; 2000, and v_l(M) = 0 at
+     every odd non-door l among them, each door's exponent read against
+     H2's own loop over the divisors of L, which shares divisors_f and
+     is_prime with wall_f, beside a direct test L % (p - 1) == 0 at the
+     primes of M and xi. A door wall_f drops fails H1 at every door
+     probed below 400 (37, 199, 211, 241, 337, 397) but not at 401, and
+     H2 when its p - 1 divides some lambda(M), M &lt; 2000 (401 fails it,
+     2003 does not). C2 reads both wall_f and growth.wall, and catches a
+     door either drops only among 3, 5, 7, 11, 13, 17, 19 and 23, the
+     doors its even L &lt;= 24 reach. H3 the two witnesses that neither
+     determines the other.
+  L  the ledger. L1 G an integer, M &lt; 400, m &lt; 60; the identity
+     xi(Mm) = (xi/gcd(m, xi)) G then holds by the definitions. L2 the
+     splitting inequality and its equality condition, every split
+     m = ab of those moves, and a split whose unpaid parts do not
+     telescope: from 1, u(12) = 6 against u(3) u(4 at 3) = 3.
+  P  the premium. P1 G recomputed from (lambda(M), m, v_l(xi) at
+     l | m) alone equals G, the same range. P2 the coprime case a
+     function of lambda(M) and m (every pair of states M &lt; 1500 with
+     one lambda, moves m &lt; 60 prime to both). P3 the 3/8 witness. P4
+     the premiums 4, 24, 8 of 3, 5, 15 from 1, and the doors 5, 7 and
+     35 open from the states 1 and 2. P5 the cohort-and-bump
+     factorization on every prime q &lt; 200 not dividing M &lt; 400.
+  S  silence. S1 every silent q &lt; 10^5 at 25 even lambda lies in the
+     class xi = W(gcd(q - 1, lambda)). S2 at lambda = 2 the silent
+     primes below 10^5 are exactly the class xi = 24. S3 no prime
+     q &lt; 10^4 is silent at an odd lambda (states 1, 2). S4 the
+     converse at lambda = 4, 6, 8, 12: every q = 1 (mod lambda),
+     q &lt; 10^5, with xi(q) = W(lambda) is silent at a state of that
+     lambda. Printed beside S1: at each lambda, the silent count, the
+     count off the class (lambda not dividing q - 1), the least off;
+     the off ones reading xi = W(lambda) (predicted none); the lambda
+     &gt; 2 where the off part is not the majority. Added after the
+     first run: S5 asserts that majority at every lambda &gt; 2, no off one
+     reading W(lambda), and lambda(W(lambda)) = lambda at every swept
+     lambda; none off at lambda = 2 is no check, every odd q being 1
+     mod 2.
+  W  the closure. W1 inflationary, monotone, idempotent over
+     M &lt;= 3000 (monotone on every divisor pair). W2 every tombstone
+     W(lambda(M)) for M &lt; 10^5 is a fixed point, divisible by 24 above
+     2, and 2 is the only one of odd lambda; "every W(L) is one" is so
+     checked at the L that lambda takes below 10^5 and at L = 2^k.
+     W3 W(2^k) is a tombstone and at least 2^(k+2), k &lt;= 40.
+  R  resolution, over every blind pair among the states 2..1499 and
+     one representative pair per blind class. That blind pairs have
+     different lambdas, and the criterion, hold by the definitions
+     (M = W(lambda)/xi; xi(M_i d) = xi Gamma_i/d) and are not checked:
+     a check of either computes the same quantity twice. R3 least resolver
+     &gt;= kappa(xi), kappa a prime power; the share attaining it
+     printed. R4 the Dirichlet resolver for each representative pair,
+     the prime q found and checked. R5 the 2/24 witness. R6 R a
+     union of lambda-fibres on d &lt; 200 prime to both. R7 the watcher:
+     every divisor of xi keeps the pair blind at every internal
+     reading; the 9/513/57 witness.
+  D  the density. D1 the Bernoulli class: over primes 11 &lt;= q &lt; 10^6,
+     xi(q) = 24 iff the von Staudt-Clausen product of q - 1 is 6q;
+     B_2..B_40 exact against that product; 5 and 7 as stated. D2 delta_T exact
+     at T = 7, 11, 23, 47 against the empirical share among the
+     primes in (T, 10^7]. D3 Harris exactly: delta at the doors below
+     48 is at least the product of the densities at the doors below
+     24 and at those in [29, 47], in exact rationals. D4 the class
+     conditions at lambda = 4, 6, 8, 12, 24: class membership within
+     q = 1 (mod lambda), q &lt; 10^6, equals the decreasing-event
+     reading. D5 the unboundedness: kappa(W(L_n)) &gt; n + 1 for n &lt;= 30,
+     and at each even L_n, n = 2..8, two primes q with xi(q) = W(L_n),
+     found by search. d1 and eta printed.
+
+PREDICTIONS, fixed before the run.
+  Every identity check reads zero violations: C1, C2, H1-H3, L1, L2,
+  P1-P5, S1-S4, W1-W3, R3-R7, D1, D3, D4, D5. C3 and D2: exact and
+  empirical within 2 10^-3 (the binomial sd at 6.6 10^5 primes is
+  under 5 10^-4, and the primes up to T are excluded). R3: the share
+  attaining kappa near 0.94, as an earlier run read over 96 classes.
+  D2's delta_T at T = 7, 11, 23, 47: 0.25, 0.1875, 0.16875, 0.16108, an
+  earlier run's exact values. D5: a pair of class members found at every
+  even lcm, n &lt;= 8, below 10^9. d1, eta: 0.0630, 0.0132.
+A KILL is any identity violation, which kills the claim it tests; a
+D2 gap above 2 10^-3, which kills the measure the density proof runs
+on; a D3 inequality failing, which kills the positivity step. A
+control out of its band voids the verdicts that lean on it. An
+earlier run's figure not reproduced with the identities green is
+a definition to read, not a kill.
+
+THE ARGUMENT'S CORRECTION, made on the first run and before any
+finding was written. (7) read the class of W(lambda) inside q = 1
+(mod lambda) as the decreasing events alone. D4's first run printed 3
+violations, q = 5, 7, 13 at lambda = 4, 6, 12: there q = lambda + 1 is
+itself a door of lambda, so xi(q) = W(lambda)/q. The reading holds for
+every q != lambda + 1, one prime per lambda, and the density is
+untouched. C3 is run as D2's first row (T = 7).
+
+FINDINGS. 33/33 checks PASS, no kill, every prediction met.
+  C  lambda is the unit exponent at every M &lt;= 300; the wall formula
+     agrees with brute at every even L &lt;= 24.
+  H  transparent iff m | xi(M) at every M &lt; 400, m &lt; 200; the exponent
+     formula at every prime of every M &lt; 2000; 855 and 2565 on the
+     support {3, 5, 19} read 161616 and 53872, 10 and 11 both read 24.
+  L  G an integer at 23142 moves; 52668 splits, the inequality at
+     all of them and the equality condition exact, 51029 of them
+     (0.969) with equality; from 1, 12 = 3 4 leaves unpaid 6 against
+     3 then 1, the premiums 4 1 against 2.
+  P  the closed form at every move of L; the coprime premium a
+     function of lambda and m over 8321 cells; 3 pays 7 at 3 and 1 at
+     8; from 1, 3, 5 and 15 pay 4, 24 and 8; from 1 and from 2, 5
+     opens {3, 5}, 7 opens {3, 7} and 35 opens {3, 5, 7, 13}; the
+     cohort-and-bump form at every prime q &lt; 200.
+  S  19326 silent primes below 10^5 at 25 even lambda, every one in
+     the class W(gcd(q - 1, lambda)); at lambda = 2, 1133 silent and
+     1133 in the class 24, the same set; nothing silent at odd lambda;
+     1212 class members silent at lambda = 4, 6, 8, 12. Off the class:
+     0 at lambda = 2; 820 of 1262 at 4 (least 23), 588 of 1066 at 6
+     (59), 914 of 1049 at 12 (83), 449 of 456 at 60 (839), all 149 at
+     180; the majority at all 24 lambda &gt; 2, the least share at 6; no
+     off one reads W(lambda).
+  W  the closure's three laws at M &lt;= 3000; 15293 tombstones reached
+     from M &lt; 10^5, each fixed, divisible by 24 above 2, 2 the only
+     one with odd lambda; W(2^k) fixed and at least 2^(k+2), k &lt;= 40.
+  R  96 blind classes, 4542 blind pairs among the states 2..1499; the
+     least resolver at least kappa at every class and equal to it at
+     90 of 96 (0.938); the Dirichlet prime splits every representative
+     pair, reaching 111827; 2 and 24 go to 24 and 2 under 5; 10 and
+     11 (reading 24, kappa 5) split first at 5, into 264 and 240; 4680
+     lambda-fibres, none split; every divisor of xi blind at every
+     class; 9 and 513 read 56 and 56 after 57, 1064 and 56 after 3.
+  D  8770 primes in [11, 10^6) in the class 24, the von Staudt-Clausen
+     product 6q at all of them, xi(5) = 48, xi(7) = 72; 137 has
+     denominator 30q and reads 480 against W(4) = 240. delta_T exact
+     against the primes in (T, 10^7]: 0.25000/0.25011, 0.18750/0.18755,
+     0.16875/0.16871, 0.16108/0.16100 at T = 7, 11, 23, 47. Harris
+     exactly: 0.161080 &gt;= 0.111581. The decreasing-event reading at
+     127251 primes, the three q = lambda + 1 read as the exception.
+     kappa(W(lcm(1..n))) &gt; n + 1 at every n &lt;= 30, and two class
+     members at every even lcm through n = 8, the largest pair 437641
+     and 16545481 at W(840). d1 = 0.0630, eta = 0.0132, eps(T) &lt;&lt;
+     (log T)^(-0.0066).
+  Tiers: (1) a property; (2), (3), (4), (5), (6) theorems, verified in
+  the ranges printed, the resolution criterion a criterion, and the
+  least resolver meeting kappa at 90 of 96 classes an observation; (7)
+  a theorem whose proof rests on three outside results, written above,
+  and whose constant is not derived: the run reads delta_T, not its
+  limit; its corollaries are theorems.
+
+RUN RECORD. python headroom.py: 33/33 checks, 7.5 to 8.7 s, peak 123 MB
+under a 512 MB ceiling. It replaces fifteen scripts for these
+subjects, among them the two sieves that peaked at 454 and 452 MB: their
+counts of decade ratios and loose shares were measurements and were
+not carried.
+"""
+
+import os
+import sys
+import time
+from array import array
+from fractions import Fraction
+from functools import lru_cache
+from math import gcd, log
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import growth  # noqa: E402
+from growth import wall, value, lam  # noqa: E402
+
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  [{'PASS' if ok else 'FAIL'}] {name}"
+          + (f" -- {detail}" if detail else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print("=" * 72)
+    print(title)
+    print("=" * 72)
+
+
+# ------------------------------------------------------------ arithmetic
+
+SPF_N = 10 ** 7
+
+
+<span id="spf_sieve"></span>def spf_sieve(n):
+    """Smallest prime factor below n + 1, 0 at the primes: the primes up
+    to sqrt(n) stamped from the largest down, so the least one wins."""
+    r = int(n ** 0.5) + 1
+    small = bytearray([1]) * (r + 1)
+    for i in range(2, int(r ** 0.5) + 1):
+        if small[i]:
+            small[i * i::i] = bytearray(len(small[i * i::i]))
+    s = array("i", [0]) * (n + 1)
+    for p in range(r, 1, -1):
+        if small[p] and p * p &lt;= n:
+            k = len(range(p * p, n + 1, p))
+            s[p * p::p] = array("i", [p]) * k
+    return s
+
+
+SPF = None
+
+
+<span id="fac"></span>def fac(n):
+    """Factor n by the sieve below SPF_N, by trial division above."""
+    if SPF is None or n &gt; SPF_N:
+        return factor_big(n)
+    f = {}
+    while n &gt; 1:
+        p = SPF[n] or n
+        f[p] = f.get(p, 0) + 1
+        n //= p
+    return f
+
+
+<span id="factor_big"></span>def factor_big(n):
+    f = {}
+    p = 2
+    while p * p &lt;= n:
+        while n % p == 0:
+            f[p] = f.get(p, 0) + 1
+            n //= p
+        p += 1 if p == 2 else 2
+    if n &gt; 1:
+        f[n] = f.get(n, 0) + 1
+    return f
+
+
+<span id="is_prime"></span>def is_prime(n):
+    if n &lt; 2:
+        return False
+    if SPF is not None and n &lt;= SPF_N:
+        return SPF[n] == 0
+    return growth.is_prime_mr(n)
+
+
+<span id="divisors_f"></span>def divisors_f(f):
+    ds = [1]
+    for p, e in f.items():
+        ds = [d * p ** k for d in ds for k in range(e + 1)]
+    return ds
+
+
+@lru_cache(maxsize=None)
+<span id="lam_n"></span>def lam_n(M):
+    return value(lam(fac(M))) if M &gt; 1 else 1
+
+
+<span id="wall_f"></span>def wall_f(lf):
+    """W(L) from L's factorization, doors found among L's divisors."""
+    L = value(lf)
+    if L % 2:
+        return 2
+    w = 2 ** (lf[2] + 2)
+    for d in divisors_f(lf):
+        p = d + 1
+        if p &gt; 2 and is_prime(p):
+            w *= p ** (lf.get(p, 0) + 1)
+    return w
+
+
+@lru_cache(maxsize=None)
+<span id="W"></span>def W(L):
+    return wall_f(fac(L)) if L &gt; 1 else 2
+
+
+@lru_cache(maxsize=None)
+<span id="xi"></span>def xi(M):
+    return W(lam_n(M)) // M
+
+
+<span id="gain"></span>def gain(M, m):
+    return W(lam_n(M * m)) // W(lam_n(M))
+
+
+<span id="unpaid"></span>def unpaid(M, m):
+    return m // gcd(m, xi(M))
+
+
+<span id="premium"></span>def premium(M, m):
+    g, u = gain(M, m), unpaid(M, m)
+    assert g % u == 0
+    return g // u
+
+
+<span id="vp"></span>def vp(n, p):
+    k = 0
+    while n % p == 0:
+        n //= p
+        k += 1
+    return k
+
+
+<span id="kappa"></span>def kappa(x):
+    k = 2
+    while x % k == 0:
+        k += 1
+    return k
+
+
+<span id="is_prime_power"></span>def is_prime_power(n):
+    return len(factor_big(n)) == 1
+
+
+<span id="unit_exponent"></span>def unit_exponent(M):
+    units = [a for a in range(1, M) if gcd(a, M) == 1] if M &gt; 1 else [0]
+    e = 1
+    for a in units:
+        o, x = 1, a % M
+        while x != 1 % M:
+            x = x * a % M
+            o += 1
+        e = e * o // gcd(e, o)
+    return e
+
+
+# ------------------------------------------------------------- controls
+
+<span id="section_c"></span>def section_c():
+    section("C  POSITIVE CONTROLS")
+    bad = [M for M in range(1, 301) if lam_n(M) != unit_exponent(M)]
+    check("C1 lambda is the unit group's exponent, M &lt;= 300", not bad,
+          f"{len(bad)} mismatches")
+    bad = []
+    for L in range(2, 25, 2):
+        top = 2 * W(L)
+        brute = max(M for M in range(1, top + 1) if L % lam_n(M) == 0)
+        if brute != W(L) or brute != wall(L):
+            bad.append(L)
+    check("C2 the wall formula against brute below twice it, even "
+          "L &lt;= 24", not bad,
+          f"bad at {bad}")
+
+
+# ------------------------------------------------------------ headroom
+
+<span id="section_h"></span>def section_h():
+    section("H  THE HEADROOM")
+    bad = 0
+    for M in range(1, 400):
+        x, L = xi(M), lam_n(M)
+        for m in range(2, 200):
+            if (lam_n(M * m) == L) != (x % m == 0):
+                bad += 1
+    check("H1 m is transparent iff m | xi(M), M &lt; 400, m &lt; 200", bad == 0,
+          f"{bad} violations")
+    bad = 0
+    for M in range(1, 2000):
+        L, x = lam_n(M), xi(M)
+        mf, lf = fac(M), (fac(L) if L &gt; 1 else {})
+        drs = {d + 1 for d in divisors_f(lf) if d &gt; 1 and is_prime(d + 1)}
+        for p in set(mf) | set(fac(x)) | drs | {2}:
+            if p == 2:
+                want = (lf.get(2, 0) + 2 if L % 2 == 0 else 1) - mf.get(2, 0)
+            elif L % (p - 1) == 0:
+                want = lf.get(p, 0) + 1 - mf.get(p, 0)
+            else:
+                want = 0
+                bad += mf.get(p, 0) != 0
+            if vp(x, p) != want:
+                bad += 1
+    check("H2 the exponent formula for xi at 2, every door and every "
+          "prime of M or xi, M &lt; 2000",
+          bad == 0, f"{bad} violations")
+    w = (set(fac(855)) == set(fac(2565)), xi(855), xi(2565), xi(10),
+         xi(11))
+    print(f"  855, 2565: one support {sorted(fac(855))}, xi {w[1]} and "
+          f"{w[2]}; 10, 11: xi {w[3]} and {w[4]}")
+    check("H3 neither support nor reading determines the other "
+          "(855/2565, 10/11)",
+          w == (True, 161616, 53872, 24, 24))
+
+
+# -------------------------------------------------------------- ledger
+
+<span id="section_l"></span>def section_l():
+    section("L  THE LEDGER")
+    bad = moves = 0
+    for M in range(1, 400):
+        x = xi(M)
+        for m in range(2, 60):
+            moves += 1
+            G = gain(M, m)
+            u = unpaid(M, m)
+            if G % u or xi(M * m) != x // gcd(m, x) * (G // u):
+                bad += 1
+    check(f"L1 G is an integer, so xi(Mm) = (xi/gcd(m, xi)) G, {moves} "
+          f"moves",
+          bad == 0, f"{bad} violations")
+    bad = splits = exact = cond_bad = 0
+    for M in range(1, 400):
+        x = xi(M)
+        for m in range(4, 60):
+            for a in range(2, m):
+                if m % a:
+                    continue
+                b = m // a
+                splits += 1
+                lhs = premium(M, a) * premium(M * a, b)
+                whole = premium(M, m)
+                if lhs % whole:
+                    bad += 1
+                    continue
+                eq = lhs == whole
+                exact += eq
+                ga = premium(M, a)
+                cond = all(vp(ga, l) == 0 or vp(b, l) &lt;= vp(x, l) - vp(a, l)
+                           for l in fac(b))
+                cond_bad += cond != eq
+    print(f"  {splits} splits, {exact} exact ({exact / splits:.3f})")
+    tw = (unpaid(1, 12), unpaid(1, 3), unpaid(3, 4), premium(1, 3),
+          premium(3, 4), premium(1, 12))
+    print(f"  from 1, 12 = 3 4: unpaid {tw[0]} against {tw[1]} then {tw[2]};"
+          f" premiums {tw[3]} {tw[4]} against {tw[5]}")
+    bad += tw != (6, 3, 1, 4, 1, 2)
+    check("L2 a split never undercounts: G(M,a) G(Ma,b) = k G(M,ab), k "
+          "an integer; the unpaid part does not telescope (12 from 1)",
+          bad == 0, f"{bad} violations")
+    check("L2 equality iff at every l | b, v_l(G(M,a)) = 0 or v_l(b) &lt;= "
+          "v_l(xi) - v_l(a)", cond_bad == 0, f"{cond_bad} violations")
+
+
+# ------------------------------------------------------------- premium
+
+<span id="premium_closed"></span>def premium_closed(L, x, m):
+    """G from lambda(M) = L, m and v_l(xi) at the primes l of m alone."""
+    lf = fac(L) if L &gt; 1 else {}
+    WL = W(L)
+    newf = dict(lf)
+    u = 1
+    for l, e in fac(m).items():
+        c = vp(WL, l) - vp(x, l)
+        for p, a in (growth.lam_pp(l, c + e)).items():
+            if a &gt; newf.get(p, 0):
+                newf[p] = a
+        u *= l ** (e - min(e, vp(x, l)))
+    return wall_f(newf) // (WL * u) if newf else 2 // (WL * u)
+
+
+<span id="section_p"></span>def section_p():
+    section("P  THE PREMIUM")
+    bad = 0
+    for M in range(1, 400):
+        L, x = lam_n(M), xi(M)
+        for m in range(2, 60):
+            if premium_closed(L, x, m) != premium(M, m):
+                bad += 1
+    check("P1 G from (lambda(M), m, v_l(xi) at l | m) alone, M &lt; 400, "
+          "m &lt; 60", bad == 0, f"{bad} violations")
+    fib = {}
+    for M in range(1, 1500):
+        fib.setdefault(lam_n(M), []).append(M)
+    bad = cells = 0
+    for L, Ms in fib.items():
+        if len(Ms) &lt; 2:
+            continue
+        for m in range(2, 60):
+            vals = {premium(M, m) for M in Ms if gcd(M, m) == 1}
+            if len({M for M in Ms if gcd(M, m) == 1}) &gt;= 2:
+                cells += 1
+                bad += len(vals) &gt; 1
+    check(f"P2 on moves prime to the state G is a function of lambda and "
+          f"m, {cells} cells", bad == 0, f"{bad} violations")
+    w = (lam_n(3), lam_n(8), xi(3), xi(8), premium(3, 3), premium(8, 3))
+    print(f"  lambda(3), lambda(8) = {w[0]}, {w[1]}; xi {w[2]}, {w[3]}; "
+          f"premium of 3: {w[4]} and {w[5]}")
+    check("P3 the exponents are needed: m = 3 pays 7 at 3 and 1 at 8",
+          w == (2, 2, 8, 3, 7, 1))
+
+    def doors(L):
+        return {p for p in fac(W(L)) if p &gt; 2}
+
+    ok4 = [premium(1, 3), premium(1, 5), premium(1, 15)] == [4, 24, 8]
+    print(f"  from 1: 3, 5 and 15 pay {premium(1, 3)}, {premium(1, 5)} "
+          f"and {premium(1, 15)}")
+    for M in (1, 2):
+        L = lam_n(M)
+        d5 = doors(lam_n(M * 5)) - doors(L)
+        d7 = doors(lam_n(M * 7)) - doors(L)
+        d35 = doors(lam_n(M * 35)) - doors(L)
+        print(f"  at M = {M}: 5 opens {sorted(d5)}, 7 opens {sorted(d7)}, "
+              f"35 opens {sorted(d35)}")
+        ok4 &amp;= (d5, d7, d35) == ({3, 5}, {3, 7}, {3, 5, 7, 13})
+    check("P4 the primes of a move interact: from 1, 3, 5, 15 pay 4, 24, "
+          "8; from 1 and 2, 5 opens {3, 5}, 7 {3, 7}, 35 {3, 5, 7, 13}",
+          ok4)
+    bad = 0
+    for M in range(1, 400):
+        L = lam_n(M)
+        lf = fac(L) if L &gt; 1 else {}
+        for q in growth.PRIMES[:46]:
+            if M % q == 0:
+                continue
+            L2 = lam_n(M * q)
+            l2 = fac(L2) if L2 &gt; 1 else {}
+            want = 1
+            for p in divisors_f(l2):
+                p += 1
+                if p &gt; 2 and is_prime(p):
+                    if L % (p - 1):
+                        want *= p ** (l2.get(p, 0) + 1)
+                    else:
+                        want *= p ** (l2.get(p, 0) - lf.get(p, 0))
+            g = gain(M, q)
+            while g % 2 == 0:
+                g //= 2
+            bad += g != want
+    check("P5 a prime move's odd wall gain is the cohort times the bumps, "
+          "M &lt; 400, q &lt; 200", bad == 0, f"{bad} violations")
+
+
+# ------------------------------------------------------------- silence
+
+<span id="silent"></span>def silent(L, q):
+    """q silent at a state of lambda L (q not dividing it): the door of
+    q shut and the wall grows by exactly q."""
+    if L % (q - 1) == 0:
+        return False
+    merged = growth.merge_max(fac(L) if L &gt; 1 else {}, fac(q - 1))
+    return wall_f(merged) == q * W(L)
+
+
+<span id="section_s"></span>def section_s(primes):
+    section("S  SILENCE")
+    lams = [2, 4, 6, 8, 10, 12, 16, 18, 20, 24, 28, 30, 36, 40, 42, 48,
+            54, 60, 66, 72, 84, 90, 96, 120, 180]
+    bad = tot = 0
+    census = {}
+    for L in lams:
+        sil = []
+        for q in primes:
+            if q &gt;= 10 ** 5:
+                break
+            if q &gt; 2 and silent(L, q):
+                sil.append(q)
+                bad += xi(q) != W(gcd(q - 1, L))
+        tot += len(sil)
+        census[L] = sil
+    check(f"S1 every silent q &lt; 10^5 at 25 even lambda lies in the class "
+          f"W(gcd(q - 1, lambda)), {tot} silent", bad == 0,
+          f"{bad} violations")
+    print("  off the class xi = W(lambda), q &lt; 10^5: lambda  silent  off  "
+          "least off")
+    stray = 0
+    for L, sil in census.items():
+        off = [q for q in sil if (q - 1) % L]
+        stray += sum(xi(q) == W(L) for q in off)
+        print(f"    {L:4d}  {len(sil):5d}  {len(off):5d}  "
+              f"{off[0] if off else '-'}")
+    print(f"  silent q with lambda not dividing q - 1 yet xi(q) = "
+          f"W(lambda): {stray}")
+    maj = [L for L, sil in census.items() if L &gt; 2 and
+           2 * sum((q - 1) % L &gt; 0 for q in sil) &lt;= len(sil)]
+    carm = [L for L in census if lam_n(W(L)) != L]
+    check("S5 off the class: the majority at every swept lambda &gt; 2, none "
+          "reading W(lambda); every swept lambda a Carmichael value",
+          not maj and not stray and not carm,
+          f"not the majority at {maj}, {stray} strays, non-values {carm}")
+    sil = {q for q in primes if 2 &lt; q &lt; 10 ** 5 and silent(2, q)}
+    cls = {q for q in primes if 2 &lt; q &lt; 10 ** 5 and xi(q) == 24}
+    print(f"  lambda = 2: {len(sil)} silent, {len(cls)} in the class 24")
+    check("S2 at lambda = 2 silence is membership of the class 24", sil ==
+          cls)
+    odd = [q for q in primes if 2 &lt; q &lt; 10 ** 4 and silent(1, q)]
+    check("S3 nothing is silent at odd lambda (q &lt; 10^4)", not odd,
+          f"{odd[:5]}")
+    bad = cnt = 0
+    for L in (4, 6, 8, 12):
+        for q in primes:
+            if q &gt;= 10 ** 5:
+                break
+            if (q - 1) % L == 0 and xi(q) == W(L):
+                cnt += 1
+                M = next(M for M in range(2, 10 ** 5)
+                         if lam_n(M) == L and M % q)
+                bad += premium(M, q) != 1 or xi(M * q) != xi(M)
+    check(f"S4 the converse: {cnt} class members q = 1 (mod lambda) are "
+          f"silent, lambda = 4, 6, 8, 12", bad == 0, f"{bad} violations")
+
+
+# ------------------------------------------------------------- closure
+
+<span id="section_w"></span>def section_w():
+    section("W  THE CLOSURE")
+    star = {M: W(lam_n(M)) for M in range(1, 3001)}
+    infl = all(star[M] % M == 0 for M in star)
+    idem = all(W(lam_n(star[M])) == star[M] for M in star)
+    mono = all(star[Mp] % star[M] == 0 for M in star
+               for Mp in range(2 * M, 3001, M))
+    check("W1 M -&gt; W(lambda(M)) is inflationary, idempotent and monotone, "
+          "M &lt;= 3000", infl and idem and mono)
+    tombs = sorted({W(lam_n(M)) for M in range(1, 10 ** 5)})
+    ok = all(xi(t) == 1 for t in tombs)
+    ok &amp;= all(t % 24 == 0 for t in tombs if t &gt; 2)
+    odd = [t for t in tombs if lam_n(t) % 2]
+    print(f"  {len(tombs)} tombstones reached from M &lt; 10^5, the largest "
+          f"{tombs[-1]}; odd lambda at {odd}")
+    check("W2 each is a fixed point, divisible by 24 above 2; 2 alone has "
+          "odd lambda", ok and odd == [2])
+    check("W3 W(2^k) is a tombstone at least 2^(k+2), k &lt;= 40",
+          all(xi(W(2 ** k)) == 1 and W(2 ** k) &gt;= 2 ** (k + 2)
+              for k in range(1, 41)))
+
+
+# ---------------------------------------------------------- resolution
+
+<span id="section_r"></span>def section_r():
+    section("R  BLINDNESS AND ITS CURE")
+    classes = {}
+    for M in range(2, 1500):
+        classes.setdefault(xi(M), []).append(M)
+    blind = {x: Ms for x, Ms in classes.items() if len(Ms) &gt; 1}
+    pairs = [(a, b) for Ms in blind.values() for i, a in enumerate(Ms)
+             for b in Ms[i + 1:]]
+    print(f"  {len(blind)} blind classes, {len(pairs)} blind pairs among "
+          f"the states 2..1499")
+    reps = [(Ms[0], Ms[1]) for Ms in blind.values()]
+    below = attain = 0
+    nonpp = []
+    for a, b in reps:
+        x = xi(a)
+        k = kappa(x)
+        if not is_prime_power(k):
+            nonpp.append(x)
+        d = next((d for d in range(2, 2000) if xi(a * d) != xi(b * d)),
+                 None)
+        below += d is None or d &lt; k
+        attain += d == k
+    print(f"  {len(reps)} representative pairs; least resolver = kappa at "
+          f"{attain} ({attain / len(reps):.3f})")
+    check("R3 least resolver &gt;= kappa(xi), a prime power", below == 0 and
+          not nonpp, f"{below} below, non-prime-power kappa at {nonpp}")
+    bad = 0
+    qmax = 0
+    for a, b in reps:
+        L = lam_n(a) * lam_n(b) // gcd(lam_n(a), lam_n(b))
+        q = L + 1
+        while not (is_prime(q) and (a * b) % q):
+            q += L
+        qmax = max(qmax, q)
+        bad += not (lam_n(a * q) == lam_n(b * q) == q - 1
+                    and xi(a * q) != xi(b * q))
+    print(f"  the Dirichlet prime reaches {qmax}")
+    check("R4 a prime q = 1 mod lcm(lambda_1, lambda_2) splits every "
+          "representative pair", bad == 0, f"{bad} failures")
+    w = (xi(2), xi(24), xi(10), xi(120))
+    check("R5 2 and 24 read 1; the move 5 sends them to 24 and 2",
+          w == (1, 1, 24, 2), f"{w}")
+    d = next(d for d in range(2, 100) if xi(10 * d) != xi(11 * d))
+    print(f"  10, 11 (reading 24, kappa {kappa(24)}): least resolver {d}, "
+          f"into {xi(10 * d)} and {xi(11 * d)}")
+    bad = cells = 0
+    for a, b in reps:
+        fibres = {}
+        for d in range(2, 200):
+            if gcd(d, a * b) == 1:
+                fibres.setdefault(lam_n(d), set()).add(
+                    xi(a * d) != xi(b * d))
+        cells += len(fibres)
+        bad += sum(len(v) &gt; 1 for v in fibres.values())
+    check(f"R6 on d prime to both, R is a union of lambda-fibres, {cells} "
+          f"fibres", bad == 0, f"{bad} split fibres")
+    bad = 0
+    for a, b in reps:
+        for e in divisors_f(fac(xi(a))):
+            bad += xi(a * e) != xi(b * e)
+    w = (xi(9), xi(513), xi(9 * 57), xi(513 * 57), xi(27), xi(1539))
+    print(f"  9, 513 read {w[0]}, {w[1]}; after 57 {w[2]}, {w[3]}; after 3 "
+          f"{w[4]}, {w[5]}")
+    check("R7 every divisor of xi keeps a pair blind at every internal "
+          "reading; 57 is blind at its end, split at 3",
+          bad == 0 and w == (56, 56, 56, 56, 1064, 56))
+
+
+# ------------------------------------------------------------- density
+
+<span id="door_primes"></span>def door_primes(n, cap):
+    """The primes p &lt;= cap, p != n + 1, with (p - 1) | n."""
+    return [d + 1 for d in divisors_f(fac(n))
+            if 2 &lt;= d + 1 &lt;= cap and d + 1 != n + 1 and is_prime(d + 1)]
+
+
+<span id="measure_p"></span>def measure_p(l, a):
+    """P(v_l(q - 1) &gt;= a) over the prime measure."""
+    if a == 0:
+        return Fraction(1)
+    return Fraction(1, (l - 1) * l ** (a - 1))
+
+
+<span id="delta_exact"></span>def delta_exact(ps):
+    """The exact density of primes q with (p - 1) not dividing q - 1 for
+    every p in ps, by enumerating the valuation vectors at the primes
+    of the p - 1, truncated at the largest exponent any p - 1 needs."""
+    need = [fac(p - 1) for p in ps]
+    ls = sorted({l for f in need for l in f})
+    top = {l: max(f.get(l, 0) for f in need) for l in ls}
+    vecs = [({}, Fraction(1))]
+    for l in ls:
+        out = []
+        for v, pr in vecs:
+            for a in range(top[l] + 1):
+                if a == top[l]:
+                    pa = measure_p(l, a)
+                else:
+                    pa = measure_p(l, a) - measure_p(l, a + 1)
+                if l == 2 and a == 0:
+                    continue
+                nv = dict(v)
+                nv[l] = a
+                out.append((nv, pr * pa))
+        vecs = out
+    tot = Fraction(0)
+    for v, pr in vecs:
+        if not any(all(v.get(l, 0) &gt;= e for l, e in f.items())
+                   for f in need):
+            tot += pr
+    return tot
+
+
+<span id="section_d"></span>def section_d(primes):
+    section("D  THE DENSITY")
+    B = growth.bernoulli(40)
+    bern = all(B[2 * k].denominator == value(
+        {p: 1 for p in [d + 1 for d in divisors_f(fac(2 * k))]
+         if is_prime(p)}) for k in range(1, 21))
+    bad = members = 0
+    for q in primes:
+        if q &lt; 11 or q &gt;= 10 ** 6:
+            continue
+        vsc = 1
+        for d in divisors_f(fac(q - 1)):
+            if is_prime(d + 1):
+                vsc *= d + 1
+        c = xi(q) == 24
+        members += c
+        bad += c != (vsc == 6 * q)
+    e57 = (xi(5), xi(7))
+    v137 = value({d + 1: 1 for d in divisors_f(fac(136))
+                  if is_prime(d + 1)})
+    print(f"  {members} class members in [11, 10^6); xi(5), xi(7) = {e57}; "
+          f"q = 137: denominator {v137 // 137}q, xi {xi(137)} against "
+          f"W(4) = {W(4)}")
+    check("D1 the Bernoulli class: xi(q) = 24 iff the von Staudt-Clausen "
+          "product of q - 1 is 6q, 11 &lt;= q &lt; 10^6; B_2..B_40 exact; 137 "
+          "reads 480 at denominator 30q",
+          bern and bad == 0 and e57 == (48, 72)
+          and (v137, xi(137)) == (30 * 137, 480), f"{bad} violations")
+    wdoors = [p for p in primes if 5 &lt;= p &lt;= 47]
+    ok2 = True
+    ok3 = None
+    for T in (7, 11, 23, 47):
+        ps = [p for p in wdoors if p &lt;= T]
+        ex = delta_exact(ps)
+        cnt = tot = 0
+        for q in primes:
+            if q &lt;= T:
+                continue
+            tot += 1
+            cnt += all((q - 1) % (p - 1) for p in ps)
+        emp = cnt / tot
+        print(f"  T = {T:2d}: delta_T exact {float(ex):.5f}, empirical "
+              f"{emp:.5f} over {tot} primes in (T, 10^7]")
+        if ok3 is None:
+            ok3 = abs(float(ex) - emp) &lt; 2e-3
+            check("C3 the control: delta_7 exact against the prime count "
+                  "within 2 10^-3", ok3)
+        else:
+            ok2 &amp;= abs(float(ex) - emp) &lt; 2e-3
+    check("D2 exact product-measure densities match the prime counts "
+          "within 2 10^-3, T = 11, 23, 47", ok2)
+    A = [p for p in wdoors if p &lt;= 23]
+    B = [p for p in wdoors if 29 &lt;= p &lt;= 47]
+    dA, dB, dAB = delta_exact(A), delta_exact(B), delta_exact(A + B)
+    print(f"  Harris: delta(A u B) = {float(dAB):.6f} &gt;= delta(A) delta(B) "
+          f"= {float(dA * dB):.6f}")
+    check("D3 Harris's inequality holds exactly at the doors below 48",
+          dAB &gt;= dA * dB)
+    bad = cnt = 0
+    edge = []
+    for L in (4, 6, 8, 12, 24):
+        lf = fac(L)
+        cohort = [p for p in fac(W(L))]
+        for q in primes:
+            if q &gt;= 10 ** 6:
+                break
+            if (q - 1) % L:
+                continue
+            ev = all(vp(q - 1, p) &lt;= lf.get(p, 0) for p in cohort)
+            ev &amp;= all(p in cohort for p in door_primes(q - 1, q))
+            if q == L + 1:
+                edge.append((q, ev, xi(q) == W(L)))
+                continue
+            cnt += 1
+            bad += ev != (xi(q) == W(L))
+    print(f"  q = lambda + 1, a door of lambda itself: {edge}")
+    check(f"D4 the class of W(lambda) within q = 1 mod lambda, q != lambda "
+          f"+ 1, is the decreasing-event reading, {cnt} primes", bad == 0
+          and all(ev and not c for _, ev, c in edge),
+          f"{bad} violations")
+    ok5 = True
+    L = 1
+    for n in range(1, 31):
+        L = L * n // gcd(L, n)
+        ok5 &amp;= kappa(W(L)) &gt; n + 1
+    check("D5 kappa(W(lcm(1..n))) &gt; n + 1, n &lt;= 30", ok5)
+    L = 1
+    found = []
+    for n in range(1, 9):
+        L = L * n // gcd(L, n)
+        if L % 2:
+            continue
+        WL, hits, t = W(L), [], 1
+        while len(hits) &lt; 2 and L * t &lt; 10 ** 9:
+            q = L * t + 1
+            if is_prime(q) and xi(q) == WL:
+                hits.append(q)
+            t += 1
+        found.append((n, hits))
+    print("  class members at W(lcm(1..n)): "
+          + "; ".join(f"n={n}: {h}" for n, h in found))
+    check("D5 two primes read W(lcm(1..n)) at every even lcm, n &lt;= 8",
+          all(len(h) == 2 for _, h in found))
+    d1 = 1 / 3 - 2 / 3 * log(1.5)
+    eta = 7 / 6 * log(7 / 6) - 1 / 6
+    print(f"  d1 = 1/3 - (2/3) log(3/2) = {d1:.4f}; eta = (7/6) log(7/6) - "
+          f"1/6 = {eta:.4f}; eps(T) &lt;&lt; (log T)^(-{eta / 2:.4f})")
+
+
+<span id="main"></span>def main():
+    global SPF
+    t0 = time.time()
+    SPF = spf_sieve(SPF_N)
+    primes = [q for q in range(2, SPF_N + 1) if SPF[q] == 0]
+    section_c()
+    section_h()
+    section_l()
+    section_p()
+    section_s(primes)
+    section_w()
+    section_r()
+    section_d(primes)
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/headroom.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

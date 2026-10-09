@@ -1,0 +1,1364 @@
+"""element.py -- where one greedy walk goes when a move must be principal:
+the ring of a curve over F_2 read as a supply MATRIX over its class group,
+the one minimal rider every class summons, what the rider does to the
+chain of clock holders, the limit the walk converges to, and the
+arithmetic deciding which of its coordinates are unbounded.
+
+QUESTION. limit.py follows a greedy walk in the IDEAL world, where a move
+seats one place power, and proves that its clock holders form a chain of
+strictly falling degree, so the walk has exactly one deep coordinate. In
+the ELEMENT world a move multiplies the state by an ELEMENT of the ring,
+so over a ring with a nontrivial class group a move seats the place
+power it aims at, the CORE, together with an effective divisor
+cancelling the core's class, the RIDER. A rider raises exponents nobody
+paid a door for, which is exactly the step the chain's proof reads. Does
+the chain survive, what does the element walk converge to, and which of
+its coordinates grow without bound?
+
+THE RINGS. Six affine rings, each the functions on a curve over F_2
+regular away from one rational point O at infinity, in the imaginary
+model y^2 + H(x) y = F(x) with deg F = 2g + 1:
+    F2[x]   the line, g = 0, trivial class group;
+    h2      y^2 + x y = x^3 + x^2 + 1,
+    h3      y^2 + y = x^3,
+    h4      y^2 + x y = x^3 + 1,
+    h5      y^2 + y = x^3 + x,           four elliptic curves, g = 1;
+    g2      y^2 + y = x^5 + x,           genus 2.
+The class group of the affine ring is Pic^0 of the curve (O rational),
+and a place P of degree d has class [P - d O].
+
+THE ARGUMENT (written before the engine).
+  (1) THE CLASS GROUP BY CANTOR'S ALGORITHM (known: D. G. Cantor,
+      Computing in the Jacobian of a hyperelliptic curve, Math. Comp. 48,
+      1987, for y^2 = F(x); N. Koblitz, Hyperelliptic cryptosystems,
+      J. Cryptology 1, 1989, for y^2 + H(x) y = F(x) in every
+      characteristic). Every class of Pic^0 has exactly one REDUCED Mumford
+      representative (u, v): u monic of degree <= g, deg v < deg u, u
+      dividing v^2 + H v + F, standing for the effective affine divisor
+      of degree deg u that the pair cuts out. Composition and reduction
+      in characteristic 2 carry no signs: -(u, v) = (u, v + H mod u).
+      The group is enumerated as the reduced pairs; its order must be
+      the zeta numerator at 1 (2, 3, 4, 5, 15; limit.py RING_L).
+  (2) THE PLACES AND THEIR CLASSES. An affine place lies over an
+      irreducible u in F_2[x] of degree d. If v^2 + H v + F = 0 has a
+      root v mod u, the place (u, v) has degree d and its class is the
+      reduction of (u, v); two roots give two places, one root a single
+      ramified place. With no root the place is INERT, of degree 2d, and
+      its divisor is div(u): class 0. So a count by brute root finding
+      over F_2[x]/(u) counts places per (degree, class) at small degree.
+  (3) THE COLOURS AT EVERY DEGREE, FROM THE GROUP RING. In Z[G], G =
+      Pic^0, let Phi(z) = prod_P (1 - [cls P] z^deg P)^(-1) over the
+      projective curve, b_n the class-refined count of effective
+      divisors of degree n. Riemann-Roch gives every class
+      2^(n + 1 - g) - 1 effective divisors of degree n >= 2g - 1, so
+      Q = Phi (1 - z)(1 - 2z) is a polynomial of degree <= 2g whose
+      coefficients need b_n only for n <= 2g - 2 (none below genus 2;
+      degrees 1 and 2 read off (2) at genus 2). Taking z d/dz log,
+          c_n = sum_{d | n} d A_d^(n/d) = w_n + (1 + 2^n)[0],
+      with A_d the sum of the classes of degree-d places, A^(m) the
+      push-forward by multiplication by m, and w the coefficients of
+      z Q'/Q: n q_n = sum_{i = 1..n} q_(n - i) w_i. So n A_n is exact
+      and must divide by n; the affine counts drop O from A_1. These
+      COLOUR COUNTS sigma(d, c) are the SUPPLY MATRIX.
+  (4) THE MINIMAL RIDER IS UNIQUE. Write m(c) for the least degree of an
+      effective affine divisor of class c. A divisor Delta attaining it
+      has degree <= g, since the reduced representative does; Delta
+      holds no pair P + iota(P) and no ramified point twice, for either
+      is div of a polynomial in x and removing it lowers the degree; so
+      Delta is reduced, and reduced representatives are unique. Every class
+      therefore has exactly ONE minimal affine representative MINREP(c),
+      the reduced divisor, with m(c) = deg u <= g, on every imaginary
+      hyperelliptic curve. Two consequences: a place in MINREP(c) is the
+      only place of its COLOUR (degree, class), since a second would give
+      a second minimal representative; and m is also a SHORTEST PATH in
+      the class group, m(c) = min over colours (d, c') of d + m(c - c'),
+      readable off the supply matrix with no curve in the room. R, the
+      largest m, is at most g.
+  (5) THE VEHICLE. The DOOR is limit.py's, since the completions are
+      the ideal world's: notch T = 2^ceil(log2 E), E the largest
+      exponent; a move is fresh (door 1) at an item of a degree other
+      than 1 dividing no seated degree, and otherwise its door is
+      T + 1 - a, a the item's exponent. A principal effective divisor
+      V raising lambda holds some place P, of colour (d, c), that it
+      carries at least P's door, say to r >= door; V - r P is
+      effective of class -r c, so deg V >= d r + m(-r c) >= d door +
+      m(-door c), the last step because MINREP(-r c) plus r - door
+      copies of P is effective of class -door c. So the least vehicles
+      are exactly CORE^door + MINREP(-door c), of cost d door +
+      m(-door c), and a longer core never wins (the BARE DOOR). Two
+      cores can summon one divisor; the menu is read by vehicle.
+  (6) GREED PAYS NO AVOIDABLE RIDER. An opening at an uncovered degree
+      d costs d for a principal core and d + m(-c) > d otherwise; every
+      item of an uncovered degree is unseated. So an opening pays a
+      rider only at a degree with no principal place, a PRINCIPAL-FREE
+      degree, each opened at most once. Once the walk is past every
+      principal-free degree (the TRANSIENT), only clock moves summon
+      riders, each at most R units.
+  (7) THE CHAIN UNDER A RIDER. limit.py's chain step fails twice here:
+      a rider lifts a rival's exponent with no door paid, and the price
+      d r + m(-r c) is not increasing in the door across classes. What
+      survives is a margin. Let Z's last clock move meet notch t, so Z
+      stands at >= t + 1, and let the next clock move lift a place Y != Z
+      past the notch T' as the move's CORE, at door r_Y = T' + 1 - a_Y.
+      Z's door is at most T' - t and its cost at most d_Z (T' - t) + R.
+      If d_Y >= d_Z then
+          d_Y r_Y >= d_Z (T' - t) + d_Z (t + 1 - a_Y),
+      which exceeds d_Z (T' - t) + R once a_Y <= t - R. So at every
+      change of holder whose new holder is a place standing at most
+      t - R, crossing as the move's core, the degree strictly FALLS. The
+      premise can fail two ways: the new holder crosses as a RIDER, or
+      it stands above t - R. After the transient every item that never
+      crossed stands at most its exponent there plus R per clock move,
+      while k clock moves lift the notch at least 2^k-fold; a strand
+      stands at most its landing, which is at most t, plus R per clock
+      move, and reached the chain before the later holders at a higher
+      degree, so it re-crosses only by beating a gap of about t. Hence
+      THE EVENTUAL CHAIN: past the transient, at a large enough notch,
+      every crossing is a core's and every change of holder falls; the
+      changes are finitely many, and a walk that clocks forever (it
+      does: openings cost at least their degree) has exactly ONE
+      runaway. This needs the principal-free degrees to be finitely
+      many, which the verifier reads in range and which holds on every
+      such curve: the places of class 0 are those splitting completely
+      in the Hilbert class field, a curve over F_2 in which the point at
+      infinity splits, and the Weil bound on it counts about 2^d/(d h)
+      of them at degree d.
+  (8) THE ORBIT LAW. Past the transient and the last change of holder,
+      the only rider source is the runaway C's own move. At notch T its
+      door r = T + 1 - a_C summons MINREP(-r gamma), gamma = cls(C), of
+      which rho units land on C itself; C stands at T + 1 + rho <= 2T,
+      so
+          T' = 2T,   r' = T - rho,   rho = rho(r mod ord gamma).
+      The steady state is the finite map (T, r) -> (2T, T - rho(r)) on
+      (Z/d)^2, d = ord(gamma): eventually periodic within d^2 steps. A
+      colour some MINREP(-r gamma) uses for r in the CYCLE gains units
+      forever and is unbounded; one used only in the PRE-PERIOD stops.
+      So the limit is infinity at C, the cycle's colours unbounded, the
+      pre-period's colours and the transient's leftovers at finite
+      exponents, and one exponent-1 item at each opened degree. The
+      verdict needs the seed pair, the state at the transient's end,
+      which only a walk supplies.
+
+TRANSPLANTS, marked. Figures an earlier walk of the same six rings
+reported, imported as expectations and re-read here, never as inputs:
+the class numbers and R (0, 1, 1, 1, 1, 2); the principal-free degrees
+(none; 1, 4; 1, 3, 4; 1, 2, 3, 4; 1, 2, 3, 5; 1, 2, 3, 4, 5, 7); branch
+sets of 2, 2, 2, 4, 20 and 120 states over an 8-move stretch; the g2
+clock passing from one rational place to another at the fourth
+doubling after three rider crossings; the final deep counts 1; 1 or 2;
+1; 1 or 2; 3; 3 to 6; and the unbounded verdicts, the runaway alone at
+F2[x], h2, h3 and h4 and three coordinates at h5 and g2.
+
+PREDICTIONS, frozen before the engine, each naming what the run PRINTS.
+  EP1 THE GROUP. Printed per ring: the class number by Cantor
+     enumeration against the zeta numerator at 1, and the group axioms
+     checked over every pair. KILL: one mismatch.
+  EP2 THE COLOURS. Printed per ring: Q's degree, and the group-ring count
+     per (degree, class) against the brute count of (2) at every degree
+     up to 9. KILL: one colour off, or a division by n not exact.
+  EP3 THE MINIMAL RIDER. Printed per ring: m by shortest path over the
+     supply matrix against deg u of the reduced representative, every
+     class; the number of minimal affine representatives per class by
+     enumeration over places of degree <= g; R. KILL: a class with two
+     minimal representatives, or the shortest path disagreeing with the
+     reduced divisor in degree or in support.
+  EP4 THE BARE DOOR AND THE PRINCIPAL OPENING. Printed: menus read, the
+     longer cores offered at every menu (j = 1..g + 1) and how many were
+     strictly cheaper; openings, and how many paid a rider while an
+     unseated principal item of their degree existed. KILL: either count
+     nonzero.
+  EP5 THE TRIVIAL GROUP IS THE IDEAL WORLD. Printed: states and menus
+     compared, element walker at F2[x] against limit.py's corner walker
+     over its F2[x] supply, over every branch of the stretch and the
+     canonical walk. KILL: one menu or state differing.
+  EP6 THE CHAIN UNDER A RIDER. Printed per ring and branch: every change
+     of holder as (step, old degree, new degree, crossing kind, a_Y,
+     t - R). THEOREM CHECK, KILL: a change with a core crossing and
+     a_Y <= t - R whose degree does not fall. SUSPICION, frozen as
+     unsure: some change does not fall (the g2 transplant), and every
+     one that does not fails the premise. RANGE SUSPICION: every change
+     of holder, and every rider crossing, happens at or before the last
+     opening that paid a rider. KILL: one after it.
+  EP7 THE LIMIT. Printed per ring over all branches: the final runaway's
+     (degree, class), the items above exponent 1 with their units split
+     core against rider, and whether every non-clock item deepening past
+     the transient lies in the runaway's orbit. KILL: a deepening outside
+     the orbit.
+  EP8 THE RECURSION. Printed per ring and branch: the seed (T, r) at the
+     first clock move past the transient and the last change, and the
+     per-era rider units predicted by (8) against the walk's. KILL: one
+     era, one colour differing.
+  EP9 THE VERDICT. Printed per ring: the cycle and pre-period of the
+     (Z/d)^2 map from each branch's seed, and the unbounded colours.
+  EP10 THE REORDERING LEMMA. Printed per ring: at every tie inside the
+     stretch, each declined least vehicle re-priced at the successor of
+     the taken one, and how often it is still least. No kill; the ideal
+     world's lemma says always, and an earlier record (transplant) read
+     466 of 719 at g2.
+  CONTROLS, run before any verdict is read: the count made to fail by a
+     wrong class map; the chain check made to fire on a planted rising
+     change; the undercut planted at notch 32 (a degree-2 holder against
+     a rational item at exponent 3, where the rational item must win,
+     and at exponent 1, where it must not).
+
+THE COLOURING, a second slate, frozen before section_k.
+  QUESTION. The walker reads a ring through its colours (degree, class)
+  and their counts. Is that colouring the COARSEST that does so, or does
+  some proper coarsening, merging two colours, still tell every state
+  from a non-state and price every menu?
+  (9) PAIRS SUFFICE. A coarsening merging colours (d1, c1) !=
+      (d2, c2) identifies two exponent assignments that differ by
+      exchanging the exponents of an item x of the first and an item y
+      of the second. A WITNESS against the merge is
+      such an exchange (S, S') where S is principal and S' is not, or
+      where both are principal and their menus differ in least cost:
+      principality and cost read no colour, so the witness stands against
+      every coarsening that puts the two in one block, and every proper
+      coarsening puts some pair in one block. So (degree, class) is
+      coarsest once every pair of distinct colours has a witness.
+  (10) CLASS, BY PRINCIPALITY. If c1 != c2, put x at exponent b + 1
+      and y at b beside any effective pad of the class that makes S
+      principal; the exchange moves the class sum by
+      (e_x - e_y)(c2 - c1) = c2 - c1 != 0, so S' is not principal.
+  (11) DEGREE, BY THE MENU. If c1 = c2 = c and d1 < d2, let T be a
+      power of 2 with T > d2 + 2R + 1, and let the CONTEXT be principal
+      places at exponent 1 whose degrees cover every supplied degree up
+      to d2 + R (a principal-free degree covered by a multiple holding a
+      principal place). S seats x at T and y nowhere, S' seats y at T and
+      x nowhere, each with the context and MINREP(-T c). The notch is T
+      at both. At S the core x has door 1 at cost d1 + m(-c); every
+      other seated item stands at most R, or at 1 in the context, so its
+      clock costs at least T + 1 - R; an unseated item of a covered
+      degree costs at least T + 1, and an opening more than d2 + R. So
+      the least cost is d1 + m(-c) at S and d2 + m(-c) at S', which
+      differ. The construction needs the context, which exists when the
+      principal-free degrees are finitely many.
+  KP1 THE WITNESSES. Printed per ring: the pairs of distinct colours of
+      degree <= KD, how many are cross-class and how many same-class, and
+      how many carry the constructed witness of (10) or (11) with the
+      menus read by menu(). KILL: one pair without its witness.
+  KP2 CONTROL, the same construction on two items of ONE colour: the
+      exchange keeps the class sum and the two menus' costs agree. KILL:
+      a control pair that parts.
+  [KP2 is vacuous as frozen: two items of one colour make
+      colour-identical states, whose menus agree by construction. It
+      was replaced before section_k ran by KP3: the construction
+      without its context, which must leave some same-class pair priced
+      alike, or the context does no work.]
+
+FINDINGS (entered after the run, from its printed output).
+  F1 THE GROUP (EP1 hit). h = 1, 2, 3, 4, 5, 15 by Cantor enumeration,
+     each the zeta numerator at 1; the axioms at every triple.
+  F2 THE COLOURS (EP2 hit). Q of degree 0, 2, 2, 2, 2, 4; the group-ring
+     counts equal the brute count at every colour to degree 9 (9, 16,
+     22, 27, 33, 65 colours), and a class map shifted by one parts from them.
+     To degree 400 the principal-free supplied degrees are none; 1, 4;
+     1, 3; 1, 2, 4; 1, 5; 1, 2, 4, 5, 7, and the EMPTY degrees 4 at h3,
+     3 at h4, 2 and 3 at h5, 3 at g2: the transplant's lists were the
+     two sets together. Every supplied degree above them holds at least
+     2 principal places (1 at F2[x], where every place is principal).
+  F3 THE MINIMAL RIDER (EP3 hit). At every class of every ring the
+     shortest path equals deg u of the reduced divisor and its colours are
+     that divisor's places; one minimal multiset per class, every rider
+     colour a singleton. R = 0, 1, 1, 1, 1, 2; at g2, 4 classes of m = 1
+     and 10 of m = 2, four riders carrying one place twice. Argument
+     (4) as frozen omits the inert place, removable from Delta the same
+     way, its divisor being div(u).
+  F4 THE BARE DOOR AND THE PRINCIPAL OPENING (EP4 hit). 13,716,652
+     longer cores offered, none strictly cheaper; 43,503 openings, none
+     paying a rider while a principal item of its degree was unseated;
+     750 brute menus equal to the pruned ones.
+  F5 THE TRIVIAL GROUP (EP5 hit). 608 menus and states equal to
+     limit.py's over 2 branches of 300 moves.
+  F6 THE CHAIN UNDER A RIDER (EP6). THE THEOREM CHECK HIT: 11 changes of
+     holder stood under the premise (1 at h2, 10 at g2), all falling.
+     THE SUSPICION HIT, SHARPENED: 52 changes do not fall, all at g2,
+     and every one is asserted to be a HAND-OFF to the conjugate place
+     standing level with the holder (same degree, negated class, equal
+     exponent). There the vehicle P^r iota(P)^r is the r-th power of a
+     polynomial in x, lifting both places alike, and which of two level
+     items holds is a naming. THE RANGE SUSPICION DIED as frozen: 53
+     changes come after the last opening paying a rider (1 at h2, 52 at
+     g2, all falling). What holds in range instead: no change of holder
+     after step 9 and notch 8 at any branch of any ring. The design's
+     rider-crossing clause never fires: the first run credited a level
+     tie to the rider and read three rider crossings at g2, the reading
+     behind the earlier record's "a rider takes the clock at genus 2";
+     with a crossing core holding the tie, no rider crosses alone on
+     any branch's history (asserted). All 28 crossings a rider shared,
+     counted once per move applied (the stretch's successors merged
+     away included), had the core crossing and every crossing item at
+     the core's exponent (asserted). A branch is a distinct state (T,
+     seating) the ties reach in the stretch, walked on canonically;
+     paths reaching one state keep the first, so the changes of holder
+     are read on one history per state.
+  F7 THE LIMIT (EP7 hit). Final runaways: degree 1 or 2 at F2[x], (1, 1)
+     at h2 and h4, (2, 0) at h3, a rational place of each nonzero class
+     1 to 4 at h5 and g2. Items above exponent 1 beside the runaway: 0 at
+     F2[x] and h3, 0 or 1 at h2 and h4, 2 at h5, 2 to 5 at g2. The orbit
+     law is asserted at every branch past its change range.
+  F8 THE RECURSION (EP8 hit). 895 eras past the change range, every door and
+     every rider as (8) predicts.
+  F9 THE VERDICT (EP9). No unbounded colour beside the runaway at
+     F2[x], h2, h3, h4 (ord gamma 1 or 2, cycle 1; rho 0 on the cycle
+     except at h4, where the one rider is the runaway itself and rho is
+     1 every era); two at h5 (ord 5) and at g2 (ord 15), each a cycle
+     of length 4 after a pre-period of 0 or 1,
+     which at 23 of g2's branches leaves one more colour at a finite
+     exponent. The transplant's verdicts reproduce.
+  F10 THE REORDERING COUNT (EP10). 7 of 10, 10 of 12, 4 of 8, 8 of 18,
+     40 of 148, 222 of 668. The count fails in the ideal world too, at
+     F2[x], where a declined opening outlives a clock move whose
+     successor moved the notch; so it does not separate the worlds, and
+     the earlier contrast does not reproduce under it.
+  CONTROLS. The planted undercut: at notch 32 a rational item at
+     exponent 3 takes the menu alone at 30 against the holder's 32 at
+     F2[x], h2, h3; at exponent 1 it ties the holder at F2[x] and h2 and
+     loses at h3. The chain check fires on the planted rise; the shifted
+     count parts.
+
+  F11 THE COARSEST COLOURING (KP1 hit, KP3 passed). Over the colours of
+     degree <= 6 at the six rings, 531 cross-class pairs each leave
+     principality at one exchange of exponents, and 118 same-class
+     pairs each price d + m(-c) at their own degree under the context
+     (15, 21, 23, 24, 25, 10 per ring). Without the context 28 of the
+     118 price alike. The first draft padded the class witness with
+     MINREP alone, which at h3 is always y itself; (10) allows any pad,
+     and the code now takes a least one from the available colours.
+     (11) as frozen needs MINREP(-Tc) to avoid x and y, which the code
+     finds by doubling T at every pair and nothing guarantees; the
+     general proof takes any effective divisor of class -Tc avoiding
+     both, which exists in every class by counting divisors at a large
+     degree, with T above d_B + R + k + 1, k the pads' largest exponent.
+
+RUN RECORD. One process, CPython, no numpy: 152,844 checks, 7.5 s,
+peak 46 MB. Changes after the first run, all above: the holder of a
+level crossing is its core; the change classification became an
+assert; the level tally counts crossings with the core crossing and
+every item at its exponent, now asserted, as is no rider crossing
+alone.
+"""
+
+import os
+import sys
+import time
+from collections import Counter
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import limit as L
+
+CHECKS = [0]
+TALLY = Counter()
+
+
+def check(cond, msg):
+    CHECKS[0] += 1
+    if not cond:
+        raise AssertionError(msg)
+
+
+DMAX = 400          # the colour universe, asserted against by every menu scan
+CENSUS_D = 9        # the brute count's top degree
+STRETCH = 8         # moves over which every tie is followed
+WALK_N = 300        # moves per walk, the stretch included
+CAP = 512           # distinct states carried through the stretch
+BRUTE_EVERY = 50    # a brute menu checks the pruned one every this many moves
+
+# ---------------------------------------------------------------------------
+# polynomials over F_2 as integers, bit i the coefficient of x^i
+
+
+def pdeg(a):
+    return a.bit_length() - 1
+
+
+def pmul(a, b):
+    r = 0
+    while b:
+        if b & 1:
+            r ^= a
+        a <<= 1
+        b >>= 1
+    return r
+
+
+def pdivmod(a, b):
+    q, db = 0, pdeg(b)
+    while a and pdeg(a) >= db:
+        s = pdeg(a) - db
+        q ^= 1 << s
+        a ^= b << s
+    return q, a
+
+
+def pmod(a, b):
+    return pdivmod(a, b)[1]
+
+
+def pexact(a, b):
+    q, r = pdivmod(a, b)
+    check(r == 0, "an exact polynomial division left a remainder")
+    return q
+
+
+def pxgcd(a, b):
+    """(g, s, t) with s a + t b = g."""
+    r0, r1, s0, s1, t0, t1 = a, b, 1, 0, 0, 1
+    while r1:
+        q, r = pdivmod(r0, r1)
+        r0, r1 = r1, r
+        s0, s1 = s1, s0 ^ pmul(q, s1)
+        t0, t1 = t1, t0 ^ pmul(q, t1)
+    return r0, s0, t0
+
+
+# ---------------------------------------------------------------------------
+# the rings: Cantor's algorithm on y^2 + H y = F, deg F = 2g + 1
+
+RINGS = [("F2[x]", 0, 0, 0), ("h2", 1, 0b10, 0b1101),
+         ("h3", 1, 0b1, 0b1000), ("h4", 1, 0b10, 0b1001),
+         ("h5", 1, 0b1, 0b1010), ("g2", 2, 0b1, 0b100010)]
+
+
+class Ring:
+    def __init__(self, name, g, H, F):
+        self.name, self.g, self.H, self.F = name, g, H, F
+        self.elts = [(1, 0)]
+        if g:
+            self.elts = [(u, v) for u in range(1, 1 << (g + 1))
+                         for v in range(1 << pdeg(u)) if self.valid(u, v)]
+            self.elts.sort(key=lambda e: (pdeg(e[0]), e[0], e[1]))
+        self.h = len(self.elts)
+        self.idx = {e: i for i, e in enumerate(self.elts)}
+        self.add = [[self.idx[self.compose(a, b)] for b in self.elts]
+                    for a in self.elts]
+        self.neg = [self.idx[self.negate(a)] for a in self.elts]
+        self.scal = []
+        for c in range(self.h):
+            row, x = [], 0
+            for _ in range(self.h):
+                row.append(x)
+                x = self.add[x][c]
+            self.scal.append(row)
+
+    def valid(self, u, v):
+        return pmod(pmul(v, v) ^ pmul(self.H, v) ^ self.F, u) == 0
+
+    def reduce(self, u, v):
+        while pdeg(u) > self.g:
+            u = pexact(self.F ^ pmul(self.H, v) ^ pmul(v, v), u)
+            v = pmod(self.H ^ v, u)
+        v = pmod(v, u)
+        check(self.valid(u, v), "a reduced pair off the curve")
+        return u, v
+
+    def compose(self, a, b):
+        if self.g == 0:
+            return (1, 0)
+        (u1, v1), (u2, v2) = a, b
+        d0, e1, e2 = pxgcd(u1, u2)
+        d, c1, c2 = pxgcd(d0, v1 ^ v2 ^ self.H)
+        s1, s2 = pmul(c1, e1), pmul(c1, e2)
+        u = pexact(pmul(u1, u2), pmul(d, d))
+        num = (pmul(pmul(s1, u1), v2) ^ pmul(pmul(s2, u2), v1)
+               ^ pmul(c2, pmul(v1, v2) ^ self.F))
+        return self.reduce(u, pmod(pexact(num, d), u))
+
+    def negate(self, a):
+        return (a[0], pmod(self.H ^ a[1], a[0])) if self.g else a
+
+    def mul(self, c, k):
+        return self.scal[c][k % self.h]
+
+    def places(self, dmax, shift=0):
+        """The brute count: affine places of degree <= dmax as (degree,
+        class, u, v), v None at an inert place. shift translates every
+        class: the control's wrong class map."""
+        out = []
+        for d in range(1, dmax + 1):
+            for u in L.irreducibles(d):
+                if self.g == 0:
+                    out.append((d, 0, u, 0))
+                    continue
+                roots = [v for v in range(1 << d) if self.valid(u, v)]
+                for v in roots:
+                    c = self.idx[self.reduce(u, v)]
+                    out.append((d, self.add[c][shift % self.h], u, v))
+                if not roots and 2 * d <= dmax:
+                    out.append((2 * d, shift % self.h, u, None))
+        return out
+
+
+# ---------------------------------------------------------------------------
+# the cells from the group ring Z[G]
+
+
+def gr_mul(R, a, b):
+    c = [0] * R.h
+    for i, x in enumerate(a):
+        if x:
+            for j, y in enumerate(b):
+                if y:
+                    c[R.add[i][j]] += x * y
+    return c
+
+
+def gr_push(R, a, m):
+    c = [0] * R.h
+    for i, x in enumerate(a):
+        if x:
+            c[R.mul(i, m)] += x
+    return c
+
+
+def cells(R, dmax):
+    """n[d][c], the affine places of degree d in class c for d <= dmax, by
+    the group-ring recursion, and Q's degree. The count supplies b_n only
+    below 2g - 1."""
+    h, g = R.h, R.g
+    unit = [1] + [0] * (h - 1)
+    top = 2 * g - 2
+    b = [unit[:]] + [[0] * h for _ in range(max(top, 0))]
+    if top >= 1:
+        proj = [(1, 0)] + [(d, c) for d, c, u, v in R.places(top)]
+        for d, c in proj:
+            new = [row[:] for row in b]
+            for k in range(1, top // d + 1):
+                kc = R.mul(c, k)
+                for n in range(k * d, top + 1):
+                    for i in range(h):
+                        new[n][R.add[i][kc]] += b[n - k * d][i]
+            b = new
+    for n in range(len(b), 2 * g + 4):
+        b.append([2 ** (n + 1 - g) - 1] * h)
+    q = [[b[n][i] - 3 * (b[n - 1][i] if n else 0)
+          + 2 * (b[n - 2][i] if n > 1 else 0) for i in range(h)]
+         for n in range(2 * g + 4)]
+    check(q[0] == unit, "q_0 is the unit")
+    check(not any(any(q[n]) for n in range(2 * g + 1, 2 * g + 4)),
+          f"{R.name}: Q of degree above 2g")
+    qdeg = max(n for n in range(2 * g + 1) if any(q[n]))
+    u = [[0] * h]
+    for n in range(1, dmax + 1):
+        acc = [n * x for x in q[n]] if n <= qdeg else [0] * h
+        for i in range(max(1, n - qdeg), n):
+            p = gr_mul(R, q[n - i], u[i])
+            acc = [x - y for x, y in zip(acc, p)]
+        u.append(acc)
+    a = [None]
+    for n in range(1, dmax + 1):
+        cn = u[n][:]
+        cn[0] += 1 + 2 ** n
+        for d in range(1, n):
+            if n % d == 0:
+                p = gr_push(R, a[d], n // d)
+                cn = [x - d * y for x, y in zip(cn, p)]
+        check(all(x % n == 0 and x >= 0 for x in cn),
+              f"{R.name}: n a_n not whole at {n}")
+        a.append([x // n for x in cn])
+    a[1][0] -= 1
+    check(a[1][0] >= 0, "the place at infinity")
+    return a, qdeg
+
+
+def census(R, dmax, shift=0):
+    cnt = Counter()
+    for d, c, u, v in R.places(dmax, shift):
+        cnt[(d, c)] += 1
+    return cnt
+
+
+# ---------------------------------------------------------------------------
+# the world: the supply matrix, the minimal riders, the walker
+
+
+class World:
+    def __init__(self, R):
+        self.R, self.h, self.name = R, R.h, R.name
+        self.n, self.qdeg = cells(R, DMAX)
+        self.supplied = [sum(self.n[d]) if d else 0 for d in range(DMAX + 1)]
+        least = {}
+        for d in range(1, DMAX + 1):
+            for c in range(self.h):
+                if self.n[d][c] and c not in least:
+                    least[c] = d
+        self.least = least
+        INF = 10 ** 9
+        m = [INF] * self.h
+        m[0] = 0
+        changed = True
+        while changed:
+            changed = False
+            for x in range(self.h):
+                if m[x] < INF:
+                    for c, d in least.items():
+                        y = R.add[x][c]
+                        if m[x] + d < m[y]:
+                            m[y], changed = m[x] + d, True
+        self.m = m
+        self.Rmax = max(m)
+        self.rep = [self.minreps(x) for x in range(self.h)]
+        self.ones = {}
+        for x in range(self.h):
+            check(len(self.rep[x]) == 1,
+                  f"{self.name}: class {x} has {len(self.rep[x])} minimal"
+                  " cell multisets")
+            self.rep[x] = self.rep[x][0]
+            for cell, k in self.rep[x]:
+                check(self.n[cell[0]][cell[1]] == 1,
+                      f"{self.name}: a rider colour holding two places")
+
+    def minreps(self, x):
+        """Every multiset of least-degree cells of total degree m(x) and
+        class sum x, as sorted ((d, c), multiplicity) tuples."""
+        R, target = self.R, self.m[x]
+        cl = sorted((d, c) for c, d in self.least.items() if c)
+        out = []
+
+        def go(i, left, cls, acc):
+            if left == 0:
+                if cls == x:
+                    out.append(tuple(sorted(Counter(acc).items())))
+                return
+            for j in range(i, len(cl)):
+                d, c = cl[j]
+                if d <= left:
+                    go(j, left - d, R.add[cls][c], acc + [(d, c)])
+
+        go(0, target, 0, [])
+        return out
+
+    def cost(self, cell, r):
+        d, c = cell
+        return d * r + self.m[self.R.neg[self.R.mul(c, r)]]
+
+    def rider(self, cell, r):
+        return self.rep[self.R.neg[self.R.mul(cell[1], r)]]
+
+
+def pow2ceil(e):
+    return 1 if e <= 1 else 1 << (e - 1).bit_length()
+
+
+class State:
+    __slots__ = ("T", "E", "seat", "nseat", "cov", "front", "deep",
+                 "holder", "tlast", "units")
+
+    def __init__(self):
+        self.T, self.E = 1, 0
+        self.seat, self.nseat = {}, Counter()
+        self.cov, self.front = {1}, 2
+        self.deep, self.holder, self.tlast = set(), None, None
+        self.units = Counter()
+
+    def copy(self):
+        s = State()
+        s.T, s.E = self.T, self.E
+        s.seat = {k: Counter(v) for k, v in self.seat.items()}
+        s.nseat, s.cov, s.front = Counter(self.nseat), set(self.cov), \
+            self.front
+        s.deep, s.holder, s.tlast = set(self.deep), self.holder, self.tlast
+        s.units = Counter(self.units)
+        return s
+
+    def key(self):
+        return (self.T, tuple(sorted((c, tuple(sorted(v.items())))
+                                     for c, v in self.seat.items())))
+
+    def exps(self):
+        out = Counter()
+        for (d, c), v in self.seat.items():
+            for e, k in v.items():
+                out[(d, e)] += k
+        return out
+
+
+def divisors(n):
+    return [k for k in range(1, n + 1) if n % k == 0]
+
+
+def menu(W, st, brute=False):
+    """The least cost and the least move types ((cell, e, door), mult); e = 0
+    is an unseated item. Pruned by the bounds cost >= d r: seated items at
+    exponent >= 2 first, then fresh degrees from the horizon (the least
+    uncovered supplied degree) while d <= best, then seated exponent-1
+    and unseated covered items while d T <= best. brute scans every cell."""
+    best, types = None, {}
+    T = st.T
+
+    def offer(cell, e, k, r):
+        nonlocal best
+        x = W.cost(cell, r)
+        for j in range(1, W.R.g + 2):
+            TALLY["offsets"] += 1
+            if W.cost(cell, r + j) < x:
+                TALLY["offset cheaper"] += 1
+        if best is None or x < best:
+            best = x
+            types.clear()
+        if x == best:
+            types[(cell, e, r)] = types.get((cell, e, r), 0) + k
+
+    def fresh(d):
+        return d not in st.cov
+
+    if brute:
+        for d in range(1, DMAX + 1):
+            for c in range(W.h):
+                cell = (d, c)
+                for e, k in st.seat.get(cell, {}).items():
+                    offer(cell, e, k, T + 1 - e)
+                u = W.n[d][c] - st.nseat[cell]
+                if u > 0:
+                    offer(cell, 0, u, 1 if fresh(d) else T + 1)
+        return best, types
+    for cell in st.deep:
+        for e, k in st.seat[cell].items():
+            if e >= 2:
+                offer(cell, e, k, T + 1 - e)
+    d = st.front
+    while True:
+        check(d < DMAX, f"{W.name}: the horizon scan reached DMAX")
+        if best is not None and d > best:
+            break
+        if fresh(d) and W.supplied[d]:
+            for c in range(W.h):
+                if W.n[d][c]:
+                    offer((d, c), 0, W.n[d][c], 1)
+        d += 1
+    d = 1
+    while d * T <= best:
+        check(d < DMAX, f"{W.name}: the clock scan reached DMAX")
+        for c in range(W.h):
+            cell = (d, c)
+            for e, k in st.seat.get(cell, {}).items():
+                if e < 2:
+                    offer(cell, e, k, T + 1 - e)
+            if not fresh(d):
+                u = W.n[d][c] - st.nseat[cell]
+                if u > 0 and d * (T + 1) <= best:
+                    offer(cell, 0, u, T + 1)
+        d += 1
+    return best, types
+
+
+def seat_item(W, s, cell, old, new):
+    v = s.seat.setdefault(cell, Counter())
+    if old:
+        v[old] -= 1
+        if not v[old]:
+            del v[old]
+    else:
+        s.nseat[cell] += 1
+        if cell[0] not in s.cov:
+            s.cov.update(divisors(cell[0]))
+            while s.front < DMAX and (s.front in s.cov
+                                      or not W.supplied[s.front]):
+                s.front += 1
+    v[new] += 1
+    if new >= 2:
+        s.deep.add(cell)
+    s.E = max(s.E, new)
+
+
+def vehicle(W, st, t):
+    """What move t raises: ((cell, old exponent, new exponent), ...) with the
+    core first, and the rider's (cell, units)."""
+    cell, e, r = t
+    rid = W.rider(cell, r)
+    mods = [[cell, e, e + r]]
+    for rc, k in rid:
+        if rc == cell and W.n[cell[0]][cell[1]] == 1:
+            mods[0][2] += k
+            continue
+        old = max(st.seat.get(rc, {0: 1}))
+        mods.append([rc, old, old + k])
+    return [tuple(x) for x in mods], rid
+
+
+def vkey(mods):
+    return tuple(sorted((c, b - a) for c, a, b in mods))
+
+
+def apply(W, st, t):
+    """The successor state and the move's record."""
+    cell, e, r = t
+    mods, rid = vehicle(W, st, t)
+    s = st.copy()
+    for c, a, b in mods:
+        seat_item(W, s, c, a, b)
+    for rc, k in rid:
+        s.units[rc] += k
+    s.T = pow2ceil(s.E)
+    rec = {"t": t, "cost": W.cost(cell, r), "rider": rid, "T0": st.T,
+           "T1": s.T, "open": e == 0 and r == 1 and cell[0] not in st.cov,
+           "hold": st.holder}
+    # the holder: the item a clock move lifts highest, tracked with its
+    # current exponent
+    hold = st.holder
+    for c, a, b in mods:
+        if hold is not None and c == hold[0] and a == hold[1]:
+            hold = (c, b)
+    if s.T > st.T:
+        # a crossing core holds; a rider holds only where the core stays
+        # under the old notch. Core and rider can land level: the rider of
+        # P^r can be the conjugate place's r units, the vehicle a power of
+        # a polynomial in x.
+        cross = [(b, i) for i, (c, a, b) in enumerate(mods) if b > st.T]
+        top = 0 if mods[0][2] > st.T else max(cross)[1]
+        rec["level"] = sum(b == mods[top][2] for b, i in cross) > 1
+        TALLY["shared crossings"] += len(cross) > 1
+        TALLY["shared crossings level"] += (
+            len(cross) > 1 and mods[0][2] > st.T
+            and all(b == mods[0][2] for b, i in cross))
+        new = (mods[top][0], mods[top][2])
+        rec["kind"] = "core" if top == 0 else "rider"
+        rec["ncross"] = len(cross)
+        rec["change"] = None
+        if st.holder is not None and st.holder[1] >= 2:
+            same = mods[top][0] == st.holder[0] and mods[top][1] == \
+                st.holder[1]
+            if not same:
+                rec["change"] = (st.holder[0], mods[top][0], rec["kind"],
+                                 mods[top][1], st.tlast)
+        s.holder, s.tlast = new, st.T
+    else:
+        s.holder = hold
+    return s, rec
+
+
+def chain_step(W, ch):
+    """The chain under a rider (argument (7)): a core crossing standing at
+    most t - R must fall in degree. Returns whether the premise held."""
+    z, y, kind, ey, t = ch
+    prem = kind == "core" and t is not None and ey <= t - W.Rmax
+    if prem:
+        check(y[0] < z[0], f"{W.name}: chain step {z} -> {y} at e {ey},"
+              f" t {t}")
+    return prem
+
+
+
+def canon_key(t):
+    """The canonical tie-break, limit.py's: a clock before an opening, low
+    degree and low exponent first, then the class label."""
+    (d, c), e, r = t
+    return (e == 0 and r == 1, d, e, c)
+
+
+# ---------------------------------------------------------------------------
+# the sections
+
+
+def section_g(rings):
+    """EP1: the group by Cantor against the zeta numerator; the axioms."""
+    print("EP1  THE CLASS GROUPS")
+    for R in rings:
+        a = L.RING_L[R.name]
+        check(R.h == sum(a), f"{R.name}: h {R.h} against L(1) {sum(a)}")
+        for x in range(R.h):
+            check(R.add[0][x] == x and R.add[x][R.neg[x]] == 0,
+                  "identity and inverse")
+            for y in range(R.h):
+                check(R.add[x][y] == R.add[y][x], "commutative")
+                for z in range(R.h):
+                    check(R.add[R.add[x][y]][z] == R.add[x][R.add[y][z]],
+                          "associative")
+        print(f"  {R.name:6s} g = {R.g}  h = {R.h:2d} by Cantor, {sum(a):2d}"
+              f" off the zeta numerator; axioms at {R.h ** 3} triples")
+
+
+def section_c(worlds):
+    """EP2: the group-ring cells against the brute count."""
+    print("EP2  THE COLOURS")
+    for W in worlds:
+        cen = census(W.R, CENSUS_D)
+        mine = Counter({(d, c): W.n[d][c] for d in range(1, CENSUS_D + 1)
+                        for c in range(W.h) if W.n[d][c]})
+        check(cen == mine, f"{W.name}: count against the group ring")
+        pf = [d for d in range(1, DMAX + 1) if W.supplied[d] and
+              not W.n[d][0]]
+        empty = [d for d in range(1, DMAX + 1) if not W.supplied[d]]
+        low = min(W.n[d][0] for d in range(max(pf + [0]) + 1, DMAX + 1)
+                  if W.supplied[d])
+        print(f"  {W.name:6s} Q of degree {W.qdeg}; {len(mine)} colours to"
+              f" degree {CENSUS_D} equal the count; to degree {DMAX} the"
+              f" principal-free degrees are {pf}, the empty ones {empty},"
+              f" and every supplied degree above holds {low} or more"
+              f" principal places")
+    W = worlds[2]
+    check(census(W.R, CENSUS_D, shift=1) != Counter(
+        {(d, c): W.n[d][c] for d in range(1, CENSUS_D + 1)
+         for c in range(W.h) if W.n[d][c]}), "control: a shifted class map")
+    print(f"  control: a class map shifted by one at {W.name} parts from the"
+          " colours")
+
+
+def factor_places(W, u, v):
+    """The reduced divisor (u, v) as a Counter of cells."""
+    R, out = W.R, Counter()
+    for d in range(1, W.R.g + 1):
+        for p in L.irreducibles(d):
+            while u != 1 and pmod(u, p) == 0:
+                u = pexact(u, p)
+                vp = pmod(v, p)
+                check(R.valid(p, vp), "a reduced divisor over an inert place")
+                out[(d, R.idx[R.reduce(p, vp)])] += 1
+    check(u == 1, "the reduced divisor factored")
+    return out
+
+
+def section_m(worlds):
+    """EP3: the minimal rider by shortest path against Cantor."""
+    print("EP3  THE MINIMAL RIDER")
+    for W in worlds:
+        for x, (u, v) in enumerate(W.R.elts):
+            check(W.m[x] == pdeg(u), f"{W.name}: m against deg u at {x}")
+            check(Counter(dict(W.rep[x])) == factor_places(W, u, v),
+                  f"{W.name}: the minimal rider's support at {x}")
+        mults = Counter(k for x in range(W.h) for c, k in W.rep[x])
+        print(f"  {W.name:6s} m over the classes "
+              f"{sorted(Counter(W.m).items())}; R = {W.Rmax}; one minimal"
+              f" multiset per class, every colour singleton; multiplicities"
+              f" {dict(sorted(mults.items()))}")
+
+
+def plant(W, ey):
+    st = State()
+    st.cov, st.front = set(range(1, 81)), 81
+    seat_item(W, st, (2, 0), 0, 17)
+    cy = min(c for c in range(W.h) if W.n[1][c])
+    seat_item(W, st, (1, cy), 0, ey)
+    st.T = pow2ceil(st.E)
+    return st, (1, cy)
+
+
+def section_p(worlds):
+    """The controls: the brute menu, the planted undercut, the chain."""
+    print("CONTROLS")
+    for W in worlds:
+        if not W.n[2][0]:
+            continue
+        for ey in (3, 1):
+            st, y = plant(W, ey)
+            b1, t1 = menu(W, st)
+            b2, t2 = menu(W, st, brute=True)
+            check((b1, t1) == (b2, t2), "the planted menu, pruned and brute")
+            cy = {t for t in t1 if t[0] == y}
+            if ey == 3:
+                check(set(t1) == cy and cy, "the undercut fires")
+            else:
+                check(((2, 0), 17, 16) in t1, "the holder stays on the menu")
+            print(f"  {W.name:6s} notch {st.T}, degree-2 holder at 17, rational"
+                  f" item at {ey}: least {b1} by {sorted(t1)}")
+    W = worlds[-1]
+    try:
+        chain_step(W, ((1, 1), (2, 1), "core", 0, 64))
+        fired = False
+    except AssertionError:
+        fired = True
+    check(fired, "the chain check fires on a planted rise")
+    print("  the chain check fires on a planted rising change")
+
+
+def section_x(W):
+    """EP5: the element walker at the trivial group against limit.py."""
+    print("EP5  THE TRIVIAL GROUP IS THE IDEAL WORLD")
+    S = L.Sched("corner", L.ladder_b(2), L.price_power(1))
+    sup = L.ring_supply("F2[x]", DMAX)
+
+    def kind(t):
+        (d, c), e, r = t
+        return ("c", d, e) if e else (("o", d, 0) if r == 1 else ("u", d, 0))
+
+    def same(a, b):
+        ma, ta = menu(W, a)
+        mb, tb = L.menu(S, b, sup)
+        check(ma == mb, "the least price against limit.py")
+        check(Counter({kind(t): k for t, k in ta.items()}) ==
+              Counter(dict(tb)), "the least types against limit.py")
+        check(a.T == b.T and +a.exps() == +b.seat, "the state")
+        return ta
+
+    front, n = [(State(), L.State())], 0
+    for _ in range(STRETCH):
+        nxt, seen = [], set()
+        for a, b in front:
+            for t in same(a, b):
+                a2 = apply(W, a, t)[0]
+                if a2.key() not in seen:
+                    seen.add(a2.key())
+                    nxt.append((a2, L.apply(S, b, kind(t))))
+                n += 1
+        front = nxt
+    for a, b in front:
+        for _ in range(WALK_N - STRETCH):
+            t = min(same(a, b), key=canon_key)
+            a, b = apply(W, a, t)[0], L.apply(S, b, kind(t))
+            n += 1
+    print(f"  {n} menus and states equal over {len(front)} branches,"
+          f" {WALK_N} moves each")
+
+
+def branches(W):
+    """Every distinct state the ties reach in STRETCH moves, each walked on
+    canonically to WALK_N; and the reordering count at every tie."""
+    front = {State().key(): (State(), [])}
+    reord = [0, 0]
+    for _ in range(STRETCH):
+        nxt = {}
+        for st, log in front.values():
+            best, types = menu(W, st)
+            vk = {t: vkey(vehicle(W, st, t)[0]) for t in types}
+            succ = [(t,) + apply(W, st, t) for t in sorted(types,
+                                                           key=canon_key)]
+            if len(set(vk.values())) > 1:
+                for t, s2, rec in succ:
+                    nv = {vkey(vehicle(W, s2, u)[0]) for u in menu(W, s2)[1]}
+                    for u in types:
+                        if vk[u] != vk[t]:
+                            reord[1] += 1
+                            reord[0] += vk[u] in nv
+            for t, s2, rec in succ:
+                nxt.setdefault(s2.key(), (s2, log + [rec]))
+        front = nxt
+        check(len(front) <= CAP, f"{W.name}: the branch cap")
+    out = []
+    for st, log in front.values():
+        while len(log) < WALK_N:
+            best, types = menu(W, st)
+            if len(log) % BRUTE_EVERY == 0:
+                check(menu(W, st, brute=True) == (best, types),
+                      f"{W.name}: the pruned menu against the brute one")
+                TALLY["brute menus"] += 1
+            st, rec = apply(W, st, min(types, key=canon_key))
+            log.append(rec)
+        out.append((st, log))
+    return out, reord
+
+
+def order(W, g):
+    k, x = 1, g
+    while x:
+        x, k = W.R.add[x][g], k + 1
+    return k
+
+
+def verdict(W, cell, T0, r0):
+    """The (Z/d)^2 map from the seed: the cycle's and the pre-period's
+    rider cells, and the lengths."""
+    g = cell[1]
+    d = order(W, g)
+    seen, seq, s = {}, [], (T0 % d, r0 % d)
+    while s not in seen:
+        seen[s] = len(seq)
+        seq.append(s)
+        a, b = s
+        w = dict(W.rider(cell, b)).get(cell, 0)
+        s = ((2 * a) % d, (a - w) % d)
+    mu = seen[s]
+    cyc = {c for a, b in seq[mu:] for c, k in W.rider(cell, b) if c != cell}
+    pre = {c for a, b in seq[:mu] for c, k in W.rider(cell, b)
+           if c != cell} - cyc
+    rho = tuple(dict(W.rider(cell, b)).get(cell, 0) for a, b in seq[mu:])
+    return d, mu, len(seq) - mu, cyc, pre, rho
+
+
+def analyse(W, st, log):
+    """One branch: the chain, the change range, the orbit law, the recursion."""
+    r = {}
+    ropen = [i for i, x in enumerate(log) if x["open"] and x["rider"]]
+    for i in ropen:
+        d = log[i]["t"][0][0]
+        check(not W.n[d][0], f"{W.name}: an opening paid an avoidable rider")
+    TALLY["openings"] += sum(x["open"] for x in log)
+    trans = max(ropen + [-1])
+    ch = [(i, x["change"]) for i, x in enumerate(log) if x.get("change")]
+    rx = [i for i, x in enumerate(log) if x.get("kind") == "rider"]
+    r["changes"] = []
+    for i, c in ch:
+        prem = chain_step(W, c)
+        z, y, kind, ey, t = c
+        conj = y[0] == z[0] and y[1] == W.R.neg[z[1]]
+        if y[0] >= z[0]:
+            check(conj and ey == log[i]["hold"][1], f"{W.name}: a change"
+                  " not falling that is no hand-off to a level conjugate")
+        r["changes"].append((i, z[0], y[0], kind, ey,
+                             None if t is None else t - W.Rmax, prem,
+                             i > trans, log[i]["T0"]))
+    r["trans"], r["rx"] = trans, rx
+    win = max([trans] + [i for i, c in ch] + rx)
+    C = st.holder[0]
+    r["clock"] = C
+    deep = []
+    for cell, v in st.seat.items():
+        for e, k in v.items():
+            if e >= 2 and cell != C:
+                deep.append((cell, e, st.units[cell]))
+    r["deep"] = sorted(deep)
+    r["clock_e"] = st.holder[1]
+    # the orbit law and the recursion past the change range
+    clocks = []
+    for i in range(win + 1, len(log)):
+        x = log[i]
+        if x["open"]:
+            check(not x["rider"], f"{W.name}: a rider past the change range")
+        else:
+            check(x["t"][0] == C and x["T1"] > x["T0"],
+                  f"{W.name}: a move past the change range not the runaway's")
+            clocks.append(x)
+    check(len(clocks) >= 3, f"{W.name}: too few clock moves past the change range")
+    T, rr = clocks[0]["T0"], clocks[0]["t"][2]
+    r["seed"] = (T, rr)
+    for x in clocks:
+        check(x["T0"] == T and x["t"][2] == rr, f"{W.name}: the recursion's"
+              f" door {rr} at notch {T} against {x['t'][2]} at {x['T0']}")
+        rid = W.rider(C, rr)
+        check(tuple(x["rider"]) == tuple(rid), f"{W.name}: the rider")
+        w = dict(rid).get(C, 0)
+        check(w <= T - 1, "the landing stays under 2T")
+        T, rr = 2 * T, T - w
+        TALLY["recursion eras"] += 1
+    r["verdict"] = verdict(W, C, *r["seed"])
+    return r
+
+
+def section_w(W):
+    """EP4, EP6 to EP10 at one ring."""
+    t0 = time.time()
+    out, reord = branches(W)
+    rows = [analyse(W, st, log) for st, log in out]
+    allch = [c for r in rows for c in r["changes"]]
+    sort = Counter(("falls" if c[2] < c[1] else "level conjugate",
+                    "premise" if c[6] else "no premise",
+                    "after" if c[7] else "within") for c in allch)
+    print(f"  {W.name}: {len(rows)} branches ({time.time() - t0:.1f} s)")
+    print(f"    final runaway (degree, class): "
+          f"{sorted({r['clock'] for r in rows})}")
+    print(f"    changes of holder per branch: "
+          f"{sorted(Counter(len(r['changes']) for r in rows).items())}; "
+          f"sorted by (degree, the chain step's premise, against the last"
+          f" opening paying a rider): {sorted(sort.items())}")
+    if allch:
+        print(f"    the latest change of holder at step "
+              f"{max(c[0] for c in allch)}; the highest notch at a change "
+              f"{max(c[8] for c in allch)}")
+    print(f"    rider crossings at steps "
+          f"{sorted({i for r in rows for i in r['rx']})}")
+    check(not any(r["rx"] for r in rows),
+          f"{W.name}: no rider crosses the notch alone")
+    print(f"    last opening paying a rider: "
+          f"{sorted({r['trans'] for r in rows})}")
+    above = sorted(Counter(len(r["deep"]) for r in rows).items())
+    print(f"    items above exponent 1 beside the runaway, (count, branches):"
+          f" {above}; e.g. (colour, a, rider units) {rows[0]['deep']}")
+    vs = Counter()
+    for r in rows:
+        d, mu, lam, cyc, pre, rho = r["verdict"]
+        vs[(d, mu, lam, tuple(sorted(cyc)), tuple(sorted(pre)), rho)] += 1
+    for (d, mu, lam, cyc, pre, rho), k in sorted(vs.items()):
+        print(f"    verdict at {k} branches: ord gamma {d}, pre-period {mu},"
+              f" cycle {lam} with rho {list(rho)}; unbounded {list(cyc)};"
+              f" bounded {list(pre)}")
+    print(f"    reordering: {reord[0]} of {reord[1]} declined vehicles still"
+          f" least at the taken move's successor")
+    return rows
+
+
+KD = 6              # the colouring's pairs: every colour of degree <= KD
+
+
+def class_sum(W, items):
+    """items: {(cell, idx): exponent}; the class of the affine divisor."""
+    x = 0
+    for (cell, i), e in items.items():
+        x = W.R.add[x][W.R.mul(cell[1], e)]
+    return x
+
+
+def pad_items(W, x, avoid):
+    """MINREP(x) as items, or None when it would reuse an avoided item."""
+    out = {}
+    for cell, k in W.rep[x]:
+        if (cell, 0) in avoid:
+            return None
+        out[(cell, 0)] = k
+    return out
+
+
+def any_pad(W, x, avoid):
+    """A least-degree effective divisor of class x built from colours of
+    degree <= KD + 2, no avoided item used: a shortest path over the
+    available colours, one item per colour, a repeat raising its
+    exponent."""
+    used = Counter(c for c, i in avoid)
+    cells = [(d, c) for d in range(1, KD + 3) for c in range(W.h)
+             if W.n[d][c] > used[(d, c)]]
+    INF = 10 ** 9
+    best, via = [INF] * W.h, [None] * W.h
+    best[0], via[0] = 0, ()
+    changed = True
+    while changed:
+        changed = False
+        for y in range(W.h):
+            if best[y] < INF:
+                for cell in cells:
+                    z = W.R.add[y][cell[1]]
+                    if best[y] + cell[0] < best[z]:
+                        best[z], via[z] = best[y] + cell[0], via[y] + (cell,)
+                        changed = True
+    if best[x] == INF:
+        return None
+    return {(cell, used[cell]): k for cell, k in Counter(via[x]).items()}
+
+
+def witness_class(W, A, B):
+    """(10): x of A over y of B by one, padded principal; the exchange
+    leaves principality."""
+    x, y = (A, 0), (B, 0)
+    for b in range(0, 4):
+        base = {x: b + 1}
+        if b:
+            base[y] = b
+        need = W.R.neg[class_sum(W, base)]
+        pad = any_pad(W, need, {x, y})
+        if pad is None:
+            continue
+        S = {**base, **pad}
+        Sx = dict(S)
+        Sx[x], Sx[y] = S.get(y, 0), S[x]
+        Sx = {k: v for k, v in Sx.items() if v}
+        if class_sum(W, S) == 0 and class_sum(W, Sx) != 0:
+            return b
+    return None
+
+
+def build(W, items):
+    st = State()
+    for (cell, i), e in sorted(items.items()):
+        seat_item(W, st, cell, 0, e)
+    st.T = pow2ceil(st.E)
+    return st
+
+
+def context(W, top, avoid):
+    """Principal items at exponent 1 covering every supplied degree <= top,
+    none an avoided item."""
+    items, cov = {}, {1}
+    for d in range(1, top + 1):
+        if d in cov or not W.supplied[d]:
+            continue
+        for dd in range(d, DMAX + 1, d):
+            k = W.n[dd][0] - sum(1 for c, i in avoid if c == (dd, 0))
+            if k > 0:
+                idx = sum(1 for c, i in avoid if c == (dd, 0))
+                items[((dd, 0), idx)] = 1
+                cov.update(divisors(dd))
+                break
+        else:
+            return None
+    return items
+
+
+def witness_degree(W, A, B, with_context=True):
+    """(11): the merged pair's door-1 clock move is the least move and
+    costs its own degree. Returns the two least costs, or None."""
+    c = A[1]
+    x, y = (A, 0), (B, 0)
+    top = B[0] + W.Rmax
+    ctx = context(W, top, {x, y}) if with_context else {}
+    if ctx is None:
+        return None
+    T = pow2ceil(B[0] + 2 * W.Rmax + 2)
+    for _ in range(8):
+        pad = pad_items(W, W.R.neg[W.R.mul(c, T)], {x, y} | set(ctx))
+        if pad is not None:
+            break
+        T *= 2
+    else:
+        return None
+    costs = []
+    for core in (x, y):
+        items = {**ctx, **pad}
+        items[core] = T
+        check(class_sum(W, items) == 0, f"{W.name}: a witness state not"
+              " principal")
+        st = build(W, items)
+        check(st.T == T, "the witness notch")
+        best, types = menu(W, st)
+        if TALLY["witness menus"] % 7 == 0:
+            check(menu(W, st, brute=True)[0] == best, "the witness menu,"
+                  " pruned against brute")
+        TALLY["witness menus"] += 1
+        costs.append(best)
+    return tuple(costs), T
+
+
+def section_k(worlds):
+    """KP1 - KP3: every pair of distinct colours of degree <= KD carries
+    its witness."""
+    print("KP1 - KP3  THE COARSEST COLOURING")
+    for W in worlds:
+        cols = [(d, c) for d in range(1, KD + 1) for c in range(W.h)
+                if W.n[d][c]]
+        cross = same = 0
+        free = Counter()
+        for i, A in enumerate(cols):
+            for B in cols[i + 1:]:
+                if A[1] != B[1]:
+                    b = witness_class(W, A, B)
+                    check(b is not None, f"{W.name}: no class witness for"
+                          f" {A} ~ {B}")
+                    cross += 1
+                    continue
+                r = witness_degree(W, A, B)
+                check(r is not None, f"{W.name}: no context for {A} ~ {B}")
+                (ca, cb), T = r
+                mc = W.m[W.R.neg[A[1]]]
+                check((ca, cb) == (A[0] + mc, B[0] + mc),
+                      f"{W.name}: {A} ~ {B} least costs {ca}, {cb} at"
+                      f" notch {T}")
+                same += 1
+                r0 = witness_degree(W, A, B, with_context=False)
+                if r0 is not None and r0[0][0] == r0[0][1]:
+                    free[A[0] == 1] += 1
+        print(f"  {W.name:6s} {len(cols)} colours of degree <= {KD}: {cross}"
+              f" cross-class pairs, each left by principality at one"
+              f" exchange; {same} same-class pairs, each priced d + m(-c) at"
+              f" its own degree; without the context {sum(free.values())}"
+              f" of them price alike")
+        TALLY["free alike"] += sum(free.values())
+    check(TALLY["free alike"] > 0, "control: the context does the work")
+
+
+def main():
+    t0 = time.time()
+    rings = [Ring(*x) for x in RINGS]
+    section_g(rings)
+    worlds = [World(R) for R in rings]
+    section_c(worlds)
+    section_m(worlds)
+    section_p(worlds)
+    section_x(worlds[0])
+    print("EP4, EP6 - EP10  THE WALKS")
+    for W in worlds:
+        section_w(W)
+    print(f"  offsets offered {TALLY['offsets']}, strictly cheaper "
+          f"{TALLY['offset cheaper']}; openings {TALLY['openings']}; brute "
+          f"menus {TALLY['brute menus']}; recursion eras "
+          f"{TALLY['recursion eras']}; crossings a rider shared "
+          f"{TALLY['shared crossings']}, at the core's exponent "
+          f"{TALLY['shared crossings level']}")
+    check(TALLY["offset cheaper"] == 0, "the bare door")
+    check(TALLY["shared crossings level"] == TALLY["shared crossings"],
+          "every crossing a rider shares has the core crossing and every "
+          "crossing item at the core's exponent")
+    section_k(worlds)
+    check(TALLY["offset cheaper"] == 0,
+          "the bare door, the witness menus' offers too")
+    print(f"{CHECKS[0]} checks, {time.time() - t0:.1f} s")
+
+
+if __name__ == "__main__":
+    main()

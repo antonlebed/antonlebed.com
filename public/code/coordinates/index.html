@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>coordinates.py | Numbers read one place at a time</title>
+<meta name="description" content="coordinates.py">
+<link rel="alternate" type="text/x-python" href="/code/coordinates.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>coordinates.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/coordinates/#the-two-readings-criterion">COORDINATES: The two-readings criterion</a> (criterion); <a href="/coordinates/#the-carry-wall">COORDINATES: The carry wall</a> (theorem); <a href="/coordinates/#the-suffix-and-floor-reads">COORDINATES: The suffix and floor reads</a> (criterion); <a href="/coordinates/#the-valuation-row">COORDINATES: The valuation row</a> (theorem); <a href="/coordinates/#the-index-coordinates">COORDINATES: The index coordinates</a> (property); <a href="/coordinates/#the-zech-wall">COORDINATES: The Zech wall</a> (theorem); <a href="/coordinates/#the-support-log">COORDINATES: The support log</a> (theorem); <a href="/coordinates/#the-exponent-wall">COORDINATES: The exponent wall</a> (theorem); <a href="/coordinates/#the-rigidity-dichotomy">COORDINATES: The rigidity dichotomy</a> (theorem); <a href="/coordinates/#the-bearers">COORDINATES: The bearers</a> (theorem).</p><p>Cited on: <a href="/coordinates/">COORDINATES</a>.</p><p>To run it: no other script; standard library only.</p></div>
+<pre>"""
+coordinates.py -- which coordinate system on the integers reads which
+operation, and what kind of wall each one pays.
+
+QUESTION. Three classical coordinate systems write an integer: its
+residues at a set of primes, its indices (discrete logarithms, channel
+by channel), and its positional digits. Each makes some operations
+cheap to read and walls others. Which pairs of operations can one
+coordinate system read at once, is any system able to read addition,
+multiplication and size together, and are the walls the systems pay of
+one kind or of several? Last, for every wall met here and in the size
+wall's own record, what is the least structure that bears it?
+
+THE ARGUMENT (written before this script).
+  (1) THE TWO-READINGS CRITERION. Greedy numeration on a scale
+      1 = T_0 &lt; T_1 &lt; T_2 &lt; ... writes n with digits d_i, taking the
+      largest multiple of T_i that fits at each step from the top, so
+      the part of n below position i is less than T_i. Then the low
+      prefix sum_{i&lt;j} d_i T_i equals n mod T_j for every n and every
+      j iff the scale is a divisibility chain (T_j | T_i for i &gt;= j).
+      If it is a chain, the prefix is below T_j and n minus the prefix
+      is a sum of multiples of T_i, i &gt;= j, each 0 mod T_j. Conversely
+      n = T_i (i &gt;= j) is the single digit 1 at i with prefix 0, which
+      forces T_j | T_i. On EVERY scale, chain or not, greedy digit
+      strings compared most significant first are compared as numbers:
+      at the first differing position i, d_i &lt; d'_i, the rest of the
+      smaller number is below T_i. So size and order come with greedy,
+      residues come with the chain, and a positional base is the scale
+      on which the two readings coincide.
+  (2) THE CARRY WALL. In base b, digit j of x + y is a function of no
+      finite set of digit positions placed relative to j, and one
+      carry bit read least significant first computes the whole sum.
+      For a finite offset set F choose s &gt; 0 outside -F with l = j - s
+      above every position the reader also reads at the low end;
+      x = sum_{i=l}^{j-1} (b - 1) b^i, y = b^l against y' = 0.
+      The inputs differ only at position l, and x + y = b^j has digit
+      j equal to 1 while x + y' &lt; b^j has digit j equal to 0.
+  (3) THE SUFFIX AND FLOOR READS. [m | n] is a function of the last j
+      digits in base b iff m | b^j, so some suffix reads it iff
+      rad(m) | rad(b): n and n + b^j share the suffix, and at n = 0
+      they disagree unless m | b^j. On any chain of moduli
+      M_0 = 1 | M_1 | ..., floor(n/m) mod M_t is a function of
+      n mod M_(t+c), for M_t &gt;= 2, iff m M_t | M_(t+c). The difference
+      floor((n + M')/m) - floor(n/m) is the constant M'/m when m | M',
+      and otherwise takes both values floor(M'/m) and floor(M'/m) + 1,
+      which are never both 0 mod M_t. On the primorial chain
+      M_t = p_1 ... p_t this reads floor(n/m) at depth t iff m is
+      squarefree with every prime factor above p_t, at the least
+      lookahead c = pi(P(m)) - t, P(m) the largest prime factor, and at
+      no depth from pi(p_min(m)) on. The divisibility read on the same
+      chain holds for every squarefree m at every depth deep enough.
+  (4) THE VALUATION ROW. Writing n by its exponent vector
+      (v_p(n))_p makes multiplication a coordinatewise sum and walls
+      addition: for a finite prime set W holding 2, the CRT gives y_u
+      with y_u = 2^u - 1 mod 2^(u+1) and y_u = 1 mod the other primes
+      of W, so y_u and 1 have the zero vector on W while v_2(1 + y_u)
+      = u takes every value.
+  (5) THE INDEX COORDINATES. For squarefree M the unit group is the
+      product of the cyclic (Z/p)^*, so choosing a primitive root per
+      channel gives a bijection U(Z/M) -&gt; prod Z/(p - 1) under which
+      multiplication is addition, powering is scaling, x is an e-th
+      power iff gcd(e, p - 1) divides its index at every p, with
+      prod gcd(e, p - 1) roots, and x is a square mod p iff its index
+      is even. lambda = lcm(p - 1) is the exponent of that product and
+      is below phi = prod (p - 1) once two odd primes are present, so
+      Z/M has no primitive root and no single index exists.
+  (6) THE ZECH WALL. At one channel, addition in index coordinates is
+      the unary table Z(n) = ind(1 + g^n). Z is compatible with no
+      quotient Z/(p - 1) -&gt; Z/q, 2 &lt;= q &lt;= (p - 1)/2, at any p &gt;= 5.
+      Indices mod q sort (Z/p)^* into cosets of the subgroup C of index
+      q, of order h = (p - 1)/q &gt;= 2. Compatibility says
+      (1 + wx)/(1 + x) lies in C for every w in C and every x in (Z/p)^*
+      outside {-1, -1/w}, p - 3 values when w != 1. For fixed w != 1
+      and z in C, 1 + wx = z(1 + x) reads x(w - z) = z - 1: z = w
+      has no solution, z = 1 gives x = 0, every other z gives one
+      admissible x. So exactly h - 2 &lt; p - 3 of the required x comply,
+      and each other x gives a pair of indices equal mod q whose Zech
+      values differ mod q. A polynomial over Z/(p - 1) respects every
+      quotient, so Z is no polynomial.
+  (7) THE SUPPORT LOG. x^(lambda(M) + 1) = x for every x in Z/M iff M
+      is squarefree (lambda Carmichael's): each channel is a field
+      with p - 1 | lambda, and when p^2 | M the element M/p is a
+      nonzero square-zero element. Then every x is (supp x, its indices
+      on supp x); multiplication intersects supports and adds indices,
+      x^lambda is the idempotent of supp x, and for M &gt; 2 the meadow
+      inverse x^(lambda - 1) negates the indices (at M = 2, 0^0 = 1).
+  (8) THE EXPONENT WALL. For p &gt;= 3, x^y is not a function of
+      (x mod p, y mod p): x^(y + p) = x^(y + 1), which for y &gt;= 1
+      differs from x^y exactly when x is outside {0, 1}. It is a
+      function of x mod p and of y mod (p - 1) for POSITIVE y only: 0^0
+      = 1 and 0^(p - 1) = 0.
+  (9) THE RIGIDITY DICHOTOMY. A coordinate system in which + is
+      read coordinate by coordinate is an internal direct sum of
+      subgroups of Z/M. A cyclic group has one subgroup per order, and two of
+      them meet in the subgroup of order the gcd, so the summands have
+      pairwise coprime orders a_i with product M: the decompositions
+      ARE the coprime factorizations. Each summand is an ideal, so
+      x_i y_j = 0 for i != j and multiplication is read coordinate
+      by coordinate too, for free. And every such system with two
+      summands or more walls size: at a summand of order a &lt; M, 0 and
+      b = a ceil(M/(2a)) share that coordinate while the sign reads 0
+      and 1. Multiplication alone is floppy: the unit group has direct
+      decompositions that cross the channels.
+  (10) THE BEARERS. Each wall, and each law the walls rest on, is
+      pinned to the least structure that bears it. The quantifier wall: no polynomial on any composite
+      Z/M computes [a = 0], since a polynomial is compatible with every
+      quotient Z/d and [0 = 0] = 1 against [d = 0] = 0; at a prime it
+      is 1 - a^(p - 1). Order's maximal failure needs one proper window
+      and no fields (coprimality only makes two windows a coordinate
+      system): x = a &lt; A and y = b + A realize every pair (a, b) at the
+      window A. The order-divisibility relation ord(x) | ord(y) on
+      C_n1 x C_n2 is conjunctive iff gcd(n1, n2) = 1, and fails
+      maximally iff n1 = n2: its first projection is
+      {ord x1 | lcm(ord y1, n2)}, full iff n1 | n2, and at a prime r
+      dividing both, x = (a, 0) of order r against y = 0 lies in
+      both projections but not in the relation.
+
+PREDICTIONS (fixed before the run). Every check prints PASS.
+  B: the prefix property and the chain agree on all 9,139 scales
+     (1, a, b, c), 2 &lt;= a &lt; b &lt; c &lt;= 40, and all 3,876 scales
+     (1, a, b, c, d) &lt;= 20; greedy order holds on all 9,139.
+  A: the witness pair defeats the band of half-width r with the low
+     block {0..r}, r = 0..5, in bases 2 and 10; the one-carry scan
+     adds exactly in bases 2, 3 and 10 for x, y &lt; 300.
+  S: at bases 2, 6 and 10 the suffix read holds iff m | b^j. On the
+     primorial chain with M' &lt;= 2,310 the readable cells are exactly
+     t = 1: m = 3, 5, 7, 11, 15, 21 at c = 1, 2, 3, 4, 2, 3;
+     t = 2: m = 5, 7, 11 at c = 1, 2, 3; t = 3: m = 7, 11 at c = 1, 2;
+     t = 4: m = 11 at c = 1. Twelve cells, all others torn to the cap.
+     The base-2 control reads m = 2, 4, 8, 16 at t = 1, c = v_2(m).
+  V: the family y_u, u = 3..12, at W = {2, 3, 5, 7}.
+  I: lambda &lt; phi at every rung k = 3..7; 92,160 distinct index tuples
+     at Z/510510; there 1,440 squares with 64 roots each and 10,240
+     cubes with 9 roots each; multiplication, powering and square
+     classes exact at Z/210.
+  Z: 263 pairs (p, q), 5 &lt;= p &lt; 200, the complying set equal to the
+     derived set at w = g^q, and at every w != 1 of C for p &lt; 60.
+  G: x^(lambda + 1) = x holds at exactly the squarefree M &lt;= 300 and at
+     every x of Z/510510; the product on supports and indices, the
+     support idempotent and the meadow inverse exact at Z/210.
+  E: p - 2 witnesses at p = 3..13; positive exponents mod p - 1 exact;
+     the zero exponent fails at x = 0 only.
+  R: 4, 4, 1 and 14 additive decompositions of Z/30, Z/60, Z/12 and
+     Z/210, each a coprime factorization, multiplication read coordinate
+     by coordinate in each, size walled at every summand; U(30) has 4
+     direct decompositions of which 1 follows the channels; 2,048
+     units of 2-power order at Z/510510.
+  P: the polynomial functions number 64, 108, 1,024 and 19,683 at Z/4,
+     Z/6, Z/8 and Z/9 (Kempner's counts), with [a = 0] in none;
+     order's projections saturate at Z/6 (21 of 36) and at Z/36 with
+     windows 4 and 9 (666 of 1,296); the order-divisibility law on all
+     45 pairs 2 &lt;= n1 &lt;= n2 &lt;= 10, C2 x C2 x C2 maximal, U(15) of
+     shape C2 x C4.
+
+DESIGN. Sections of checks printing PASS or FAIL. Every read is
+literal: a map is read by a window when no two inputs sharing the
+window disagree, and the engine never consults the criterion it
+tests.
+  B  greedy digits on every scale of the two sweeps, at every n from
+     0 to twice the scale's top term, which holds the witness n = T_i.
+  A  the witness pair; the least-significant-first scan.
+  S  suffix reads by brute over a full period; floor reads on the
+     primorial chain up to M' = 2,310 and the base-2 control up to
+     2^7, over n in [0, m M').
+  V  the CRT family.
+  I  per-channel discrete-log tables at Z/510510.
+  Z  the complying set by brute over x, against (z - 1)/(w - z).
+  G  every M &lt;= 300 and every x of Z/510510.
+  E  every x, y at p = 3..13.
+  R  subgroups found as cyclic spans; decompositions by the sum map.
+  P  polynomial functions as the additive span of the monomial
+     functions; relations projected and conjoined.
+
+RUN RECORD. First run: 40 of 40 PASS, every prediction met. The scale
+sweeps hold 60 chains among 13,015 scales with 0 mismatches; the
+primorial chain's readable floor cells are the twelve predicted; 182
+of M = 2..300 are squarefree and x^(lambda + 1) = x holds at exactly
+those; Kempner's counts 64, 108, 1,024 and 19,683 came out as stated.
+Reading the prints removed one check. It counted 2,048 units of
+2-power order at Z/510510, offered as a second instance of multiplication's
+floppiness, but that factor is the product of each channel's own
+2-part: it splits the channels finer and crosses none. The crossing
+witness is U(30)'s: of its four decompositions C2 x C4, three cross the
+channels, two taking the C4 {1, 17, 19, 23} and the third pairing the
+channel's C4 {1, 7, 13, 19} with the C2 {1, 29}. The script counts the
+four and the one aligned; the split of the three is read by hand.
+Second run, after the removal and a relabelling of letters: 39 of 39.
+Third run, multiplication read at every pair at Z/210: 39 of 39, 2.3 s.
+
+Run: python coordinates.py   (seconds, pure Python)
+"""
+
+from itertools import combinations
+from math import gcd, lcm, prod
+
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tail = f"  [{detail}]" if detail else ""
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}{tail}")
+
+
+<span id="primes_upto"></span>def primes_upto(n):
+    sieve = bytearray([1]) * (n + 1)
+    sieve[0:2] = b"\x00\x00"
+    for i in range(2, int(n ** 0.5) + 1):
+        if sieve[i]:
+            sieve[i * i::i] = bytearray(len(sieve[i * i::i]))
+    return [i for i in range(n + 1) if sieve[i]]
+
+
+<span id="factorize"></span>def factorize(n):
+    out, d = {}, 2
+    while d * d &lt;= n:
+        while n % d == 0:
+            out[d] = out.get(d, 0) + 1
+            n //= d
+        d += 1
+    if n &gt; 1:
+        out[n] = out.get(n, 0) + 1
+    return out
+
+
+<span id="squarefree"></span>def squarefree(n):
+    return all(e == 1 for e in factorize(n).values())
+
+
+<span id="carmichael"></span>def carmichael(n):
+    lam = 1
+    for p, e in factorize(n).items():
+        if p == 2 and e &gt;= 3:
+            part = 2 ** (e - 2)
+        else:
+            part = (p - 1) * p ** (e - 1)
+        lam = lcm(lam, part)
+    return lam
+
+
+<span id="primitive_root"></span>def primitive_root(p):
+    if p == 2:
+        return 1
+    qs = factorize(p - 1)
+    for g in range(2, p):
+        if all(pow(g, (p - 1) // q, p) != 1 for q in qs):
+            return g
+    raise ValueError(p)
+
+
+<span id="dlog_table"></span>def dlog_table(p):
+    g = primitive_root(p)
+    ind, x = {}, 1
+    for e in range(p - 1):
+        ind[x] = e
+        x = x * g % p
+    return g, ind
+
+
+P7 = [2, 3, 5, 7, 11, 13, 17]
+M7 = prod(P7)
+
+
+# ---------------------------------------------------------------- B
+<span id="greedy_digits"></span>def greedy_digits(n, scale):
+    d = [0] * len(scale)
+    for i in range(len(scale) - 1, -1, -1):
+        d[i], n = divmod(n, scale[i])
+    return d
+
+
+<span id="prefix_is_residue"></span>def prefix_is_residue(scale):
+    for n in range(2 * scale[-1] + 1):
+        d = greedy_digits(n, scale)
+        acc = 0
+        for j in range(1, len(scale)):
+            acc += d[j - 1] * scale[j - 1]
+            if acc != n % scale[j]:
+                return False
+    return True
+
+
+<span id="is_chain"></span>def is_chain(scale):
+    return all(scale[j + 1] % scale[j] == 0 for j in range(len(scale) - 1))
+
+
+<span id="greedy_orders"></span>def greedy_orders(scale):
+    ns = list(range(2 * scale[-1] + 1))
+    keys = [tuple(reversed(greedy_digits(n, scale))) for n in ns]
+    return keys == sorted(keys) and len(set(keys)) == len(keys)
+
+
+<span id="section_b"></span>def section_b():
+    print("B  the two-readings criterion")
+    s4 = [(1, a, b, c) for a, b, c in combinations(range(2, 41), 3)]
+    s5 = [(1,) + t for t in combinations(range(2, 21), 4)]
+    bad4 = sum(prefix_is_residue(s) != is_chain(s) for s in s4)
+    bad5 = sum(prefix_is_residue(s) != is_chain(s) for s in s5)
+    chains = sum(is_chain(s) for s in s4) + sum(is_chain(s) for s in s5)
+    check("prefix = residue iff divisibility chain",
+          bad4 == 0 and bad5 == 0,
+          f"{len(s4)} + {len(s5)} scales, {chains} chains, "
+          f"{bad4 + bad5} mismatches")
+    bad = sum(not greedy_orders(s) for s in s4)
+    check("greedy digits, most significant first, order as numbers",
+          bad == 0, f"{len(s4)} scales, {bad} failures")
+    fib = (1, 2, 3, 5, 8, 13)
+    check("Zeckendorf is no chain and fails the prefix read",
+          not is_chain(fib) and not prefix_is_residue(fib))
+
+
+# ---------------------------------------------------------------- A
+<span id="digit"></span>def digit(n, j, b):
+    return n // b ** j % b
+
+
+<span id="lsd_add"></span>def lsd_add(x, y, b):
+    out, carry, j = 0, 0, 0
+    while x or y or carry:
+        s = x % b + y % b + carry
+        out += (s % b) * b ** j
+        carry = s // b
+        x //= b
+        y //= b
+        j += 1
+    return out
+
+
+<span id="section_a"></span>def section_a():
+    print("A  the carry wall")
+    ok = True
+    for b in (2, 10):
+        for r in range(6):
+            m = r + 1
+            j = m + r + 1
+            read = set(range(r + 1)) | set(range(j - r, j + r + 1))
+            x = sum((b - 1) * b ** i for i in range(m, j))
+            y1, y0 = b ** m, 0
+            agree = all(digit(y1, i, b) == digit(y0, i, b) for i in read)
+            differ = digit(x + y1, j, b) != digit(x + y0, j, b)
+            ok &amp;= agree and differ and m not in read
+    check("one launched carry defeats band plus low block", ok,
+          "half-width 0..5, bases 2 and 10")
+    ok = all(lsd_add(x, y, b) == x + y
+             for b in (2, 3, 10) for x in range(300) for y in range(300))
+    check("one carry bit, least significant first, adds exactly", ok)
+
+
+# ---------------------------------------------------------------- S
+<span id="suffix_reads"></span>def suffix_reads(m, b, j):
+    B = b ** j
+    return all((n % m == 0) == ((n + B) % m == 0) for n in range(m * B))
+
+
+<span id="floor_reads"></span>def floor_reads(m, Mt, Mp):
+    return all((n // m) % Mt == ((n + Mp) // m) % Mt
+               for n in range(m * Mp))
+
+
+<span id="least_lookahead"></span>def least_lookahead(m, chain, t):
+    for c in range(1, len(chain) - t):
+        if floor_reads(m, chain[t], chain[t + c]):
+            return c
+    return None
+
+
+<span id="section_s"></span>def section_s():
+    print("S  the suffix and floor reads")
+    ok = True
+    for b, jmax in ((2, 6), (6, 3), (10, 3)):
+        for m in range(2, 31):
+            for j in range(1, jmax + 1):
+                ok &amp;= suffix_reads(m, b, j) == (b ** j % m == 0)
+    check("[m | n] read from j digits iff m | b^j", ok,
+          "bases 2, 6, 10; m = 2..30")
+    chain = [1, 2, 6, 30, 210, 2310]
+    cells = {}
+    for t in range(1, 5):
+        for m in range(2, 31):
+            c = least_lookahead(m, chain, t)
+            if c is not None:
+                cells[(t, m)] = c
+    want = {(1, 3): 1, (1, 5): 2, (1, 7): 3, (1, 11): 4, (1, 15): 2,
+            (1, 21): 3, (2, 5): 1, (2, 7): 2, (2, 11): 3, (3, 7): 1,
+            (3, 11): 2, (4, 11): 1}
+    check("primorial chain: the readable floor cells", cells == want,
+          f"{len(cells)} cells: " + ", ".join(
+              f"t{t} m{m} c{c}" for (t, m), c in sorted(cells.items())))
+    two = [2 ** i for i in range(8)]
+    ctl = {m: least_lookahead(m, two, 1) for m in range(2, 31)}
+    ctl = {m: c for m, c in ctl.items() if c is not None}
+    check("base-2 control: m = 2, 4, 8, 16 at c = v_2(m)",
+          ctl == {2: 1, 4: 2, 8: 3, 16: 4}, str(ctl))
+
+
+# ---------------------------------------------------------------- V
+<span id="crt"></span>def crt(residues, moduli):
+    M = prod(moduli)
+    x = 0
+    for r, m in zip(residues, moduli):
+        Mi = M // m
+        x += r * Mi * pow(Mi, -1, m)
+    return x % M
+
+
+<span id="vp"></span>def vp(n, p):
+    v = 0
+    while n % p == 0:
+        n //= p
+        v += 1
+    return v
+
+
+<span id="section_v"></span>def section_v():
+    print("V  the valuation row")
+    W = [2, 3, 5, 7]
+    ok = True
+    for u in range(3, 13):
+        y = crt([2 ** u - 1, 1, 1, 1], [2 ** (u + 1), 3, 5, 7])
+        ok &amp;= all(vp(y, p) == 0 for p in W) and vp(1 + y, 2) == u
+    check("zero W-vector on both summands, v_2 of the sum = u", ok,
+          "u = 3..12, W = {2, 3, 5, 7}")
+    ok = all(vp(x * y, p) == vp(x, p) + vp(y, p)
+             for x in range(1, 200) for y in range(1, 200) for p in W)
+    check("multiplication adds exponent vectors", ok)
+
+
+# ---------------------------------------------------------------- I
+<span id="section_i"></span>def section_i():
+    print("I  the index coordinates")
+    ps = primes_upto(20)
+    ok = True
+    for k in range(3, 8):
+        P = ps[:k]
+        lam = lcm(*[p - 1 for p in P])
+        ok &amp;= lam &lt; prod(p - 1 for p in P)
+    check("lambda &lt; phi at every rung k = 3..7", ok)
+    tabs = {p: dlog_table(p) for p in P7}
+
+    def index(x, primes):
+        return tuple(tabs[p][1][x % p] for p in primes)
+
+    units = [x for x in range(M7) if gcd(x, M7) == 1]
+    idx = {index(x, P7) for x in units}
+    check("index map is a bijection at Z/510510", len(idx) == len(units),
+          f"{len(idx)} tuples, {len(units)} units")
+    PRIMES_210 = [2, 3, 5, 7]
+    u210 = [x for x in range(210) if gcd(x, 210) == 1]
+    ok = all(index(x * y, PRIMES_210) == tuple(
+        (a + b) % (p - 1 if p &gt; 2 else 1)
+        for a, b, p in zip(index(x, PRIMES_210), index(y, PRIMES_210),
+                           PRIMES_210))
+        for x in u210 for y in u210)
+    check("multiplication is index addition at Z/210", ok)
+    ok = all(index(pow(x, e, 210), PRIMES_210) == tuple(
+        (e * a) % (p - 1 if p &gt; 2 else 1)
+        for a, p in zip(index(x, PRIMES_210), PRIMES_210))
+        for x in u210 for e in range(13))
+    check("powering is index scaling at Z/210", ok)
+    ok = all(((pow(x, (p - 1) // 2, p) == 1) == (tabs[p][1][x % p] % 2 == 0))
+             for x in u210 for p in (3, 5, 7))
+    check("square class is index parity at Z/210", ok)
+    for e, want in ((2, (1440, 64)), (3, (10240, 9))):
+        counts = {}
+        for x in units:
+            y = pow(x, e, M7)
+            counts[y] = counts.get(y, 0) + 1
+        roots = set(counts.values())
+        check(f"e = {e} at Z/510510: powers and roots per power",
+              (len(counts), roots) == (want[0], {want[1]}),
+              f"{len(counts)} powers, roots {sorted(roots)}")
+
+
+# ---------------------------------------------------------------- Z
+<span id="zech_pair"></span>def zech_pair(p, q, w_all):
+    g, ind = dlog_table(p)
+    h = (p - 1) // q
+    C = {pow(g, q * i, p) for i in range(h)}
+    ws = [w for w in C if w != 1] if w_all else [pow(g, q, p)]
+    for w in ws:
+        adm = [x for x in range(1, p) if x != p - 1 and w * x % p != p - 1]
+        comply = {x for x in adm
+                  if (1 + w * x) * pow(1 + x, -1, p) % p in C}
+        derived = {(z - 1) * pow(w - z, -1, p) % p
+                   for z in C if z not in (1, w)}
+        if comply != derived or len(comply) != h - 2:
+            return False
+        if len(adm) != p - 3:
+            return False
+        wit = [x for x in adm if x not in comply]
+        if not wit:
+            return False
+        x = wit[0]
+        a, b = ind[x], ind[w * x % p]
+        za, zb = ind[(1 + x) % p], ind[(1 + w * x) % p]
+        if (a - b) % q != 0 or (za - zb) % q == 0:
+            return False
+    return True
+
+
+<span id="section_z"></span>def section_z():
+    print("Z  the Zech wall")
+    pairs, ok = 0, True
+    for p in primes_upto(199):
+        if p &lt; 5:
+            continue
+        for q in range(2, (p - 1) // 2 + 1):
+            if (p - 1) % q == 0:
+                pairs += 1
+                ok &amp;= zech_pair(p, q, w_all=p &lt; 60)
+    check("complying x are exactly the h - 2 derived ones", ok and
+          pairs == 263, f"{pairs} pairs (p, q)")
+
+
+# ---------------------------------------------------------------- G
+<span id="section_g"></span>def section_g():
+    print("G  the support log")
+    bad = [M for M in range(2, 301)
+           if all(pow(x, carmichael(M) + 1, M) == x for x in range(M))
+           != squarefree(M)]
+    nsf = sum(squarefree(M) for M in range(2, 301))
+    check("x^(lambda+1) = x everywhere iff M squarefree", not bad,
+          f"M = 2..300, {nsf} squarefree, mismatches {bad}")
+    lam = carmichael(M7)
+    ok = all(pow(x, lam + 1, M7) == x for x in range(M7))
+    check("x^241 = x at every x of Z/510510", ok and lam == 240)
+    P = [2, 3, 5, 7]
+    tabs = {p: dlog_table(p)[1] for p in P}
+
+    def support_index(x):
+        return {p: tabs[p][x % p] for p in P if x % p}
+
+    ok = True
+    for x in range(210):
+        gx = support_index(x)
+        for y in range(210):
+            gy = support_index(y)
+            want = {p: (gx[p] + gy[p]) % (p - 1 if p &gt; 2 else 1)
+                    for p in gx if p in gy}
+            ok &amp;= support_index(x * y % 210) == want
+    check("product on supports: supports meet, indices add", ok)
+    ok = all(pow(x, 12, 210) % p == (1 if x % p else 0)
+             for x in range(210) for p in P)
+    check("x^lambda is the idempotent of supp x at Z/210", ok)
+    ok = True
+    for x in range(210):
+        inv = pow(x, 11, 210)
+        gx, gi = support_index(x), support_index(inv)
+        ok &amp;= set(gi) == set(gx) and all(
+            (gi[p] + gx[p]) % (p - 1 if p &gt; 2 else 1) == 0 for p in gx)
+        ok &amp;= x * inv * x % 210 == x
+    check("meadow inverse x^(lambda-1) negates the indices", ok)
+
+
+# ---------------------------------------------------------------- E
+<span id="section_e"></span>def section_e():
+    print("E  the exponent wall")
+    ok = True
+    for p in primes_upto(13)[1:]:
+        bad = [x for x in range(p) if pow(x, 1, p) != pow(x, 1 + p, p)]
+        ok &amp;= bad == list(range(2, p))
+    check("x^y at (y, y + p) disagrees exactly off {0, 1}", ok,
+          "p = 3..13, y = 1")
+    ok = all(pow(x, y, p) == pow(x, y + p - 1, p)
+             for p in primes_upto(13) for x in range(p)
+             for y in range(1, p))
+    check("positive exponents are read mod p - 1", ok)
+    ok = all([x for x in range(p) if pow(x, 0, p) != pow(x, p - 1, p)]
+             == [0] for p in primes_upto(13))
+    check("the zero exponent fails at x = 0 only", ok)
+
+
+# ---------------------------------------------------------------- R
+<span id="cyclic_subgroups"></span>def cyclic_subgroups(M):
+    subs = set()
+    for g in range(M):
+        subs.add(frozenset(g * i % M for i in range(M)))
+    return [H for H in subs if 1 &lt; len(H) &lt; M]
+
+
+<span id="additive_decompositions"></span>def additive_decompositions(M):
+    subs = cyclic_subgroups(M)
+    out = []
+    for r in range(2, 5):
+        for combo in combinations(subs, r):
+            if prod(len(H) for H in combo) != M:
+                continue
+            sums = {0}
+            for H in combo:
+                sums = {(s + h) % M for s in sums for h in H}
+            if len(sums) == M:
+                out.append(combo)
+    return out
+
+
+<span id="coordinates_of"></span>def coordinates_of(M, combo):
+    coords = {}
+    for parts in _product_lists([sorted(H) for H in combo]):
+        coords[sum(parts) % M] = parts
+    return coords
+
+
+<span id="_product_lists"></span>def _product_lists(lists):
+    if not lists:
+        yield ()
+        return
+    for a in lists[0]:
+        for rest in _product_lists(lists[1:]):
+            yield (a,) + rest
+
+
+<span id="section_r"></span>def section_r():
+    print("R  the rigidity dichotomy")
+    for M, want in ((30, 4), (60, 4), (12, 1), (210, 14)):
+        decs = additive_decompositions(M)
+        orders_ok = all(
+            all(gcd(len(a), len(b)) == 1 for a, b in combinations(c, 2))
+            for c in decs)
+        mult_ok, size_ok = True, True
+        for combo in decs:
+            co = coordinates_of(M, combo)
+            mult_ok &amp;= all(
+                co[x * y % M] == tuple(a * b % M for a, b in
+                                       zip(co[x], co[y]))
+                for x in range(M) for y in range(M))
+            for i in range(len(combo)):
+                signs = {}
+                for x in range(M):
+                    signs.setdefault(co[x][i], set()).add(2 * x &gt;= M)
+                size_ok &amp;= any(len(s) == 2 for s in signs.values())
+        check(f"Z/{M}: + read coordinate by coordinate", len(decs) == want
+              and orders_ok and mult_ok and size_ok,
+              f"{len(decs)} decompositions, coprime orders {orders_ok}, "
+              f"x local {mult_ok}, size walled {size_ok}")
+    U = [x for x in range(30) if gcd(x, 30) == 1]
+    subs = set()
+    for a in U:
+        for b in U:
+            H, frontier = {1}, [1]
+            while frontier:
+                h = frontier.pop()
+                for s in (a, b):
+                    z = h * s % 30
+                    if z not in H:
+                        H.add(z)
+                        frontier.append(z)
+            subs.add(frozenset(H))
+    subs = [H for H in subs if 1 &lt; len(H) &lt; len(U)]
+    decs = [(A, B) for A, B in combinations(subs, 2)
+            if len(A) * len(B) == len(U) and A &amp; B == {1}]
+    chan = [frozenset(x for x in U if x % 3 == 1),
+            frozenset(x for x in U if x % 5 == 1)]
+    aligned = sum(set(d) == set(chan) for d in decs)
+    check("U(30): direct decompositions, channel-aligned ones",
+          (len(decs), aligned) == (4, 1),
+          f"{len(decs)} decompositions, {aligned} aligned")
+
+
+# ---------------------------------------------------------------- P
+<span id="poly_functions"></span>def poly_functions(N):
+    gens = [tuple(pow(a, k, N) for a in range(N)) for k in range(2 * N + 2)]
+    span = {tuple([0] * N)}
+    for g in gens:
+        new = set(span)
+        for s in span:
+            v = s
+            for _ in range(N - 1):
+                v = tuple((a + b) % N for a, b in zip(v, g))
+                new.add(v)
+        span = new
+    return span
+
+
+<span id="conjunctive_mode"></span>def conjunctive_mode(elems, rel, projs):
+    R = {(x, y) for x in elems for y in elems if rel(x, y)}
+    P = [{(f(x), f(y)) for x, y in R} for f in projs]
+    conj = {(x, y) for x in elems for y in elems
+            if all((f(x), f(y)) in Pi for f, Pi in zip(projs, P))}
+    if conj == R:
+        return "conjunctive", len(R), len(conj)
+    if len(conj) == len(elems) ** 2:
+        return "maximal", len(R), len(conj)
+    return "proper", len(R), len(conj)
+
+
+<span id="cyc_order"></span>def cyc_order(a, n):
+    return n // gcd(a, n)
+
+
+<span id="section_p"></span>def section_p():
+    print("P  the bearers")
+    sizes, ok = {}, True
+    for N in (4, 6, 8, 9):
+        span = poly_functions(N)
+        sizes[N] = len(span)
+        ok &amp;= tuple(1 if a == 0 else 0 for a in range(N)) not in span
+    check("[a = 0] is no polynomial at Z/4, Z/6, Z/8, Z/9",
+          ok and sizes == {4: 64, 6: 108, 8: 1024, 9: 19683}, str(sizes))
+    ok = all((1 - pow(a, p - 1, p)) % p == (1 if a == 0 else 0)
+             for p in primes_upto(13) for a in range(p))
+    check("at a prime it is 1 - a^(p-1)", ok)
+    mode, _, _ = conjunctive_mode(
+        range(6), lambda x, y: x == y, [lambda x: x % 2, lambda x: x % 3])
+    check("control: equality at Z/6 is conjunctive",
+          mode == "conjunctive", mode)
+    for M, A, B in ((6, 2, 3), (36, 4, 9)):
+        mode, r, c = conjunctive_mode(
+            range(M), lambda x, y: x &lt;= y,
+            [lambda x, A=A: x % A, lambda x, B=B: x % B])
+        check(f"order at Z/{M} through windows {A} and {B}: {mode}",
+              mode == "maximal", f"{r} of {c}")
+    bad, pairs = [], 0
+    for n1 in range(2, 11):
+        for n2 in range(n1, 11):
+            elems = [(a, b) for a in range(n1) for b in range(n2)]
+
+            def order(x, n1=n1, n2=n2):
+                return lcm(cyc_order(x[0], n1), cyc_order(x[1], n2))
+
+            mode, _, _ = conjunctive_mode(
+                elems, lambda x, y: order(y) % order(x) == 0,
+                [lambda x: x[0], lambda x: x[1]])
+            pairs += 1
+            want = ("conjunctive" if gcd(n1, n2) == 1 else
+                    "maximal" if n1 == n2 else "proper")
+            if mode != want:
+                bad.append((n1, n2, mode))
+    check("order divisibility on C_n1 x C_n2: conjunctive iff coprime, "
+          "maximal iff equal", not bad and pairs == 45,
+          f"{pairs} pairs, mismatches {bad}")
+    elems = [(a, b, c) for a in range(2) for b in range(2) for c in range(2)]
+    mode, _, _ = conjunctive_mode(
+        elems,
+        lambda x, y: (2 if any(y) else 1) % (2 if any(x) else 1) == 0,
+        [lambda x: x[0], lambda x: x[1], lambda x: x[2]])
+    check("order divisibility on C2 x C2 x C2: maximal", mode == "maximal", mode)
+    U15 = [x for x in range(15) if gcd(x, 15) == 1]
+    ords = sorted(next(k for k in range(1, 9) if pow(x, k, 15) == 1)
+                  for x in U15)
+    shape = sorted(lcm(cyc_order(a, 2), cyc_order(b, 4))
+                   for a in range(2) for b in range(4))
+    check("U(15) has the order multiset of C2 x C4", ords == shape,
+          str(ords))
+
+
+<span id="main"></span>def main():
+    section_b()
+    section_a()
+    section_s()
+    section_v()
+    section_i()
+    section_z()
+    section_g()
+    section_e()
+    section_r()
+    section_p()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/coordinates.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

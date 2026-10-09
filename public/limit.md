@@ -1,0 +1,350 @@
+# LIMIT — where one greedy walk goes
+
+The object: a greedy growth walk over F₂[x] or the ring of a curve over
+F₂, under the dynamics demand, read as an instance of a **pricing
+schedule** — items of integer degree, a notch on a ladder, a price of
+degree and door, ν openings per degree at door 1, and a
+rule saying which degrees are covered. This page asks what the walk
+converges to, which features of that limit belong to the ring and which
+to the schedule, what bounds the runaway's degree, and what can stop the
+support from widening. Its verifier is limit.py.
+
+Items carry a positive integer degree d, the **supply** σ(d) counting
+the items of degree d, finitely many per degree. A state gives
+every item an exponent a ≥ 0, its **support** being the items at a
+positive one, and carries a **notch** T on a ladder S, an infinite set
+of positive integers containing 1. A degree is **covered** when it is
+born covered, when ν openings have been made at it, or when a **covering
+rule** says so. A move on an item is an **opening** when its exponent is
+0 and its degree uncovered (door 1, landing at 1, the notch unmoved),
+and a **clock move** otherwise (door r = T + 1 − a, landing at T + 1,
+the notch moving to the least member of S at or above T + 1). It costs
+the price κ(d, r), r being its **door**, the rise in its item's
+exponent. A greedy walk starts from the void, every exponent 0 and the
+notch at 1, and at each state takes a least move on its menu, the moves
+the state offers. A move's type is its kind, opening or clock move, with
+its item's degree and exponent; a tie is a menu whose least price
+several types share, and a branch is one way of breaking every tie. The
+item a clock move moves is its **holder**; the item holding every clock
+move from some point on is the **runaway**, and an earlier holder is a
+**strand**. Every exponent stays at or below the notch, so every door is at
+least 1. The **corner** is S the powers of 2, κ(d, r) = d·r, ν = 1
+and degree 1 born covered.
+
+The answer, in one line: under a price that rises strictly with the door
+at no lower degree, the holders of clock moves form a chain of strictly
+falling degree, so a walk that clocks forever has one runaway, its
+strands are the chain's earlier members and everything else stands at
+exponent 0 or 1; once a runaway holds the clock, with no degree covered
+but by birth or its openings, the support widens forever when infinitely
+many supplied degrees are not born covered, the ladder's gaps are
+unbounded and the price is unbounded in the door, and stays finite when
+the gaps are bounded and only finitely many openings are cheap; the
+runaway's degree is at most 2^(1/α) times the least supplied degree at
+the price d^α·r, α > 0, on every ladder, and a geometric ladder of ratio
+b > 2 lowers that; and on unbounded gaps, at a price unbounded in the door,
+over infinitely many supplied degrees not born covered, a covering rule
+read off the born and opened degrees alone, finitely many at each
+state, never stops the widening, while one keyed to the clock can.
+
+## The ring is a supply
+Tier: rule (the door proved; the walk verified at 720 states over six
+ring supplies).
+Verifier: limit.py::section_d, limit.py::section_x.
+
+For P irreducible of degree d over F₂, (F₂[x]/P^a)^× is F_(2^d)^× times
+(1 + P)/(1 + P^a), and (1 + y)^(2^j) = 1 + y^(2^j) makes the second
+factor a 2-group of exponent 2^⌈log₂ a⌉. So λ(P^a), the unit group's
+exponent, is lcm(2^d − 1, 2^⌈log₂ a⌉), checked by brute force at 47
+pairs (P, a) with deg P ≤ 4 and deg P^a ≤ 12. A move raises λ at P
+either by seating P (exponent 0 to 1) while 2^d − 1 does not divide λ's
+odd part, an opening at door 1, or by carrying P to T + 1, the notch T
+here being the 2-part of λ, which the move doubles. A place is seated at
+a positive exponent. The index [P^a : P^(a+r)] is 2^(dr), and its log
+d·r is the move's additive index. A curve over F₂ has the same
+completions, so the ideal world over either ring
+(GROWTH.md#the-lock-over-a-number-ring), a move seating one place power,
+is the corner schedule with the supply its place count per degree,
+provided the covered supplied degrees are the opened ones and 1. The
+next claim provides that, and a walker covering by exact divisibility of
+λ reads the corner's least moves and covered sets at every one of 720
+states, 120 along one canonical walk to degree 40 over each of F₂[x] and
+five curves given by their zeta numerators, 1 − t + 2t², 1 + 2t²,
+1 + t + 2t², 1 + 2t + 2t² and 1 + 2t + 4t² + 4t³ + 4t⁴, each with one
+rational place removed. As a control, the corner schedule with a notch
+that triples, the ladder of powers of 3 in place of 2, parts from that
+walker at the second state.
+
+## No supplied degree is covered before it opens
+Tier: theorem (the lcm reading, from Bang's theorem); rule (the product
+reading and base 3, verified 1 < d ≤ 300).
+Verifier: proof; limit.py::section_d.
+
+Bang's theorem (1886), at base 2: for d > 1 and d ≠ 6, 2^d − 1 has a
+prime factor p dividing no smaller 2^j − 1. The order of 2 mod p is then
+d, so p | 2^j − 1 iff d | j; at d = 6, 63 = 3²·7 and v₃(2^j − 1) ≥ 2 iff
+6 | j. So 2^d − 1 divides the lcm of the 2^j − 1 over a set J iff J
+holds a multiple of d, and a walk that opens degrees in increasing order
+never covers a supplied degree before opening it. Read as the product of
+the 2^j − 1 the test is more generous: it covers d = 6 before 6 opens,
+63 dividing 3·7·15 over {2, 3, 4}, and no other degree below 301; at
+base 3 neither reading covers a degree early. This is the ideal world's
+own statement of GROWTH.md#the-sibling-shadow's frontier.
+
+## The chain
+Tier: theorem.
+Verifier: proof; limit.py::section_c.
+
+Let the price satisfy κ(d′, r′) > κ(d, r) whenever d′ ≥ d and r′ > r,
+at any ladder under one notch shared by every item. Take a clock move of Y
+whose previous clock move had another holder Z. Z landed one above the
+notch u it met, and since only openings came between, every other
+exponent is at most max(1, u); so Y's door exceeds the door of Z's own
+re-clock at that state. Z could have been moved, so
+κ(d_Y, r_Y) ≤ κ(d_Z, r_Z), which the hypothesis forbids unless
+d_Y < d_Z. So the holders' degrees strictly fall at every change
+of holder, and no holder returns.
+
+A walk with infinitely many clock moves therefore has exactly one
+runaway. Its strands are the chain's earlier members, at most as many as
+the supplied degrees below the first holder, each at a finite exponent
+at least 2, and every item never clocked stands at 0 or 1 forever. The
+proof reads no ring, no ladder, no ν and no degree's value. The power
+prices d^α·r, α ≥ 0, and the additive price d + r meet the hypothesis. A
+price that also reads whether the item is seated needs the hypothesis
+with an unseated price on the left and a seated one on the right. One is
+the multiplicative index, the factor by which a move multiplies the
+order of the unit group: over a ring whose places of degree d have norm
+q^d, q^(dr) − q^(d(r−1)) for an unseated place at door r and q^(dr) for
+a seated one. The multiplicative index meets the hypothesis except at
+q = 2 and degree 1, where an unseated item at a door one larger can tie,
+a case the proof never meets: at the notch T′ that Z's move set, an
+unseated Y's door T′ + 1 exceeds the holder's T′ − u by u + 1 ≥ 2. Over
+the schedule walks the verifier runs, 17 changes of holder were read, a
+change counted each time a walk steps through it, and every one fell.
+
+The one step that consults an order is the last: over degrees that are
+only partially ordered, κ(d_Y, r_Y) ≤ κ(d_Z, r_Z) with r_Y > r_Z gives
+only that d_Y is not at or above d_Z, and two incomparable items could
+trade the clock forever. Two items A and B trading it in turn, at gaps
+g_k, need
+κ(d_B, g_(k−1) + g_k) ≤ κ(d_A, g_k) < κ(d_A, g_k + g_(k+1)) ≤ κ(d_B, g_(k+1)),
+d_A and d_B their degrees, so g_(k+1) > g_(k−1) + g_k: at bounded gaps
+two items cannot, by an order on prices and not on degrees; more than
+two is not derived here. A deep coordinate is an exponent that grows
+without bound, and under the chain's total order a walk that clocks
+forever has exactly one, its runaway's; what keeps it single is the
+degree's total well-order on a ladder of unbounded gaps, the corner's,
+and on one of bounded gaps, for a pair, greed's order on prices; at
+neither is it the ring's.
+
+## When the clock runs forever
+Tier: theorem.
+Verifier: proof; limit.py::section_b.
+
+Between clock moves the notch stands still, so every clock move's price
+does, while each opening is spent once. If the opening prices κ(d, 1)
+tend to infinity over the supply, only finitely many items opening below
+any bound, or the supply is finite, the walk clocks infinitely often.
+Unbounded is not enough: at κ(d, 1) = 1 at every even d and
+κ(d, r) = d·r otherwise, every degree supplied, on the doubling ladder,
+every clock move once the notch reaches 4 has door at least 2 and costs
+at least 2, and the walk opens forever. At the degree-blind price κ = r
+every opening costs 1 and no change of holder is possible. A clocked
+item lands at T + 1 and its next door is the ladder's gap there; once
+that gap exceeds 1 every clock move's door is at least 2, since every
+other exponent is at most 1 and the notch at least 2. So on any ladder
+but the exact one, S = {1, 2, 3, …} of gap 1, a degree-blind walk over
+infinitely many supplied degrees that its born set and covering rule
+leave uncovered until they open, clocks a bounded number of times and
+then opens forever: no runaway. On the doubling ladder that is at most
+two clock moves, final notch at most 4, and whether they happen at all
+is the tie-break's: over 300 moves, the second and third moves when its
+ties go to the clock, none when they go to the opening.
+
+## The support
+Tier: theorem.
+Verifier: proof; limit.py::section_s.
+
+Take the chain's price and the default covering, no degree covered but
+by birth or by its ν openings; a covering rule is
+LIMIT.md#what-stops-the-widening's.
+Once the runaway X holds every clock move, its door at each re-clock is
+the ladder's gap T_k − T_(k−1), T_1 < T_2 < … the members of S, and the
+**recurrent price** is κ(d_X, gap). If the gaps are unbounded and κ is
+unbounded in the door, then for any opening a large enough gap prices
+the re-clock above it, and since openings leave the notch where it is,
+every cheaper opening is taken before that re-clock: over infinitely
+many supplied degrees not born covered the support widens forever, with
+min(ν, σ(d)) openings at every degree not born covered, each opened
+item outside the chain at exponent 1. If the gaps are bounded by G, no
+opening priced above
+κ(d_X, G) is taken once X settles, the re-clock being always on the
+menu; when only finitely many openings cost κ(d_X, G) or less, the walk
+locks with a finite support. The degree-blind price κ = r on the exact
+ladder has infinitely many, and a branch alternating its ties clocks and
+opens forever.
+
+At the corner price over two items per degree, 240 moves, on the branch
+taking the clock at every tie, the void's κ(1, 2) = 2 = κ(2, 1) first:
+the exact ladder and the gap-2 ladder never open, gap 3 opens to degree
+2 and gap 5 to degree 4, all at or below d_X·G; the squares, the
+triangular numbers and the ladders of ratio 3/2, 2, 3 and 4 are still
+opening in their last quarter.
+
+## The ideal limit
+Tier: rule (proved at the corner; verified over six ring supplies, 10
+moves branched and 290 more on every branch).
+Verifier: limit.py::section_l.
+
+At the corner, over a supply holding a place of degree 1 or 2 (every
+ring the verifier runs holds one), the limit of every branch is
+
+    ∞·C + one place at exponent 1 at each opened degree but C's,
+
+with C of degree 1 or 2 and no strand: the ideal world's single deep
+place over a flat support, every other place at exponent 1, that never
+stops widening. The chain gives
+the shape, and the support theorem the widening, since the doubling
+ladder's gaps are unbounded. The first holder keeps the clock: degree 1
+being born covered, every rational rival is unseated and bids T + 1,
+while a holder of degree d₁ ≤ 2 re-clocks at d₁·T/2 ≤ T. A degree-2 C
+is the opened degree-2 place itself, so no rational place is seated at
+all on that branch. Every supplied degree
+above 1 opens, one place each; over 300 moves that is 290
+degrees on every branch with C rational and 291, C's own opening among
+them, on every branch with C of degree 2. F₂[x] and the four curves
+with a degree-2 place have three branches each, the curve with no place
+of degree 2 or 3 one, with C rational.
+
+## The ceiling
+Tier: theorem.
+Verifier: proof; limit.py::section_c, limit.py::section_s.
+
+Openings leave the notch where it is, so the first clock move is made at
+T = 1, where an item of the least supplied degree d_min offers a move at
+price at most κ(d_min, 2): its opening, its clock at door 1, or, its
+degree covered, its clock at door 2. The first holder, of degree d₁,
+therefore has κ(d₁, 1) ≤ κ(d_min, 2), and by the chain the runaway's
+degree D is at most d₁. At κ = d^α·r, α > 0, that is D ≤ 2^(1/α)·d_min,
+and at the additive price D ≤ d_min + 1, on every ladder. The verifier
+runs a sweep of 14 schedules, varying the ladder, the price, ν and the
+born-covered degrees, over three ring supplies (F₂[x], the curve
+1 + 2t + 2t² and the genus-2 curve) at every schedule and a designed one
+at twelve, 54 rows, every tie branched over the first 10 moves; its 71
+branches at those prices and the ladders run in the support section find
+no runaway above it, the runaway read as the item at the top exponent
+when the run ends, the last three clock moves sharing its degree.
+
+The ladder can lower this. Let D > d_min. Strands sit above D, so every
+item of degree d_min stands at 0 or 1, and at each re-clock after
+settling
+
+    κ(D, T_k − T_(k−1)) ≤ κ(d_min, T_k + 1).
+
+At κ = d^α·r, α > 0, that is D ≤ d_min·R_k^(1/α) with R_k = (T_k + 1)/
+(T_k − T_(k−1)). On the ladder T_k = ⌈b·T_(k−1)⌉, R_k tends to
+b/(b − 1), so
+
+    D ≤ d_min · (b/(b − 1))^(1/α),
+
+2·d_min at the corner, the first-clock bound again. It is sharper
+exactly when b > 2 (1.5·d_min at b = 3 and α = 1) and weaker at b < 2,
+where the first-clock bound governs. Since
+R_k/(R_k − 1) = (T_k + 1)/(T_(k−1) + 1) exactly, the bound reads the
+liminf of R_k, finite as soon as T + 1 grows by a fixed ratio infinitely
+often. A steeper degree penalty lowers both bounds. No runaway crossed
+either in the sweep.
+
+## Attainment is the void menu's
+Tier: rule (verified at 54 rows: 14 schedules, three ring supplies
+and a designed one, every tie branched over 10 moves).
+Verifier: limit.py::section_c.
+
+Until the first clock move the notch is 1, and there the least
+born-covered degree d_c bids κ(d_c, 2), the least fresh degree d_f, the
+least supplied degree not born covered, bids κ(d_f, 1), and an item
+opened meanwhile at that degree bids κ(d_f, 1) again by a clock at door
+1, so at a price strictly increasing in the degree, as every one in the
+sweep is, the first holder is a winner of that one comparison. The
+degrees that ever hold a clock move, over every branch of a row, its
+**census**, are exactly the comparison's winners at all 54 rows, but not
+in general: at b = 4 with degree 2 born covered and every degree from 2
+supplied, the winner 3 sits above the ceiling ⌊2·4/3⌋ = 2 and a degree-2
+item takes the clock from it, the census reading {2, 3}. At the corner
+every ring supply with a degree-2 place ties it, κ(1, 2) = 2 = κ(2, 1),
+which is the whole of the degree-2 branch; the curve with no place of
+degree 2 or 3 bids 4 against 2 and has one branch. A row whose supply
+has nothing at 1 or 3, with degree 2 born covered and 4 the least fresh
+degree, ties at κ(2, 2) = 4 = κ(4, 1) and its census reads {2, 4}:
+degree 4, the ceiling itself, holds a clock move on one of its branches.
+
+The tie is the additive index's, at d_f = 2d_c. Priced by the
+multiplicative index, with d = d_c, the void bids are
+q^(2d) − q^d < q^(2d) − 1 at every q and the born-covered bid wins:
+every multiplicative row, at q = 2 on the ladders of ratio 2, 3 and 4
+and at q = 3 on the doubling one, reads one branch and no strand.
+
+## The strand
+Tier: rule (verified at the 54 rows).
+Verifier: limit.py::section_c.
+
+At every b > 2 the void tie still seats an item of degree 2·d_min, the
+tie being a notch-1 fact, while the ceiling has fallen below 2·d_min: to
+1 over a ring supply with a degree-2 place, and to 3 at b = 3 and 2 at
+b = 4 over the designed supply with degree 2 born covered, whose row in
+the preceding section has census {2, 4}. On that branch the item is
+clocked and then undercut: at b = 3 it re-clocks at 2·d_min·(2T/3)
+against the T + 1 door of an unseated rival of degree d_min, priced
+d_min·(T + 1), and loses once T > 3. By the chain the rival is the
+runaway and the seated item its one strand, at a finite exponent
+above 1. Every branch that hands off strands exactly one item: at
+b = 3, 2 of 3 branches over F₂[x], 3 of 4 over the genus-2 curve and 2
+of 3 over the designed supply; at b = 4, 1 of 2 over each of the three;
+none on the ladders of ratio 2 or 3/2. One deep coordinate survives
+every dial the sweep turns; a flat support does not, since a strand
+stands above exponent 1.
+
+## What stops the widening
+Tier: theorem (the opened-set half); rule (the clock-keyed half, proved
+at the corner over a supply holding every degree; checked at 22 branches
+over six values of θ, and the opened-set half read at the below-2^d
+rule).
+Verifier: proof; limit.py::section_k.
+
+An **opened-set** rule, whose extra covered set is a function of the
+born and opened degrees holding finitely many degrees at each state,
+covers nothing new on a clock move. On a ladder with unbounded gaps and
+the chain's price unbounded in the door, where one runaway holds the
+clock, over infinitely many supplied degrees not born covered, between
+openings the horizon, the least uncovered supplied degree with an item
+left to open, keeps a constant price while the recurrent price is
+unbounded with the gaps, so the horizon opening undercuts some later
+re-clock, and after any step some opening is made: no opened-set rule
+stops the widening, however fast it covers. Under the rule that an
+opening at d covers every degree below 2^d, the canonical branch,
+breaking every tie to a clock move, then the lower degree, then the
+lower exponent, opens 2, 4, 16 and 65536 at notches 8, 16, 64 and
+262144, where the verifier's supply ends; the next horizon is 2^65536.
+
+A clock-keyed rule can. Under "d is covered while d ≤ θ·T", at the
+corner over a supply holding every degree, where the horizon costs at
+least ⌊θ·T⌋ + 1, the first clock's holder keeps the clock, so its degree
+is the runaway's, D. Before the first clock the notch is 1 and a degree-1
+item, born covered and so never opened, bids 2 by a clock at door 2, so
+the first holder's degree d₁ is 1 or 2. The first clock lands the holder
+at the notch, and each later clock at T + 1 while the notch doubles, so
+the holder bids d₁·T/2 at every notch T. A change of holder needs a
+lower degree (LIMIT.md#the-chain), and at d₁ = 2 a degree-1 item bids
+T + 1 against the holder's T, so D = d₁. The notch is a power of 2 at
+least 2 after the first clock, so D·T/2 is an integer and the recurrent
+price D·T/2 undercuts the horizon's ⌊θ·T⌋ + 1 iff D·T/2 ≤ θ·T iff
+θ ≥ D/2. Below D/2, an opening is taken only at or below the standing
+clock price, D·T/4 through the notch T/2, so no degree above D·T/4 has
+been opened by the move to T once D·T/4 ≥ 2, and just after the move to
+T the horizon is at most max(⌊θ·T⌋, ⌊D·T/4⌋) + 1, under D·T/2 at a
+large notch, so an opening follows every late clock move. The widening
+stops at the first clock or never, with no T in the condition: at
+θ = 1/4 every branch keeps opening, at θ = 1/2 and 3/4 the degree-1
+branches stop and the degree-2 branches keep opening, and from θ = 1
+every branch stops.

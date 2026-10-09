@@ -1,0 +1,379 @@
+"""floors.py -- what each growth fate needs of the ground it grows on:
+a bare order, a cancellative monoid with a weight, or unique
+factorization.
+
+QUESTION. thermal.py proves three fates of thermal growth over Z and
+F_2[x]: transparency dies, dynamics reaches all of Z-hat, independence
+grows the zeta measure. Each proof used a few properties of the
+integers. Take the integers away one property at a time: on a finite
+order, on a cancellative commutative monoid with a weight, on a free
+one. Which fate survives on which ground, and which property is the
+one a fate cannot do without?
+
+THE OBJECT. FLOOR 0: a set of states strictly ordered, a demand naming
+the admissible ascents from each state, no weight. The INTERVAL demand
+on a region R admits every element of R above the state. FLOOR 1: a
+countable cancellative commutative monoid M with a CHARACTER w,
+w(ab) = w(a) w(b), 0 < w <= 1 off the identity, summable over M; the
+thermal law picks m in A(x) with probability w(m) / Psi_x, Psi_x the sum of w over A(x). A demand is
+UP-CLOSED when m in A(x) and m | m' give m' in A(x). FLOOR 2: M free
+on countably many atoms. The worlds: Z (free on the primes, w = m^-beta),
+F_2[x] (free on the irreducibles, w = 2^(-beta deg)), and NUM23, the
+numerical monoid {x^n : n = 0 or n >= 2} with atoms x^2 and x^3,
+cancellative and not free (x^2 x^2 x^2 = x^3 x^3); in NUM23, x^a
+divides x^b iff b - a is 0 or at least 2.
+
+THE ARGUMENT (written before the engine).
+  (1) DEATH NEEDS ONLY ORDER. A demand confining the walk to a finite
+      region R absorbs under every policy within the height of R,
+      since every move ascends strictly. For the interval demand the
+      graves are the reachable elements with no successor in R, each
+      reached by some policy, and the grave is unique iff the
+      reachable part of R has a maximum: a maximum dominates every
+      terminal, and without one two maximal elements are two graves.
+      On {1 < 2, 1 < 3} greedy dies at the cheaper of 2 and 3 and the
+      thermal law splits w(2) : w(3): the grave is the policy's. A
+      confined demand that is not an interval can run dry below a
+      maximum: R = divisors of 8, A(1) = {2}, A(2) empty. Transparency
+      over Z is the interval case with a maximum: the fibre above s is
+      the multiples of s dividing W(lambda(s)), so every trajectory
+      ends at that one wall.
+  (2) REACHING EVERYTHING NEEDS ONLY MULTIPLICATION. On floor 1 let A
+      be up-closed and nonempty. For any element a, m -> am maps A
+      into A cap aM injectively (cancellation) and multiplies weights
+      by w(a), so P(pick in aM) >= w(a) at every state. By Levy's
+      extension of Borel-Cantelli a divides infinitely many picks, so
+      it divides the state from some time on, almost surely, and M is
+      countable, so almost surely every element divides the state
+      eventually: the limit is the top. No atom and no factorization
+      is used.
+  (3) BEING ARITHMETIC RESTS ON UNIQUE FACTORIZATION. On floor 2
+      thermal.py's zeta measure transfers word for word (support,
+      entry-once, geometric depths), and the crystal's probability is
+      prod_g (1 - w(g)), which is 1/(sum of w over M) because the Euler
+      product equals the Dirichlet sum exactly when every element has
+      one factorization.
+  (4) FREENESS CANNOT BE DROPPED. In NUM23, call m independent of x^k when
+      no atom divides both. Every x^n with n >= 5 is divisible by both
+      atoms (n - 2 >= 3 and n - 3 >= 2 lie in the monoid), so every
+      independence walk from the identity dies within two moves; the
+      maximal two-move walks are 2 then 3, 3 then 2, 3 then 4 and 4 then
+      3, in exponents. The Euler product 1/((1 - t^2)(1 - t^3)) and the
+      Dirichlet sum 1 + t^2/(1 - t) first differ at t^6 (x^6 has two
+      factorizations), and at t = 1/4 they are 1024/945 and 13/12.
+      Up-closed demands reach the top of the same monoid by (2): two
+      fates part inside one world.
+  (5) CONSUMPTION. Independence avoids the support it has built, so a
+      move once taken is never admissible again: a consuming demand
+      owns no fixed standing move, and a standing family for it must
+      be made of recipes, as breadth's is in standing.py.
+
+DESIGN. Standard library, exact rational arithmetic where it can be;
+one process. growth.py supplies lambda and the wall.
+  C  POSITIVE CONTROL, before any verdict. Over F_2[x] the Dirichlet
+     series sum_d 2^d u^d and the Euler product prod_d (1 - u^d)^(-N_d),
+     N_d the irreducible count by the necklace formula, agree
+     coefficient by coefficient to degree 24: the free world passes the
+     test NUM23 is to fail.
+  O  floor 0. O1 every region: the divisor lattices of 60, 72, 210 and
+     360 from every seed, and 200 random subsets of the divisors of 360
+     containing 1 (fixed random seed), under the interval demand; the
+     graves counted, a record. O2 the specimen {1, 2, 3}: its graves,
+     greedy's end and the thermal split; the run-dry region printed.
+     O3 transparency from seeds 3, 5, 7: every maximal walk ends at
+     W(lambda(s)), 24, 240, 504.
+  M  floor 1. M1 on NUM23 with t = 1/4, exactly: for the up-closed
+     demands A_c = {m : m does not divide x^c}, c = 0..12, and a in
+     {x^2, x^3, x^4, x^5, x^7}, mass(A_c cap aM) >= w(a) mass(A_c).
+     Each A_c is up-closed by transitivity of division, no check.
+  X  the collapse. X1 both atoms divide x^n for 5 <= n <= 200. X2 every
+     maximal independence walk from the identity with moves of exponent
+     at most 60. X3 the two series to t^12 and at t = 1/4, exactly.
+
+PREDICTIONS, fixed before the run.
+  C  agreement at every degree to 24.
+  O  O1 every walk no longer than the height, every end a no-successor
+     element, one grave iff a reachable maximum, with some regions of
+     several graves (the replaced record counted 30 of 240). O2 two
+     graves on {1, 2, 3}; the run-dry walk ends at 2. O3 every walk
+     ends at 24, 240, 504.
+  M  M1 the inequality in every cell, equality whenever aA_c = A_c cap
+     aM. M2 no violation.
+  X  X1 no exception. X2 no walk longer than 2; exactly four of length
+     2, (2, 3), (3, 2), (3, 4), (4, 3). X3 first difference at t^6, of
+     +1 on the Euler side; 13/12 and 1024/945.
+A KILL is any failure in O, M1, X1, X2 or X3. The control failing
+voids X3.
+  [Ruled after a later reading: O1 and M2 held by construction, the
+  interval demand's walks being its chains and its graves the maximal
+  elements of a finite set, and A_c up-closed by transitivity; both
+  are cut, O1's grave count kept as a printed record, and the run-dry
+  walk, a demand written down, is printed, not checked.]
+
+FINDINGS. 7/7 checks PASS and no kill.
+  C  the irreducible counts 2, 1, 2, 3, 6, 9, 18, 30 to degree 8, and the
+     Euler product over F_2[x] equal to the Dirichlet series 2^d at every
+     degree to 24.
+  O  264 regions (the four divisor lattices from every seed and 200
+     random regions of 360's divisors), 101 with more than one grave.
+     {1, 2, 3} has the graves 2 and 3, greedy ending at 2 and the
+     thermal law at beta 2 sending 0.6923 of worlds to 2; the run-dry
+     walk ends at 2 below 8. Transparency from 3, 5 and 7 ends only at
+     24, 240 and 504.
+  M  the mass inequality in all 65 cells of NUM23 at t = 1/4, strict in
+     every one.
+  X  both atoms divide every x^n, 5 <= n <= 200. 60 maximal
+     independence walks with moves of exponent at most 60, the longest
+     of length 2, and those exactly (2, 3), (3, 2), (3, 4), (4, 3). The
+     series agree to t^5 and part at t^6 by one factorization; at
+     t = 1/4 the Dirichlet sum is 13/12 and the Euler product
+     1024/945.
+  Tiers: (1), (2), (4) are theorems, with the checks above in the
+  ranges printed; (3) is a theorem, its transfer being thermal.py's
+  argument read over any free monoid; (5) is a property.
+
+RUN RECORD. python floors.py: 7/7 checks, 0.1 s, peak 8.3 MB under a
+512 MB ceiling.
+"""
+
+import os
+import random
+import sys
+import time
+from fractions import Fraction
+from functools import lru_cache
+from math import comb
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import growth  # noqa: E402
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" + (f"  [{detail}]" if detail
+                                                   else ""))
+
+
+def section(title):
+    print()
+    print(title)
+
+
+def divisors(n):
+    ds = [1]
+    for p, e in growth.factor(n).items():
+        ds = [d * p ** i for d in ds for i in range(e + 1)]
+    return sorted(ds)
+
+
+# ------------------------------------------------------ C the control
+
+def necklace(d):
+    """The number of monic irreducibles of degree d over F_2."""
+    tot = 0
+    for e in range(1, d + 1):
+        if d % e == 0:
+            mu, x = 1, d // e
+            for p in growth.PRIMES:
+                if p > x:
+                    break
+                if x % p == 0:
+                    x //= p
+                    if x % p == 0:
+                        mu = 0
+                        break
+                    mu = -mu
+            tot += mu * 2 ** e
+    return tot // d
+
+
+def section_c():
+    section("C  positive control: a free world's two series agree")
+    D = 24
+    series = [1] + [0] * D
+    for d in range(1, D + 1):
+        N = necklace(d)
+        factor = [0] * (D + 1)
+        for k in range(0, D // d + 1):
+            factor[d * k] = comb(N + k - 1, k)
+        series = [sum(series[i] * factor[n - i] for i in range(n + 1))
+                  for n in range(D + 1)]
+    ok = series == [2 ** d for d in range(D + 1)]
+    print(f"  irreducible counts to degree 8: "
+          f"{[necklace(d) for d in range(1, 9)]}")
+    check("C1 over F_2[x] the Euler product equals the Dirichlet series "
+          "to degree 24", ok)
+    return ok
+
+
+# ------------------------------------------------------ O floor 0
+
+def interval_graves(R, s):
+    """Under the interval demand on R from s: the ends of every maximal
+    walk, by memoized search."""
+    R = sorted(R)
+    above = {r: [u for u in R if u != r and u % r == 0] for r in R}
+
+    @lru_cache(maxsize=None)
+    def ends(r):
+        if not above[r]:
+            return frozenset([r])
+        out = set()
+        for u in above[r]:
+            out |= ends(u)
+        return frozenset(out)
+
+    return ends(s)
+
+
+def section_o():
+    section("O  floor 0: death needs only order")
+    rng = random.Random(2)
+    regions = []
+    for n in (60, 72, 210, 360):
+        ds = divisors(n)
+        regions += [(ds, s) for s in ds]
+    d360 = divisors(360)
+    for _ in range(200):
+        R = [1] + [d for d in d360[1:] if rng.random() < 0.5]
+        regions.append((R, 1))
+    multi = sum(len(interval_graves(R, s)) > 1 for R, s in regions)
+    print(f"  {len(regions)} regions, {multi} with more than one grave")
+
+    R = [1, 2, 3]
+    ends = interval_graves(R, 1)
+    g = 1
+    while [u for u in R if u != g and u % g == 0]:
+        g = min(u for u in R if u != g and u % g == 0)
+    beta = 2.0
+    split = 2 ** -beta / (2 ** -beta + 3 ** -beta)
+    R8, A = divisors(8), {1: [2], 2: []}
+    walk = [1]
+    while A.get(walk[-1]):
+        walk.append(A[walk[-1]][0])
+    print(f"  {{1, 2, 3}}: graves {sorted(ends)}, greedy dies at {g}, the "
+          f"thermal law at beta 2 sends {split:.4f} of worlds to 2; the "
+          f"run-dry walk on {R8} ends at {walk[-1]} below {max(R8)}")
+    check("O2 two graves on {1, 2, 3}, greedy ending at the cheaper",
+          sorted(ends) == [2, 3] and g == 2)
+
+    ok = True
+    walls = []
+    for s in (3, 5, 7):
+        L = growth.lam_int(s)
+
+        @lru_cache(maxsize=None)
+        def tends(M):
+            moves = [m for m in range(2, 2000) if M * m <= 10 ** 6
+                     and growth.lam_int(M * m) == L]
+            if not moves:
+                return frozenset([M])
+            out = set()
+            for m in moves:
+                out |= tends(M * m)
+            return frozenset(out)
+        e = tends(s)
+        walls.append(sorted(e))
+        ok &= e == frozenset([growth.wall(L)])
+    print(f"  transparency graves from 3, 5, 7: {walls}")
+    check("O3 every transparency walk ends at the one wall W(lambda(s))",
+          ok and walls == [[24], [240], [504]])
+
+
+# ------------------------------------------------------ M floor 1
+
+T = Fraction(1, 4)
+
+
+def in_num23(k):
+    return k == 0 or k >= 2
+
+
+def divides23(a, b):
+    return b >= a and in_num23(b - a)
+
+
+def mass(pred, start, B):
+    """sum of t^n over n >= start with pred(n) for n <= B, every n > B
+    assumed to satisfy pred."""
+    tot = sum((T ** n for n in range(start, B + 1) if pred(n)), Fraction(0))
+    return tot + T ** (B + 1) / (1 - T)
+
+
+def section_m():
+    section("M  floor 1: reaching everything needs only multiplication")
+    bad = eq = n = 0
+    for c in range(0, 13):
+        def inA(k, c=c):
+            return k >= 2 and not divides23(k, c)
+        B = c + 20
+        mA = mass(inA, 2, B)
+        for j in (2, 3, 4, 5, 7):
+            mAa = mass(lambda k: inA(k) and divides23(j, k), 2, B + j)
+            n += 1
+            bad += mAa < T ** j * mA
+            eq += mAa == T ** j * mA
+    check("M1 mass(A_c cap aM) >= w(a) mass(A_c) in NUM23, exactly",
+          bad == 0, f"{n} cells, {eq} with equality")
+
+
+# ------------------------------------------------------ X the collapse
+
+def atoms(k):
+    return frozenset(a for a in (2, 3) if k >= a and in_num23(k - a))
+
+
+def section_x(control):
+    section("X  the coprimality collapse")
+    check("X1 both atoms divide x^n for 5 <= n <= 200",
+          all(atoms(n) == {2, 3} for n in range(5, 201)))
+
+    walks = []
+
+    def go(k, acc):
+        moves = [n for n in range(2, 61) if not (atoms(n) & atoms(k))]
+        if not moves:
+            walks.append(tuple(acc))
+            return
+        for n in moves:
+            go(k + n, acc + [n])
+    go(0, [])
+    longest = max(len(w) for w in walks)
+    two = sorted(w for w in walks if len(w) == 2)
+    print(f"  {len(walks)} maximal walks, the longest {longest}; "
+          f"length 2: {two}")
+    check("X2 every independence walk from the identity dies within two "
+          "moves", longest == 2 and two == [(2, 3), (3, 2), (3, 4), (4, 3)])
+
+    dirich = [1 if in_num23(n) else 0 for n in range(13)]
+    euler = [sum(1 for a in range(7) for b in range(5) if 2 * a + 3 * b == n)
+             for n in range(13)]
+    first = next(n for n in range(13) if dirich[n] != euler[n])
+    t = T
+    ds = 1 + t * t / (1 - t)
+    ep = 1 / ((1 - t * t) * (1 - t ** 3))
+    print(f"  Dirichlet {dirich}\n  Euler     {euler}")
+    print(f"  first difference at t^{first}, Euler minus Dirichlet "
+          f"{euler[first] - dirich[first]}; at t = 1/4: {ds} against {ep}")
+    check("X3 the Euler product leaves the Dirichlet sum at t^6; 13/12 "
+          "against 1024/945", control and first == 6
+          and euler[6] - dirich[6] == 1 and ds == Fraction(13, 12)
+          and ep == Fraction(1024, 945))
+
+
+def main():
+    t0 = time.time()
+    control = section_c()
+    section_o()
+    section_m()
+    section_x(control)
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

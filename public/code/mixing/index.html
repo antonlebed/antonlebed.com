@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>mixing.py | Numbers read one place at a time</title>
+<meta name="description" content="mixing.py">
+<link rel="alternate" type="text/x-python" href="/code/mixing.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>mixing.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/collide/#the-cycle-lemma">COLLIDE: The cycle lemma</a> (theorem); <a href="/collide/#the-mixing-theorem">COLLIDE: The mixing theorem</a> (theorem); <a href="/collide/#the-family-mixes-at-every-e">COLLIDE: The family mixes at every e</a> (property); <a href="/collide/#the-binomial-pair-criterion">COLLIDE: The binomial-pair criterion</a> (criterion).</p><p>Cited on: <a href="/collide/">COLLIDE</a>.</p><p>To run it: <a href="/code/collide.py">collide.py</a> beside it; needs sympy.</p></div>
+<pre>"""mixing.py -- two factorizations at twelve terms where no block divides
+a block across, and the lemma that pins them.
+
+QUESTION. Two atomic factorizations X and Y of one nonnegative product
+F, with the blocks both sides hold set aside as SPECTATORS, are SHARED
+when some block of one side divides some block of the other (on the
+multiset of Z-irreducible atoms), and MIXING when none does. At
+coefficient sum twelve -- twelve terms counted with multiplicity, the
+value of every product of a three-menu and a four-menu, or of a
+two-menu and a six-menu -- which mixing pairs exist? Does the answer
+need the product to be 0/1, or does it hold for every nonnegative
+product of content 1? And between two binomials, (1 + u) H = (1 + u')
+H', what decides mixing at any size?
+
+THE ARGUMENT (written before the engine). F has content 1 and value
+F(1) = 12; blocks are atomic, so none is a monomial and each has value
+at least 2. Blocks are read up to monomial factors.
+  (A) SPECTATORS FORCE SHARING. A common block S of value 2, 3, 4 or 6
+      leaves a residue F / S of value 6, 4, 3 or 2 carrying two
+      distinct atomic factorizations. Over N a polynomial of value 2,
+      3 or 4 factors uniquely and one of value 6 is non-unique only as
+      X^a (1 + X^b + ... + X^(5b)), whose factorizations {1 + X^b,
+      1 + X^(2b) + X^(4b)} and {1 + X^b + X^(2b), 1 + X^(3b)} are
+      shared, 1 + X^b dividing 1 + X^(3b) (van de Woestijne's
+      classification, arXiv:1103.0709, counted with multiplicity). So a mixing
+      pair has no spectator, and a side is {12}, {2, 6}, {3, 4} or {2, 2, 3} by
+      value; a side {12} is one atomic block every block across divides.
+  (B) EVERY BLOCK OF A MIXING PAIR IS REDUCIBLE. A Z-irreducible block
+      is an atom of F and lies in some block across, which it divides.
+      A block of value 2 is a binomial with distinct terms (content 1).
+      One of value 3 is a 0/1 trinomial, since a binomial of value 3
+      is Eisenstein at 2 after a unimodular change of variables, so by
+      the trinomial lemma of collide.py it is collinear:
+      T = 1 + v^a + v^b along one primitive monomial v.
+  (C) THE CYCLE LEMMA, FOR MULTISETS. Let a six-slot multiset of
+      integers be tiled two ways, T + {0, alpha} = S + {0, s}, T and
+      S three-slot multisets, alpha, s distinct and positive. At each
+      point the alpha- and s-edges meet equally often, so the edges split into
+      alternating closed trails. A trail of one edge of each kind joins
+      the same two points, forcing alpha = s, so there is one trail of
+      three edges of each kind. Its signed alpha-steps sum to an odd
+      A and its s-steps to an odd B with |A|, |B| &lt;= 3 and A alpha + B s
+      = 0, so {|A|, |B|} = {1, 3}: s = 3 alpha or alpha = 3 s, and the
+      three steps of the shorter kind share a sign. Walking the three
+      sign patterns of the longer steps visits six consecutive
+      multiples of the shorter step, all distinct. So the multiset is a
+      set, m + g {0, 1, ..., 5} with g = min(alpha, s), and the two
+      tilings, each multiset read as the exponents of a polynomial in
+      v, are the six-term identity (1 + x)(1 + x^2 + x^4) =
+      (1 + x + x^2)(1 + x^3) in x = v^g. A tiling with a doubled point
+      has no second binomial at all.
+  (D) THE TOP SLICE. Let X hold the trinomial T along v, R = F / T the
+      rest of X (value 4, nonnegative), and suppose F does not lie in
+      one coset of the line Z v. Slice every polynomial along the cosets
+      of Z v: F_c = T R_c. The quotient lattice is free abelian, so for a
+      generic weight w vanishing on v the top slice of a product is the
+      product of the top slices. Every atom of T lies in Z[v, 1/v] and
+      divides the v-CONTENT (the gcd of the slices) of the block of Y
+      holding it; if a single block of Y had nonmonomial content, T
+      would divide it. So two blocks of Y have nonmonomial content, their
+      top slices have value at least 2 each, and the top slice of F,
+      T R_top, has value 3 R_top(1) &gt;= 4: R_top(1) &gt;= 2 at every vertex
+      of R's coset support. R has value 4 and at least two
+      cosets, so it has exactly two, of value 2 each. Each slice of F is
+      L, the product of Y's blocks on the line, times the one spanning
+      block's slice there (cosets add as sets), so the spanning block's
+      two slices have equal value: monomials, value 3, or value 2
+      beside L of value 3. A slice of R that is twice a monomial makes
+      F's slice 2 m T, of content 2, while every block has content 1
+      (Gauss, F having content 1): only a slice 2 m' of a spanning
+      four-block beside L = T' can carry it, and 2 m' T' = 2 m T makes
+      T' = T up to a monomial, which is sharing; so R's slices are
+      binomials,
+      1 + v^alpha and z (1 + v^beta), z off the line.
+  (E) THE CASES. The sumset bound in an ordered group makes exactly one
+      block Z* of Y span both cosets, the rest lying on the line.
+      Y = {B, S}, Z* = B = 1 + z': S is one slice, S = T (1 + v^alpha),
+      and T divides S. Y = {B, S}, Z* = S: B = 1 + v^s on the line
+      divides both slices, T (1 + v^alpha) = B S_0 and T (1 + v^beta) =
+      B S_1 with S_c of value 3, and (C) reads each slice as the binomial
+      itself (s = alpha, S_0 = T) or the six-term identity, where T fixes
+      e: T = 1 + v^2e + v^4e with alpha = e, s = 3e, or T = 1 + v^e +
+      v^2e with alpha = 3e, s = e. Both slices alike: S = S_0 (1 + z)
+      is not atomic. Slices (binomial, identity) with T = 1 + v^e + v^2e:
+      B = 1 + v^e divides R = (1 + v^e) + z (1 + v^3e). What is left is
+      T = 1 + v^2e + v^4e, alpha = 3e, beta = e:
+        THE FAMILY  {1 + v^2e + v^4e,  (1 + v^3e) + z (1 + v^e)}
+            against {1 + v^3e,  (1 + v^2e + v^4e) + z (1 + v^e + v^2e)}.
+      Y with a trinomial T': Z* = T' leaves the line blocks a value-4
+      content, and slices of value 8 and 4 against 6 and 6. Z* a
+      binomial across: both slices of F are one polynomial, alpha = beta,
+      R = (1 + v^alpha)(1 + z), and the binomial across is 1 + z, a
+      spectator. Z* the four-block Q': T' lies on the line, T (1 +
+      v^alpha) = T' Q'_0, and (C) makes T and T' the two trinomials of
+      the identity at one e, so alpha = beta and R and Q' are each a
+      product of two binomials sharing 1 + z, a spectator.
+  THE DICHOTOMY: at value twelve, for any nonnegative F of content 1, a mixing
+  pair has a trinomial block T ((H) below closes the sides {2, 6} against
+  {2, 6}, the one pair of shapes without one), and either F lies in one coset
+  of T's line or the pair is the family. No 0/1 hypothesis is used: (A) counts
+  with multiplicity, (B) needs content 1, (C) and (H) are proved for multisets,
+  and (D) and (E) read values.
+  (F) THE FAMILY MIXES AT EVERY e &gt;= 1, z off the line. With G =
+      Phi6(v^e) + z, irreducible as Eisenstein in the coordinate off
+      the line at any prime factor of the squarefree Phi6(v^e), the
+      blocks are Phi3(v^e) Phi6(v^e) and (1 + v^e) G
+      against (1 + v^e) Phi6(v^e) and Phi3(v^e) G. The cyclotomic atoms
+      of 1 + v^e, Phi3(v^e) and Phi6(v^e) are pairwise disjoint (their
+      indices differ at the prime 2 or the prime 3), so no block divides
+      one across. The trinomial and the binomial are atoms by value;
+      a nonnegative split of (1 + v^e) G or Phi3(v^e) G puts G in a part
+      G k with k on the line, whose slice k z needs k a monomial, and
+      then the part has Phi6's negative coefficient.
+  (G) THE BINOMIAL-PAIR CRITERION, any size, any number of variables.
+      A pair (1 + u) H = (1 + u') H' MIXES when neither binomial divides a
+      block across, H and H' each read as one block. Write u = w^s, u' = w'^k
+      with w, w' primitive. Off one line the binomials' atoms are cyclotomics
+      in different primitive monomials, so 1 + u, squarefree and coprime to
+      1 + u', divides H'. On a line, v primitive, g = gcd(s, k), s = g s',
+      k = g k', W = v^g: if s' or k' is even the binomials are coprime
+      again; if s' = 1 the one binomial divides the other. With s', k'
+      odd and at least 3, 1 + W^s' and 1 + W^k' share only the atom 1 + W, each
+      once, so 1 + u divides H' iff (1 + W)^2 divides every slice P_c of
+      P along the cosets of Z W -- the same condition as 1 + u' dividing
+      H. Since P_c = (1 + W^s') H_c, P_c'(-1) = s' H_c(-1). So:
+        NEITHER BINOMIAL DIVIDES A BLOCK ACROSS IFF u, u' lie on one
+        line, s', k' are coprime odd integers &gt;= 3, and some slice has
+        H_c(-1) != 0.
+      No positivity is used.
+  (H) TWELVE SEATS NO SUCH CYCLE. H_c(-1) sums, over the alternating
+      closed trails of the two matchings on the slice's multiset, the
+      signed sums A of their s'-steps: every step is odd, so each
+      s'-edge's lower end has the parity of the trail's start when the
+      step is up and the other parity when it is down. A trail of m
+      edges of each kind, B the signed sum of its k'-steps, closes with
+      A s' + B k' = 0, |A|, |B| &lt;= m; a
+      nonzero A is a multiple of k' and its B of s', so m &gt;= max(s', k')
+      &gt;= 5. Twelve slots hold one such trail of m = 5 beside a two-slot
+      trail, which forces s' = k', or one of m = 6, where A is even,
+      |A| = 2k' &lt;= 6 forces k' = 3, and |B| = 2s' &lt;= 6 forces s' = 3 =
+      k'. So every binomial pair of value twelve is shared, multisets
+      included, and with (E) the dichotomy is the whole of value twelve.
+
+DESIGN. collide.py supplies the Z-factors and the menus' cores.
+Sections:
+  CONTROL: the six-term identity's two factorizations read SHARED; the
+     ten-term pair {0,3} + {0,2,4,6,8} = {0,5} + {0,2,3,4,6}, in menu
+     clothes {2,16} x {2,8,32,128,512} = {2,64} x {2,8,16,32,128},
+     counted and read MIXING, the criterion reading MIXING there too.
+  CYCLE: every T = {0, a, b} with 0 &lt;= a &lt;= b &lt;= 30, every alpha in
+     1..30 and every s != alpha a positive point of the multiset (a
+     peel's s is one): T + {0, alpha} peeled by {0, s} from its least
+     point; every success is recorded as direct
+     or not and compared with the six-term identity.
+  FAMILY: e = 1..4 with z a second variable, and four menu realizations;
+     the counter's factorizations, the classification, and the
+     product's term count.
+  BOX: every pair of a three-menu of {2..32} and a four-menu of
+     {2..24} with a seed on either side; the atoms of the product are
+     the two menus' atoms, so no product is factored. Every pair with
+     two or more atomic factorizations is read: in frame (the product
+     0/1) or not, Newton dimension, and every pair of its
+     factorizations classified -- spectators, block values, shared or
+     mixing, every mixing block reducible, and each mixing pair
+     matched against the family or found on one line.
+  BINOMIAL: every multiset H of six points in 0..12 with least point
+     0 and every s in 1..12: P = (1 + v^s) H, every second binomial
+     tiling k, the criterion's reading from H_c(-1) against direct
+     division. The same at value ten (five points in 0..14, s in 1..14)
+     and fourteen (seven points in 0..10, s in 1..10), where the
+     criterion must meet mixing pairs.
+  LINE: the family member e = 1 on the line at z = v^8, and the two
+     supports where the other side splits into three blocks; counted
+     and classified.
+
+PREDICTIONS (fixed before the engine).
+  P1 CONTROL: the six-term identity reads SHARED; the ten-term pair has
+     exactly 2 atomic factorizations and reads MIXING; the criterion
+     reads MIXING at it with H(-1) != 0.
+  P2 CYCLE: every success with alpha != s is direct and is m + g {0,
+     ..., 5} with g = min(alpha, s) and max = 3 g; no multiset with a
+     doubled point has a second tiling.
+  P3 FAMILY: every member has 12 terms, all 1, exactly 2 atomic
+     factorizations, and reads MIXING with no spectator.
+  P4 BOX: the pairs walked number 85,253, and those whose product
+     factors two ways 336, of which 71 lie in frame (TRANSPLANT: an
+     earlier count of this box). In frame, every pair is shared with a
+     spectator or mixing and the family at e = 1. Out of frame, every
+     mixing pair lies on one line (Newton dimension 1); how many mixing
+     pairs exist out of frame is the measurement. In and out of frame
+     alike: no mixing pair has a spectator, every block of a mixing pair
+     is reducible, and every mixing pair has a trinomial block.
+  P5 BINOMIAL: at value twelve every second tiling reads SHARED by the
+     criterion and by division, direct or not; at ten and fourteen the
+     criterion and division agree at every pair and MIXING occurs.
+  P6 LINE: the line members read MIXING [ruled: the one member built, e = 1,
+     j = 8, checked for its factorizations and shapes]; the split supports read
+     two atomic factorizations of value shapes (2, 2, 3) and (3, 4), MIXING.
+
+KILLS. P1 is the positive control: if it misses, nothing after it is
+read. A success in CYCLE that is not the identity, or any non-direct
+success, kills (C). A mixing pair in BOX of Newton dimension 2 or more
+that is not the family, in frame or out of it, kills (D) or (E), and
+out of frame it names the multiset step. A mixing pair with a
+spectator kills (A); one with an irreducible block kills (B). A
+BINOMIAL row at twelve read MIXING by either reading kills (H); a
+disagreement of the criterion with division anywhere kills (G). A
+family member that is shared or counts other than 2 kills (F).
+
+FINDINGS. Every prediction held and no kill fired.
+  P1 the six-term identity reads 2 factorizations, SHARED; the ten-term
+     pair 2 factorizations, MIXING at shapes (2, 5) against (2, 5), and
+     the same in menu realizations, where the two products agree; the
+     criterion reads MIXING with H(-1) = 5.
+  P2 54,435 peels, T and alpha to 30, give 17 second tilings, all 17
+     direct and the
+     six-term identity; no multiset with a doubled point has one.
+  P3 e = 1..4: 12 terms, 2 factorizations, MIXING, the template's own
+     e; {2,8,32} x {2,6,12,16}, {2,18,162} x {2,10,30,54} and
+     {3,12,48} x {5,7,14,40} at e = 1 and {2,32,512} x {2,3,12,128} at
+     e = 2, each 2 factorizations and MIXING.
+  P4 13,350 menus with 1 and 17 seeds; 85,253 pairs, 336 whose product
+     factors two ways, 71 in frame: 55 SHARED with a spectator and 16
+     MIXING, every one the family at e = 1, all 71 at Newton dimension
+     2. Out of frame all 265 are SHARED, 263 at dimension 2 with no
+     spectator and 2 at dimension 1 with one; the out-of-frame clause of
+     P4 therefore had no mixing pair to read and is printed, not counted, and
+     the box meets the non-0/1 half of the dichotomy only on its shared side.
+     The lemma clauses held at all 16 mixing pairs.
+  P5 value twelve: 3,036 tiling pairs, 2,503 with a doubled point,
+     none MIXING by either reading; value ten: 88 pairs, 2 MIXING, both
+     direct; value fourteen: 326 pairs, 13 MIXING, 11 of them with a
+     doubled point. The criterion equals division at every pair.
+  P6 the line member e = 1, j = 8 has 2 factorizations, MIXING at
+     (2, 6) against (3, 4); the supports {0,1,3,...,11,14} and its
+     reflection have 2 each, MIXING at (2, 2, 3) against (3, 4).
+
+RUN RECORD. python mixing.py: 9 of 9 checks, 29.3 s, peak commit 87.7 MB, the
+out-of-frame clause printed. The first run was killed at 520 MB during the box
+walk: every block product of every pair sat in one cache. The caches are now
+cleared after each pair; nothing else changed.
+"""
+
+import os
+import sys
+import time
+from collections import Counter
+from itertools import combinations, combinations_with_replacement
+from math import gcd
+
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+from collide import (  # noqa: E402
+    GENS, Dp, menu_factors, negative, nonneg, prod, rank, set_partitions,
+    zfactors)
+
+CHECKS = []
+R = len(GENS)
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f"  ({detail})" if detail else ""))
+
+
+<span id="control"></span>def control(name, ok, detail=""):
+    check(name, ok, detail)
+    if not ok:
+        print("  control failed: run stopped")
+        raise SystemExit(1)
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+<span id="ev"></span>def ev(*e):
+    return tuple(list(e) + [0] * (R - len(e)))
+
+
+<span id="dp"></span>def dp(pairs):
+    """A Dp from (exponent list, coefficient) pairs."""
+    out = Counter()
+    for e, c in pairs:
+        out[ev(*e)] += c
+    return Dp(out)
+
+
+<span id="uni"></span>def uni(exps):
+    """The one-variable polynomial with these exponents, in x0."""
+    return dp([((e,), 1) for e in exps])
+
+
+# ------------------------------------------------ atoms and factorizations
+
+ATOM_ID, ATOMS, ATOM_VAL = {}, [], []
+
+
+<span id="aid"></span>def aid(f):
+    key = frozenset(f.d.items())
+    if key not in ATOM_ID:
+        ATOM_ID[key] = len(ATOMS)
+        ATOMS.append(f)
+        ATOM_VAL.append(sum(f.coeffs()))
+    return ATOM_ID[key]
+
+
+PN = {}
+
+
+<span id="prod_nn"></span>def prod_nn(ids):
+    """The product of the atoms with these ids, and whether it is
+    nonnegative; ids a sorted tuple."""
+    if ids not in PN:
+        p = prod([ATOMS[i] for i in ids])
+        PN[ids] = (p, nonneg(p))
+    return PN[ids]
+
+
+AT = {}
+
+
+<span id="atomic_block"></span>def atomic_block(ids):
+    """Nonnegative, and no split into two nonnegative sub-products."""
+    if ids in AT:
+        return AT[ids]
+    ok = prod_nn(ids)[1]
+    n = len(ids)
+    if ok and n &gt; 1:
+        seen = set()
+        for r in range(1, n):
+            for sub in combinations(range(n), r):
+                a = tuple(sorted(ids[i] for i in sub))
+                if a in seen:
+                    continue
+                seen.add(a)
+                b = tuple(sorted(ids[i] for i in range(n) if i not in sub))
+                if prod_nn(a)[1] and prod_nn(b)[1]:
+                    ok = False
+                    break
+            if not ok:
+                break
+    AT[ids] = ok
+    return ok
+
+
+<span id="factorizations"></span>def factorizations(ids):
+    """The distinct atomic factorizations of the product of the atoms
+    with these ids: sorted tuples of blocks, a block a sorted id tuple."""
+    out = set()
+    for part in set_partitions(list(range(len(ids)))):
+        blocks = tuple(sorted(tuple(sorted(ids[i] for i in b))
+                              for b in part))
+        if all(atomic_block(b) for b in blocks):
+            out.add(blocks)
+    return sorted(out)
+
+
+<span id="value"></span>def value(block):
+    v = 1
+    for i in block:
+        v *= ATOM_VAL[i]
+    return v
+
+
+<span id="within"></span>def within(a, b):
+    """Multiset inclusion of atom ids: block a divides block b."""
+    return not (Counter(a) - Counter(b))
+
+
+<span id="classify"></span>def classify(x, y):
+    """SHARED or MIXING, with spectators set aside."""
+    cx, cy = Counter(x), Counter(y)
+    common = cx &amp; cy
+    xs = sorted((cx - common).elements())
+    ys = sorted((cy - common).elements())
+    shared = any(within(a, b) or within(b, a) for a in xs for b in ys)
+    return {
+        "verdict": "SHARED" if shared else "MIXING",
+        "spectators": sum(common.values()),
+        "shape": (tuple(sorted(value(b) for b in xs)),
+                  tuple(sorted(value(b) for b in ys))),
+        "reducible": all(len(b) &gt; 1 for b in xs + ys),
+        "trinomial": any(value(b) == 3 and len(support(b)) == 3
+                         for b in xs + ys),
+        "x": xs, "y": ys}
+
+
+<span id="support"></span>def support(block):
+    p = prod_nn(block)[0]
+    return p.d
+
+
+# ------------------------------------------------ the family's template
+
+<span id="sub"></span>def sub(a, b):
+    return tuple(i - j for i, j in zip(a, b))
+
+
+<span id="add"></span>def add(a, b):
+    return tuple(i + j for i, j in zip(a, b))
+
+
+<span id="scale"></span>def scale(k, a):
+    return tuple(k * i for i in a)
+
+
+<span id="line_of"></span>def line_of(points):
+    """For collinear points: (primitive direction, least point,
+    positions as multiples of the direction), else None."""
+    pts = sorted(points)
+    diffs = [sub(p, pts[0]) for p in pts[1:]]
+    if rank([pts[0]] + list(pts[1:])) != 1:
+        return None
+    base = next(d for d in diffs if any(d))
+    g = 0
+    for c in base:
+        g = gcd(g, abs(c))
+    v = tuple(c // g for c in base)
+    pos = []
+    for d in diffs:
+        k = next(dc // vc for dc, vc in zip(d, v) if vc)
+        assert tuple(k * vc for vc in v) == d
+        pos.append(k)
+    if min(pos) &lt; 0:
+        v = scale(-1, v)
+        pos = [-k for k in pos]
+    return v, pts[0], [0] + pos
+
+
+<span id="pairs_split"></span>def pairs_split(points, steps):
+    """Split the points into runs {p, p + t1, ...} along the given step
+    lists, in order; return the runs' starting points or None."""
+    pts = set(points)
+    if not steps:
+        return [] if not pts else None
+    first = steps[0]
+    size = len(first)
+    for start in sorted(pts):
+        run = {add(start, t) for t in first}
+        if len(run) == size and run &lt;= pts:
+            rest = pairs_split(pts - run, steps[1:])
+            if rest is not None:
+                return [start] + rest
+    return None
+
+
+<span id="family_e"></span>def family_e(x, y):
+    """e when {x, y} is the family up to monomials, else None."""
+    for side, other in ((x, y), (y, x)):
+        vals = sorted(value(b) for b in side)
+        if vals != [3, 4] or sorted(value(b) for b in other) != [2, 6]:
+            continue
+        blocks = side + other
+        if any(set(prod_nn(b)[0].coeffs()) != {1} for b in blocks):
+            return None
+        t = next(b for b in side if value(b) == 3)
+        q = next(b for b in side if value(b) == 4)
+        bi = next(b for b in other if value(b) == 2)
+        s6 = next(b for b in other if value(b) == 6)
+        ln = line_of(list(support(t)))
+        if ln is None:
+            return None
+        v, _, pos = ln
+        if pos[1] * 2 != pos[2] or pos[1] % 2:
+            return None
+        e = pos[1] // 2
+        ve = scale(e, v)
+        zero = scale(0, v)
+        qs = pairs_split(list(support(q)),
+                         [[zero, scale(3, ve)], [zero, ve]])
+        ss = pairs_split(list(support(s6)),
+                         [[zero, scale(2, ve), scale(4, ve)],
+                          [zero, ve, scale(2, ve)]])
+        bs = pairs_split(list(support(bi)), [[zero, scale(3, ve)]])
+        if qs is None or ss is None or bs is None:
+            return None
+        zq, zs = sub(qs[1], qs[0]), sub(ss[1], ss[0])
+        if zq != zs or rank([zero, v, zq]) != 2:
+            return None
+        return e
+    return None
+
+
+# ------------------------------------------------ one-variable multisets
+
+<span id="peel"></span>def peel(points, k):
+    """The multiset S with points = S + {0, k}, peeled from the least
+    point, or None."""
+    work = Counter(points)
+    out = []
+    while work:
+        x = min(work)
+        for y in (x, x + k):
+            if work[y] &lt;= 0:
+                return None
+            work[y] -= 1
+            if work[y] == 0:
+                del work[y]
+        out.append(x)
+    return out
+
+
+<span id="divides_binomial"></span>def divides_binomial(points, s):
+    """Whether 1 + v^s divides the polynomial whose exponent multiset
+    is given (least exponent 0 or more)."""
+    top = max(points)
+    c = [0] * (top + 1)
+    for p in points:
+        c[p] += 1
+    q = [0] * (top + 1)
+    for i in range(top + 1):
+        q[i] = c[i] - (q[i - s] if i &gt;= s else 0)
+    return all(q[i] == 0 for i in range(max(0, top - s + 1), top + 1))
+
+
+<span id="criterion"></span>def criterion(h, s, k):
+    """MIXING iff s/g and k/g are odd, both at least 3, and some class
+    of h mod g has a nonzero alternating sum."""
+    g = gcd(s, k)
+    s1, k1 = s // g, k // g
+    if s1 % 2 == 0 or k1 % 2 == 0 or s1 == 1 or k1 == 1:
+        return "SHARED", None
+    sums = [0] * g
+    for x in h:
+        sums[x % g] += (-1) ** ((x - x % g) // g)
+    return ("MIXING" if any(sums) else "SHARED"), sums
+
+
+<span id="by_division"></span>def by_division(h, s, hp, k):
+    shared = (divides_binomial(hp, s) or divides_binomial(h, k)
+              or (k % s == 0 and (k // s) % 2 == 1)
+              or (s % k == 0 and (s // k) % 2 == 1))
+    return "SHARED" if shared else "MIXING"
+
+
+# ------------------------------------------------------------ sections
+
+<span id="count_and_read"></span>def count_and_read(f):
+    ids = tuple(sorted(aid(a) for a in zfactors(f)))
+    facts = factorizations(ids)
+    reads = [classify(x, y) for x, y in combinations(facts, 2)]
+    return facts, reads
+
+
+<span id="section_control"></span>def section_control():
+    section("CONTROL -- the six-term identity and the ten-term pair")
+    facts, reads = count_and_read(uni(range(6)))
+    control("the six-term identity has 2 atomic factorizations, SHARED",
+          len(facts) == 2 and [r["verdict"] for r in reads] == ["SHARED"])
+    ten = [0, 2, 3, 4, 5, 6, 7, 8, 9, 11]
+    facts, reads = count_and_read(uni(ten))
+    print(f"  ten-term pair: {len(facts)} factorizations, "
+          f"{[r['verdict'] for r in reads]}, shapes "
+          f"{[r['shape'] for r in reads]}")
+    a, b = (2, 16), (2, 8, 32, 128, 512)
+    c, d = (2, 64), (2, 8, 16, 32, 128)
+    same = (Counter(m * n for m in a for n in b)
+            == Counter(m * n for m in c for n in d))
+    ids = tuple(sorted(aid(f) for f in menu_factors(a) + menu_factors(b)))
+    mf = factorizations(ids)
+    mr = [classify(x, y)["verdict"] for x, y in combinations(mf, 2)]
+    verdict, sums = criterion([0, 2, 4, 6, 8], 3, 5)
+    print(f"  in menu realizations: products agree {same}, {len(mf)} "
+          f"factorizations, {mr}; criterion {verdict}, H(-1) = {sums}")
+    control("the ten-term pair has 2 factorizations and reads MIXING, as "
+          "numbers and as menus, and the criterion reads MIXING",
+          len(facts) == 2 and [r["verdict"] for r in reads] == ["MIXING"]
+          and same and len(mf) == 2 and mr == ["MIXING"]
+          and verdict == "MIXING")
+
+
+<span id="section_cycle"></span>def section_cycle(top=30):
+    section(f"CYCLE -- T + {{0, alpha}} peeled by {{0, s}}, "
+            f"T and alpha to {top}")
+    tried = found = direct = 0
+    bad = []
+    for a in range(0, top + 1):
+        for b in range(a, top + 1):
+            t = [0, a, b]
+            for alpha in range(1, top + 1):
+                pts = t + [x + alpha for x in t]
+                for s in sorted({x for x in pts if x &gt; 0}):
+                    if s == alpha:
+                        continue
+                    tried += 1
+                    if peel(pts, s) is None:
+                        continue
+                    found += 1
+                    g, h = min(alpha, s), max(alpha, s)
+                    ok = (len(set(pts)) == 6 and h == 3 * g
+                          and sorted(pts) == [min(pts) + g * i
+                                              for i in range(6)])
+                    direct += len(set(pts)) == 6
+                    if not ok:
+                        bad.append((t, alpha, s))
+    print(f"  {tried} peels tried, {found} second tilings, {direct} "
+          f"direct, {len(bad)} not the six-term identity")
+    if bad:
+        print(f"  first: {bad[:5]}")
+    check("every second tiling is direct and the six-term identity",
+          found &gt; 0 and not bad and direct == found)
+
+
+<span id="family_blocks"></span>def family_blocks(e):
+    a = dp([((0,), 1), ((2 * e,), 1), ((4 * e,), 1)])
+    b = dp([((0,), 1), ((3 * e,), 1), ((0, 1), 1), ((e, 1), 1)])
+    c = dp([((0,), 1), ((3 * e,), 1)])
+    d = dp([((0,), 1), ((2 * e,), 1), ((4 * e,), 1),
+            ((0, 1), 1), ((e, 1), 1), ((2 * e, 1), 1)])
+    return a, b, c, d
+
+
+FAMILY_MENUS = [((2, 8, 32), (2, 16, 6, 12), 1),
+                ((2, 18, 162), (2, 54, 10, 30), 1),
+                ((2, 32, 512), (2, 128, 3, 12), 2),
+                ((3, 12, 48), (5, 40, 7, 14), 1)]
+
+
+<span id="section_family"></span>def section_family():
+    section("FAMILY -- e = 1..4 with z a second variable, and in menus")
+    ok = True
+    for e in range(1, 5):
+        a, b, c, d = family_blocks(e)
+        f = a * b
+        facts, reads = count_and_read(f)
+        es = [family_e(r["x"], r["y"]) for r in reads]
+        row = (f == c * d and len(f.d) == 12 and set(f.coeffs()) == {1}
+               and len(facts) == 2
+               and [r["verdict"] for r in reads] == ["MIXING"]
+               and reads[0]["spectators"] == 0 and es == [e])
+        ok &amp;= row
+        print(f"  e = {e}: {len(f.d)} terms, {len(facts)} factorizations,"
+              f" {[r['verdict'] for r in reads]}, template e {es}")
+    for m1, m2, e in FAMILY_MENUS:
+        ids = tuple(sorted(aid(x) for x in menu_factors(m1)
+                           + menu_factors(m2)))
+        facts = factorizations(ids)
+        reads = [classify(x, y) for x, y in combinations(facts, 2)]
+        es = [family_e(r["x"], r["y"]) for r in reads]
+        terms = Counter(a * b for a in m1 for b in m2)
+        row = (len(terms) == 12 and set(terms.values()) == {1}
+               and len(facts) == 2
+               and [r["verdict"] for r in reads] == ["MIXING"]
+               and reads[0]["spectators"] == 0 and es == [e])
+        ok &amp;= row
+        print(f"  {set(m1)} x {set(m2)}: {len(facts)} factorizations, "
+              f"{[r['verdict'] for r in reads]}, template e {es}")
+    check("every member has 12 terms, 2 factorizations, MIXING, no "
+          "spectator, and the template's e", ok)
+
+
+<span id="binomial_census"></span>def binomial_census(n_h, top):
+    rows = {}
+    for rest in combinations_with_replacement(range(0, top + 1), n_h - 1):
+        h = (0,) + rest
+        for s in range(1, top + 1):
+            pts = list(h) + [x + s for x in h]
+            for k in sorted({x for x in pts if x &gt; 0}):
+                if k == s:
+                    continue
+                hp = peel(pts, k)
+                if hp is None:
+                    continue
+                key = (tuple(sorted(pts)), min(s, k), max(s, k))
+                if key in rows:
+                    continue
+                crit, _ = criterion(h, s, k)
+                div = by_division(list(h), s, hp, k)
+                rows[key] = (crit, div, len(set(pts)) == len(pts))
+    return rows
+
+
+<span id="section_binomial"></span>def section_binomial():
+    section("BINOMIAL -- (1 + v^s) H = (1 + v^k) H', H a multiset")
+    ok_all = True
+    for n_h, top, value_ in ((6, 12, 12), (5, 14, 10), (7, 10, 14)):
+        t0 = time.time()
+        rows = binomial_census(n_h, top)
+        agree = sum(c == d for c, d, _ in rows.values())
+        mixing = sum(c == "MIXING" for c, _, _ in rows.values())
+        nondirect = sum(not dr for _, _, dr in rows.values())
+        mix_nd = sum(c == "MIXING" and not dr
+                     for c, _, dr in rows.values())
+        print(f"  value {value_}: {len(rows)} tiling pairs ({nondirect} "
+              f"with a doubled point), criterion = division at {agree}, "
+              f"MIXING {mixing} ({mix_nd} with a doubled point)"
+              f"   [{time.time() - t0:.1f} s]")
+        ok = agree == len(rows) and len(rows) &gt; 0
+        if value_ == 12:
+            ok &amp;= mixing == 0 and nondirect &gt; 0
+        else:
+            ok &amp;= mixing &gt; 0
+        ok_all &amp;= ok
+    check("the criterion agrees with division everywhere; value twelve "
+          "never mixes, doubled points included; ten and fourteen do",
+          ok_all)
+
+
+<span id="section_line"></span>def section_line():
+    section("LINE -- the family with z = v^j, and the split supports")
+    a = uni([0, 2, 4])
+    b = uni([0, 3, 8, 9])
+    f = a * b
+    facts, reads = count_and_read(f)
+    line_ok = (set(f.coeffs()) == {1} and len(f.d) == 12
+               and len(facts) == 2
+               and [r["verdict"] for r in reads] == ["MIXING"]
+               and sorted(reads[0]["shape"]) == [(2, 6), (3, 4)])
+    print(f"  e = 1, j = 8: {len(facts)} factorizations, "
+          f"{[(r['verdict'], r['shape']) for r in reads]}")
+    split_ok = True
+    base = [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 14]
+    for pts in (base, [14 - x for x in base]):
+        facts, reads = count_and_read(uni(pts))
+        shapes = [r["shape"] for r in reads]
+        print(f"  support {sorted(pts)}: {len(facts)} factorizations, "
+              f"{[r['verdict'] for r in reads]}, shapes {shapes}")
+        split_ok &amp;= (len(facts) == 2
+                     and [r["verdict"] for r in reads] == ["MIXING"]
+                     and sorted(shapes[0]) == [(2, 2, 3), (3, 4)])
+    check("the line member and both split supports read MIXING",
+          line_ok and split_ok)
+
+
+<span id="section_box"></span>def section_box():
+    section("BOX -- three-menus of {2..32} against four-menus of "
+            "{2..24}")
+    t0 = time.time()
+    menus = {3: list(combinations(range(2, 33), 3)),
+             4: list(combinations(range(2, 25), 4))}
+    ids, seeds = {}, {3: [], 4: []}
+    for size, ms in menus.items():
+        for m in ms:
+            fs = menu_factors(m)
+            ids[m] = [aid(f) for f in fs]
+            if any(negative(f) for f in fs):
+                seeds[size].append(m)
+    print(f"  {len(menus[3])} and {len(menus[4])} menus, "
+          f"{len(seeds[3])} and {len(seeds[4])} seeds"
+          f"   [{time.time() - t0:.1f} s]")
+    pairs = {(a, b) for a in seeds[3] for b in menus[4]}
+    pairs |= {(a, b) for a in menus[3] for b in seeds[4]}
+    found = []
+    for a, b in sorted(pairs):
+        facts = factorizations(tuple(sorted(ids[a] + ids[b])))
+        if len(facts) &gt;= 2:
+            found.append((a, b, facts))
+        PN.clear()
+        AT.clear()
+    print(f"  {len(pairs)} pairs walked, {len(found)} collisions"
+          f"   [{time.time() - t0:.1f} s]")
+    tally = Counter()
+    frame_ok = out_ok = lemma_ok = True
+    out_mixing = []
+    for a, b, facts in found:
+        frame = len({m * n for m in a for n in b}) == 12
+        f = prod([prod_nn(blk)[0] for blk in facts[0]])
+        dim = rank(list(f.d))
+        for x, y in combinations(facts, 2):
+            r = classify(x, y)
+            e = None
+            if r["verdict"] == "MIXING":
+                e = family_e(r["x"], r["y"])
+            key = ("in" if frame else "out", r["verdict"],
+                   r["spectators"] &gt; 0, dim, e)
+            tally[key] += 1
+            if r["verdict"] == "MIXING":
+                lemma_ok &amp;= (r["spectators"] == 0 and r["reducible"]
+                             and r["trinomial"])
+                if frame:
+                    frame_ok &amp;= e == 1
+                else:
+                    out_ok &amp;= dim == 1
+                    out_mixing.append((a, b, r["shape"], dim))
+            elif frame:
+                frame_ok &amp;= r["spectators"] &gt; 0
+    n_in = sum(1 for a, b, _ in found
+               if len({m * n for m in a for n in b}) == 12)
+    print("  frame, verdict, spectator, dimension, family e: pairs")
+    for key, n in sorted(tally.items(), key=str):
+        print(f"    {key}: {n}")
+    for a, b, shape, dim in out_mixing[:12]:
+        print(f"    out of frame MIXING {set(a)} x {set(b)} shape {shape}"
+              f" dimension {dim}")
+    if len(out_mixing) &gt; 12:
+        print(f"    ... {len(out_mixing) - 12} more")
+    print(f"  {n_in} collisions in frame, {len(found) - n_in} out"
+          f"   [{time.time() - t0:.1f} s]")
+    check("85253 pairs, 336 factoring two ways, 71 in frame (the earlier "
+          "count)",
+          len(pairs) == 85253 and len(found) == 336 and n_in == 71)
+    check("in frame: shared with a spectator, or MIXING and the family "
+          "at e = 1", frame_ok)
+    print(f"  out of frame: {len(out_mixing)} MIXING pairs, every one on "
+          f"one line: {out_ok}")
+    check("every MIXING pair: no spectator, every block reducible, a "
+          "trinomial block", lemma_ok)
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_control()
+    section_cycle()
+    section_family()
+    section_binomial()
+    section_line()
+    section_box()
+    print()
+    n, ok = len(CHECKS), sum(CHECKS)
+    print(f"{ok} of {n} checks pass  [{time.time() - t0:.1f} s]")
+    return 0 if ok == n else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/mixing.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

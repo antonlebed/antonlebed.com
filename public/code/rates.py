@@ -1,0 +1,785 @@
+"""
+rates.py -- what a digit-by-digit reader pays at the continued-fraction
+numeration, where the scale of a digit varies from stream to stream.
+
+QUESTION. The continued-fraction numeration writes an irrational y as
+its partial quotients [a_0; a_1, a_2, ...]. Its depth-n TILE, the
+irrationals sharing the first n quotients, is the open interval between
+the convergent p_(n-1)/q_(n-1) and (p_(n-1) + p_(n-2))/(q_(n-1) +
+q_(n-2)), of length 1/(q_(n-1)(q_(n-1) + q_(n-2))). Unlike a positional
+numeration, the SCALE of a tile, ln(1/length), is not a function of
+its depth: one quotient buys 2 ln(phi) of scale on the all-ones stream
+and far more where quotients are large. A reader of a monotone map f
+sees the input's depth-n tile I_n and commits the longest quotient
+string shared by every point of f(I_n); e(n) is its length, and the
+LAG is n - e(n). What decides the lag, which maps have bounded lag, and
+where does emission stop for good?
+
+THE ARGUMENT (written before this script).
+  (1) WALLS ARE THE RATIONALS' PREIMAGES. The tiles are open intervals
+      whose endpoints are rationals, and every rational v = [b_0; ...,
+      b_k] (b_k >= 2 when k >= 1) separates two adjacent tiles at depth
+      k + 1, the streams near v agreeing on b_0..b_(k-1) and differing
+      at index k. Take f continuous and strictly monotone near an
+      irrational y. If f(y) is irrational, f(I_n) shrinks to a point
+      interior to each of its tiles, so emission grows without bound.
+      If f(y) = v is rational, every f(I_n) holds v in its interior,
+      and emission freezes at exactly k. So f walls exactly on f^-1(Q).
+      An integer Mobius map sends irrationals to irrationals: no walls.
+      y -> y^2 walls at the square roots of the non-square positive
+      rationals, and y -> sqrt(y) nowhere.
+  (2) THE COMMITMENT BOUND. Let z be irrational with a_j <= A for every
+      j >= 1, J an interval holding z, and C_e the deepest tile holding
+      J. The DEFICIT scale(J) - scale(C_e) is at most 3 ln(A + 2) +
+      ln 4, whatever J is. Proof: every rational p/q has |z - p/q| >=
+      1/((A + 2) q^2) (at a convergent from |z - p_n/q_n| =
+      1/(q_n(z_(n+1) q_n + q_(n-1))), elsewhere by Legendre's
+      criterion); a tile C_n has endpoints of denominator at most
+      2 q_(n-1) and length at most 1/q_(n-1)^2, so z sits at distance
+      at least |C_n|/(4(A + 2)) from its boundary. J fails to fit
+      C_(e+1), so |J| >= |C_(e+1)|/(4(A + 2)), and |C_e|/|C_(e+1)| <=
+      (A + 1)(A + 2).
+  (3) RATE FORCING. Let y have an eventually periodic tail of period
+      l and period matrix P, the product of [[a, 1], [1, 0]] over one
+      period, with dominant eigenvalue eta. Then ln q_n = n ln(eta)/l
+      + O(1), so scale(I_n) = n r(y) + O(1) with the RATE r(y) =
+      2 ln(eta)/l. If f is C^1 and monotone with f'(y) != 0 and z =
+      f(y) is quadratic, scale(f(I_n)) = scale(I_n) + O(1), and (2)
+      gives e(n) r(z) = n r(y) + O(1): e(n) = rho n + O(1) with rho =
+      r(y)/r(z). The lag is bounded iff the rates match, and grows
+      linearly otherwise, with the sign of 1 - rho.
+  (4) THE CONDUCTOR LAW. eta is the fundamental unit of the multiplier
+      ring O of the lattice Z + Zy, which is eps^i, eps the fundamental
+      unit of the field and i = [O_max* : O*] the unit index, O_max the
+      ring of integers of Q(y); so r(y) = 2 i ln(eps)/l, and within one
+      field rho = (i_in l_out)/(i_out l_in) is rational, the logarithm
+      of the unit cancelling. That
+      the period generates the stabilizer is classical; this script
+      tests eta = eps^i with eps and i computed without the period.
+  (5) THE UNIT CRITERION. Every integer Mobius map with det = +-1 has
+      bounded lag at every irrational stream. It is a word in x + 1,
+      -x and 1/x, each a bounded-lookahead rewriting of the quotient
+      string: x + 1 raises a_0; 1/x moves the string by one place
+      (for x > 0, and 1/x = -(1/(-x)) for x < 0); and -[a_0; a_1, a_2,
+      ...] = [-a_0 - 1; 1, a_1 - 1, a_2, ...] when a_1 >= 2, =
+      [-a_0 - 1; a_2 + 1, a_3, ...] when a_1 = 1. The lags of a fixed
+      word add. With (3) this makes r invariant under GL(2, Z). If
+      |det| = N >= 2, M = U diag(1, N) V (Smith form, U and V
+      unimodular) has lag slope 1 - r(phi)/r(phi/N) at y = V^-1 phi.
+      r(phi) = 2 ln(phi) is the least rate, attained only by an
+      all-ones tail (Perron-Frobenius: a period matrix dominates the
+      all-ones one entrywise). An all-ones tail would make phi/N a
+      unimodular image of phi, with the same multiplier ring Z[phi],
+      but the ring of Z + Z(phi/N) omits phi. So the lag grows: phi
+      is a universal witness.
+  (6) THE LADDER LAW. At a Stern-Brocot vertex v with parents l and
+      r, the straddle S_k(v) runs between the k-th mediants (p_l +
+      k p_v)/(q_l + k q_v) and (p_r + k p_v)/(q_r + k q_v), and holds v
+      in its interior at every k. For a point z on v's side of the far
+      parent (q_far its denominator), z lies in S_k(v) for exactly
+      K(v, z) = floor(1/(q_v^2 |z - v|) - q_far/q_v) values k >= 1.
+      At a convergent p_n/q_n of z the far parent is p_(n-1)/q_(n-1),
+      and K = a_(n+1). At any other vertex of z's path Legendre gives
+      |z - v| >= 1/(2 q_v^2), so K <= 1. At z = v the chain is
+      infinite. Adding the straddles to the tiles (the cover of the
+      redundant digit M) extends exactly the terminated ladders: it
+      cures walls and adds no rank elsewhere, so it cannot cure a
+      rate mismatch.
+
+HAND-ATTACK (on paper, before any engine code).
+  - e counts a_0. v = 2 = [2] separates the depth-1 tiles (1, 2) and
+    (2, 3), so the frozen emission at a wall on 2 is 0; 3/2 = [1; 2]
+    freezes at 1, 7/3 = [2; 3] at 1, 17/12 = [1; 2, 2, 2] at 3.
+  - The deficit constant, re-derived: dist(z, boundary C_n) >=
+    1/((A + 2)(2 q)^2) >= |C_n|/(4(A + 2)), so the bound is
+    ln((A + 1)(A + 2)) + ln(4(A + 2)) <= 3 ln(A + 2) + ln 4.
+  - rho by hand, from (i, l): phi (1, 1); 2 phi = [3; (4)] has eta =
+    2 + sqrt5 = phi^3, (3, 1); 3 phi = [4; (1, 5)], eta = phi^4, (4,
+    2); phi/2 = [0; 1, (4)], (3, 1); 7 phi = [11; (3, 15)], eta =
+    phi^8, (8, 2); sqrt2 (1, 1), 2 sqrt2 (1, 1) [Pell], 5 sqrt2 =
+    [7; (14)], (3, 1); sqrt3 = [1; (1, 2)], (1, 2), 3 sqrt3 (3, 2);
+    1 + sqrt3 (1, 2), (1 + sqrt3)^2 = 4 + 2 sqrt3 = [7; (2, 6)], (2,
+    2); 7 + 4 sqrt3 = [13; (1, 12)], lattice ring Z[4 sqrt3], (2, 2),
+    and its root 2 + sqrt3 (1, 2). So rho = 1/3 at (2x, phi), 1/2 at
+    (3x, phi), 1/3 at (x/2, phi), 1 at (2x, sqrt2), 1/3 at (5x,
+    sqrt2), 1/3 at (3x, sqrt3), 1 at (x^2, phi), 1/2 at (x^2, 1 +
+    sqrt3), 2 at (sqrt x, 7 + 4 sqrt3), 3 at (x/2, 2 phi), 1/4 at
+    (7x, phi).
+  - A wall's straddle index: at v = 2 the chain's half-widths are
+    1/(k + 1) and 1/k, so k(n) ~ 1/|f(I_n)| and ln k(n) grows at the
+    input's rate: 2 ln(1 + sqrt2) = 1.7627 per quotient at sqrt2.
+  - Counting in Stern-Brocot steps instead of quotients (a quotient a
+    is a steps), (2x, phi) emits 4 steps per 3 input steps, since 2 phi
+    has quotients 4: the lag's SIGN depends on the unit of count, the
+    mismatch does not.
+
+PREDICTIONS (frozen before any engine code).
+  P-0  Positive controls, read first: 1/x at phi has lag <= 1 at every
+       depth; 2x at phi has e(150)/150 within 0.02 of 1/3; y^2 at phi
+       emits at least 100 quotients from 120.
+  P-W  y^2 freezes at input depths 20, 60 and 120 at sqrt2, sqrt3,
+       sqrt6 (at 0), sqrt(3/2), sqrt(7/3) (at 1) and sqrt(17/12) (at
+       3), each the index of its image's last quotient; y^2 emits
+       without bound at phi and 1 + sqrt2, sqrt(y) at 3 + sqrt2.
+  P-D  At (2x, phi), (2x, sqrt2), (y^2, phi) and (7x, phi), with A =
+       4, 4, 1, 15, the deficit lies in [0, 3 ln(A + 2) + ln 4] at
+       every depth to 240 from the first emission, and so does every
+       interval of a random battery around sqrt7 and 7 phi. At the
+       wall (y^2, sqrt2) the deficit grows with slope 1.7627 +- 5%.
+  P-F  At the eleven rows above, rho from the lattice data equals the
+       hand value, the residual |e(n) - rho n| over depths 121..240
+       stays within its sup over 1..120 plus 2, and at the mismatched
+       rows the final lag has the sign of 1 - rho.
+  P-C  eta = eps^i exactly at every scanned quadratic y (at least 50,
+       over fields of discriminant up to 100), with eps found by
+       searching x^2 - d y^2 = +-1 (or +-4) and i the least power of
+       eps in the multiplier ring.
+  P-U  x + 1, x - 1, 1/x, -x, -1/x, (2x + 1)/(x + 1) and the
+       sign-crossing (x - 4)/(x - 3) have lag bounded by 4 and
+       non-growing at phi, sqrt2, sqrt3 and a fixed pseudo-random
+       string of quotients 1..5, and keep (eta, l) at every quadratic
+       input. N phi has no all-ones tail and a rate above 2 ln(phi) at
+       every N = 2..40.
+  P-K  The closed form for K equals enumeration at every vertex of the
+       scanned paths; K = a_(n+1) at every convergent and K <= 1 at
+       every other path vertex. At the walls of y^2 at sqrt2, sqrt3 and
+       sqrt(3/2) the straddle reader never freezes, its ln k slope
+       within 3% of the input's rate. In Stern-Brocot steps (2x, phi)
+       emits at 4/3 and (x/2, 2 phi) at 3/4, each within 4%.
+
+FINDINGS (entered after the run; prints copied from it).
+  - The first run passed 16 of 18. The two ladder checks failed on a
+    bound in the script, not in the law: the path walk ran past the last
+    convergent computed, so later convergents were
+    counted as "other" vertices and the last one had no a_(n+1). The
+    walk now stops at the last convergent whose next quotient is known.
+    The closed form had agreed with enumeration throughout.
+  - The hand values listed (1, 1) for 2 sqrt2. The script prints (2, 2):
+    2 sqrt2 = [2; (1, 4)] with eta = 3 + 2 sqrt2 = (1 + sqrt2)^2, so the
+    Pell row's rho = 1 comes from the index and the period doubling
+    together. rho was right; the pair was not.
+  - P-0 holds: 1/x at phi has lag -1 at every depth, 2x at phi emits 50
+    quotients from 150, and y^2 at phi emits 118 from 120.
+  - P-W holds: y^2 freezes at [0, 0, 0] at sqrt2, sqrt3 and sqrt6, at
+    [1, 1, 1] at sqrt(3/2) and sqrt(7/3), and at [3, 3, 3] at
+    sqrt(17/12). It emits [18, 58, 118] at phi and at 1 + sqrt2, and
+    sqrt(y) emits [10, 38, 86] at 3 + sqrt2.
+  - P-D holds: deficits lie in [0, 2.015] at (2x, phi), [0.405, 2.199]
+    at (2x, sqrt2), [0.639, 0.831] at (y^2, phi) and [0.754, 5.032] at
+    (7x, phi), against bounds 6.762, 6.762, 4.682 and 9.886. All 296
+    random intervals that commit a tile (of 300) obey the bound, the
+    largest excess -3.235. At the wall the deficit's slope is
+    1.7627, and 2 ln(1 + sqrt2) = 1.7627.
+  - P-F holds at all eleven rows. The residual sup is the same over
+    both halves at every row (at most 2.00, at (y^2, phi)). Final lags
+    at 240: 160, 120, 159, 0, 160, 160, 2, 121, -239, -479 and 180.
+  - P-C holds: eta = eps^i at 130 distinct quadratic points over 15 fields,
+    conductors up to 20.
+  - P-U holds: the largest lag of any unimodular map at any input is 1
+    (-x at phi and sqrt3); each keeps (eta, l). N phi's rate is 2.000
+    to 9.000 times r(phi) over N = 2..40.
+  - P-K holds: the closed form equals enumeration at 531 convergents
+    and 1138 other path vertices, K = a_(n+1) at every convergent and
+    K <= 1 elsewhere. The straddle reader's ln k slope is 1.7627,
+    1.3170 and 2.2924 at sqrt2, sqrt3 and sqrt(3/2), each equal to the
+    input's rate to four places. In Stern-Brocot steps (2x, phi) emits
+    at 1.3292 and (x/2, 2 phi) at 0.7497.
+
+SETTLED ON AUDIT (the argument above stays as frozen; these replace it).
+  - (5) holds for matrices with coprime entries. A common factor g
+    multiplies det by g^2 and leaves the map alone (2y/2 is the
+    identity, det 4, lag 0), and the Smith form diag(1, N) needs the
+    entries coprime.
+  - (6) counts straddles for z != v inside v's tile (l, r); for z
+    outside it the floor goes negative while the count is 0.
+  - (6) "the cover of the redundant digit M": what is checked is that
+    S_1 of the root is (1/2, 2), the image of [0, inf] under
+    y -> (2y + 1)/(y + 2).
+  - (5) bounds the lag above by the word's lookahead; below, M^-1 is a
+    word too, and a depth-n tile mapped into a depth-e tile forces
+    e <= n + c. The check now bounds min(lag) as well: every unimodular
+    row's lags lie in [-2, 1].
+  - (6) holds for irrational z > 0: at a rational z on a mediant the
+    floor over-counts by one (v = 1, z = 2/3 gives 2, but z lies only
+    in S_1). The parents of v are the two Farey neighbours v is the
+    mediant of; at an integer vertex one has an equal denominator.
+  - (4) is a unit-index law, not a conductor law: i does not fix the
+    conductor (eps = 8 + 3 sqrt7 lies in Z[3 sqrt7], so i = 1 at
+    conductor 3).
+
+RUN RECORD: 18/18 checks, 0.18 s, peak commit 8 MB under a memory guard.
+Later the wall indices are read off y^2's own quotients; the
+unimodular lags are asserted in [-2, 1], the residual's two sups equal
+and at most 2, the lag's sign strictly where rho != 1, P-C's 50 points
+and S_1 of the root checked: 20/20, 0.2 s, peak commit 8 MB.
+"""
+
+import math
+import random
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tail = f"  ({detail})" if detail else ""
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}{tail}")
+
+
+# ---- quadratic numbers (u + v sqrt d)/w, d not a square, w > 0 ----
+
+def qn(u, v, w, d):
+    if w < 0:
+        u, v, w = -u, -v, -w
+    g = math.gcd(math.gcd(u, v), w)
+    return (u // g, v // g, w // g, d)
+
+
+def qfloor(x):
+    u, v, w, d = x
+    s = math.isqrt(v * v * d)
+    top = u + s if v > 0 else (u - s - 1 if v < 0 else u)
+    return top // w
+
+
+def qsub(x, a):
+    u, v, w, d = x
+    return qn(u - a * w, v, w, d)
+
+
+def qrecip(x):
+    u, v, w, d = x
+    return qn(w * u, -w * v, u * u - v * v * d, d)
+
+
+def qmob(x, m):
+    a, b, c, e = m
+    u, v, w, d = x
+    nu, nv, du, dv = a * u + b * w, a * v, c * u + e * w, c * v
+    return qn(nu * du - nv * dv * d, nv * du - nu * dv,
+              du * du - dv * dv * d, d)
+
+
+def qsq(x):
+    u, v, w, d = x
+    return qn(u * u + v * v * d, 2 * u * v, w * w, d)
+
+
+def qcf(x, n):
+    out = []
+    for _ in range(n):
+        a = qfloor(x)
+        out.append(a)
+        x = qrecip(qsub(x, a))
+    return out
+
+
+def qperiod(x):
+    seen, quots = {}, []
+    while x not in seen:
+        seen[x] = len(quots)
+        a = qfloor(x)
+        quots.append(a)
+        x = qrecip(qsub(x, a))
+    s = seen[x]
+    return quots[:s], quots[s:]
+
+
+def qsign(x, p, q):
+    """Sign of x - p/q, exactly (q > 0)."""
+    u, v, w, d = x
+    a, b = q * u - p * w, q * v
+    if a >= 0 and b >= 0:
+        return 1 if a or b else 0
+    if a <= 0 and b <= 0:
+        return -1
+    t = a * a - b * b * d
+    return (1 if t > 0 else -1) if a > 0 else (1 if t < 0 else -1)
+
+
+# ---- lattice data: eta from the period, eps and i without it ----
+
+def squarefree(n):
+    s, k = 1, 2
+    while k * k <= n:
+        while n % (k * k) == 0:
+            n //= k * k
+            s *= k
+        k += 1
+    return n, s
+
+
+def period_eta(per):
+    """(tr, det) of the period matrix."""
+    a0, b0, c0, d0 = 1, 0, 0, 1
+    for a in per:
+        a0, b0, c0, d0 = a0 * a + b0, a0, c0 * a + d0, c0
+    return a0 + d0, a0 * d0 - b0 * c0
+
+
+def eta_exact(per, d0):
+    """eta = (tr + s sqrt d0)/2 as the integer pair (tr, s)."""
+    tr, det = period_eta(per)
+    disc = tr * tr - 4 * det
+    assert disc % d0 == 0
+    s = math.isqrt(disc // d0)
+    assert s * s * d0 == disc
+    return tr, s
+
+
+def fund_unit(d0):
+    """Least unit > 1 of the maximal order, as (X, Y): (X + Y sqrt d0)/2."""
+    y = 1
+    while True:
+        for sgn in (-1, 1):
+            if d0 % 4 == 1:
+                t = d0 * y * y + 4 * sgn
+                x = math.isqrt(t) if t > 0 else -1
+                if x >= 0 and x * x == t:
+                    return x, y
+            else:
+                t = d0 * y * y + sgn
+                x = math.isqrt(t) if t > 0 else -1
+                if x >= 0 and x * x == t:
+                    return 2 * x, 2 * y
+        y += 1
+
+
+def hmul(a, b, d0):
+    """(X1 + Y1 s)/2 * (X2 + Y2 s)/2 with s = sqrt d0, halves kept."""
+    x = a[0] * b[0] + a[1] * b[1] * d0
+    y = a[0] * b[1] + a[1] * b[0]
+    assert x % 2 == 0 and y % 2 == 0
+    return x // 2, y // 2
+
+
+def in_order(el, d0, f):
+    """Is (X + Y sqrt d0)/2 in Z + f O_max?"""
+    x, y = el
+    if d0 % 4 == 1:
+        return (x - y) % 2 == 0 and y % f == 0
+    return x % 2 == 0 and y % 2 == 0 and (y // 2) % f == 0
+
+
+def lattice(x):
+    """(d0, per, f, eta, eps^i, i) for a quadratic x = (u + v sqrt d)/w."""
+    u, v, w, d = x
+    d0, s = squarefree(d)
+    aa, bb, cc = w * w, -2 * u * w, u * u - v * v * d
+    g = math.gcd(math.gcd(aa, bb), cc)
+    disc = (bb * bb - 4 * aa * cc) // (g * g)
+    dk = d0 if d0 % 4 == 1 else 4 * d0
+    f = math.isqrt(disc // dk)
+    assert f * f * dk == disc
+    _, per = qperiod(x)
+    eta = eta_exact(per, d0)
+    eps = fund_unit(d0)
+    pw, i = eps, 1
+    while not in_order(pw, d0, f):
+        pw, i = hmul(pw, eps, d0), i + 1
+    return d0, per, f, eta, pw, i
+
+
+def rate(per, d0):
+    tr, s = eta_exact(per, d0)
+    return 2 * math.log((tr + s * math.sqrt(d0)) / 2) / len(per)
+
+
+# ---- the interval reader ----
+
+def conv(qs):
+    p, q, pp, qq = 1, 0, 0, 1
+    for a in qs:
+        p, q, pp, qq = a * p + pp, a * q + qq, p, q
+    return p, q, pp, qq
+
+
+def tile(qs):
+    p, q, pp, qq = conv(qs)
+    e1, e2 = (p, q), (p + pp, q + qq)
+    return (e1, e2) if e1[0] * e2[1] < e2[0] * e1[1] else (e2, e1)
+
+
+def frac_order(a, b):
+    return (a, b) if a[0] * b[1] < b[0] * a[1] else (b, a)
+
+
+def mob(m):
+    a, b, c, e = m
+
+    def f(lo, hi):
+        out = []
+        for n, dd in (lo, hi):
+            nn, nd = a * n + b * dd, c * n + e * dd
+            out.append((-nn, -nd) if nd < 0 else (nn, nd))
+        return frac_order(*out)
+    return f
+
+
+def square(lo, hi):
+    return frac_order((lo[0] ** 2, lo[1] ** 2), (hi[0] ** 2, hi[1] ** 2))
+
+
+SCALE = 10 ** 400
+
+
+def root(lo, hi):
+    a = math.isqrt(lo[0] * SCALE * SCALE // lo[1])
+    b = math.isqrt(-(-hi[0] * SCALE * SCALE // hi[1])) + 1
+    return (a, SCALE), (b, SCALE)
+
+
+def emit(lo, hi):
+    (ln, ld), (hn, hd) = lo, hi
+    out = []
+    while True:
+        a = ln // ld
+        if hn > (a + 1) * hd:
+            return out
+        out.append(a)
+        if ln == a * ld:
+            return out
+        ln, ld, hn, hd = hd, hn - a * hd, ld, ln - a * ld
+
+
+def scale_of_tile(qs):
+    _, q, _, qq = conv(qs)
+    return math.log(q * (q + qq))
+
+
+def scale_of(lo, hi):
+    return math.log(lo[1] * hi[1]) - math.log(hi[0] * lo[1] - lo[0] * hi[1])
+
+
+def reader(stream, f, n):
+    lo, hi = f(*tile(stream[:n]))
+    return lo, hi, emit(lo, hi)
+
+
+PHI = (1, 1, 2, 5)
+SQ2, SQ3 = (0, 1, 1, 2), (0, 1, 1, 3)
+
+
+def lcg_stream(n, seed=12345):
+    out, s = [1], seed
+    for _ in range(n - 1):
+        s = (1103515245 * s + 12345) % 2 ** 31
+        out.append(1 + s % 5)
+    return out
+
+
+def section_0():
+    print("\n[0] positive controls")
+    st = qcf(PHI, 160)
+    lags = [n - len(reader(st, mob((0, 1, 1, 0)), n)[2])
+            for n in range(1, 151)]
+    e150 = len(reader(st, mob((2, 0, 0, 1)), 150)[2])
+    e120 = len(reader(st, square, 120)[2])
+    print(f"     1/x at phi: lag range [{min(lags)}, {max(lags)}]; "
+          f"2x at phi: e(150) = {e150}; y^2 at phi: e(120) = {e120}")
+    check("1/x at phi has lag <= 1 at every depth", max(lags) <= 1)
+    check("2x at phi emits at slope 1/3", abs(e150 / 150 - 1 / 3) < 0.02)
+    check("y^2 at phi emits (the wall detector sees no wall)", e120 >= 100)
+
+
+def section_w():
+    print("\n[W] walls sit at the preimages of the rationals")
+    rows = [("sqrt2", SQ2), ("sqrt3", SQ3), ("sqrt6", (0, 1, 1, 6)),
+            ("sqrt(3/2)", (0, 1, 2, 6)), ("sqrt(7/3)", (0, 1, 3, 21)),
+            ("sqrt(17/12)", (0, 1, 6, 51))]
+    ok = True
+    for name, y in rows:
+        num, den, k = y[3], y[2] ** 2, -1   # y^2 = d/w^2, its quotients
+        while den:
+            num, den, k = den, num % den, k + 1
+        st = qcf(y, 130)
+        es = [len(reader(st, square, n)[2]) for n in (20, 60, 120)]
+        print(f"     y^2 at {name:12s}: emission {es}, predicted {k}")
+        ok &= es == [k] * 3
+    check("y^2 freezes at each wall at its image's last-quotient index", ok)
+    grow = []
+    for name, y, f in [("y^2 at phi", PHI, square),
+                       ("y^2 at 1 + sqrt2", (1, 1, 1, 2), square),
+                       ("sqrt(y) at 3 + sqrt2", (3, 1, 1, 2), root)]:
+        st = qcf(y, 130)
+        es = [len(reader(st, f, n)[2]) for n in (20, 60, 120)]
+        print(f"     {name:22s}: emission {es}")
+        grow.append(es[0] < es[1] < es[2])
+    check("off the rationals emission grows without bound", all(grow))
+
+
+def deficits(stream, f, n_max, whole=False):
+    """Before the first emission no tile is committed; with whole=True
+    the committed set is the whole line, of scale 0."""
+    out = []
+    for n in range(1, n_max + 1):
+        lo, hi, e = reader(stream, f, n)
+        if e:
+            out.append(scale_of(lo, hi) - scale_of_tile(e))
+        else:
+            out.append(scale_of(lo, hi) if whole else None)
+    return out
+
+
+def section_d():
+    print("\n[D] the commitment bound")
+    rows = [("2x at phi", PHI, mob((2, 0, 0, 1)), 4),
+            ("2x at sqrt2", SQ2, mob((2, 0, 0, 1)), 4),
+            ("y^2 at phi", PHI, square, 1),
+            ("7x at phi", PHI, mob((7, 0, 0, 1)), 15)]
+    ok = True
+    for name, y, f, a in rows:
+        ds = [x for x in deficits(qcf(y, 250), f, 240) if x is not None]
+        bound = 3 * math.log(a + 2) + math.log(4)
+        print(f"     {name:12s}: deficit in [{min(ds):.3f}, {max(ds):.3f}],"
+              f" bound {bound:.3f} (A = {a})")
+        ok &= min(ds) >= -1e-9 and max(ds) <= bound
+    check("the deficit stays in [0, 3 ln(A + 2) + ln 4] at every row", ok)
+
+    rng = random.Random(7)
+    worst, count = -math.inf, 0
+    for z, a in [((0, 1, 1, 7), 4), ((7, 7, 2, 5), 15)]:
+        qs = qcf(z, 40)
+        for _ in range(150):
+            j = rng.randrange(2, 30)
+            p1, q1, _, _ = conv(qs[:j])
+            p2, q2, _, _ = conv(qs[:j + 1])
+            lo, hi = frac_order((p1, q1), (p2, q2))
+            den = q1 * q1 * rng.randrange(1, 50)
+            lo = (lo[0] * den - lo[1] * rng.randrange(0, 5), lo[1] * den)
+            hi = (hi[0] * den + hi[1] * rng.randrange(0, 5), hi[1] * den)
+            e = emit(lo, hi)
+            if e:
+                gap = scale_of(lo, hi) - scale_of_tile(e)
+                worst = max(worst, gap - 3 * math.log(a + 2) - math.log(4))
+                count += 1
+    print(f"     random battery: {count} of 300 intervals around sqrt7 and"
+          f" 7 phi commit a tile (the rest nothing), largest excess over"
+          f" the bound {worst:.3f}")
+    check("every random interval obeys the bound", worst <= 0 and count > 250)
+
+    ds = deficits(qcf(SQ2, 250), square, 240, whole=True)
+    slope = (ds[239] - ds[119]) / 120
+    print(f"     wall y^2 at sqrt2: deficit slope {slope:.4f} against "
+          f"2 ln(1 + sqrt2) = {2 * math.log(1 + math.sqrt(2)):.4f}")
+    check("at the wall the deficit grows at the input's rate",
+          abs(slope / (2 * math.log(1 + math.sqrt(2))) - 1) < 0.05)
+
+
+def section_f():
+    print("\n[F] rate forcing")
+    rows = [("2x", PHI, (2, 0, 0, 1), 1 / 3), ("3x", PHI, (3, 0, 0, 1), 1 / 2),
+            ("x/2", PHI, (1, 0, 0, 2), 1 / 3), ("2x", SQ2, (2, 0, 0, 1), 1),
+            ("5x", SQ2, (5, 0, 0, 1), 1 / 3), ("3x", SQ3, (3, 0, 0, 1), 1 / 3),
+            ("y^2", PHI, "sq", 1), ("y^2", (1, 1, 1, 3), "sq", 1 / 2),
+            ("sqrt y", (7, 4, 1, 3), "rt", 2),
+            ("x/2", (1, 1, 1, 5), (1, 0, 0, 2), 3),
+            ("7x", PHI, (7, 0, 0, 1), 1 / 4)]
+    all_ok, same = True, True
+    for name, y, m, hand in rows:
+        if m == "sq":
+            f, z = square, qsq(y)
+        elif m == "rt":
+            f, z = root, (2, 1, 1, 3)
+        else:
+            f, z = mob(m), qmob(y, m)
+        ly, lz = lattice(y), lattice(z)
+        rho = (ly[5] * len(lz[1])) / (lz[5] * len(ly[1]))
+        st = qcf(y, 250)
+        es = [len(reader(st, f, n)[2]) for n in range(1, 241)]
+        res = [abs(es[n - 1] - rho * n) for n in range(1, 241)]
+        first, second = max(res[:120]), max(res[120:])
+        lag = 240 - es[-1]
+        sign_ok = rho == 1 or (lag > 0 if rho < 1 else lag < 0)
+        ok = abs(rho - hand) < 1e-12 and second <= first + 2 and sign_ok
+        all_ok &= ok
+        same &= abs(second - first) < 1e-9 and first <= 2
+        print(f"     ({name}, y = {y[:3]}/{y[3]}): (i, l) {ly[5], len(ly[1])} "
+              f"-> {lz[5], len(lz[1])}, rho {rho:.4f}, residual sup "
+              f"{first:.2f} then {second:.2f}, lag(240) {lag}")
+    check("rho matches the hand value, e(n) - rho n stays flat, and the "
+          "lag's sign is 1 - rho, at all eleven rows", all_ok)
+    check("the residual's sup is the same over both halves, at most 2",
+          same)
+
+
+def section_c():
+    print("\n[C] the unit-index law: eta = eps^i")
+    ys = []
+    for d in (2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19, 21, 22, 23):
+        for (u, v, w) in [(0, 1, 1), (1, 1, 1), (1, 1, 2), (0, 2, 1),
+                          (1, 3, 1), (2, 1, 3), (0, 3, 2), (1, 2, 5)]:
+            ys.append(qn(u, v, w, d))
+    ys += [qn(n, n, 2, 5) for n in range(2, 13)]
+    ys = list(dict.fromkeys(ys))  # qn(2, 2, 2, 5) is d = 5's (1, 1, 1)
+    ok, fields, conductors = True, set(), set()
+    for y in ys:
+        d0, per, f, eta, pw, i = lattice(y)
+        ok &= eta == pw
+        fields.add(d0)
+        conductors.add(f)
+    print(f"     {len(ys)} quadratic points over {len(fields)} fields, "
+          f"conductors up to {max(conductors)}")
+    check("the period's eigenvalue equals eps^i at every point, 50 or more",
+          ok and len(ys) >= 50)
+
+
+def section_u():
+    print("\n[U] the unit criterion")
+    maps = [("x + 1", (1, 1, 0, 1)), ("x - 1", (1, -1, 0, 1)),
+            ("1/x", (0, 1, 1, 0)), ("-x", (-1, 0, 0, 1)),
+            ("-1/x", (0, -1, 1, 0)), ("(2x + 1)/(x + 1)", (2, 1, 1, 1)),
+            ("(x - 4)/(x - 3)", (1, -4, 1, -3))]
+    inputs = [("phi", qcf(PHI, 130), PHI), ("sqrt2", qcf(SQ2, 130), SQ2),
+              ("sqrt3", qcf(SQ3, 130), SQ3), ("lcg", lcg_stream(130), None)]
+    bounded, kept = True, True
+    for name, m in maps:
+        worst = []
+        for iname, st, y in inputs:
+            lags = [n - len(reader(st, mob(m), n)[2]) for n in range(2, 121)]
+            h = len(lags) // 2
+            bounded &= (max(lags) <= 1 and min(lags) >= -2
+                        and max(lags[h:]) <= max(lags[:h]) + 1)
+            worst.append((min(lags), max(lags)))
+            if y is not None:
+                a, b = lattice(y), lattice(qmob(y, m))
+                kept &= a[3] == b[3] and len(a[1]) == len(b[1])
+        print(f"     {name:18s}: lag range at phi, sqrt2, sqrt3, lcg "
+              f"{worst}")
+    check("every unimodular map has bounded, non-growing lag", bounded)
+    check("every unimodular image keeps (eta, l)", kept)
+    ok, low = True, []
+    for n in range(2, 41):
+        _, per = qperiod(qn(n, n, 2, 5))
+        r = rate(per, 5)
+        ok &= set(per) != {1} and r > 2 * math.log((1 + 5 ** 0.5) / 2)
+        low.append(r / (2 * math.log((1 + 5 ** 0.5) / 2)))
+    print(f"     N phi, N = 2..40: rate over r(phi) from {min(low):.3f}"
+          f" to {max(low):.3f}")
+    check("N phi has no all-ones tail and a rate above r(phi)", ok)
+
+
+def sb_parents(p, q):
+    l, r = (0, 1), (1, 0)
+    while True:
+        m = (l[0] + r[0], l[1] + r[1])
+        if m == (p, q):
+            return l, r
+        if p * m[1] < m[0] * q:
+            r = m
+        else:
+            l = m
+
+
+def straddle_k(lo, hi, v, l, r):
+    (ln, ld), (hn, hd) = lo, hi
+    (pv, qv), (pl, ql), (pr, qr) = v, l, r
+    num, den = ln * ql - pl * ld, pv * ld - ln * qv
+    kl = -(-num // den) - 1 if num > 0 else 0
+    num, den = hd * pr - hn * qr, hn * qv - hd * pv
+    kr = -(-num // den) - 1 if num > 0 else 0
+    return min(kl, kr)
+
+
+def section_k():
+    print("\n[K] the ladder law and the redundant cover")
+    l, r = sb_parents(1, 1)
+    s1 = sorted([(l[0] + 1, l[1] + 1), (r[0] + 1, r[1] + 1)],
+                key=lambda t: t[0] / t[1])
+    a, b, c, d = 2, 1, 1, 2             # y -> (2y + 1)/(y + 2)
+    image = sorted([(b, d), (a, c)], key=lambda t: t[0] / t[1])
+    print(f"     S_1 of the root: {s1}; the image of 0 and inf: {image}")
+    check("S_1 of the root is the image of (0, inf) under (2y + 1)/(y + 2)",
+          s1 == image)
+    zs = [PHI, (1, 1, 1, 5), SQ2, SQ3, (0, 1, 1, 7), (3, 3, 2, 5),
+          (1, 1, 2, 13), (7, 7, 2, 5), (5, 1, 1, 6)]
+    agree, at_conv, elsewhere, n_conv, n_other = True, True, True, 0, 0
+    for z in zs:
+        qs = qcf(z, 60)
+        convs = {}
+        p, q, pp, qq = 1, 0, 0, 1
+        for j, a in enumerate(qs):
+            p, q, pp, qq = a * p + pp, a * q + qq, p, q
+            convs[(p, q)] = j
+        qmax = conv(qs[:-1])[1]
+        l, r = (0, 1), (1, 0)
+        while True:
+            v = (l[0] + r[0], l[1] + r[1])
+            if v[1] > qmax:
+                break
+            side = qsign(z, *v)
+            far = l if side < 0 else r
+            k = 0
+            while True:
+                m = (far[0] + (k + 1) * v[0], far[1] + (k + 1) * v[1])
+                if qsign(z, *m) != -side:
+                    break
+                k += 1
+            u, vv, w, d = z
+            dist = qn(side * (u * v[1] - v[0] * w), side * vv * v[1],
+                      w * v[1], d)
+            x = qrecip((dist[0] * v[1] ** 2, dist[1] * v[1] ** 2,
+                        dist[2], d))
+            x = qn(x[0] * v[1] - far[1] * x[2], x[1] * v[1], x[2] * v[1], d)
+            agree &= qfloor(x) == k
+            if v in convs:
+                n_conv += 1
+                j = convs[v]
+                at_conv &= j + 1 < len(qs) and k == qs[j + 1]
+            else:
+                n_other += 1
+                elsewhere &= k <= 1
+            if side < 0:
+                r = v
+            else:
+                l = v
+    print(f"     {len(zs)} points: {n_conv} convergents, {n_other} other "
+          f"path vertices")
+    check("the closed form for K equals enumeration at every vertex", agree)
+    check("K = a_(n+1) at every convergent", at_conv)
+    check("K <= 1 at every other path vertex", elsewhere)
+
+    ok = True
+    for name, y, v in [("sqrt2", SQ2, (2, 1)), ("sqrt3", SQ3, (3, 1)),
+                       ("sqrt(3/2)", (0, 1, 2, 6), (3, 2))]:
+        st = qcf(y, 130)
+        l, r = sb_parents(*v)
+        ks = [straddle_k(*square(*tile(st[:n])), v, l, r)
+              for n in (60, 120)]
+        _, per = qperiod(y)
+        rin = rate(per, y[3])
+        slope = (math.log(ks[1]) - math.log(ks[0])) / 60
+        print(f"     straddle reader at y^2, {name:9s}: k(60), k(120) "
+              f"= {ks[0]:.3e}, {ks[1]:.3e}; ln k slope {slope:.4f}, "
+              f"input rate {rin:.4f}")
+        ok &= ks[0] > 1 and abs(slope / rin - 1) < 0.03
+    check("the straddle reader never freezes at a wall, at the input's "
+          "rate", ok)
+
+    rel = []
+    for y, m, want in [(PHI, (2, 0, 0, 1), 4 / 3),
+                       ((1, 1, 1, 5), (1, 0, 0, 2), 3 / 4)]:
+        st = qcf(y, 250)
+        e = reader(st, mob(m), 240)[2]
+        steps = sum(e) / sum(st[:240])
+        rel.append((steps, want))
+    print(f"     Stern-Brocot steps emitted per step read: (2x, phi) "
+          f"{rel[0][0]:.4f}, (x/2, 2 phi) {rel[1][0]:.4f}")
+    check("in steps the lags change sign: 4/3 and 3/4",
+          all(abs(s / w - 1) < 0.04 for s, w in rel))
+
+
+def main():
+    section_0()
+    section_w()
+    section_d()
+    section_f()
+    section_c()
+    section_u()
+    section_k()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

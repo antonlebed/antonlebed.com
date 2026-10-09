@@ -1,0 +1,562 @@
+"""wild.py -- at p = 2, where a class of units lands past the bend: the
+tame formula at every class but the top one, and the top class, whose
+least landing is a head's width, read off the departure of the
+Eisenstein polynomial from one fixed design.
+
+QUESTION. Let K/Q_2 be totally ramified of degree e, cut out by
+F = x^e + sum_{i=1}^{e-1} 2 b_i x^i - 2 d with root pi, and u = 2/pi^e
+(triangle.py). The bend is s = e. A CLASS is a pair (c, m) with
+c 2^m = e: the units z of level exactly c, which reach the bend after m
+squarings; a unit's LANDING is v(z^(2^(m+1)) - 1). tame.py reads every
+class at an odd prime as p s + min(l, p^m), l = v(u + 1). Which of
+that survives at 2, and what does the top class (1, n), e = 2^n, read
+in its place? Its least landing is clock.py's arrival, so the answer is
+the width w at every place with a head over 2 (f = 1 and e = 2^n is
+the whole head criterion there, since the residue of u is always
+1 = -1).
+
+THE OBJECTS READ. The departure l = v(u + 1) = min(e v_2(d + 1),
+min_i (e v_2(b_i) + i)), as in tame.py (the terms of 1 + D, D = d -
+sum b_i pi^i, sit at distinct levels mod e at every p); here l >= 1
+always. The ANCHOR DESIGN is
+
+    A_e = x^e + 2 x^(e/2) + 4 x^(e/4) - 6   (the middle term absent at
+                                            e = 2),
+
+and the WILD DEPARTURE of F is the least level (triangle.py's levels:
+digit k of b_i at i + k e, digit k of d at k e) where a coefficient
+digit of F differs from A_e's:
+
+    lam = min( e v_2(d - 3),  e v_2(b_(e/2) - 1) + e/2,
+               e v_2(b_(e/4) - 2) + e/4,  min_(other i) e v_2(b_i) + i ).
+
+THE ARGUMENT (written before the engine).
+  (1) THE RECURSION. For z of level c write h_j = (z^(2^j) - 1)/pi^(c 2^j),
+      units for j <= m (the levels double below the bend, clock.py).
+      From (Z - 1)^2 + 2(Z - 1) and 2 = u pi^e,
+          h_j = h_(j-1)^2 + u pi^(c_j) h_(j-1),   c_j = e - c 2^(j-1),
+      and z^(2^m) + 1 = pi^e (h_m + u), so the landing is
+      2e + v(S), S = u + h_m. Squaring a congruence mod pi^E keeps it
+      (2 A delta sits at e + E), and h_j^2 = h_(j-1)^4 mod pi^(2 c_j).
+  (2) EVERY CLASS BUT THE TOP. Let c >= 2, z = 1 + pi^c t, t = 1 +
+      t_1 pi + ..., t_1 in {0, 1}. Every c_j >= e/2 >= 2^m, so h_m =
+      t^(2^m) + [c = 2] u pi^(e/2) h_(m-1) mod pi^(2^m + 1), and
+      t^(2^m) = 1 + t_1 pi^(2^m) mod pi^(2^m + 1) (below the bend a
+      leading digit keeps its value under squaring). So S = (u + 1) +
+      (t_1 + [c = 2]) pi^(2^m) mod pi^(2^m + 1): rigid at l when
+      l < 2^m, and otherwise at least 2^m with one t_1 attaining it.
+      The least landing of (c, m) is 2e + min(l, 2^m): tame.py's
+      formula, the top class excepted, where 2^m = e and c_n = e/2 is
+      no longer past the precision needed.
+  (3) THE TOP CLASS. c = 1, e = 2^n, z = 1 + pi t. The chain in (1)
+      gives h_(n-1)^2 = t^e mod pi^(3e/2) and, for e >= 4,
+      h_(n-2) = t^(e/4) mod pi^(e/2), so
+          h_n = t^e + u pi^(e/2) t^(e/2) + u^2 pi^(5e/4) t^(e/4)
+      mod pi^(3e/2). Put t^(e/4) = 1 + pi^(e/4) q. Expanding the
+      squares,
+          S = S_0 + pi^e q^2 (q^2 + u)  mod pi^(3e/2),
+          S_0 = 1 + u + u pi^(e/2) + u^2 pi^(5e/4).
+      Either t has level >= 2, so v(q) >= e/4, or q = 1 mod pi^(e/4)
+      (the same chain run on t), so v(q^2 - 1) >= e/2. Either way the
+      varying term sits at e + min(e/2, l) or deeper. If l < e/2,
+      v(S_0) = l; if l > e/2, v(S_0) = e/2; both lie below it. If
+      l = e/2 it sits at 3e/2. So v(S) = v(S_0) for every level-1 unit
+      whenever v(S_0) < 3e/2, and v(S) >= 3e/2 otherwise. At e = 2,
+      S = 1 + u + u pi mod pi^3 directly, t = 1 + pi g giving
+      pi^2 g (g + u) at level 3.
+  (4) THE CAP IS ATTAINED. g = 1 + pi^3 has v(g^e - 1) = 5e/2 exactly
+      (levels 3, 6, ..., 3e/4, then 3e/2 and 5e/2, never at the bend),
+      so if every z has v(z^e + 1) >= 5e/2, one of z and z g has
+      equality. The least landing of the top class is therefore
+      2e + min(v(S_0), 3e/2), and w = min(v(S_0), 3e/2).
+  (5) THE READING. The digit of S_0 at level r >= 1 is u_r plus a
+      function of u_1..u_(r-1) (carries go up by e, the pi^(e/2) and
+      pi^(5e/4) terms read lower digits), so v(S_0) >= R holds for one
+      prefix u_1..u_(R-1) only. u = 1 + pi^(e/2) + pi^(5e/4) mod
+      pi^(3e/2) is it: S_0 = 2 + pi^e = pi^e (u + 1), at level 3e/2.
+      And A_e has exactly that u below 3e/2: D = 3 - pi^(e/2) -
+      2 pi^(e/4) = 1 - pi^(e/2) + pi^e - pi^(5e/4) mod pi^(3e/2), and
+      (1 + pi^(e/2) + pi^(5e/4)) D = 1 there. By the coefficient
+      triangle (triangle.py) a prefix of u through level R - 1 is
+      printed by exactly the coefficient digits through R - 1, so
+      v(S_0) = lam capped at 3e/2:
+          w = min(lam, 3e/2)   at every place over 2 with a head and
+                               e >= 2,
+      one coefficient level of any Eisenstein polynomial of the field,
+      the departure from A_e where the odd prime's is from x^e + p.
+      The digit string of Q_2(zeta_(2e)) begins with A_e's, since
+      z = zeta_(2e) has S = 0.
+
+TRANSPLANTS. The formula of (2) is tame.py's, whose step (1) at p = 2
+covers c >= 3 and ties at c = 2; the tie is the [c = 2] term, argued
+here and not assumed. The top class's 3e/2 - 1 digits and the
+skeleton at e/2 and 5e/4 are the record this script replaces, there
+proved by a multinomial enumeration; (3) and (4) do not use it.
+
+PREDICTIONS, fixed before the run.
+  C  CONTROL. (a) lam off the coefficients equals the first level where
+     triangle.py's digits of u leave those of A_e, and v(S_0) computed
+     in the field equals min(lam, that level cap), at every polynomial
+     used. (b) The class minimum over z mod pi^(c+3) equals that over
+     z mod pi^(c+5) at every class of e = 2, 4, 8, over polynomials
+     built as T's are (lam 1 to 3e/2 + 2, A_e, Phi_(2e)(x + 1), two
+     random), drawn apart from them, so over c + 4 as well. O reads
+     three digits and T four; O's other e and polynomials and T at
+     e = 16 and 32 lie past this control, and it vouches for the least
+     landing only, not for a rigid class's one value. (c) Every level-c
+     unit reaches level c 2^j after j squarings, j <= m. (d) A_e's u
+     is 1 + pi^(e/2) + pi^(5e/4) below 3e/2 at e = 4, 8, 16, 32, 64,
+     and x^2 + 2x - 6's is 1 + pi below 3.
+  T  THE TOP CLASS. At e = 2, 4, 8, 16 and polynomials with lam = every
+     value from 1 to 3e/2 + 2, each with random digits above lam, plus
+     A_e itself, Phi_(2e)(x + 1) and random polynomials: the least
+     landing of (1, n) is 2e + min(lam, 3e/2), and when lam < 3e/2
+     every level-1 unit lands there. At e = 32, lam in {1, 16, 17, 40,
+     41, 47, 48, 50}, the same.
+  O  THE OTHER CLASSES. At e = 4, 8, 16, 6, 10, 12, every class with
+     c >= 2 and polynomials with l = every value from 1 to e + 2 and
+     l infinite (x^e + 2), random above: the least landing is 2e +
+     min(l, 2^m), and when l < 2^m every unit of the class lands there.
+  W  THE WIDTH. At the Eisenstein places with a head over 2 in clock.py
+     and designed ones at e = 4 and 8 with lam = 1 .. 3e/2 + 1: the
+     width clock.py reads off the tick ladder (the group exponent, not
+     the landing) is min(lam, 3e/2); the translate F(x - 2) has
+     min(lam', 3e/2) = min(lam, 3e/2); and over the quadratic fields
+     Q_2(sqrt delta), delta squarefree, 2 ramified, |delta| <= 400,
+     min(lam, 3) is 1 at delta = 2, 6 mod 8, 2 at 3 and 3 at 7 (clock.py's
+     delta mod 8 theorem, a positive control).
+  D  THE LETTERS AT e = 4. The field K(zeta_8) = K(i, sqrt 2) over a
+     totally ramified quartic K is read by three LETTERS, each of
+     delta = -1, 2, -2 split (a square in K), unramified (5 delta a
+     square) or ramified. Every Eisenstein quartic reduces to one of
+     the 256 CELLS of its coefficient digits at levels 1 to 8, and the
+     letters are functions of the cell (squares of units are decided
+     mod pi^9). Transplanted from one census of 49 quartics, the width
+     w = min(lam, 6) should sort the letters: w = 1 and w = 3 all
+     ramified; w = 2 exactly one letter not ramified; w = 4 -1
+     unramified, 2 and -2 ramified; w = 5 -1 split, the others
+     ramified; w = 6 all three split. The counts of cells at w = 1 to
+     6 are 128, 64, 32, 16, 8, 8, and the top class's least landing is
+     8 + w at every cell.
+KILLS, as printed observables: any C line off (nothing below is read);
+one (polynomial, class) whose least landing is off its formula, or a
+rigid class with a unit landing elsewhere; one W place whose ladder
+width is off min(lam, 3e/2), a translate whose capped departure
+differs, or one delta off its residue's width. D is a map, not a kill:
+it prints the letter triples each w carries, and a w whose triples
+differ from the transplant is read as the table's correction; one
+cell whose letters move under a lift above level 8, or whose top
+class lands off 8 + w, is a kill.
+
+FINDINGS. 21/21 checks PASS, no kill fired; D corrected its transplant.
+  C  lam is the first digit of u off A_e's, and min(v(S_0), 3e/2) =
+     min(lam, 3e/2), at 69 polynomials, 0 off; the class minimum over
+     three digits equals that over five at 126 (polynomial, class), 0
+     off; A_e's u has nonzero digits below 3e/2 exactly at 0, e/2 and
+     5e/4 at e = 4 through 64 ([0, 32, 80] at 64), and x^2 + 2x - 6's
+     at 0 and 1.
+  T  81 polynomials over e = 2, 4, 8, 16, 32: the least landing of the
+     top class is 2e + min(lam, 3e/2) at every one, every value of
+     min(lam, 3e/2) from 1 to the cap realized at e <= 16, and at the
+     56 rigid readings every level-1 unit lands there.
+  O  244 (polynomial, class) readings with c >= 2 over e = 4, 8, 16, 6,
+     10, 12: the least landing is 2e + min(l, 2^m) at every one, and at
+     the 35 rigid ones every unit lands there.
+  W  At the ten Eisenstein places with a head over 2 of clock.py and
+     twenty designed ones at e = 4 and 8, the ladder width is
+     min(lam, 3e/2): 1 to 6 then 6 over e = 4, 1 to 12 then 12 over
+     e = 8. The translates agree capped, and move lam above the cap
+     (Q_2(i) through x^2 - 2x + 2 reads lam = 3, its translate 5). Over
+     the 324 squarefree delta with 2 ramified and |delta| <= 400,
+     min(lam, 3) is 1 at delta = 2, 6 mod 8, 2 at 3 and 3 at 7, every
+     one.
+  D  The letters move under no lift above level 8 at any of the 256
+     cells, 5 is a square at none, and the top class lands at 8 + w at
+     every cell, 128, 64, 32, 16, 8, 8 of them at w = 1 to 6. The
+     letter triples (-1, 2, -2) by w:
+       w = 1, 3, 5: ram ram ram, ram ram ram, split ram ram, at every
+                    cell;
+       w = 2: all ram x16, and one letter off ram x48: -1 split x16,
+              -1 unram x16, 2 split, 2 unram, -2 split, -2 unram x4
+              each;
+       w = 4: unram ram ram x12, unram split unram x2, unram unram
+              split x2;
+       w = 6: split ram ram x4, split split split x2, split unram
+              unram x2.
+     So the transplant held at w = 1, 3 and 5 and failed at 2, 4 and
+     6: w = 2 carries 16 all-ramified cells and 16 with i in K, and w
+     = 6 is Q_2(zeta_8) at only 2 of its 8 cells. What w does fix is
+     the letter of -1 above 2: ramified at 3, unramified at 4, split
+     at 5 and 6. The constructed splits read as built, and the anchor
+     design A_4 = x^4 + 2x^2 + 4x - 6 reads split, unram, unram: i in
+     its field, 2 and -2 unramified, so it is not Q_2(zeta_8).
+  Tiers: (2) a theorem at p = 2 for every class with c >= 2, and (3) to
+  (5) a theorem for the top class and the width at every place over 2
+  with a head and e >= 2, their proof the argument above; lam's reading
+  off the coefficients a property; D a rule, exhaustive over the 256
+  cells.
+
+RUN RECORD. 21/21, 1.3 s wall, peak working set 12.6 MB under
+a memory guard, green on the first run (D added in a later pass, its
+section printed once).
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+import random
+
+from module_law import check, section, CHECKS, vp
+from triangle import Field, cell_to_poly, read, cyclotomic
+from tame import departure, local, landings, translate, INF
+import clock
+
+SEED = 1425
+
+
+def anchor_levels(e):
+    """The levels where A_e has a nonzero coefficient digit."""
+    return {e // 2, e} | ({5 * e // 4} if e >= 4 else set())
+
+
+def anchor(e):
+    return cell_to_poly(2, e, 1, [int(r in anchor_levels(e))
+                                  for r in range(1, 2 * e)])
+
+
+def wild_departure(e, b, d):
+    """lam: the least level where a coefficient digit leaves A_e's."""
+    ab, ad = anchor(e)
+    best = INF if d == ad else e * vp(d - ad, 2)
+    for i in range(1, e):
+        if b[i] != ab[i]:
+            best = min(best, e * vp(b[i] - ab[i], 2) + i)
+    return best
+
+
+def designed(rng, e, lam, top):
+    """(b, d) whose digits match A_e's below lam, leave them at lam and
+    are random above, to level top."""
+    digs = []
+    for r in range(1, top + 1):
+        a = int(r in anchor_levels(e))
+        digs.append(a if r < lam else 1 - a if r == lam
+                    else rng.randrange(2))
+    return cell_to_poly(2, e, 1, digs)
+
+
+def designed_l(rng, e, l, top):
+    """(b, d) whose departure from x^e + 2 is exactly l (tame.py's)."""
+    digs = [0 if r < l else 1 if r == l else rng.randrange(2)
+            for r in range(1, top + 1)]
+    b, dp1 = cell_to_poly(2, e, 0, digs)
+    return b, dp1 - 1
+
+
+def classes(e):
+    out, m = [], 0
+    while e % 2 ** m == 0:
+        out.append((e // 2 ** m, m))
+        m += 1
+    return out
+
+
+def s_zero(f):
+    """v(1 + u + u pi^(e/2) + u^2 pi^(5e/4)) in the field f."""
+    e, mod, u = f.e, f.mod, f.u
+    z = [(a + (i == 0)) % mod for i, a in enumerate(u)]
+    t = f.mul(u, f.pi_pow(e // 2))
+    z = [(a + x) % mod for a, x in zip(z, t)]
+    if e >= 4:
+        t = f.mul(f.mul(u, u), f.pi_pow(5 * e // 4))
+        z = [(a + x) % mod for a, x in zip(z, t)]
+    return f.val(z)
+
+
+def first_off(x, y):
+    return next((r for r, (a, c) in enumerate(zip(x, y)) if a != c), INF)
+
+
+def random_poly(rng, e):
+    b = [0] + [rng.randrange(2 ** 4) for _ in range(1, e)]
+    return b, 1 + 2 * rng.randrange(2 ** 4)
+
+
+def top_polys(rng, e, lams):
+    top = 2 * e + 4
+    out = [(lam, designed(rng, e, lam, top)) for lam in lams]
+    out.append((INF, anchor(e)))
+    out.append((wild_departure(e, *cyclotomic(e)), cyclotomic(e)))
+    for _ in range(2):
+        b, d = random_poly(rng, e)
+        out.append((wild_departure(e, b, d), (b, d)))
+    return out
+
+
+# ------------------------------------------------------------ sections
+
+def section_control(rng):
+    section("C  CONTROL: the wild departure, the digit depth, the anchor")
+    seen = bad = 0
+    for e in (2, 4, 8, 16):
+        cap = 3 * e // 2
+        L = cap + 3
+        ref = read(2, e, *anchor(e), L)
+        for lam, (b, d) in top_polys(rng, e, range(1, cap + 3)):
+            f = Field(2, e, b, d, L)
+            lw = wild_departure(e, b, d)
+            off = first_off(f.digits(), ref)
+            ok = lw == lam and off == (lw if lw <= L else INF)
+            ok &= min(s_zero(f), cap) == min(lw, cap)
+            seen += 1
+            bad += not ok
+            if not ok:
+                print(f"    OFF e={e} lam={lam} lw={lw} digits off at "
+                      f"{off} v(S_0)={s_zero(f)}")
+    check("Ca lam = the first digit off A_e's; min(v(S_0), 3e/2) = "
+          "min(lam, 3e/2)", bad == 0, f"{seen} polynomials, {bad} off")
+    seen = bad = 0
+    for e in (2, 4, 8):
+        for lam, (b, d) in top_polys(rng, e, range(1, 3 * e // 2 + 3)):
+            loc = local(2, e, b, d)
+            for (c, m) in classes(e):
+                seen += 1
+                bad += (min(landings(loc, c, m, 3)[0])
+                        != min(landings(loc, c, m, 5)[0]))
+    check("Cb the class minimum over three digits = over five",
+          bad == 0, f"{seen} (polynomial, class), {bad} off")
+    bad = 0
+    for e in (2, 4, 8, 16, 32, 64):
+        cap = 3 * e // 2
+        digs = read(2, e, *anchor(e), cap - 1)
+        on = [r for r in range(cap) if digs[r]]
+        want = [0, e // 2] + ([5 * e // 4] if e >= 4 else [])
+        bad += on != want
+        print(f"  A_{e}: u's nonzero digits below {cap}: {on}")
+    check("Cd A_e's u is 1 + pi^(e/2) + pi^(5e/4) below 3e/2",
+          bad == 0, f"{bad} off")
+
+
+def section_top(rng):
+    section("T  THE TOP CLASS: least landing 2e + min(lam, 3e/2)")
+    rows = [(e, range(1, 3 * e // 2 + 3)) for e in (2, 4, 8, 16)]
+    rows.append((32, [1, 16, 17, 40, 41, 47, 48, 50]))
+    lv_bad = rigid = 0
+    for e, lams in rows:
+        cap, n = 3 * e // 2, classes(e)[-1][1]
+        seen = bad = 0
+        hist = {}
+        for lam, (b, d) in top_polys(rng, e, lams):
+            land, lv_ok, _ = landings(local(2, e, b, d), 1, n, 4)
+            lv_bad += not lv_ok
+            want = 2 * e + min(lam, cap)
+            ok = min(land) == want
+            if lam < cap:
+                rigid += 1
+                ok &= set(land) == {want}
+            seen += 1
+            bad += not ok
+            k = min(land) - 2 * e
+            hist[k] = hist.get(k, 0) + 1
+            if not ok:
+                print(f"    OFF e={e} lam={lam}: min {min(land)} want "
+                      f"{want}, spectrum {sorted(set(land))[:6]}")
+        check(f"T e = {e}, class (1, {n}), cap {cap}", bad == 0,
+              f"{seen} polynomials, {bad} off; least v(S) "
+              f"{sorted(hist.items())}")
+    check("Cc top: every level-1 unit reaches level 2^j after j "
+          "squarings",
+          lv_bad == 0, f"{lv_bad} off")
+    print(f"  {rigid} rigid readings (lam < 3e/2)")
+
+
+def section_other(rng):
+    section("O  THE OTHER CLASSES: least landing 2e + min(l, 2^m), c >= 2")
+    total = rigid = lv_bad = 0
+    for e in (4, 8, 16, 6, 10, 12):
+        seen = bad = 0
+        top = 2 * e + 4
+        polys = [(l, designed_l(rng, e, l, top)) for l in range(1, e + 3)]
+        polys.append((INF, ([0] * e, -1)))
+        for _ in range(2):
+            b, d = random_poly(rng, e)
+            polys.append((departure(2, e, b, d), (b, d)))
+        for l, (b, d) in polys:
+            assert l == departure(2, e, b, d)
+            loc = local(2, e, b, d)
+            for (c, m) in classes(e):
+                if c < 2:
+                    continue
+                land, lv_ok, _ = landings(loc, c, m, 3)
+                lv_bad += not lv_ok
+                want = 2 * e + min(l, 2 ** m)
+                ok = min(land) == want
+                if l < 2 ** m:
+                    rigid += 1
+                    ok &= set(land) == {want}
+                seen += 1
+                bad += not ok
+                if not ok:
+                    print(f"    OFF e={e} l={l} class ({c},{m}): min "
+                          f"{min(land)} want {want}")
+        total += seen
+        check(f"O e = {e}, classes {[k for k in classes(e) if k[0] >= 2]}",
+              bad == 0, f"{seen} (polynomial, class), {bad} off")
+    check("Cc other: every level-c unit reaches level c 2^j after j "
+          "squarings",
+          lv_bad == 0, f"{lv_bad} off")
+    print(f"  {total} (polynomial, class) readings, {rigid} of them rigid")
+
+
+def ladder_width(loc):
+    n = clock.bend_power(loc)
+    lad = clock.ladder(loc, 4 * loc.e + 2)
+    return lad[n + 1] - 2 * loc.e
+
+
+def quadratic(delta):
+    """An Eisenstein polynomial of Q_2(sqrt delta), 2 ramified."""
+    if delta % 4 == 2:
+        return [0, 0], delta // 2
+    return [0, -1], (delta - 1) // 2
+
+
+def squarefree(n):
+    n = abs(n)
+    return all(n % (q * q) for q in range(2, int(n ** 0.5) + 1))
+
+
+def section_width(rng):
+    section("W  THE WIDTH: clock.py's ladder width = min(lam, 3e/2) at 2")
+    rows = []
+    for loc in clock.PLACES:
+        if loc.p == 2 and loc.kind == "eis" and clock.criterion(loc):
+            e = loc.e
+            b = [0] + [loc.g[i] // 2 for i in range(1, e)]
+            rows.append((loc.name, e, b, -loc.g[0] // 2))
+    for e in (4, 8):
+        for lam in range(1, 3 * e // 2 + 2):
+            rows.append((f"designed lam={lam}", e,
+                         *designed(rng, e, lam, 2 * e + 4)))
+    bad = 0
+    for name, e, b, d in rows:
+        cap = 3 * e // 2
+        lam = wild_departure(e, b, d)
+        w = ladder_width(local(2, e, b, d))
+        b2, d2 = translate(2, e, b, d)
+        lam2 = wild_departure(e, b2, d2)
+        ok = w == min(lam, cap) and min(lam2, cap) == min(lam, cap)
+        bad += not ok
+        print(f"  {name:16s} e={e} lam={'inf' if lam >= INF else lam} "
+              f"lam'={'inf' if lam2 >= INF else lam2} ladder w={w}"
+              f"{'' if ok else '  OFF'}")
+    check("W the ladder's width is min(lam, 3e/2), the translate agrees",
+          bad == 0, f"{len(rows)} places, {bad} off")
+    seen, bad, by = 0, 0, {}
+    for delta in range(-400, 401):
+        if delta % 4 in (0, 1) or not squarefree(delta):
+            continue
+        b, d = quadratic(delta)
+        w = min(wild_departure(2, b, d), 3)
+        want = {2: 1, 6: 1, 3: 2, 7: 3}[delta % 8]
+        seen += 1
+        bad += w != want
+        by.setdefault(delta % 8, set()).add(w)
+    shown = {k: sorted(v) for k, v in sorted(by.items())}
+    check("W over Q_2(sqrt delta), |delta| <= 400: min(lam, 3) by delta "
+          "mod 8", bad == 0, f"{seen} delta, {bad} off; {shown}")
+
+
+def is_square(f, x, top):
+    """A unit x of f is a square iff x = y^2 mod pi^top for a unit y
+    mod pi^(top - e); top = 2e + 1 decides it (1 + 4 pi O is squares)."""
+    for idx in range(2 ** (top - f.e - 1)):
+        y = [1] + [0] * (f.e - 1)
+        for r in range(1, top - f.e):
+            if idx >> (r - 1) & 1:
+                y = [(a + x_) % f.mod for a, x_ in zip(y, f.pi_pow(r))]
+        diff = [(a - b_) % f.mod for a, b_ in zip(x, f.mul(y, y))]
+        if f.val(diff) >= top:
+            return True
+    return False
+
+
+def letters(f):
+    """The letters of -1, 2 = pi^e u and -2 at a quartic (pi^4 a square)."""
+    m = f.mod
+    top = 2 * f.e + 1
+    neg = [m - 1] + [0] * (f.e - 1)
+    five = [5] + [0] * (f.e - 1)
+    out = []
+    for x in (neg, f.u, f.mul(neg, f.u)):
+        out.append("split" if is_square(f, x, top) else "unram"
+                   if is_square(f, f.mul(five, x), top) else "ram")
+    return tuple(out)
+
+
+def section_letters(rng):
+    section("D  THE LETTERS AT e = 4: K(zeta_8)/K against the width")
+    e, cap, n = 4, 6, 2
+    table, count = {}, {}
+    moved = land_bad = five_sq = 0
+    for idx in range(2 ** 8):
+        digs = [idx >> r & 1 for r in range(8)]
+        b, d = cell_to_poly(2, e, 1, digs)
+        w = min(wild_departure(e, b, d), cap)
+        f = Field(2, e, b, d, 12)
+        lt = letters(f)
+        five_sq += is_square(f, [5, 0, 0, 0], 2 * e + 1)
+        for _ in range(2):
+            b2, d2 = cell_to_poly(2, e, 1, digs + [rng.randrange(2)
+                                                   for _ in range(8)])
+            moved += letters(Field(2, e, b2, d2, 12)) != lt
+        land, _, _ = landings(local(2, e, b, d), 1, n, 4)
+        land_bad += min(land) != 2 * e + w
+        count[w] = count.get(w, 0) + 1
+        table.setdefault(w, {}).setdefault(lt, 0)
+        table[w][lt] += 1
+    check("Da the letters are functions of the cell; 5 is never a square",
+          moved == 0 and five_sq == 0,
+          f"{moved} moved under 512 lifts, 5 square at {five_sq}")
+    check("Db the top class lands at 8 + w at every cell", land_bad == 0,
+          f"256 cells, {land_bad} off; cells by w "
+          f"{sorted(count.items())}")
+    for w in sorted(table):
+        print(f"  w = {w}: " + "; ".join(
+            f"(-1 {a}, 2 {c}, -2 {g}) x{k}"
+            for (a, c, g), k in sorted(table[w].items())))
+    fixed = {"x^4 + 2x^2 + 2": (([0, 0, 1, 0], -1), 0),
+             "x^4 - 2": (([0, 0, 0, 0], 1), 1),
+             "x^4 + 2": (([0, 0, 0, 0], -1), 2),
+             "Q_2(zeta_8)": (cyclotomic(4), None)}
+    bad = 0
+    for name, ((b, d), slot) in fixed.items():
+        lt = letters(Field(2, e, b, d, 12))
+        ok = lt == ("split",) * 3 if slot is None else lt[slot] == "split"
+        bad += not ok
+        print(f"  {name}: {lt}{'' if ok else '  OFF'}")
+    a4 = letters(Field(2, e, [0, 2, 1, 0], 3, 12))
+    bad += a4 != ("split", "unram", "unram")
+    print(f"  A_4 = x^4 + 2x^2 + 4x - 6: {a4}")
+    check("Dc the constructed splits (i = 1 + pi^2, 2 = pi^4, -2 = pi^4, "
+          "zeta_8) and A_4's letters (-1 split, 2 and -2 unramified)",
+          bad == 0, f"{bad} off")
+
+
+def main():
+    rng = random.Random(SEED)
+    section_control(rng)
+    if not all(CHECKS):
+        print("\ncontrol failed: nothing below is read")
+        raise SystemExit(1)
+    section_top(rng)
+    section_other(rng)
+    section_width(rng)
+    section_letters(rng)
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks PASS")
+    if not all(CHECKS):
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()

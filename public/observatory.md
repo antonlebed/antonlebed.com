@@ -1,0 +1,718 @@
+# OBSERVATORY — what the digits of a ramified field read
+
+The object: a field K totally ramified of degree e over Q_p, cut out by
+an Eisenstein polynomial F = x^e + Σ_{i=1}^{e−1} p·b_i·x^i − p·d with d
+a unit, with root π, the valuation v of K normalized by v(π) = 1, and
+the unit u = p/π^e of O_K = Z_p[π], whose residue ū = 1/d̄ enters the
+third of the conditions f = 1 (residue degree one), e = (p − 1)·p^n and
+ū = −1 under which a place has a head (CLOCK.md#the-head-criterion).
+Written in canonical digits, u = Σ
+u_r·π^r with every u_r in {0, …, p − 1}, the unit is a string, its digit
+u_r sitting at **level** r, the power of π it multiplies, and a unit
+z ≠ 1 at level v(z − 1); this page asks what that string is and
+what reads it. Its verifiers are
+triangle.py for the string, tame.py for what a class of units reads off
+it at an odd prime, cofactor.py and quarter.py for what a root of unity
+reads, wild.py at 2, weld.py, rung.py, staircase.py and relative.py for
+the module the units form, precision.py for the digits the jump set
+reads, and storey.py for the next step of the cyclotomic tower above K
+and a step of degree p below it.
+
+The answer so far, in two lines: the string of u is the polynomial's
+coefficients re-encoded, digit for digit and level by level, so it is a
+complete invariant of F and runs backwards into a designer. Where
+(p − 1) divides e, the least landing past the bend s = e/(p − 1) of each
+class of units (landing and seat class are bound at
+OBSERVATORY.md#the-tame-readout) is read off one coefficient level,
+where F leaves one fixed design: x^e + p at an odd prime and at 2 below
+the top class, a four-term design at the top class over 2. That makes
+CLOCK.md's width a closed form at every head (Z₂'s is 1), and at a head,
+of e ≥ 2 when p = 2 (its field holds ζ_p), the same number is the capped
+excess over p·s of the seat class's highest landing
+(OBSERVATORY.md#the-jump-set-as-the-class-maxima): Pagano's jump set,
+the invariant of the units as a filtered module, is the staircase of the
+class maxima above its first point, and its last point decides whether
+the next **storey** of the cyclotomic tower, the step above K, ramifies,
+and where it breaks, a storey being any step of degree p in a tower of
+fields.
+
+triangle.py is a tool in its own right: given p, e ≥ 2 and any prefix u_0,
+…, u_r with u_0 ≠ 0, its `design` returns the one Eisenstein polynomial
+with no coefficient digit above level r whose u begins with that prefix,
+and its `read` prints the digits of u for any Eisenstein polynomial, in
+pure Python.
+
+## The coefficient triangle
+Tier: theorem.
+Verifier: proof; triangle.py::section_diagonal,
+triangle.py::section_bijection, triangle.py::section_designer,
+triangle.py::section_control.
+
+Write b_i = Σ_k b_(i,k)·p^k and d = Σ_k δ_k·p^k in base p, and give
+b_(i,k) the level i + k·e and δ_k the level k·e. Each level r ≥ 1 then
+carries exactly one coefficient digit, the one at
+(i, k) = (r mod e, r div e), δ_k when i = 0. The map from (δ₀; the
+digits at levels 1..r) to (u₀; u₁, …, u_r) is a bijection for every r,
+triangular with unit diagonal: u₀ = 1/δ₀ mod p, and
+
+    u_r = s_r·c_r + g_r(c_1, …, c_(r−1)),   s_r = ±ū^(k+2),
+
+with c_r the level-r digit, g_r a function of the lower digits and δ₀,
+and the sign − exactly at the δ levels. In the limit it is a bijection
+from all Eisenstein polynomials over Z_p onto the digit strings with
+u₀ ≠ 0: the string of u is a complete invariant of F, and a prefix
+u₀..u_r is printed by exactly one choice of the digits at levels 0..r,
+whatever the digits above; that choice is the prefix's cell.
+
+The proof is one fixed point. F(π) = 0 reads π^e = p·D with D = d − Σ
+b_i·π^i, so u = 1/D, and since p = u·π^e, each p^k in D is u^k·π^(ke):
+every coefficient digit enters D as one monomial at its own level times
+a power of u. Two polynomials agreeing below level r cut out rings that
+agree modulo π^(r+1), since O/π^A is Z_p[π]/(π^A, p − u·π^e) and so
+fixed by u modulo π^(A − e), which by induction the lower digits fix;
+read there, raising the level-r digit by one moves D by ∓u^k·π^r, and
+1/(D + Δ) = u − u²Δ + u³Δ² − …, whose later terms sit at level 2r or
+above; so u moves by a multiple of π^r with residue ±ū^(k+2), a unit
+move, no digit below r moves, and a carry out of level r lands at r + e
+since p·π^r = u·π^(r+e). Nothing uses the value of p or the parity of e.
+
+The levels are not new: that the monomials b_(i,k)·p^k·π^i of an
+Eisenstein polynomial sit at distinct levels i + k·e is the bookkeeping
+of Krasner's reduced polynomials as Monge states it (arXiv:1109.4617,
+Section 2), and the ramification polygon reads coefficient valuations at
+the same levels (Pauli–Sinclair, arXiv:1504.06671; Doris,
+arXiv:1803.08023). That literature reads the levels into the extension —
+its uniformizer changes, its polygon, a reduced set of generators
+(Guàrdia i Rúbies–Jones–Keating–Pauli–Roberts–Roe, arXiv:2606.01453) —
+and none of the four prints the string of u or the landing of a unit.
+The nearest kin is Monge's Lemma 4 (Section 4), which reads the norm of
+a unit 1 − θπ^m off one coefficient digit at first order: the same
+one-level shape, aimed at the norm group rather than the p-power map.
+The norm group does not determine the readouts. By local class field
+theory the norm group of K over Q_p is its largest abelian subfield's,
+and a quartic over Q₂ whose three letters are all ramified, none of −1,
+2 and −2 being a square or 5 times a square in it
+(OBSERVATORY.md#the-letters-of-kζ₈k-at-e--4), has no quadratic subfield,
+so its norm group is all of Q₂^×; such quartics sit at widths 1, 2
+and 3. The kinship is the level map: Monge's Lemma 6 runs on
+min(px, x + e), CLOCK.md's ψ.
+
+Its instances: the bijection exhaustive over seven cell sets at six
+(p, e), 8192 cells in all, every string unmoved by 16,384 lifts of the
+digits from the first multiple of e past the cell up; the diagonal move
+s_r exact at 4024 (polynomial, level, step) changes at twelve (p, e)
+from (2, 2) to (7, 6), every residue d̄, levels to 3e + 4; and the
+designer printing 14 random targets up to level 80.
+
+## The anchor design of the 2e-th roots of unity
+Tier: theorem; observation (the cell at (p, e) = (3, 6)).
+Verifier: proof; triangle.py::section_anchor, wild.py::section_control,
+triangle.py::section_cell, wild.py::section_letters.
+
+At e a power of 2, the field Q₂(ζ_(2e)) is cut out by Φ_(2e)(x + 1) =
+(x + 1)^e + 1, whose root is ζ − 1, and every one of its e + 1 terms
+is nonzero. Its digits u₁ to u_(3e/2 − 1) are nonetheless printed by
+the four-term design
+
+    A_e = x^e + 2x^(e/2) + 4x^(e/4) − 6,
+
+their only nonzero digits past u₀ = 1 sitting at r = e/2 and 5e/4, at
+every e = 2^n ≥ 4: ζ_(2e) makes z^e + 1 vanish, so its string begins
+with the one prefix at which the element S₀ of the wild readout's proof
+(OBSERVATORY.md#the-wild-readout) reaches 3e/2, and A_e prints that
+prefix. With 2 = u·π^e its equation reads
+1 − D = π^(e/2) − u·π^e + u·π^(5e/4), so
+u = 1/D = 1 + (1 − D) + (1 − D)² + …; modulo π^(3e/2), (1 − D)² ≡ π^e
+and (1 − D)³ ≡ 0, and as v(u − 1) = e/2,
+u ≡ 1 + π^(e/2) + π^e·(1 − u) + u·π^(5e/4) ≡ 1 + π^(e/2) + π^(5e/4). The
+design is read against Φ_(2e)(x + 1) at e = 4, 8, 16 and 32, and its
+own u at e = 64.
+
+It prints the digits and not the field. A₄'s field holds ζ₄, but in it
+the letters of 2 and −2 are unramified, so it is not Q₂(ζ₈), which fills
+2 of the 8 cells its prefix leaves open
+(OBSERVATORY.md#the-letters-of-kζ₈k-at-e--4). At (p, e) = (3, 6) the
+matching agreement reaches the field, an observation: the cell of
+Q₃(ζ₉)'s string through level e = 6, reduced to x⁶ + 6x⁵ + 6x⁴ + 3x³ −
+24, holds a root of Φ₉ certified by Hensel's lemma at the design and at
+each of 20 random lifts of its higher digits, and so does x⁶ − 3x⁴ + 3
+in another cell (its u₃ is 0, the cell's 1), while x⁶ + 3, whose field
+holds a cube root of −3 and so is not abelian, holds none. Which
+agreement forces the field is the continuity of roots (Krasner's lemma);
+at (3, 6) agreement through e forced it at the design and its 20 lifts,
+and at 2 agreement through 3e/2 − 1 does not at e = 4.
+
+## The tame readout
+Tier: theorem.
+Verifier: proof; tame.py::section_readout, tame.py::section_width,
+tame.py::section_control.
+
+Let p be odd and the bend s = e/(p − 1) an integer. A class (c, m),
+c·p^m = s, is the units of level exactly c, which reach the bend after m
+p-th powers; a unit z of the class (c, m) has **landing**
+v(z^(p^(m+1)) − 1). The **departure** of F is
+
+    l = v(u + 1) = min(e·v_p(d + 1), min_i (e·v_p(b_i) + i)),
+
+the least level of a nonzero coefficient digit of (F − x^e − p)/p: l
+is 0 iff ū ≠ −1 and infinite at x^e + p. Then the least landing of the
+class (c, m) is
+
+    p·s + min(l, p^m),
+
+and when l < p^m every unit of the class lands there. A class whose
+units all land at one depth is **rigid**. The class (c₀, M) with m
+largest, s = c₀·p^M and p ∤ c₀, is the **seat class**.
+
+Proof. Write z = 1 + π^c·t with t a unit of residue a. Below the bend
+each p-th power multiplies the level by p, and the correction it makes
+to z^(p^j) − 1 sits at relative level (p − 1)(s − c·p^j), at least
+c(p − 1)²·p^(m−1), which exceeds p^m at every odd p. So y = z^(p^m)
+has y − 1 = π^s·t^(p^m) up to a factor 1 + η with v(η) > p^m, and
+
+    y^p − 1 = (p·(y − 1)/u)·B,
+    B = (u + 1) + (W − 1) + u·Σ C(p, k)/p·(y − 1)^(k−1),
+
+with v(p·(y − 1)/u) = p·s, W = t^((p−1)p^m)(1 + η)^(p−1), and the sum
+over 2 ≤ k ≤ p − 1 at level (k − 1)s ≥ p^m. Since a^(p−1) ≡ 1 mod p,
+t^(p−1) = 1 − (t₁/a)·π + …, with −t₁/a running over all of F_p as the
+next digit t₁ of z does, and its p^m-th power is 1 − (t₁/a)·π^(p^m) + …,
+a leading digit keeping its value under each p-th power below the bend.
+So B is u + 1 plus terms at level p^m or deeper, among them
+−(t₁/a)·π^(p^m). If l < p^m, v(B) = l for every unit; otherwise
+v(B) ≥ p^m, with equality at all but one t₁.
+
+At a place with a head (f = 1, s = p^n, ū = −1), the class (1, n) is the
+level-1
+units, its least landing is CLOCK.md's arrival, and so the width of
+CLOCK.md#the-width is
+
+    w = min(l, s)   at every odd p:
+
+one coefficient level of any Eisenstein polynomial of the field, capped
+at the bend. l itself is not a field invariant (x² + 3 has l infinite,
+and its translate x² − 6x + 12, cutting out the same field, has l = 1),
+but min(l, s) is.
+
+The row l = 0 is known. Fesenko and Vostokov (Local Fields and Their
+Extensions, ch. I, (5.7) case (2)) print the graded p-th power at the
+bend as the map of the residue field adding θ₀ = ū times an element to
+its p-th power, which at f = 1 is multiplication by 1 + ū, injective iff
+ū ≠ −1. Beyond that first-order step ch. I gives the kernel's order and
+when it vanishes, and that U_r, the units ≡ 1 mod π^r, lies in U_(r−e)^p
+above p·s, but not where a unit of the kernel lands; so every row with
+l ≥ 1, and the whole wild readout, where θ₀ = 1 and the map, squaring
+plus the identity, always has the kernel F₂, sit past what it reads. N.
+Nakagoshi (Nagoya Math. J. 73 (1979) 41–60) describes the unit group of
+O_K modulo every power of π through Hasse's generators. Where μ_p lies
+in K, as it does at every l ≥ 1, since there ū = −1 and (p − 1) divides
+e, the order of the generator at the bend enters his Theorem 3 as an
+unknown that his Remark (ii) only bounds; beyond the fields his section
+9 works out, Q_p(ζ_p) and Q₂(√δ) at δ ≡ 2 mod 4, those rows are not his
+either.
+
+Its instances: 154 (polynomial, class) readings over ten (p, e) at
+p = 3, 5, 7, from s = 1 to s = 9 and at every departure from 0 to s + 2
+and infinity, deeper digits random, all exact, 58 of them rigid; and the
+width read off CLOCK.md's tick ladder, through the group exponent and
+not the landing, equal to min(l, s) at the five odd-p places with a
+head there and ten designed ones, six at s = 5 reading w = 1 through 5
+and four at (p, e) = (3, 6), s = 3, reading w = 1 through 3.
+
+## The cofactor readout
+Tier: theorem.
+Verifier: proof; cofactor.py::section_control,
+cofactor.py::section_designs, quarter.py::section_fields,
+quarter.py::section_admission.
+
+Let K hold a primitive p^N-th root of unity ζ, at p = 2 with N ≥ 2 and e
+a power of 2 at least 4, and write ζ − 1 = π^c·τ, τ a unit, the root's
+cofactor, i_τ the level of τ's principal part (τ over its Teichmüller
+digit). With dep the departure, l at an odd prime and at 2 the wild
+departure λ, the least level where a coefficient digit of F differs from
+the anchor design's (OBSERVATORY.md#the-wild-readout), and s the bend,
+
+    min(dep, s) = min(p^(N−1)·i_τ, s):
+
+below the bend the departure is p^(N−1) times the level of the root's
+cofactor. So dep ≥ p^(N−1), and dep < s only at a multiple of p^(N−1).
+
+Proof at odd p. With ζ_p − 1 = π^s·τ_p, Φ_p(ζ_p) = 0 gives
+−p/(ζ_p − 1)^(p−1) = ε with v(ε − 1) = s exactly, and p = u·π^((p−1)s)
+turns this into u + 1 = 1 − τ_p^(p−1)·ε, so min(l, s) = min(j, s), j the
+level of τ_p's principal part. For v(Ξ) ≤ s/p,
+(1 + Ξ)^p − 1 = Ξ^p(1 + δ) with v(δ) ≥ (p − 1)²s/p > s at odd p, so
+τ_p = τ^(p^(N−1))·(1 + δ′), v(δ′) > s, and a p-th power below the bend
+multiplies a principal level by p.
+
+At 2, e ≥ 4, the root that reads is ζ₄ = √−1. Write
+ζ₄ − 1 = π^(e/2)·τ₄ and τ₄ = 1 + y, so that i_(τ₄) = v(y), τ₄ being
+its own principal part. Then ζ₄² = −1 reads
+u(1 + π^(e/2)·τ₄) = −τ₄², and putting it into the element S₀ of the
+wild readout's proof (OBSERVATORY.md#the-wild-readout) gives one with
+the valuation of y(y + π^(e/2)) + π^(5e/4), read below 3e/2. With
+ξ = v(y(y + π^(e/2))), the **quarter readout**:
+
+    λ = ξ at ξ < 5e/4,   λ = 5e/4 at ξ > 5e/4,   λ > 5e/4 at ξ = 5e/4,
+
+and ξ is 2i_(τ₄) at i_(τ₄) < e/2 and above e otherwise. Squaring down
+from ζ to ζ₄, each squaring's correction sits at relative level
+e − h ≥ 3e/4, h ≤ e/4 the level of the unit squared, so
+i_(τ₄) = 2^(N−2)·i_τ below e/2, which is the readout. So the values
+λ ≤ e at which some field holds ζ₄ are exactly the even λ below e, each
+realized by the design below:
+an odd λ < e and λ = e never hold ζ₄, while λ > e always does
+(OBSERVATORY.md#the-jump-set-as-the-class-maxima).
+
+It designs rigid seats. Over Q_p(ζ), x^k + a(ζ − 1)x^g − (ζ − 1),
+1 ≤ g < k, p ∤ a, is Eisenstein with τ = 1/(1 − aπ^g), and its norm, the
+homogenized Φ_(p^N) of A = 1 − ax^g + x^k over B = 1 − ax^g, is an
+Eisenstein polynomial over Q_p with dep = p^(N−1)·g
+(at 2 for k a power of 2). At an odd prime its seat is rigid iff
+g < p^(v_p(k)): at p = 3, k = 3, e = 18, l = 3 and 6 sit below p^M = 9,
+and the jump sets read (1, 3), (4, 2) and (1, 3), (5, 2)
+(OBSERVATORY.md#the-jump-set-as-the-class-maxima). At 2 it prints every
+multiple of 2^(N−1) below e as λ.
+
+Its instances: at odd p, 26 fields at p = 3 and 5 with N = 2 and 3,
+every primitive root, and three controls at N = 1 and 2; fourteen
+designs, l = p^(N−1)·g at each; the four rigid seats at e = 18, their
+staircase, Pagano's reading and the set rebuilt from the G(m) of
+OBSERVATORY.md#the-jump-set-as-the-class-maxima agreeing. At 2, 34
+fields with N = 2 to 4 and e = 4 to 16 at every root and both of ±ζ₄,
+every branch of the quarter readout met, and sixteen designs; among 180
+fields designed to each λ up to 3e/2 + 1, ζ₄ sits at no odd λ < e and at
+no λ = e. The family Φ_(p^N)(1 + x^c + p·Ω(x)), Ω zero or drawn at
+random of degree below c with coefficients below p², whose root π gives
+ζ = 1 + π^c + p·Ω(π), has τ's principal part past the bend, and at odd p
+printed l = s at all twelve fields read, which is why it never met a
+rigid seat.
+
+## The wild readout
+Tier: theorem.
+Verifier: proof; wild.py::section_top, wild.py::section_other,
+wild.py::section_width, wild.py::section_control,
+wild.py::section_letters.
+
+At p = 2 the bend is s = e, and u is always 1 = −1 mod π. Every class
+(c, m) with c ≥ 2 obeys the tame formula, with l = v(u + 1) the
+departure from x^e + 2: its least landing is 2e + min(l, 2^m), and the
+whole class lands there when l < 2^m. The top class (1, n), e = 2^n,
+does not. Its reading is the **wild departure** λ, the least level where
+a coefficient digit of F differs from the anchor design's
+
+    A_e = x^e + 2x^(e/2) + 4x^(e/4) − 6   (x² + 2x − 6 at e = 2),
+
+that is, λ = min(e·v₂(d − 3), e·v₂(b_(e/2) − 1) + e/2,
+e·v₂(b_(e/4) − 2) + e/4 at e ≥ 4, and e·v₂(b_i) + i over the other i).
+The least landing of the top class is 2e + min(λ, 3e/2), and the whole
+class lands there when λ < 3e/2. So the width of every head over 2 with
+e ≥ 2 is
+
+    w = min(λ, 3e/2):
+
+one coefficient level again. The departure is measured from A_e where
+the odd prime's is measured from x^e + p, and the cap sits at 3e/2 where
+the odd prime's sits at s. Both designs are the cyclotomic field's
+string up to the cap. In Q_p(ζ_(p^(n+1))), with π = ζ − 1, the level-1
+unit ζ never lands, so its class is not rigid below the cap and its
+departure reaches the cap. So at every prime the width of a head is how
+far u's string agrees with that of the cyclotomic field of the same e,
+capped. Three corollaries follow. At e ≥ 4 neither A_e nor x^e + 2 has a
+digit at level 1, so u's digit u₁ is 1 iff λ = l = 1, and then every
+class with m ≥ 1 lands at 2e + 1 alone: the **first-digit lock**. The
+anchor's own levels are no blind spot: λ = e/2 and λ = 5e/4 each sit one
+digit off A_e, and their landings are attained like every other. And the
+prefix under which no level-1 unit lands below 2e + 3e/2 is unique, the
+anchor's, which ζ_(2e) realizes. The landing is the field's, so
+min(λ, 3e/2) is the same at every Eisenstein polynomial of the field,
+and below it u's digits are the anchor's in every uniformizer: the
+capped departure is an invariant of the field. By the coefficient
+triangle the width reads the coefficient digits below 3e/2 and no deeper
+one, each word u₁..u_(3e/2 − 1) printed by exactly one cell of them: the
+Eisenstein polynomials of degree e over Q₂ fall into 2^(3e/2 − 1) cells,
+and every class's least landing is a function of the cell.
+
+Proof. For z of level c put h_j = (z^(2^j) − 1)/π^(c·2^j). Then
+h_j = h_(j−1)² + u·π^(e − c·2^(j−1))·h_(j−1), and
+z^(2^m) + 1 = π^e(u + h_m), so the landing is 2e + v(u + h_m). At c ≥ 2
+every correction sits at level 2^m or deeper, and the one at 2^m
+(c = 2 only) is a constant. With t = (z − 1)/π^c = 1 + t₁·π + …, this
+gives u + h_m ≡ (u + 1) + (t₁ + [c = 2])·π^(2^m) mod π^(2^m + 1), where
+the digit t₁ is free. At c = 1 the chain gives
+
+    h_n ≡ t^e + u·π^(e/2)·t^(e/2) + u²·π^(5e/4)·t^(e/4)   mod π^(3e/2),
+
+and with t^(e/4) = 1 + π^(e/4)·q, u + h_n = S₀ + π^e·q²(q² + u)
+there, where S₀ = 1 + u + u·π^(e/2) + u²·π^(5e/4). (At e = 2, h_1 =
+t² + u·π·t, S₀ = 1 + u + u·π, and with t = 1 + π·y the varying part
+π²·y(y + u) sits at level 3.) Either v(q) ≥ e/4 or
+q ≡ 1 mod π^(e/4), so the varying term sits at e + min(e/2, l) or
+deeper, which is below v(S₀) only when v(S₀) ≥ 3e/2. So a level-1 unit
+lands rigidly at 2e + v(S₀) below that cap. At the cap, g = 1 + π³ has
+v(g^e − 1) = 5e/2 exactly, so one of z and z·g attains it. The level-r
+digit of S₀ is u_r plus a function of lower digits, so at each level
+R ≤ 3e/2, v(S₀) ≥ R holds for exactly one prefix u₁..u_(R−1) of u.
+At R = 3e/2 that prefix is 1 + π^(e/2) + π^(5e/4), at
+which S₀ ≡ 2 + π^e = π^e(u + 1) modulo π^(3e/2), so that v(S₀) reaches
+3e/2. A_e prints exactly that prefix, so by the coefficient triangle
+v(S₀) is λ, capped at 3e/2. Since ζ_(2e) satisfies z^e + 1 = 0, the
+digit string of Q₂(ζ_(2e)) begins with the anchor's.
+
+Its instances: 81 polynomials over e = 2, 4, 8, 16 and 32, with every capped
+departure from 1 to the cap realized at e ≤ 16, all exact, 56 of them
+rigid; and the top class at all 256 cells of the Eisenstein quartics
+(coefficient digits at levels 1 to 8), landing at 8 + w, with 128, 64,
+32, 16, 8 and 8 cells at widths 1 to 6. 244 readings of the classes with
+c ≥ 2 over e = 4, 8, 16, 6, 10 and 12. The width read off CLOCK.md's
+tick ladder equals min(λ, 3e/2) at the ten Eisenstein places with a
+head over 2 there and at twenty designed ones. At every ramified Q₂(√δ),
+δ squarefree with |δ| ≤ 400, it agrees with
+CLOCK.md#a-ramified-quadratic-place-over-2-reads-its-width-off-δ-mod-8.
+
+## The letters of K(ζ₈)/K at e = 4
+Tier: rule (the letters are functions of the cell by the mod π⁹
+argument below, checked at each of the 256 cells of the Eisenstein
+quartics against two random lifts of its coefficient digits at levels 9
+to 16; 5 is not a square at each cell's polynomial with no coefficient
+digit past level 8; the letters by w are read off the table printed over
+those cells).
+Verifier: wild.py::section_letters.
+
+Over a totally ramified quartic K of Q₂, K(ζ₈) = K(ζ₄, √2) is read by
+three letters: each of −1, 2 and −2 is split (a square in K), unramified
+(5 times it a square) or ramified. They are functions of the coefficient
+digits through level 8, since a unit is a square iff it is a square mod
+π⁹. The width w = min(λ, 6) of the wild readout and the letters are two
+axes, the filtration and the decomposition, and they meet in one row:
+above w = 2 the letter of −1 is w's, ramified at 3, unramified at 4 and
+split at 5 and 6. At w = 1, 3 and 5 all three letters are fixed, 2 and
+−2 ramified, and −1 ramified at w = 1 as at 3; at w = 2 at most one
+letter is not ramified, and −1 is split at 16 of its 64 cells and every
+letter ramified at another 16; at w = 4 and 6, 2 and −2 are either both
+ramified or both not ramified, and K is Q₂(ζ₈) at 2 of the 8 cells with
+w = 6.
+
+## Pagano's jump set
+Tier: known; observation (the coefficient-column readings past e, at
+131 fields).
+Source: C. Pagano, Jump sets in local fields, arXiv:1810.09975 (2018),
+Theorems 1.4, 1.5, 1.7, 1.8, 1.11 and 10.1, Propositions 3.35, 3.39 and
+5.5, and property (P.1) of the reduction maps in the proof of Theorem
+9.1.
+Verifier: relative.py::section_fields, relative.py::section_control.
+
+When K holds ζ_p, its principal units U₁ are, as a filtered Z_p-module,
+a free module modulo one relation, and the relation's orbit under the
+filtered automorphisms is an extended jump set (I, β): points (i, β(i))
+with β strictly decreasing and weight ρ^β(i)(i) strictly increasing,
+ρ(i) = min(p·i, i + e), CLOCK.md's ψ. Proposition 3.39 reads it inside
+U₁: for ζ a generator of the p-power roots of unity, of order p^N, the
+weight of ζ modulo p^n-th powers, the largest v(ζ·h − 1) over h in
+U₁^(p^n), changes value exactly at n = β(i) − N, and just past there it
+is ρ^(β(i) − N)(i). His Theorem 10.1 reads the near points, those with
+p^(β − N)·i < e, off the Eisenstein polynomial g of π over Q_p(ζ_(p^N)),
+with no separability hypothesis. The **coefficient column** ι is the
+coefficient a_ι of x^ι in g, weighted by its coefficient-column level
+l_ι = c·v_ζ(a_ι) + ι, with v_ζ the valuation of Q_p(ζ), v_ζ(ζ − 1) = 1,
+and c the level of ζ, which is [K : Q_p(ζ)]; over the coefficient
+columns with l_ι < e and v_p(ι) ≤ v_p(c) the minimal candidates
+(l_ι/p^(v_p(ι)), v_p(ι) + N) are the near points. His Theorem 1.11 is
+the case N = 1 under strong separability, where every point is near. The
+far points, e ≤ p^(β − N)·i, are read by the reduction map of his
+Section 9: normalize g to a unit 1 + Σ ã_ι·x^ι and, while its weight ω
+stays below e* = p·e/(p − 1), write ω = ρ^ν(i) with p ∤ i and multiply
+by the one (1 + θ·x^i)^(p^ν), θ Teichmüller, that raises the weight,
+reducing mod g; the points are the (i, ν + N) where ν reaches a new
+minimum. That reads every point with p^(β − N)·i < e*, which is every
+point but e* itself, since a unit past e* is a p-th power.
+
+Read here, not in the source (relative.py). The levels need no
+polynomial over Q_p(ζ): ζ − 1 = π^c·τ gives 1/τ = −Σ (a_ι/(ζ − 1))·π^ι,
+so l_ι sits c past the level where the π^ι terms of 1/τ's
+expansion in the monomials (ζ − 1)^k·π^ι first carry a digit. And, as
+observations: Theorem 10.1 is that reduction truncated at e, where p-th
+powering acts as in characteristic p; past e its carries enter, and the
+coefficient-column readings tried miss them: carried past e, the near
+formula is off at 56 of 131 fields and the weight e + p^(N−1)·l_ι, the
+rigid seat's, at 73, and a field whose 1/τ has no digit off its π^0
+terms still holds far points (Q₂(ζ₄)((ζ₄ − 1)^(1/8)) reads the far
+points (5, 4), (13, 3), (29, 2) past its first point (1, 5)). The
+reading below takes any Eisenstein polynomial over Q_p and reads one
+digit level.
+
+Its instances (relative.py): Theorem 10.1 reproduced at 131 fields
+with N from 1 to 5 and 504 (field, root) readings, 72 of the fields built
+over Q_p(ζ) to order.
+
+## The jump set as the class maxima
+Tier: theorem.
+Verifier: proof, given Pagano's Theorem 1.5 and the proof of his
+Proposition 3.35; staircase.py::section_control,
+staircase.py::section_fields, rung.py::section_classes,
+weld.py::section_jump_weld, weld.py::section_i,
+cofactor.py::section_designs.
+
+Let K hold ζ_p, so s = e/(p − 1) = c₀·p^M with p ∤ c₀, and e* = p·s,
+and let p^N be the order of the p-power roots of unity in K. For
+0 ≤ m ≤ M the class Γ_m = (s/p^m, m) has least landing e* +
+min(dep_m, X_m) by the readouts, dep and X being l and p^m, or λ and
+3e/2 at the top class over 2. Its highest landing is
+
+    H(m) = the weight of the jump set's point with the largest β ≤ m,
+
+infinite at m < N, where Γ_m holds a primitive p^(m+1)-th root of unity.
+So every point's weight but the first's is a class maximum, H drops
+exactly at the β of those points, and the jump set is the staircase of
+the class maxima above its first point (c₀, M + 1) at e*, its last step
+at β = N. The landings of Γ_m lie in [min(H(m), e* + X_m), H(m)], both
+ends attained, a rigid class (dep_m < X_m) being the one value
+e* + dep_m. No class below N is rigid, so a field holding ζ_(p^N) has
+l ≥ p^(N−1) at an odd prime (the cofactor readout says more, and l < p^M
+does occur), and over 2 a field holding ζ_(2e) has λ ≥ 3e/2. At the seat
+m = M this reads min(H(M) − e*, X) = min(dep, X), CLOCK.md's width at a
+place with a head, of e ≥ 2 when p = 2, at every N. At a rigid seat with
+M ≥ N the second point is one coefficient level: with dep = q·e + r,
+0 ≤ r < e,
+
+    (i₂, β₂) = ((s + r)/p^(v_p(s + r)), q + 1 + v_p(s + r)),
+
+or (e*, q) when r = 0. At N = 1 a rigid seat has dep ≤ e, so q = 0 or
+dep = e and (e*, 1); over 2 a field without ζ₄ has λ ≤ e, its top class
+rigid with H(M) − e* = λ, and λ > e forces ζ₄ into K. At N ≥ 2 every β
+is at least 2, so at a rigid seat dep = e never occurs, and a rigid top
+class over 2 with λ in (e, 3e/2) reads q = 1.
+
+Proof. Let G(m) be the largest v(ζ_p·h − 1) over h in U₁^(p^m), infinite
+when ζ_p lies there, that is at m < N. The units of level s among the
+p^m-th powers are exactly the p^m-th powers of Γ_m. Let y have level s.
+Above the bend the p-th power carries each level onto the level e
+higher, and ζ_p ∈ K forces ū = −1, so y^p − 1 sits past e* at every
+leading digit; if it sits at e* + j, then y^p = y′^p with y′ in U_(s+j),
+so y = ζ_p^a·y′ and the landing's excess over e* is
+v(ζ_p^(−a)·y − 1) − s. A power b with ab ≡ −1 mod p turns ζ_p^(−a)·y
+into ζ_p·y^b and keeps its level, so no landing of Γ_m exceeds
+e* + G(m) − s, and an h attaining G(m) > s gives y = h^(−1) landing
+there: H(m) = G(m) + e, with no outside theorem. In Pagano's
+presentation U₁ is Λ modulo the line through V = Σ p^β(i)·φ_i, Λ the
+free Z_p-module on one vector φ_i of weight i for each i < e* prime to
+p and for i = e*, the points' i among them, and V summed over the
+points; the torsion generator is Σ p^(β(i) − N)·φ_i and ζ_p is
+ζ̂ = Σ p^(β(i) − 1)·φ_i. His proof of
+Proposition 3.35 runs on ζ̂ unchanged: modulo p^m·Λ, ζ̂ is the sum over
+β(i) ≤ m, of weight the least ρ^(β(i) − 1)(i); a multiple of V is p·ζ̂
+times a scalar, so adding one multiplies ζ̂ by a unit; and an added
+element of p^m·Λ raising the weight would put a point's i in the image
+of ρ, where no i < e* prime to p lies, e* being excluded as in his
+proof. So G(m) is that least weight, attained at the largest β ≤ m
+since ρ(i) = min(p·i, i + e) is increasing, and it exceeds s at
+N ≤ m ≤ M, which gives H. A rigid class
+has its highest landing at its least, and otherwise H(m) ≥ e* + X_m,
+which is the bracket. The weight e* + dep pulls back by −e for q + 1
+steps to s + r, then by p while p divides. Finally, at N = 1,
+H(M) − e* > e would put ζ_p·h in U_(e*+1) for an h in U₁^(p^M), M ≥ 1,
+where every unit is a p-th power, making ζ_p a p-th power. At odd p
+and at c₀ > 1 the cap p^M = s/c₀ is below e, so the bound is silent
+there.
+
+Its instances: at N = 1, the class maxima found by brute force, G
+setting only the enumeration's depth, at 238 classes over 101 fields,
+their staircase the jump set at the 100 fields with every class
+enumerated (one class exceeded the enumeration's cap), the closed form
+at 69 rigid seats. At N ≥ 2, 59 fields with N from 2 to 5: over 2 the
+fields with λ > e at e = 4, 8, 16, and the family of
+OBSERVATORY.md#the-cofactor-readout at p = 2, 3, 5 up to e = 20. There
+the staircase of the brute maxima equals Pagano's Proposition 3.39 read
+verbatim off a lifted root of order p^N at every field, up to four
+points; 168 classes obey the bracket, none rigid below N; the closed
+form holds at 20 rigid seats, all over 2 with dep > e (e = 8, λ = 10
+reads (5, 3)), and at the four designed rigid seats at p = 3, N = 2 of
+OBSERVATORY.md#the-cofactor-readout. The seat's reading: the capped
+excess exact at 106 fields, CLOCK.md's ladder width at 45 places with a
+head, six weights matching a module-basis computation, and −1 a square
+at 38 fields with λ > e and over Q₂(√δ) exactly at δ ≡ 7 mod 8, where
+the capped departure min(λ, 3e/2) is 3 > e = 2.
+
+## The jump set reads M·e digits of u
+Tier: theorem.
+Verifier: proof, given the class maxima, Pagano's Theorem 1.8 and
+Serre's mass formula; precision.py::section_control,
+precision.py::section_precision, precision.py::section_anchor,
+precision.py::section_cells.
+
+Let K hold ζ_p, s = c₀·p^M. The jump set of K is a function of u modulo
+π^(M·e + 1), that is of the digits u₁, …, u_(M·e), u₀ being p − 1; at
+M = 0 it is (c₀, 1) and reads no digit. So the p^(M·e) cells of those
+digits partition the Eisenstein polynomials with ū = −1, each cell
+carrying one jump set, and they fall on the jump sets in counts p^(M·e)
+times the Haar mass of Pagano's Theorem 1.7.
+
+Proof. Every point but the first has β ≤ M and i ≤ e*, and
+ρ^β(e*) = e* + β·e, so its weight is at most e* + M·e: at N ≤ m ≤ M,
+G(m) ≤ e* + (M − 1)·e < T := e* + (M − 1)·e + 1, and G is infinite below
+N. The jump set is thus a function of min(G(m), T), which U₁/U_T and ζ_p
+modulo U_T decide; a power of ζ_p prime to p changes no G(m). O_K/π^A is
+Z_p[π]/(π^A, p − u·π^e), fixed by u modulo π^(A − e). Take
+A = T + (p − 2)·s: two fields whose u agree there share O/π^A, and since
+v(Φ_p′(ζ_p)) = e − s = (p − 2)·s, Hensel puts the one's ζ_p within π^T
+of a power of the other's. A − e = M·e + 1, as e* + (p − 2)·s = 2e. The
+count follows: under Haar measure on the coefficients with d̄ = −1 the
+coefficient digits are uniform, so by the coefficient triangle the cells
+are equally likely. With (p − 1) dividing e, ū = −1 holds exactly when
+K contains E = Q_p(ζ_p),
+since −u is then a (p − 1)-th power. Pagano's Theorem 1.8 gives the mass
+as a volume of Eisenstein polynomials of degree s over E, and both
+volumes are Serre's measure on the fields, a field weighing p^(−γ) with
+γ one more than the valuation of its discriminant over its base, in the
+base's normalized valuation, less its degree over the base (Serre's
+formula as Pagano's Section 1 states it, the volume form from Serre's
+first proof, as Pagano notes before Theorem 1.8). For K ⊇ E, with 𝔡
+the discriminant and v_E normalized on E,
+v_p(𝔡_(K/Q_p)) = v_E(𝔡_(K/E)) + (p − 2)·s, so the two γ,
+v_p(𝔡_(K/Q_p)) − e + 1 and v_E(𝔡_(K/E)) − s + 1, agree.
+
+The bound is attained at the anchors read. The anchor field
+Q_p(ζ_(p^(M+1))), or its tame twist π^(c₀) = ζ − 1, has the jump set
+(c₀, M + 1) alone. A
+field agreeing with it modulo π^(M·e) shares min(G(m), T − 1), so G is
+infinite below M and G(M) is infinite or e* + (M − 1)·e: its jump set is
+the anchor's, or the anchor's with (e*, M) at weight e* + M·e, the
+second exactly when ζ_(p^(M+1)) is not in K. At every anchor read, each
+of the other p − 1 cells takes the second, so there the digits u₁, …,
+u_(M·e − 1) do not suffice; that every anchor's siblings do is not
+proved.
+
+Its instances: at 65 random fields over nine (p, e) from (2, 2) to
+(2, 16) and (5, 20), four designs sharing the first M·e + 1 digits read
+one jump set; at ζ₄, ζ₈, ζ₁₆, ζ₉, ζ₂₅ and Φ₈(x³ + 1) (c₀ = 3) the
+anchor's own cell holds the root of unity and every one of its p − 1
+siblings adds (e*, M), at weights 6, 16, 40, 15, 45, 48. The cells
+fall 2, 1, 1 at (2, 2), 128, 32, 32, 16, 16, 16, 8, 4, 2, 2 at (2, 4)
+and 486, 162, 54, 18, 6, 3 at (3, 6), the law exactly, no cell split by
+its tail.
+
+## The last point gives the break of the next storey
+Tier: theorem.
+Verifier: proof, given Pagano's Propositions 3.39 and 5.5 and Fesenko
+and Vostokov's ch. 3 (2.5); storey.py::section_control,
+storey.py::section_quadratics, storey.py::section_next,
+storey.py::section_rigid.
+
+Let K hold ζ_p, let ζ, of order p^N, generate its p-power roots of
+unity, and let (i_N, N) be the last point of the jump set. Then
+K(ζ_(p^(N+1)))/K is unramified iff i_N = e*, and otherwise totally
+ramified of degree p with its one break
+
+    t = e* − i_N.
+
+At N = 1 with p | s, when the class (s/p, 1) is rigid this is one
+coefficient level: t = e − dep, dep being l at an odd prime
+(rigid iff l < p) and l over 2 at e ≥ 4 (rigid iff l = 1), and λ at e = 2
+(rigid iff λ < 3); t = 0 means the storey is unramified.
+
+Proof. By Proposition 3.39 at n = 1, the weight of ζ modulo p-th powers,
+the largest v(ζ·h − 1) over h in U₁^p, is ρ⁰(i_N) = i_N. So
+K(ζ_(p^(N+1))) = K(a^(1/p)) with a = ζ·h of level i_N, the best such
+level. Put α = 1 + (ζ_p − 1)·Y: since (ζ_p − 1)^(p−1) is −p times a
+principal unit, α^p = a becomes Y^p − Y = (a − 1)/(ζ_p − 1)^p up to
+terms of higher valuation, a right side of valuation i_N − e*. A unit
+right side with residue outside the image of x^p − x on F_p, which is
+{0}, gives the unramified extension; a right side of valuation −t, p ∤
+t, gives a totally ramified one with break t (Fesenko and Vostokov,
+Local Fields and Their Extensions, 2nd ed., ch. 3 (2.5)). Below e* a
+point's i is prime to p. The unramified half is Pagano's Proposition
+5.5. At N = 1 the weight i_1 is G(1) of the class maxima, above s when
+p | s, so H(1) = ρ(i_1) = i_1 + e, and a rigid class has
+H(1) = e* + dep, which gives i_1 = s + dep.
+
+Its instances: the break read with no weight, in a top field Q_p(ζ_top)
+generated by a root of unity ζ_top of p-power order, with uniformizer
+ζ_top − 1, as v(ζ_top^(k−1) − 1) − 1 for σ: ζ_top ↦ ζ_top^k generating
+the Galois group of the top field over the base, equals e* − i_N at
+Q₂(ζ₈) over Q₂(√2), Q₂(√−2) and Q₂(ζ₄) (1, 1, 3), Q₂(ζ₁₆) over Q₂(ζ₈)
+(7) and Q₃(ζ₉) over Q₃(ζ₃) (2). At the six ramified quadratics of Q₂,
+K(ζ₄)/K sorted by whether −1 or −5 is a square matches the last point:
+(3, 1) at Q₂(√±2) and Q₂(√±10), (4, 1) = (e*, 1) at Q₂(√−5), N = 2 at
+Q₂(ζ₄), which is CLOCK.md#the-width's reading of the same extension.
+Over Q₃, x⁶ + 3 reads t = 2 and x¹² + 3 reads t = 4, and
+x⁶ + 6x⁵ + 6x⁴ + 3x³ + 12 reads i₁ = 9 = e*, an unramified next storey
+at an odd prime with f = 1, through a seat class that is not rigid. The
+rigid reading holds at 8 designed fields at p = 2, 3, e from 2 to 18.
+
+## A radical storey adds e to the first defect and passes the rest down
+Tier: theorem.
+Verifier: proof, the first defect given the break of the next storey,
+the theorem above, and its sources; storey.py::section_descent,
+storey.py::section_boundary.
+
+Let K hold ζ_p. Its p^m-power defect κ_m is the largest v(y^(p^m) − ζ_p)
+over principal units y, infinite iff ζ_p is a p^m-th power: the G(m) of
+the class maxima, so H(m) = κ_m + e, and κ₁ = i₁ when N = 1. Let K/C be
+totally ramified of degree p, ζ_p in C, and let L ≤ e_K be the level,
+capped at e_K, to which π_K^p agrees with an element of C; a radical
+storey K = C(π_C^(1/p)) has L = e_K, and F(x^p) cuts it out when F cuts
+out C. Then for m ≥ 2
+
+    κ_m(K) = p·κ_(m−1)(C)   when p·κ_(m−1)(C) < (m − 1)e_K + L,
+
+and κ_m(K) ≥ (m − 1)e_K + L otherwise, given (p − 1)L ≥ e_K. At a
+radical storey the condition reads κ_(m−1)(C) < m·e_C. A finite κ_j
+is at most e* + (j − 1)e in any field, so at a finite κ_(m−1)(C) it
+always holds at an odd prime, and over 2 it fails only at
+κ_(m−1)(C) = m·e_C, the largest value allowed. With N = 1 in C and in
+K, when C's next storey is unramified or K/C is cyclic and breaks at
+some t_(K/C) above t_C = e*_C − κ₁(C), as a radical storey does at
+e*_C, the first defect is
+
+    κ₁(K) = κ₁(C) + e_K,
+
+so the next storey over K is unramified exactly when C's is, and
+otherwise breaks where C's does. Up a radical tower C₀ = Q_p(ζ_p) ⊂ C₁ ⊂
+⋯ ⊂ C_n with N = 1 at every storey, at an odd prime each defect descends
+to a first defect m − 1 storeys down, κ_m(C_n) = p^(m−1)·κ₁(C_(n−m+1))
+for m ≤ n + 1, each first defect set by the formula above; over 2 the
+same holds off the boundary, where only the lower bound is proved.
+
+Proof. Write y in O_K as Σ_(ι<p) χ_ι·π_K^ι, χ_ι in O_C. The mixed terms
+of the multinomial carry p, so y^p = Σ χ_ι^p·π_K^(pι) mod p, which is an
+element of C to level min(L, e_K) = L; and every χ in O_C is reached mod
+π_K^L, since at f = 1 the digit of χ_ι at π_C-level k lands at level
+p·k + ι, one to one. If y^p = χ + r with v(r) ≥ L, the ℓ-th term of
+(χ + r)^(p^(m−1)) has valuation at least (m − 1 − v_p(ℓ))e_K + ℓ·L, and
+(ℓ − 1)L ≥ v_p(ℓ)·e_K, so y^(p^m) = χ^(p^(m−1)) mod π_K^((m−1)e_K + L).
+Below that level
+v(y^(p^m) − ζ_p) = p·v_C(χ^(p^(m−1)) − ζ_p) ≤ p·κ_(m−1)(C), and the
+C-witness lifted to a y attains it. Past e* + (j − 1)e every principal
+unit is a p^j-th power, since above the bend the p-th power maps the
+units at or past each level onto those at or past the level e deeper; a
+larger κ_j would make ζ_p one. For the first defect, if
+C(ζ_(p²))/C is unramified so is K(ζ_(p²))/K, and
+κ₁(K) = e*_K = κ₁(C) + e_K. Otherwise K(ζ_(p²)) over C is bicyclic, its
+subfields C(ζ_(p²)) with break t_C and K with break t_(K/C) > t_C. Upper
+numbering passes to quotients, so the first lower break of the
+compositum over C is t_C, and past it the ramification group is Gal over
+C(ζ_(p²)), not over K; lower numbering passes to subgroups, so the
+compositum over K has break t_C, and κ₁(K) = e*_K − t_C by the break of
+the next storey. A cyclic storey whose own break t_(K/C) lies below t_C,
+which needs a unit Kummer radicand, has
+κ₁(K) = p·κ₁(C) + (p − 1)·t_(K/C) by the same count at the second lower
+break, the two formulas meeting at t_(K/C) = t_C; no such storey is
+among the instances.
+
+Its instances, κ read exactly off the echelon of U₁^(p^m), no search: 81
+defects with m ≥ 2 and 24 first defects over 24 storeys at p = 2, 3, e_K
+from 4 to 54, the towers x^(2·3^n) + 3 over Q₃(√−3) (κ₁ 1, 7, 25, 79)
+and x^(2^n) − 2 (3, 7, 15, 31, 63; x³² − 2 reads κ₁ to κ₇ as 63, 62, 60,
+56, 48, 32, 32), and F(x^p) over random F. Over 2 the boundary was met 4
+times, three in the descent and once at the specimen below, each at m =
+2 over a C whose next storey is unramified, and each time κ₂(K) =
+2·κ₁(C) after all: an observation. The unramified storey stays so, x⁴ −
+2x² + 6 over Q₂(√−5) reading κ₁ = 8 = e*.
+
+## Open fronts
+
+The digit string is a complete invariant of the polynomial; it depends
+on the uniformizer π, and the jump set is one function of the string
+that every uniformizer of K returns alike; which other field invariants
+the string carries is open, and so are a base field with f > 1 and a
+bend s = e/(p − 1) that is not an integer.

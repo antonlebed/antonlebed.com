@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>learner.py | Numbers read one place at a time</title>
+<meta name="description" content="learner.py">
+<link rel="alternate" type="text/x-python" href="/code/learner.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>learner.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/learner/#the-straddle-cover-and-its-readers">LEARNER: The straddle cover and its readers</a> (property; observation); <a href="/learner/#the-bottom-lemma">LEARNER: The bottom lemma</a> (theorem); <a href="/learner/#greedy-patience-dominates-every-sound-reader">LEARNER: Greedy patience dominates every sound reader</a> (theorem); <a href="/learner/#the-partition-valley">LEARNER: The partition valley</a> (theorem); <a href="/learner/#the-funnel-with-one-blind-corner">LEARNER: The funnel with one blind corner</a> (rule).</p><p>Cited on: <a href="/learner/">LEARNER</a>.</p><p>To run it: no other script; standard library only.</p></div>
+<pre>"""learner.py -- a reader of a continued-fraction stream commits
+intervals of the straddle cover; the intervals holding what it knows
+have a least member, so the best reader reads nothing from the stream.
+
+QUESTION. A READER sees, at step n, the IMAGE J_n = f(I_n), I_n the
+input's continued-fraction tile of depth n + 1 (step 0 reads a_0) and
+f a monotone map; the J_n nest. It COMMITS a member of the STRADDLE
+COVER holding J_n, and a
+commitment is never undone. The cover's members are the Stern-Brocot
+TILES and the STRADDLES S_k(v) between the k-th mediants at a vertex v
+(rates.py's ladder law). The DEFICIT of a step is the image's scale
+less the committed interval's, scale being ln(1/length). What can a
+reader that learns by exact comparisons of that price find, and what
+does the optimum depend on?
+
+THE OBJECT. A cover member is written (l, r, k, d): (l, r) a unimodular
+pair of integer points, the tile with vertex v = l + r, k &gt;= 0, and
+the interval (l + k v, r + k v), so k = 0 is the tile and k &gt;= 1 the
+straddle S_k(v). d is the depth of v, the root tile (0/1, 1/0) having
+d = 0, and the RANK of a member is d + k. A member HOLDS an interval J
+when it contains J's closure. Two moves leave a member: the TREE move
+to the child tile (l + k v, v) or (v, r + k v) holding a reference,
+and the CHAIN move to (l, r, k', d) with k' the largest index whose
+straddle holds a reference, taken when k' &gt; k. A POLICY is four
+coordinates: a route preference at tiles (tree first or chain first),
+a route preference at straddles (chain first or tree first), and two
+PATIENCES p_tree and p_chain in 0, 1, 2, 3, INF. A move of a kind
+with patience p must hold the reference J_(n - p); INF refuses the
+kind. At each step the reader takes moves, in its preferred order,
+until none is legal. The policy space has 2 x 2 x 5 x 5 = 100
+members; two policies are NEIGHBOURS when they differ by one flipped
+preference or one patience step along 0, 1, 2, 3, INF. The LOSS of a
+policy on a row is the product of its committed lengths over the
+counted steps n = 8 .. N - 1, infinite when a committed interval is
+unbounded, and a slate's loss is the product over its rows; losses
+compare by big-integer cross-multiplication, never by floats.
+
+THE SLATE. Eight (map, stream) rows: the identity on the golden ratio,
+sqrt 2, sqrt 3 and [0; 8, 8, ...]; y -&gt; y^2 on sqrt 2, THE WALL ROW,
+whose image is the rational 2; y -&gt; y^2 on the golden ratio; y -&gt; 2y
+on the golden ratio and on sqrt 2. Horizon N = 120, and 240 for the
+landscape's repeat.
+
+THE ARGUMENT (written before the engine).
+  (A) THE COVER IS ONE FAMILY. det(l + k v, v) = det(l, v) = det(l, r),
+      so every member any move reaches is (a Stern-Brocot tile, an
+      index). S_(k+1)(v) lies inside S_k(v), the mediant l + k v
+      moving toward v as k grows, so the straddles at one vertex
+      nest. S_1(v) lies inside v's tile, so a straddle holding J sits
+      at the vertex of a tile holding J.
+  (B) THE COVER IS NOT A TREE. S_1 of the root is (1/2, 2) and S_1 of
+      the tile (0/1, 1/1) is (1/3, 2/3); they cross, and an image
+      inside (1/2, 2/3) is held by both. So the members holding an
+      image need not form a chain, and a least one, if it exists, is
+      not handed over by nesting.
+  (C) THE BOTTOM. The tiles holding a bounded J form a chain (two
+      tiles are nested or disjoint), finite since J has positive
+      length; call its deepest member I* and let k* be the largest
+      index whose straddle at I* holds J, 0 if none. The
+      BOTTOM of J is (I*, k*), built by a descent that runs no policy.
+  (D) THE BOTTOM IS THE LEAST MEMBER HOLDING J. Let C = (I, k) hold
+      J. Then I holds J, so I* lies inside I. If I = I*, then
+      k &lt;= k* and the member (I*, k*) lies inside C by (A). If I* lies
+      strictly inside I, J cannot contain I's vertex v, since then no
+      tile below I would hold J and I* would be I; so, with I = (l, r),
+      J lies inside one of C's two child tiles (l + k v, v),
+      (v, r + k v), that child holds J, and I* lies inside it, hence
+      inside C. Either way the bottom lies inside C.
+  (E) WHAT (D) SAYS OF READERS. A committed interval holds the
+      reference that licensed it, which holds J_n, so every sound
+      reader's interval at step n contains bottom(J_n). J_(n+1) lies
+      inside J_n, so bottom(J_(n+1)) lies inside bottom(J_n): the
+      bottom sequence is itself a sound reader, and it is what every
+      policy with both patiences 0 commits, whatever its preferences,
+      because its loop cannot stop above the bottom. It dominates
+      every reader at every step, in intervals, so it minimizes every
+      loss that is monotone in the committed intervals, the deficit
+      among them. Nothing in it depends on the stream beyond J_n.
+  (F) THE PARTITION VALLEY. With tiles alone the holding members are
+      the chain of (C), so the greedy tile reader commits I*(J_n) and
+      a reader of patience p commits I*(J_(n - p)), which holds
+      I*(J_n). Loss is monotone in patience, strictly where the
+      compared losses are finite and the committed tile deepens.
+
+PREDICTIONS (fixed before the engine ran).
+  P0 [controls, read first] On the wall row the tile-only greedy
+     reader sits at rank 1 from step 5 on; the greedy cover reader
+     holds no unbounded interval there at any counted step, its
+     straddle index grows at ln-slope in [1.71, 1.82] per step
+     (2 ln(1 + sqrt 2) = 1.7627) and its deficit stays in [0, 1.5]
+     over the counted steps; on (2y, golden) the tile-only
+     reader's rank grows at slope in [1.26, 1.40] (4/3). These are the
+     published prints of the cover; a miss means this engine is not
+     that cover's.
+  P1 [the cover, (A)] The chain index solved in closed form equals the
+     index found by stepping k up one at a time, at every path vertex
+     and step where the index is at most 2000; and every interval any of
+     the 100 policies commits at any step is a member of the enumerated
+     holding set (a path tile, its tree depth matched, or a path
+     vertex's straddle at an index at most its k*). The first run read
+     neither step 0 nor the depth; both are now read.
+  P2 [(B)] At a positive number of row-steps the holding set holds
+     two members neither inside the other. Read over each path tile
+     with its straddles of index 1 and k*, so the count of such
+     row-steps is a lower bound for the whole holding set.
+  P3 [(D)] At every step of every row the bottom lies inside every
+     enumerated holding member. CONTROL: the bottom with its index
+     lowered by one where k* &gt;= 1 fails to lie inside some holding
+     member at a positive number of steps, so the containment test
+     can print False. The lowered member strictly contains the bottom,
+     so it fails at exactly the row-steps with k* &gt;= 1: the control
+     shows the test returns False on a strictly larger member, no
+     more.
+  P4 [(E)] The four greedy policies commit the bottom at every step
+     of every row; each of the 100 policies' committed interval holds
+     the bottom at every step.
+  P5 [the landscape, exhaustive over the 100 policies] 36 policies
+     have infinite loss; the minimum set is the four greedy policies,
+     tied exactly; the only policies above the minimum with no
+     strictly better neighbour are the four of the REFUSAL CORNER
+     (INF, INF); first- and best-improvement descent from all 100
+     starts reach the minimum in 192 of 200 runs, the eight others
+     being the corner started in itself. The tree-only greedy reader
+     (0, INF) is infinite on the wall row alone; the chain-only
+     greedy reader (INF, 0) is infinite on five rows, the wall row
+     among them. The corner commits the root at every step, so the
+     finite part of its loss is the greedy reader's whole committed
+     scale. The same minimum set and stall set hold at N = 240.
+  P6 [(F)] With tiles alone, at every row but the wall row, the loss
+     rises strictly along patience 0, 1, 2, 3 and is infinite at INF.
+  P7 [the single-reference hypothesis is needed] At patiences
+     (p_tree, p_chain) = (7, 6) on (identity, golden) at step 8, the
+     tree-first reader holds (1/1, 1/0) and the chain-first reader
+     holds (1/2, 2/1): at mixed patience the stopping member can
+     depend on the route.
+
+KILLS (observables).
+  K0 any P0 control misses: nothing below is read.
+  K1 any P3 or P4 failure: (D) or (E) is false in this cover.
+  K2 the P3 control prints zero: the containment test cannot fail.
+  K3 a P1 mismatch: the enumeration the checks stand on is wrong.
+
+FINDINGS (entered after the run; 23 of 23 checks pass).
+  F0 The controls reproduce: the tile-only reader sits at rank 1 on the
+     wall row, the cover reader's ln-index slope there is 1.7627 with
+     its deficit printing 0.000 to three places at every counted step,
+     and the tile-only rank slope on (2y, golden) is 1.3333.
+  F1 The closed-form index equals the stepped one at 124,763 path
+     vertices, and every interval the 100 policies commit lies in the
+     enumerated holding set.
+  F2 The holding set is NOT a chain at at least 826 of 959 row-steps
+     (the members P2 reads), the first
+     at (identity, golden), step 2. Crossing members are the rule, not
+     the exception, so the least member exists in spite of the cover's
+     shape, as (D) argues, and not because of nesting.
+  F3 The bottom lies inside every holding member at all 193,362
+     distinct member-steps; lowered by one index it fails at the 219
+     row-steps whose bottom has index 1 or more.
+  F4 The greedy quartet commits the bottom at every step, and all
+     95,900 policy-steps contain it.
+  F5 The landscape reproduces the published one exactly: 36 infinite
+     policies, the greedy quartet as the minimum, the refusal corner as
+     the only stall above it, 192 of 200 descents reaching the minimum,
+     tree-only infinite on the wall row alone, chain-only infinite on
+     (identity, eights), the wall row, (y^2, golden) and both doubling
+     rows, where it commits the root at every step (checked); the same
+     minimum and stall sets at N = 240. The corner
+     commits the root at every step, so its loss's finite part is the
+     greedy reader's whole committed scale, a number about the greedy
+     reader and not a property of the corner. 38 behaviour classes
+     over the counted steps among the 100 policies.
+  F6 The partition valley holds at all seven rows off the wall.
+  F7 The mixed-patience witness prints as predicted.
+
+RUN RECORD. 23 checks, 17 s, peak 98 MB. Sequential, exact integers in
+every decision; floats only in printed slopes and deficits.
+"""
+
+import math
+import sys
+
+N0 = 8
+N_MAIN = 120
+N_LONG = 240
+INF = None
+AXIS = [0, 1, 2, 3, INF]
+LN2 = math.log(2)
+
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" +
+          (f"  ({detail})" if detail else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+# points are integer pairs (p, q), q &gt;= 0; (1, 0) is +infinity
+
+<span id="lt"></span>def lt(a, b):
+    return a[0] * b[1] &lt; b[0] * a[1]
+
+
+<span id="le"></span>def le(a, b):
+    return a[0] * b[1] &lt;= b[0] * a[1]
+
+
+<span id="add"></span>def add(a, b, k=1):
+    return (a[0] + k * b[0], a[1] + k * b[1])
+
+
+<span id="ln_int"></span>def ln_int(x):
+    b = x.bit_length()
+    if b &lt;= 900:
+        return math.log(x)
+    return math.log(x &gt;&gt; (b - 64)) + (b - 64) * LN2
+
+
+# the stream: exact tiles of a periodic continued fraction, then images
+
+STREAMS = {"golden": ([1], [1]), "sqrt2": ([1], [2]),
+           "sqrt3": ([1], [1, 2]), "eights": ([0], [8])}
+MAPS = {"id": lambda e: e,
+        "sq": lambda e: (e[0] * e[0], e[1] * e[1]),
+        "dbl": lambda e: (2 * e[0], e[1])}
+ROWS = [("id", "golden"), ("id", "sqrt2"), ("id", "sqrt3"),
+        ("id", "eights"), ("sq", "sqrt2"), ("sq", "golden"),
+        ("dbl", "golden"), ("dbl", "sqrt2")]
+WALL = ("sq", "sqrt2")
+
+
+<span id="input_tiles"></span>def input_tiles(stream, count):
+    head, period = STREAMS[stream]
+    digits = list(head)
+    while len(digits) &lt; count:
+        digits += period
+    p2, q2, p1, q1 = 0, 1, 1, 0
+    out = []
+    for a in digits[:count]:
+        p, q = a * p1 + p2, a * q1 + q2
+        e1, e2 = (p, q), (p + p1, q + q1)
+        out.append((e1, e2) if lt(e1, e2) else (e2, e1))
+        p2, q2, p1, q1 = p1, q1, p, q
+    return out
+
+
+<span id="images"></span>def images(horizon):
+    out = {}
+    for m, s in ROWS:
+        f = MAPS[m]
+        row = []
+        for lo, hi in input_tiles(s, horizon):
+            a, b = f(lo), f(hi)
+            row.append((a, b) if lt(a, b) else (b, a))
+        out[(m, s)] = row
+    return out
+
+
+# the cover: a member is (l, r, k, d)
+
+ROOT = ((0, 1), (1, 0), 0, 0)
+
+
+<span id="span"></span>def span(c):
+    l, r, k, _ = c
+    v = add(l, r)
+    return add(l, v, k), add(r, v, k)
+
+
+<span id="holds"></span>def holds(c, J):
+    lo, hi = span(c)
+    return lt(lo, J[0]) and lt(J[1], hi)
+
+
+<span id="inside"></span>def inside(a, b):
+    """interval a lies inside interval b (closed containment)."""
+    alo, ahi = span(a)
+    blo, bhi = span(b)
+    return le(blo, alo) and le(ahi, bhi)
+
+
+<span id="length"></span>def length(c):
+    lo, hi = span(c)
+    if hi[1] == 0:
+        return None
+    return hi[0] * lo[1] - lo[0] * hi[1], hi[1] * lo[1]
+
+
+<span id="side_bound"></span>def side_bound(A, B):
+    """Largest k &gt;= 1 with k*A &lt; B, given that the set of such k is a
+    down-set of the positive integers; 'all' when it is every k."""
+    if A &lt;= 0:
+        return "all"
+    return max(0, (B - 1) // A)
+
+
+<span id="index_max"></span>def index_max(l, r, J):
+    """Largest k &gt;= 1 whose straddle at the tile (l, r) holds J, else 0.
+    Left end l + k v below J's left end: k (v0 b - a v1) &lt; a l1 - b l0,
+    J's left end a/b; right end mirrored."""
+    v = add(l, r)
+    (a, b), (c, d) = J
+    left = side_bound(v[0] * b - a * v[1], a * l[1] - b * l[0])
+    right = side_bound(c * v[1] - d * v[0], d * r[0] - c * r[1])
+    if left == 0 or right == 0:
+        return 0
+    if left == "all" and right == "all":
+        raise AssertionError("a straddle family holding a bounded image")
+    if left == "all":
+        return right
+    if right == "all":
+        return left
+    return min(left, right)
+
+
+<span id="index_by_steps"></span>def index_by_steps(l, r, J, cap):
+    k = 0
+    while k &lt; cap and holds((l, r, k + 1, 0), J):
+        k += 1
+    return k
+
+
+<span id="path_tiles"></span>def path_tiles(J):
+    """The tiles holding J, root first (a chain)."""
+    if not holds(ROOT, J):
+        return []
+    out = [ROOT]
+    l, r, _, d = ROOT
+    while True:
+        v = add(l, r)
+        if le(J[1], v):
+            nxt = (l, v, 0, d + 1)
+        else:
+            nxt = (v, r, 0, d + 1)
+        if not holds(nxt, J):
+            return out
+        out.append(nxt)
+        l, r, d = nxt[0], nxt[1], d + 1
+
+
+<span id="bottom"></span>def bottom(J):
+    tiles = path_tiles(J)
+    if not tiles:
+        return None
+    l, r, _, d = tiles[-1]
+    return (l, r, index_max(l, r, J), d)
+
+
+# the reader
+
+<span id="run"></span>def run(Js, policy, chains=True):
+    """Committed member at every step for one policy on one image row."""
+    s_tile, s_str, pt, pc = policy
+    C = ROOT
+    out = []
+    for n, J in enumerate(Js):
+        rt = Js[n - pt] if pt is not INF and n - pt &gt;= 0 else None
+        rc = Js[n - pc] if pc is not INF and n - pc &gt;= 0 else None
+        if chains is False:
+            rc = None
+        while True:
+            l, r, k, d = C
+            v = add(l, r)
+            lo, hi = span(C)
+            tree = chain = None
+            if rt is not None:
+                for ch in ((lo, v, 0, d + k + 1), (v, hi, 0, d + k + 1)):
+                    if holds(ch, rt):
+                        tree = ch
+                        break
+            if rc is not None:
+                k2 = index_max(l, r, rc)
+                if k2 &gt; k:
+                    chain = (l, r, k2, d)
+            if tree is None and chain is None:
+                break
+            prefer_chain = (s_tile == 1) if k == 0 else (s_str == 0)
+            if chain is not None and (tree is None or prefer_chain):
+                C = chain
+            else:
+                C = tree
+        if not (le(span(C)[0], J[0]) and le(J[1], span(C)[1])):
+            raise AssertionError("a commitment lost the image")
+        out.append(C)
+    return out
+
+
+<span id="loss"></span>def loss(trace):
+    num, den, inf = 1, 1, False
+    for C in trace[N0:]:
+        ln = length(C)
+        if ln is None:
+            inf = True
+        else:
+            num *= ln[0]
+            den *= ln[1]
+    return num, den, inf
+
+
+<span id="combine"></span>def combine(ls):
+    num, den, inf = 1, 1, False
+    for a, b, i in ls:
+        inf = inf or i
+        num *= a
+        den *= b
+    return num, den, inf
+
+
+<span id="cmp"></span>def cmp(x, y):
+    """-1 when loss x is below loss y; infinite losses tie."""
+    if x[2] and y[2]:
+        return 0
+    if x[2]:
+        return 1
+    if y[2]:
+        return -1
+    a, b = x[0] * y[1], y[0] * x[1]
+    return (a &gt; b) - (a &lt; b)
+
+
+<span id="policies"></span>def policies():
+    return [(a, b, p, q) for a in (0, 1) for b in (0, 1)
+            for p in AXIS for q in AXIS]
+
+
+<span id="neighbours"></span>def neighbours(pol):
+    a, b, p, q = pol
+    out = [(1 - a, b, p, q), (a, 1 - b, p, q)]
+    i, j = AXIS.index(p), AXIS.index(q)
+    for di in (-1, 1):
+        if 0 &lt;= i + di &lt; len(AXIS):
+            out.append((a, b, AXIS[i + di], q))
+        if 0 &lt;= j + di &lt; len(AXIS):
+            out.append((a, b, p, AXIS[j + di]))
+    return out
+
+
+<span id="slope"></span>def slope(pts):
+    (x0, y0), (x1, y1) = pts[0], pts[-1]
+    return (y1 - y0) / (x1 - x0)
+
+
+<span id="deficit"></span>def deficit(C, J):
+    ln = length(C)
+    jn = J[1][0] * J[0][1] - J[0][0] * J[1][1]
+    jd = J[0][1] * J[1][1]
+    return (ln_int(ln[0]) - ln_int(ln[1])) - (ln_int(jn) - ln_int(jd))
+
+
+<span id="section_controls"></span>def section_controls(imgs):
+    section("P0 CONTROLS: the published prints of the cover")
+    greedy = (0, 0, 0, 0)
+    tr = run(imgs[WALL], greedy, chains=False)
+    ranks = [c[3] + c[2] for c in tr]
+    check("tile-only greedy on the wall row sits at rank 1 from step 5",
+          all(x == 1 for x in ranks[5:]), f"last rank {ranks[-1]}")
+    tr = run(imgs[WALL], greedy)
+    unbounded = sum(length(c) is None for c in tr[N0:])
+    pts = [(n, math.log(c[2])) for n, c in enumerate(tr)
+           if n &gt;= 20 and c[2] &gt; 0]
+    s = slope(pts)
+    check("cover greedy on the wall row holds no unbounded interval",
+          unbounded == 0 and len(pts) &gt; 50,
+          f"{len(pts)} straddle commits past step 20")
+    check("its ln-index slope lies in [1.71, 1.82]", 1.71 &lt;= s &lt;= 1.82,
+          f"slope {s:.4f}")
+    ds = [deficit(c, J) for c, J in zip(tr[N0:], imgs[WALL][N0:])]
+    check("its deficit lies in [0, 1.5]",
+          all(-1e-9 &lt;= x &lt;= 1.5 for x in ds),
+          f"range [{min(ds):.3f}, {max(ds):.3f}]")
+    tr = run(imgs[("dbl", "golden")], greedy, chains=False)
+    pts = [(n, c[3] + c[2]) for n, c in enumerate(tr) if n &gt;= 20]
+    s = slope(pts)
+    check("tile-only rank slope on (2y, golden) lies in [1.26, 1.40]",
+          1.26 &lt;= s &lt;= 1.40, f"slope {s:.4f}")
+
+
+<span id="section_cover"></span>def section_cover(imgs, traces):
+    section("P1-P3 THE COVER AND ITS BOTTOM")
+    compared = mism = steps = crossed = 0
+    miss_enum = bad_bottom = lowered_fail = held_members = 0
+    first_cross = None
+    for row in ROWS:
+        for n, J in enumerate(imgs[row]):
+            tiles = path_tiles(J)
+            if not tiles:
+                continue
+            steps += 1
+            members = list(tiles)
+            top = {}
+            for t in tiles:
+                K = index_max(t[0], t[1], J)
+                top[(t[0], t[1])] = K
+                if K &lt;= 2000:
+                    compared += 1
+                    mism += index_by_steps(t[0], t[1], J, 2001) != K
+                if K &gt;= 1:
+                    members.append((t[0], t[1], 1, t[3]))
+                    if K &gt; 1:
+                        members.append((t[0], t[1], K, t[3]))
+            held_members += len(members)
+            b = bottom(J)
+            bad_bottom += sum(not inside(b, m) for m in members)
+            if b[2] &gt;= 1:
+                lowered = (b[0], b[1], b[2] - 1, b[3])
+                lowered_fail += any(not inside(lowered, m)
+                                    for m in members)
+            straddles = [m for m in members if m[2] &gt;= 1]
+            if any(not inside(x, y) and not inside(y, x)
+                   for x in straddles for y in members):
+                crossed += 1
+                if first_cross is None:
+                    first_cross = (row, n)
+            for tr in traces[row].values():
+                C = tr[n]
+                if C == ROOT:
+                    continue
+                ok = any(C[0] == t[0] and C[1] == t[1] and C[3] == t[3]
+                         for t in tiles)
+                ok = ok and C[2] &lt;= top.get((C[0], C[1]), -1)
+                miss_enum += not ok
+    check("P1 the closed-form index equals the stepped index",
+          mism == 0 and compared &gt; 100,
+          f"{compared} path vertices compared, {mism} off")
+    check("P1 every committed interval is in the enumerated holding set",
+          miss_enum == 0, f"{miss_enum} misses")
+    check("P2 the holding set is not a chain at some steps", crossed &gt; 0,
+          f"{crossed} of {steps} row-steps, first {first_cross}")
+    check("P3 the bottom lies inside every holding member",
+          bad_bottom == 0,
+          f"{held_members} member-steps over {steps} row-steps, "
+          f"{bad_bottom} off")
+    check("P3 control: the bottom with its index lowered fails somewhere",
+          lowered_fail &gt; 0, f"{lowered_fail} row-steps")
+
+
+<span id="section_readers"></span>def section_readers(imgs, traces):
+    section("P4 THE BOTTOM IS WHAT GREEDY COMMITS AND WHAT EVERY READER HOLDS")
+    greedy_off = held_off = pol_steps = 0
+    for row in ROWS:
+        bots = [bottom(J) for J in imgs[row]]
+        for pol, tr in traces[row].items():
+            for n, C in enumerate(tr):
+                b = bots[n]
+                if b is None:
+                    continue
+                pol_steps += 1
+                if pol[2] == 0 and pol[3] == 0:
+                    greedy_off += C != b
+                held_off += not inside(b, C)
+    check("P4 the four greedy policies commit the bottom at every step",
+          greedy_off == 0, f"{greedy_off} off")
+    check("P4 every policy's interval contains the bottom at every step",
+          held_off == 0, f"{pol_steps} policy-steps, {held_off} off")
+
+
+<span id="landscape"></span>def landscape(imgs, horizon):
+    space = policies()
+    per_row = {row: {p: run(imgs[row][:horizon], p) for p in space}
+               for row in ROWS}
+    L = {p: combine([loss(per_row[row][p]) for row in ROWS])
+         for p in space}
+    return space, per_row, L
+
+
+<span id="descend"></span>def descend(start, L, best):
+    p = start
+    while True:
+        better = [q for q in neighbours(p) if cmp(L[q], L[p]) &lt; 0]
+        if not better:
+            return p
+        if best:
+            q = better[0]
+            for x in better[1:]:
+                if cmp(L[x], L[q]) &lt; 0:
+                    q = x
+            p = q
+        else:
+            p = better[0]
+
+
+<span id="read_landscape"></span>def read_landscape(space, L):
+    lo = space[0]
+    for p in space:
+        if cmp(L[p], L[lo]) &lt; 0:
+            lo = p
+    minimum = [p for p in space if cmp(L[p], L[lo]) == 0]
+    stalls = [p for p in space if p not in minimum
+              and all(cmp(L[q], L[p]) &gt;= 0 for q in neighbours(p))]
+    return minimum, stalls
+
+
+<span id="section_landscape"></span>def section_landscape(imgs, space, per_row, L):
+    section("P5 THE LANDSCAPE OVER THE 100 POLICIES")
+    infinite = [p for p in space if L[p][2]]
+    minimum, stalls = read_landscape(space, L)
+    check("P5 36 policies have infinite loss", len(infinite) == 36,
+          f"{len(infinite)}")
+    check("P5 the minimum set is the four greedy policies",
+          sorted(minimum) == sorted(p for p in space
+                                    if p[2] == 0 and p[3] == 0),
+          f"{minimum}")
+    check("P5 the only stalls above the minimum are the refusal corner",
+          sorted(stalls) == sorted(p for p in space
+                                   if p[2] is INF and p[3] is INF),
+          f"{stalls}")
+    reach = sum(descend(p, L, best) in minimum
+                for p in space for best in (False, True))
+    check("P5 descent reaches the minimum in 192 of 200 runs",
+          reach == 192, f"{reach}")
+    tree_only = [row for row in ROWS if loss(per_row[row][(0, 0, 0, INF)])[2]]
+    chain_only = [row for row in ROWS
+                  if loss(per_row[row][(0, 0, INF, 0)])[2]]
+    check("P5 tree-only greedy is infinite on the wall row alone",
+          tree_only == [WALL], f"{tree_only}")
+    check("P5 chain-only greedy is infinite on five rows, the wall among "
+          "them", len(chain_only) == 5 and WALL in chain_only,
+          f"{chain_only}")
+    at_root = [row for row in chain_only
+               if all(C == ROOT for C in per_row[row][(0, 0, INF, 0)])]
+    check("P5 on those five rows chain-only greedy commits the root at "
+          "every step", at_root == chain_only, f"{len(at_root)} rows")
+    corner = (0, 0, INF, INF)
+    frozen = all(C == ROOT for row in ROWS for C in per_row[row][corner])
+    check("P5 the corner commits the root at every step", frozen)
+    classes = len({tuple(tuple(per_row[row][p][N0:]) for row in ROWS)
+                   for p in space})
+    print(f"  behaviour classes over the counted steps: {classes} "
+          f"of {len(space)} policies")
+    return minimum, stalls
+
+
+<span id="section_valley"></span>def section_valley(imgs):
+    section("P6 THE PARTITION VALLEY (tiles alone)")
+    bad = []
+    for row in ROWS:
+        if row == WALL:
+            continue
+        ls = [loss(run(imgs[row], (0, 0, p, INF), chains=False))
+              for p in AXIS]
+        ok = all(cmp(ls[i], ls[i + 1]) &lt; 0 for i in range(3))
+        ok = ok and not any(x[2] for x in ls[:4]) and ls[4][2]
+        if not ok:
+            bad.append(row)
+    check("P6 loss rises strictly along patience, infinite at INF, on "
+          "every row but the wall", bad == [], f"failing rows {bad}")
+
+
+<span id="section_tight"></span>def section_tight(imgs):
+    section("P7 MIXED PATIENCE: THE ROUTE CAN DECIDE WHERE THE LOOP STOPS")
+    Js = imgs[("id", "golden")]
+    a = run(Js, (0, 0, 7, 6))[8]
+    b = run(Js, (1, 0, 7, 6))[8]
+    print(f"  tree first holds {span(a)}, chain first holds {span(b)}")
+    check("P7 tree first holds (1/1, 1/0), chain first (1/2, 2/1)",
+          span(a) == ((1, 1), (1, 0)) and span(b) == ((1, 2), (2, 1)))
+
+
+<span id="main"></span>def main():
+    imgs = images(N_MAIN)
+    section_controls(imgs)
+    if not all(CHECKS):
+        print("controls failed: no verdict is read")
+        sys.exit(1)
+    space, per_row, L = landscape(imgs, N_MAIN)
+    section_cover(imgs, per_row)
+    section_readers(imgs, per_row)
+    minimum, stalls = section_landscape(imgs, space, per_row, L)
+    section_valley(imgs)
+    section_tight(imgs)
+    section("P5 REPEATED AT N = 240")
+    long_imgs = images(N_LONG)
+    space2, _, L2 = landscape(long_imgs, N_LONG)
+    m2, s2 = read_landscape(space2, L2)
+    check("P5 the minimum set and the stall set are unchanged at N = 240",
+          sorted(m2) == sorted(minimum) and sorted(s2) == sorted(stalls))
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/learner.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

@@ -1,0 +1,630 @@
+"""lid.py -- when a greedy walk over a number ring has locked for good:
+the lid a block's last mover puts on every later price, and the one
+condition, checkable at a single state, under which it never lifts.
+
+QUESTION. Walks over number rings have been read locking: the openings
+stop and one place is deepened forever at a price that never changes,
+while hundreds of places that would open at exponent 1 stay unbought.
+One case of this was proved in passing: a place of norm q with e = f = 1
+that has moved caps every later price at q, since only an opening of
+norm = 1 mod q, dearer than q, could jump its count. Is that the whole
+mechanism for every kind of place? Which state certifies that a walk
+has locked, what bounds every price it pays afterwards, and how does
+that certificate sit beside the question whether a number ring's walk
+must lock at all?
+
+THE OBJECTS. door.py's: a place over p with residue field of N = p^f
+elements, ramification e, width w, ladder x_1 = 1 < x_2 < ...; m(0) =
+1, m(j) = x_j + 1; the GAP at column j is G(j) = m(j + 1) - m(j), so
+G(0) = 1 and G(j) = x_(j+1) - x_j; the TAIL INDEX t is the least column
+with G(j) = e for every j >= t (door.py tail_index). A BLOCK is the set
+of places over one rational prime p; its COUNT is V = v_p(L). A seated
+place at exponent a has door m(V + 1) - a; an unseated one has door 1
+if N - 1 does not divide L (an opening at exponent 1) and m(V + 1)
+otherwise; a move costs N^door. A CLOCK MOVE is any move of door
+m(V + 1) - a: it lands at exponent m(V + 1) and raises V by exactly
+one, touching no other count. A JUMP raises V without a clock move of
+the block; only an opening at exponent 1 of a place Q not over p makes
+one, when v_p(N(Q) - 1) > V (Q a place here; the rationals appear only
+in field names such as Q(sqrt -133)).
+
+A block is LIDDED at a state when (i) its last clock move was R's and
+no jump has come since, so R sits at exponent m(V); (ii) V + 1 >=
+e_R f_R, that is p^(V+1) >= N(R)^(e_R); (iii) V is at or past the tail
+index of R and of every place Y over p with 2 f_Y <= e_R f_R. Its LID is
+N(R)^(e_R). A state's lid is the least lid over its lidded blocks.
+
+THE ARGUMENT (written before the engine).
+  (1) R PENDS ITS LID. R's door is m(V + 1) - m(V) = G(V) = e_R by
+      (iii), so its move costs N(R)^(e_R), and greed never pays more
+      than a move on the menu.
+  (2) NO JUMP IS AFFORDABLE. A jump needs an opening at exponent 1 with
+      p^(V+1) | N(Q) - 1, so N(Q) >= p^(V+1) + 1, strictly above the
+      lid by (ii). A covered opening puts no new p-part into L (N - 1
+      already divides it), and a clock move of another block raises
+      only its own count.
+  (3) A RIVAL IN THE BLOCK LOWERS THE LID. Let Y over p, Y != R, make a
+      clock move (an opening through a shared unit included). Y's
+      column is at most V - 1, R holding column V alone, so its
+      exponent is below m(V) and its door is at least G_Y(V) + 1. If
+      2 f_Y > e_R f_R, the move costs at least N(Y)^2 = p^(2 f_Y) >
+      p^(e_R f_R): unaffordable. Otherwise (iii) makes G_Y(V) = e_Y,
+      so greed taking it means f_Y (e_Y + 1) <= e_R f_R, and Y lands
+      at count V + 1 pending G_Y(V + 1) = e_Y at a lid N(Y)^(e_Y)
+      STRICTLY below R's. (ii) and (iii) hold for Y at V + 1: e_Y f_Y <
+      e_R f_R, and every place Y' with 2 f_Y' <= e_Y f_Y already fell
+      under R's condition. An opening over p at exponent 1 moves no
+      count and leaves R's price alone.
+  (4) R's own move lands it at V + 1 with (i)-(iii) intact. So THE LID
+      THEOREM: a lidded block stays lidded forever, its lid never rises
+      and falls strictly at each change of holder, and every price the
+      walk pays after a lidded state is at most that state's lid.
+  (5) THE LOCK. After a lidded state every opening costs its norm or
+      more and is at most the lid, so finitely many openings follow;
+      then only clock moves and no count jumps. Every later price is at
+      most the lid and a clock move over p costs at least p, so only the
+      finitely many blocks over primes at most the lid move, and one of
+      them is clocked infinitely often; each such block becomes lidded (the
+      converse below), its holder changing only to a strictly lower lid,
+      finitely often, by the lowering clause of (3), and then pending one
+      constant price. Two blocks' constant prices are powers of distinct
+      primes and never tie, so greed takes only the cheaper, and one
+      place runs at its N^e, at most the lid, forever. Conversely a block
+      clocked infinitely often is lidded at a clock move once V passes
+      its places' tail indices and n - 1, where n, the field's degree,
+      bounds every e f. And a walk whose prices are bounded infinitely
+      often moves places of bounded norm infinitely often, each opened
+      once, so it clocks some block infinitely often. Hence four
+      statements about a walk are one: it reaches a lidded state; some
+      block is clocked infinitely often; it makes finitely many
+      openings; its prices are bounded infinitely often (cascade.py's
+      lock). A walk that never locks clocks every block finitely often
+      and opens places forever; whether its clock moves, spread over
+      ever more blocks, can be infinitely many is not decided here.
+  (6) THE OLD CAP IS THE CASE e_R f_R = 1 AT ODD p. There (ii) is
+      empty, no Y has 2 f_Y <= 1, and t = 1, so a moved split place
+      over an odd p leaves its block lidded at once. At Z_2 (w = 1,
+      ladder 1, 3, 4, 5, ...) t = 2: one move of it leaves door 2
+      pending, 4 and not 2, so "a place of norm q with e = f = 1 that
+      has moved caps every later price at q" is FALSE at q = 2 as
+      written, and the lid theorem is its repair.
+
+PREDICTIONS, frozen before the engine, each naming what the run PRINTS.
+  PL1 THE LID. Over the 242 quadratic fields of winner.py (2 <= |delta|
+      <= 200, squarefree, 40 moves, every tie branched, equal states
+      merged), race.py's six cubic rings, door.py's ring of x^3 - x - 1
+      and winner.py's Z[2^(1/3)], at every state of every end: once a block
+      is lidded it stays lidded, the state's lid never rises, every
+      price paid after a lidded state is at most that state's lid, and
+      no jump lands on a lidded block. Printed: rings, ends, lidded
+      ends, and the counts of each violation.
+      KILL: any violation count above 0.
+  PL2 THE CONTROL PAIR. A block walked alone of two places, the
+      unramified place of norm 8 over 2 (e f = 3, gaps all 1) and a
+      split place of norm 5, the norm-8 place R seated at exponent m(1)
+      (V = 1, so (ii) fails): the first move opens the norm-5 place at
+      5, a jump to V = 2, and R's pending price rises from 8 to 64.
+      Seated at m(2) (V = 2, lidded, lid 8), with places of norm 5 and
+      17 beside it, every price of 20 moves is at most 8 and V moves
+      only by R's own clock moves. And Z_2 alone after one move pends
+      4. Printed: the three price sequences.
+      KILL (of the engine, before PL1 is read): any of the three off.
+  PL3 THE REACH (a measurement, no kill). Every end of PL1 is lidded
+      within 40 moves, most by move 6. Printed: the distribution of the
+      first lidded move and of the count V at it, against n - 1.
+  PL4 WHAT IS LEFT (a measurement, no kill). At each end, the places of
+      norm below the end state's lid decide which place runs; the places
+      above it, covered or not, are never paid. Predicted under 10 such
+      places at every end. Printed: the largest count and its ring.
+
+FINDINGS (entered after the run, from its output).
+  F1 THE CONTROL PAIR (PL2 hit, read first). At V = 1 the norm-8 place
+     leaves its block unlidded and pends 8; the first move opens norm 5 at 5, V
+     goes to 2 and it pends 64. At V = 2 its lid is 8 and 20 moves pay
+     8 with no violation. Z_2 alone has tail index 2 and pays 4, 4, 2,
+     2.
+  F2 THE LID (PL1 hit). 250 rings, 436 ends, 17,876 states: every end
+     reaches a lidded state, and no lid is lost, no state's lid rises,
+     no price exceeds the lid and no jump lands on a lidded block. The
+     clauses the proof rests on are exercised unevenly: 22 openings jump
+     a moved block that is not lidded, and a state's lid falls 56 times
+     as a cheaper block is lidded, but no lidded block ever changes
+     holder, so clause (3) stands on the proof alone.
+  F3 THE REACH (PL3 as predicted). The first lidded state is at move 2
+     on 285 ends, 3 on 20, 4 on 127 and 5 on 4, at count V = 1 on 375
+     ends, 2 on 41 and 3 on 20, never above 3.
+  F4 WHAT IS LEFT (PL4 hit). At most 7 places lie below an end's lid,
+     at Q(sqrt -133) with lid 41.
+
+THE SECOND SITTING: WHICH PLACE RUNS, CERTIFIED AT ONE STATE. The lid
+certifies THAT a walk has locked, never WHICH place it runs. An older
+certificate does the second job at five rings: take the place P the
+walk moves, C* the supremum of P's own costs over its P-only future, m
+the cheapest rival at that state; C* < m carries P to infinity. Is that
+certificate the lone path (winner.py) read from any state rather than
+from the void, and where does it sit beside the lid?
+
+THE ARGUMENT (written before the engine).
+  (7) THE LONE PATH FROM ANY STATE. At a state S and a seated place P,
+      P's LONE PATH from S is the price sequence P pays moving alone
+      forever: one sequence, S fixing P's exponent and L. Its supremum
+      C*(P, S) is attained. P's lone future clocks P's block forever, so
+      by (5) it reaches a state lidded at P, after which (1) and (4) make
+      every price N(P)^(e_P); C* is the largest price before that state
+      or the lid, whichever is larger. The CERTIFICATE at S is C*(P, S) <
+      m(S), m(S) the least price at S over every place other than P.
+  (8) SOUNDNESS. Under the certificate the walk IS P's lone path from
+      S, with no tie. By induction: at each later state P's price is on
+      its lone path, so at most C*; every rival's price is at least what
+      it was at S, since a place whose exponent is untouched has a door
+      that never falls while L grows under lcm; so P is the unique
+      cheapest move. This is winner.py's lone-path argument, which is the
+      case S = the state after the first move with m the void price C0.
+  (9) AT A LIDDED STATE THE CERTIFICATE IS THE LID. If S is lidded at R,
+      R's lone path is constant at the lid from S on, so C*(R, S) = lid
+      and the certificate reads: every rival costs strictly more than the
+      lid.
+  (10) COMPLETENESS, UP TO TIES. If from some state on a path moves one
+      place P forever with no tie at any move, the path certifies P at
+      some state: the lone future is the path, so it reaches a state T
+      lidded at P, where C* = lid = P's price at T, and no tie at T
+      means every rival costs more. A path can instead run P forever
+      against a rival TIED with the lid at every move, and that path
+      never certifies; the tied rival's own branch leaves it. A tie with
+      a lid needs a rival over the lid's own prime (a price is a power
+      of its place's prime), so it lives in the lid's block.
+
+PREDICTIONS, frozen before the engine, each naming what the run PRINTS.
+  PC1 SOUNDNESS. Over PL1's 250 rings and 436 ends, at every state of
+      every end and every seated place P, C*(P, S) is computed as in (7)
+      and the certificate tested. At every certified state the rest of
+      the end moves P only, paying exactly its lone path. Printed:
+      states tested, certified pairs, and violations. KILL: any
+      violation.
+  PC2 THE LID IS C*. At every lidded state of every end, the holder's
+      lone path, simulated 12 moves with no lid read, pays its lid at
+      every move. Printed: lidded states read, mismatches.
+      KILL: any mismatch.
+  PC3 THE REACH (a measurement, no kill). Every end certifies by move
+      40, since past the lid a quadratic field has no tie at its lid (a
+      split place's sibling is covered and pends at least p^2; an inert
+      or ramified place has no sibling). Printed: ends certified, the
+      distribution of the first certified move, and the ends whose first
+      certificate comes after their first lidded state. At the HOLDS
+      rows (winner e = 1, N >= 3), the certificate at move 1.
+  PC4 THE TIED LID (the control of (10); KILL of the engine, read first).
+      A block of the ramified place R over 3 (e = 2, f = 1, w = 0) and
+      an unramified place Y over 3 with f = 2, R seated lidded, lid 9,
+      walked 8 moves every tie branched: Y opens at 9 (8 does not divide
+      L), tying R's move at every state where Y is unseated. The path
+      that moves R alone pays 9 eight times and certifies at no state,
+      C* = m = 9; every path that has opened Y certifies R at the state
+      after, Y then pending at least 81. Printed: the paths, the R-only
+      path's certified states, and the states after Y's opening.
+  PC5 THE REFUSAL (a measurement, no kill). The certificate's older
+      source reads greed as never seating a second place over its
+      runaway's prime. Printed: at each end's first certified state, the
+      number of other seated places over P's prime, with an example.
+
+FINDINGS OF THE SECOND SITTING (entered after the run, from its output).
+  F5 THE TIED LID (PC4 hit, read first). After merging equal states, 2
+     paths of 8 moves: R alone pays 9 eight times, m = 9 at every state,
+     certified at none; the path that opens Y certifies R at the state
+     after, Y pending 9^9.
+  F6 SOUNDNESS AND THE LID (PC1, PC2 hit). 436 ends, 17,876 states,
+     17,007 certified (state, place) pairs (16,571 with moves left to
+     check, the rest at a path's last state), 0 violations: every certified
+     state is followed by its place's lone path, price for price. At all
+     18,992 lidded (state, block) readings the holder's lone path,
+     simulated 12 moves with no lid read, pays its lid at every move.
+  F7 THE REACH (PC3 as predicted, and wider). All 436 ends certify, the
+     cubic rings included; the first certified state is move 1 on 240
+     ends, 2 on 21, 3 on 141, 4 on 16, 5 on 12, 6 on 4, 8 on 2. 62 ends
+     certify after their first lidded state, by 1 move on 48, 2 on 12,
+     4 on 2: the openings below the lid come first. Of 205 HOLDS ends,
+     202 certify at move 1; the other 3 are the three cubic rings
+     x^3+2x+1, x^3+x^2+x+2, x^3+x^2+3x+2, whose void minimum is TIED
+     (the norm-2 place over 2 pends 4, the norm-4 place opens at 4), so
+     winner.py's unique-minimum hypothesis fails there: a natural tie
+     at C* = m = 4, before the norm-2 place's lid of 2, not at it.
+  F8 THE REFUSAL FAILS (PC5). At 433 ends no other place over the
+     runaway's prime is seated; at 3 there is one, the same three rings:
+     2 splits with residue degrees 1 and 2, the norm-2 place pays 4, the
+     norm-4 place opens at 4 (3 does not divide L, which is a power of 2),
+     and the norm-2 place runs, paid 4, 4, 4, 2, 2, .... The seated
+     norm-4 place stays at exponent 1 while v_2(L) climbs, pending 2^12
+     at move 6 and 2^80 at move 40: greed itself realizes the diverging
+     surplus. The older mechanism (a seated place's first rung is
+     covered, so it is cheaper than its unseated sibling) holds only when
+     the sibling's residue degree divides the seated one's.
+
+RUN RECORD (both sittings). One process, CPython, no numpy: 38,266
+checks, 5.6 s, peak working set 15.6 MB.
+"""
+
+import os
+import sys
+import time
+from collections import Counter
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import door as DR  # noqa: E402
+import race as RC  # noqa: E402
+import winner as WN  # noqa: E402
+
+CHECKS = [0]
+N_W = 40
+
+
+def check(cond, msg):
+    CHECKS[0] += 1
+    if not cond:
+        raise SystemExit("FAIL: " + msg)
+
+
+# ---------------------------------------------------------------------------
+# the lid read off a state
+
+def tail(q):
+    return DR.tail_index(q.lad)[0]
+
+
+def lid(pls, st, last, p):
+    """The block over p's lid at st, or None; last[p] = (the last
+    mover's index, count landed)."""
+    if p not in last:
+        return None
+    z, landed = last[p]
+    Z = pls[z]
+    V = DR.vp(st.L, p)
+    if V != landed or st.a[z] != DR.mdepth(Z.lad, V):
+        return None
+    if V + 1 < Z.e * Z.f:
+        return None
+    for Y in pls:
+        if Y.p == p and (Y is Z or 2 * Y.f <= Z.e * Z.f) and V < tail(Y):
+            return None
+    return Z.N ** Z.e
+
+
+def replay(pls, st, last, log):
+    """The (state, last movers) pairs along a log from st."""
+    last = dict(last)
+    out = [(st, dict(last))]
+    for kind, i, r, pr, b in log:
+        q = pls[i]
+        st = DR.rstep(pls, st, (kind, i, st.a.get(i, 0), r), pr, [], [],
+                      Counter())
+        if kind != "o":
+            last[q.p] = (i, DR.vp(st.L, q.p))
+        out.append((st, dict(last)))
+    return out
+
+
+def read_path(pls, st0, last0, log, paid, tot):
+    """PL1 over one path: (the first lidded state and its count, the end
+    state's lid)."""
+    states = replay(pls, st0, last0, log)
+    lidded, first, prev = set(), None, None
+    for t, (st, last) in enumerate(states):
+        now = {p: lid(pls, st, last, p) for p in last}
+        tot["states"] += 1
+        tot["lid_lost"] += sum(now[p] is None for p in lidded)
+        if t > 0 and log[t - 1][0] == "o":
+            before = states[t - 1][0]
+            tot["jump_on_lid"] += sum(DR.vp(st.L, p) > DR.vp(before.L, p)
+                                      for p in lidded)
+            tot["jump_open"] += sum(DR.vp(st.L, p) > DR.vp(before.L, p)
+                                    for p in last if p not in lidded)
+        if t > 0:
+            was = states[t - 1][1]
+            tot["holder_change"] += sum(was[p][0] != last[p][0]
+                                        for p in lidded if p in was)
+        lidded |= {p for p, v in now.items() if v is not None}
+        cur = min((v for v in now.values() if v is not None), default=None)
+        if cur is None:
+            continue
+        if first is None:
+            first = (t, max(DR.vp(st.L, p) for p, v in now.items()
+                            if v is not None))
+        tot["rise"] += prev is not None and cur > prev
+        tot["fall"] += prev is not None and cur < prev
+        prev = cur
+        for p, v in now.items():
+            if v is not None:
+                z = last[p][0]
+                check(pls[z].N ** DR.door_lcm(pls[z], st.a[z], st.L) == v,
+                      "(1): R pends its lid")
+        if t < len(paid):
+            tot["over"] += paid[t] > cur
+    return first, prev
+
+
+def walk_ring(name, pls, n, tot, reach, left):
+    tally = Counter()
+    leaves = RC.tree(pls, DR.RSt(), N_W, tally, True)
+    check(tally["mismatch"] == 0, f"the door read two ways at {name}")
+    tot["rings"] += 1
+    for path in leaves:
+        tot["ends"] += 1
+        first, end = read_path(pls, DR.RSt(), {}, path.log, path.paid, tot)
+        if first is None:
+            tot["unlidded"] += 1
+            continue
+        tot["lidded"] += 1
+        reach[first[0]] += 1
+        reach[("V", first[1], n - 1)] += 1
+        below = sum(q.N < end for q in pls)
+        if below > left[0]:
+            left[:] = [below, name, end]
+
+
+# ---------------------------------------------------------------------------
+# the rings
+
+def z_cbrt2():
+    out = [DR.Place(2, 1, 3, 0), DR.Place(3, 1, 3, 0)]
+    for p in DR.primes_to(DR.NMAX)[2:]:
+        r = sum((x ** 3 - 2) % p == 0 for x in range(p))
+        if r == 3:
+            out += [DR.unram(p, 1) for _ in range(3)]
+        elif r == 1:
+            out.append(DR.unram(p, 1))
+            if p * p <= DR.NMAX:
+                out.append(DR.unram(p, 2))
+        elif p ** 3 <= DR.NMAX:
+            out.append(DR.unram(p, 3))
+    return out
+
+
+def rings():
+    ms = [m for m in range(-200, 201) if abs(m) >= 2 and RC.squarefree(m)]
+    for m in ms:
+        yield f"Q(sqrt {m})", WN.field(m), 2
+    for name, (a, b, c) in RC.RINGS_X:
+        yield name, DR.build(lambda: RC.cubic(a, b, c, DR.NMAX)), 3
+    for name, (a, b, c), _ in RC.RINGS_5:
+        yield name, DR.build(lambda: RC.cubic(a, b, c, DR.NMAX)), 3
+    yield "x^3-x-1", DR.build(lambda: DR.cubic(-1, -1, 23, DR.NMAX)), 3
+    yield "Z[2^(1/3)]", DR.build(z_cbrt2), 3
+
+
+# ---------------------------------------------------------------------------
+# the sections
+
+def seeded_walk(pls, z, a, n):
+    st = DR.RSt()
+    st.a[z.idx] = a
+    st.L = z.lam(a)
+    last = {z.p: (z.idx, DR.vp(st.L, z.p))}
+    leaves = RC.tree(pls, st, n, Counter(), False)
+    check(len(leaves) == 1, "a control walk branched")
+    return st, last, leaves[0]
+
+
+def pends(z, st):
+    return z.N ** DR.door_lcm(z, st.a[z.idx], st.L)
+
+
+def section_control():
+    print("S0  THE CONTROL PAIR")
+    pls = RC.block([(2, 3, 1, 0), (5, 1, 1, 0)])
+    z = next(q for q in pls if q.N == 8)
+    st, last, path = seeded_walk(pls, z, DR.mdepth(z.lad, 1), 1)
+    s1 = replay(pls, st, last, path.log)[1][0]
+    print(f"  norm 8 at V = 1: lid {lid(pls, st, last, 2)}, pends "
+          f"{pends(z, st)}; move 1 pays {path.paid[0]} opening norm "
+          f"{pls[path.log[0][1]].N}, V -> {DR.vp(s1.L, 2)}, pends "
+          f"{pends(z, s1)}")
+    check(lid(pls, st, last, 2) is None and pends(z, st) == 8
+          and path.paid == [5] and pls[path.log[0][1]].N == 5
+          and DR.vp(s1.L, 2) == 2 and pends(z, s1) == 64,
+          "PL2: the jump at V = 1")
+    pls = RC.block([(2, 3, 1, 0), (5, 1, 1, 0), (17, 1, 1, 0)])
+    z = next(q for q in pls if q.N == 8)
+    st, last, path = seeded_walk(pls, z, DR.mdepth(z.lad, 2), 20)
+    tot = Counter()
+    read_path(pls, st, last, path.log, path.paid, tot)
+    bad = tot["over"] + tot["rise"] + tot["lid_lost"] + tot["jump_on_lid"]
+    print(f"  norm 8 at V = 2: lid {lid(pls, st, last, 2)}, paid "
+          f"{sorted(set(path.paid))} over 20 moves, violations {bad}")
+    check(lid(pls, st, last, 2) == 8 and set(path.paid) == {8}
+          and all(pls[x[1]].N == 8 for x in path.log) and bad == 0,
+          "PL2: the lid at V = 2")
+    z2 = RC.block([(2, 1, 1, 1)])[0]
+    _, paid = WN.lone_walk(z2, 4)
+    print(f"  Z_2 alone: tail index {tail(z2)}, paid {paid}")
+    check(tail(z2) == 2 and paid == [4, 4, 2, 2], "PL2: Z_2")
+
+
+def section_lid():
+    print("S1  THE LID")
+    tot, reach, left = Counter(), Counter(), [0, None, None]
+    for name, pls, n in rings():
+        walk_ring(name, pls, n, tot, reach, left)
+    print(f"  {tot['rings']} rings, {tot['ends']} ends, {tot['states']} "
+          f"states, {tot['lidded']} ends lidded, {tot['unlidded']} not")
+    print(f"  violations: lid lost {tot['lid_lost']}, lid rose "
+          f"{tot['rise']}, price over the lid {tot['over']}, jump on a "
+          f"lidded block {tot['jump_on_lid']}")
+    print(f"  clauses exercised: jumps on moved unlidded blocks "
+          f"{tot['jump_open']}, changes of holder in a lidded block "
+          f"{tot['holder_change']}, falls of a state's lid {tot['fall']}")
+    check(tot["lid_lost"] + tot["rise"] + tot["over"]
+          + tot["jump_on_lid"] == 0, "PL1: the lid theorem")
+    moves = sorted((k, v) for k, v in reach.items() if isinstance(k, int))
+    counts = sorted((k[1:], v) for k, v in reach.items()
+                    if not isinstance(k, int))
+    print(f"  PL3 first lidded state (move: ends) {moves}")
+    print(f"  PL3 count V there ((V, n - 1): ends) {counts}")
+    print(f"  PL4 most places below an end's lid: {left[0]} at {left[1]} "
+          f"(lid {left[2]})")
+
+
+# ---------------------------------------------------------------------------
+# the certificate: the lone path read from any state
+
+def lone(pls, st, last, i):
+    """(7): P's lone path from st as (the prices before its first state
+    lidded at P, the lid there)."""
+    P, prefix = pls[i], []
+    for _ in range(200):
+        if last.get(P.p, (None,))[0] == i:
+            v = lid(pls, st, last, P.p)
+            if v is not None:
+                return prefix, v
+        r = DR.door_lcm(P, st.a[i], st.L)
+        prefix.append(P.N ** r)
+        st = DR.rstep(pls, st, ("c", i, st.a[i], r), prefix[-1], [], [],
+                      Counter())
+        last = dict(last)
+        last[P.p] = (i, DR.vp(st.L, P.p))
+    raise SystemExit("FAIL: a lone path never lidded")
+
+
+def lone_raw(pls, st, i, k):
+    """P's first k lone prices from st, simulated with no lid read."""
+    P, out = pls[i], []
+    for _ in range(k):
+        r = DR.door_lcm(P, st.a[i], st.L)
+        out.append(P.N ** r)
+        st = DR.rstep(pls, st, ("c", i, st.a[i], r), out[-1], [], [],
+                      Counter())
+    return out
+
+
+def rival_min(pls, st, i, cap):
+    """m(S) over every place but P, or None when every rival costs more
+    than cap (a price is at least its norm, so the scan stops there)."""
+    m = None
+    for q in pls:
+        if q.N > cap:
+            break
+        if q.idx != i:
+            pr = q.N ** DR.door_lcm(q, st.a.get(q.idx, 0), st.L)
+            m = pr if m is None else min(m, pr)
+    return m if m is not None and m <= cap else None
+
+
+def certified(pls, st, last):
+    """[(P, C*, prefix, lid)] for every seated P certified at st."""
+    out = []
+    for i in st.a:
+        prefix, v = lone(pls, st, last, i)
+        cstar = max(prefix + [v])
+        if rival_min(pls, st, i, cstar) is None:
+            out.append((i, cstar, prefix, v))
+    return out
+
+
+def lone_prices(prefix, v, n):
+    return (prefix + [v] * n)[:n]
+
+
+def section_tie():
+    print("S2  THE TIED LID (PC4)")
+    pls = RC.block([(3, 1, 2, 0), (3, 2, 1, 0)])
+    z = next(q for q in pls if q.N == 3)
+    y = next(q for q in pls if q.N == 9)
+    st = DR.RSt()
+    st.a[z.idx] = DR.mdepth(z.lad, 1)
+    st.L = z.lam(st.a[z.idx])
+    last = {3: (z.idx, DR.vp(st.L, 3))}
+    check(lid(pls, st, last, 3) == 9, "PC4: R lidded at 9")
+    leaves = RC.tree(pls, st, 8, Counter(), False)
+    print(f"  {len(leaves)} paths of 8 moves from R lidded at 9")
+    after = []
+    for path in leaves:
+        states = replay(pls, st, last, path.log)
+        opened = [t for t, x in enumerate(path.log) if x[1] == y.idx]
+        cert = [t for t, (s, la) in enumerate(states)
+                if any(c[0] == z.idx for c in certified(pls, s, la))]
+        if not opened:
+            ms = {rival_min(pls, s, z.idx, 10 ** 9) for s, _ in states}
+            print(f"  R only: paid {path.paid}, certified at {cert}, "
+                  f"m over its states {sorted(ms)}")
+            check(path.paid == [9] * 8 and cert == [] and ms == {9},
+                  "PC4: the R-only path")
+        else:
+            k = opened[0] + 1
+            yp = y.N ** DR.door_lcm(y, states[k][0].a[y.idx],
+                                    states[k][0].L)
+            after.append((k, k in cert, yp))
+            check(k in cert and yp >= 81, "PC4: certified after Y opens")
+    print(f"  after Y opens (state, certified, Y pends): {after}")
+
+
+def section_certificate():
+    print("S3  THE CERTIFICATE")
+    tot, first_cert, late, refusal = Counter(), Counter(), [], Counter()
+    example = None
+    for name, pls, n in rings():
+        for path in RC.tree(pls, DR.RSt(), N_W, Counter(), True):
+            tot["ends"] += 1
+            states = replay(pls, DR.RSt(), {}, path.log)
+            fl, _ = read_path(pls, DR.RSt(), {}, path.log, path.paid,
+                              Counter())
+            fc = None
+            for t, (st, last) in enumerate(states):
+                tot["states"] += 1
+                for p in last:
+                    v = lid(pls, st, last, p)
+                    if v is not None:
+                        tot["lidded"] += 1
+                        raw = lone_raw(pls, st, last[p][0], 12)
+                        tot["lid_bad"] += raw != [v] * 12
+                for i, cstar, prefix, v in certified(pls, st, last):
+                    tot["pairs"] += 1
+                    rest = path.log[t:]
+                    tot["tailed"] += bool(rest)
+                    tot["sound_bad"] += (
+                        any(x[1] != i for x in rest)
+                        or path.paid[t:] != lone_prices(prefix, v,
+                                                        len(rest)))
+                    if fc is None:
+                        fc = (t, i)
+            if fc is None:
+                tot["uncertified"] += 1
+                continue
+            t, i = fc
+            first_cert[t] += 1
+            if fl is not None and t > fl[0]:
+                late.append(t - fl[0])
+            w = pls[path.log[0][1]]
+            if w.e == 1 and w.N >= 3:
+                tot["holds"] += 1
+                tot["holds_at_1"] += t == 1
+            P, st = pls[i], states[t][0]
+            sib = sum(pls[j].p == P.p and j != i for j in st.a)
+            refusal[sib] += 1
+            if sib and example is None:
+                example = (name, P.name, t, path.paid[:t + 2])
+    print(f"  {tot['ends']} ends, {tot['states']} states, {tot['pairs']} "
+          f"certified (state, place) pairs ({tot['tailed']} with moves "
+          f"left to check), soundness violations {tot['sound_bad']}")
+    print(f"  PC2 lidded states {tot['lidded']}, C* off the lid "
+          f"{tot['lid_bad']}")
+    check(tot["sound_bad"] == 0, "PC1: soundness")
+    check(tot["lid_bad"] == 0, "PC2: the lid is C*")
+    print(f"  PC3 ends certified {tot['ends'] - tot['uncertified']}, not "
+          f"{tot['uncertified']}; first certified state (move: ends) "
+          f"{sorted(first_cert.items())}")
+    print(f"  PC3 certified after the first lidded state: {len(late)} ends, "
+          f"lags {sorted(Counter(late).items())}")
+    print(f"  PC3 HOLDS ends {tot['holds']}, certified at move 1 "
+          f"{tot['holds_at_1']}")
+    print(f"  PC5 other seated places over the runaway's prime (count: "
+          f"ends) {sorted(refusal.items())}; example {example}")
+
+
+def main():
+    t0 = time.time()
+    section_control()
+    section_lid()
+    section_tie()
+    section_certificate()
+    print(f"\n{CHECKS[0]} checks, {time.time() - t0:.1f} s")
+
+
+if __name__ == "__main__":
+    main()

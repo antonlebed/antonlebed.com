@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>sign.py | Numbers read one place at a time</title>
+<meta name="description" content="sign.py">
+<link rel="alternate" type="text/x-python" href="/code/sign.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>sign.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/redundant/#the-sign-count">REDUNDANT: The sign count</a> (theorem); <a href="/redundant/#the-full-width">REDUNDANT: The full width</a> (property); <a href="/redundant/#comparison">REDUNDANT: Comparison</a> (theorem).</p><p>Cited on: <a href="/redundant/">REDUNDANT</a>.</p><p>To run it: <a href="/code/redundant.py">redundant.py</a> beside it; standard library only.</p></div>
+<pre>"""
+sign.py -- what the sign of a signed-digit string costs: the least
+automaton that reads it, why no lookahead short of the whole string
+decides it, and how comparison and the free comparator read the same
+boxes.
+
+QUESTION. Addition, scaling and every C^2 map of signed-digit streams
+commit output digits at a bounded lookahead (redundant.py,
+manystream.py), and max and min commit at lookahead 0
+(comparators.py). The sign of the value, and so equality and
+comparison, does not: it is a single verdict, not a stream of digits.
+Three questions. What is the least finite-state reader of the sign,
+and what sets its size? Why does no bounded lookahead decide it? And
+max(x, y) must know which input is larger to select it, so why is
+max free while the sign is not?
+
+THE OBJECT. Radix b, digits D = {-a-, ..., a+}, |I| = a- + a+, with
+|I| + 1 &gt;= b, so every integer has a string (the slack
+rho = |I| + 1 - b &gt;= 0; the non-redundant rho = 0 is included). A
+string d_1 ... d_n, top first, writes the integer
+d_1 b^(n-1) + ... + d_n. The SIGN AUTOMATON reads it top first and
+reports -1, 0 or +1. After a prefix of value u, an m-digit tail of
+value t makes the whole string b^m u + t. Put M+- = a+-/(b - 1),
+w = M- + M+, and call [u - M-, u + M+] the prefix's BOX: in units of
+the prefix's last digit it is the closure of the values (b^m u + t)/b^m
+over every tail. sigma = ceil(M-) + ceil(M+) is the count addition's
+lookahead criterion spends (redundant.py::sigma). A prefix is LIVE
+when its completions take more than one sign.
+
+THE ARGUMENT (written before the engine).
+  (1) THE LIVE PREFIXES. Let a+- &gt;= 1. The m-digit tails write exactly
+      the integers of [-a- R_m, a+ R_m], R_m = (b^m - 1)/(b - 1),
+      since |I| + 1 &gt;= b. If u &gt;= M-, every completion is at least
+      b^m u - a- R_m &gt;= b^m M- - a- R_m = M- &gt; 0; by the mirror every
+      completion of u &lt;= -M+ is negative. If -M+ &lt; u &lt; M-: at u = 0
+      the completions 0, 1 and -1 exist; at u &gt; 0 the empty tail is
+      positive and b^m u + t = 0 has a tail iff u &lt;= M- (1 - b^-m),
+      true for large m since u &lt; M- strictly; mirror at u &lt; 0. So u
+      is live iff -M+ &lt; u &lt; M-, that is iff 0 lies strictly inside its
+      box, and every live prefix can still be driven to 0. The sides
+      CROSS: a positive prefix survives while u &lt; M-, the NEGATIVE
+      reach, since only a negative tail pulls it back.
+  (2) THE SIGN COUNT. The least automaton's states are the classes of
+      prefixes with the same sign under every completion. The dead
+      prefixes make two classes. Live u &lt; u' are separated by the
+      tail t with b^m u + t = 0, which leaves b^m (u' - u) &gt; 0, and a
+      live prefix is separated from both dead classes by its tail to
+      0. Every integer of (-M+, M-) is a prefix value, the n-digit
+      prefixes writing every integer of [-a- R_n, a+ R_n]. So the
+      count is 2 plus the integers of (-M+, M-), which number
+      (ceil(M-) - 1) + (ceil(M+) - 1) + 1:
+          the sign automaton has sigma + 1 states,
+      2 ceil(a/(b - 1)) + 1 on the symmetric set. It is the number
+      addition spends: sigma counts the digits of D within M- of its
+      bottom and M+ of its top, the integers the box's two reaches
+      cover from an integer anchor, and the sign count counts the
+      same two reaches placed on either side of 0. With one reach 0
+      the numeration is unsigned: 0 is live (completions 0 and one
+      sign) and every other prefix is dead, 2 states.
+  (3) THE LEADING-NONZERO LAW. sigma + 1 = 3 iff a+- &lt;= b - 1. Then
+      the only live prefix is 0: the automaton reads "zero so far"
+      until the first nonzero digit, whose sign is the string's, and a
+      string writes 0 iff every digit is 0. At a+ &gt;= b the string
+      (-1, b) writes 0 with a nonzero lead, and at a- &gt;= b so does
+      (1, -b).
+  (4) THE FULL WIDTH. At every width n &gt;= 1 the strings 0^(n-1) 1
+      and 0^(n-1) (-1) share n - 1 leading digits and differ in sign,
+      so no k &lt; n leading digits decide the sign of every width-n
+      string, at every D with a+- &gt;= 1, rho = 0 included. The cost is
+      the prefix 0, whose box holds 0 at every depth; it is a signed
+      numeration's, not the redundancy's.
+  (5) THE FACTORIZATION. Each digit acts on the automaton's states as
+      a map, the sign is the output of the composite map at the start
+      state, and composition is associative. So the sign is a per-digit
+      map, read at lookahead 0, followed by a product a balanced tree
+      evaluates at depth ceil(log2 n). A zero-test factors the same
+      way: the per-digit predicate "d = 0" reads at lookahead 0 and
+      the conjunction over the digits is the full-width reduction; it
+      is the test only under (3). A digit-output map pays its cost in
+      lookahead, where a bounded carry chain and a bounded lookahead
+      are one condition; a reduction pays in states and depth.
+  (6) COMPARISON. x - y taken digit by digit is a string of
+      {-|I|, ..., |I|}, contiguous with both digit bounds |I| at the
+      same radix, so comparison is the sign automaton at (b, |I|, |I|):
+      2 ceil(w) + 1 states, reading a- and a+ only through their sum,
+      and never fewer than the sign's, ceil(w) being at least each
+      ceil(M+-). By (1) a difference u of prefixes is live iff
+      |u| &lt; w, that is iff the two prefixes' boxes, each w long, have
+      interiors that meet.
+  (7) THE STITCH. max(x, y) has for its image over a pair of boxes the
+      higher box, since boxes of one depth share a width, and that is
+      a tile at L = 0 (comparators.py). Which box is higher is the
+      order of the prefix values, known exactly at every step. Which
+      value is higher is the order of two points of the boxes, open
+      by (6) exactly while the boxes' interiors meet. max reads the
+      first order and never the second: it commits a digit of the
+      higher box and is not wrong when the order of the boxes turns
+      later, the new higher box being a tile of the next depth. The
+      sign reads the second, and the prefix 0 keeps it open forever.
+      One box, two orders: the comparator selects by the order of the
+      boxes, which is always decided, and the verdict asks for the
+      order of the points, which is decided only when the boxes part.
+
+THE SLATE, frozen before the engine ran.
+  SA THE CONTROLS. At every cell of both grids (symmetric: b = 2..12,
+     a = 1..12; asymmetric: b = 2..9, a+- = 0..8; each with
+     |I| + 1 &gt;= b), the automaton minimised from the clamped prefix
+     machine reports the exact sign of every string whose length keeps
+     the cell's string count at most 4,000, and its count does not
+     move when the clamp widens by 3.
+  SB THE SIGN COUNT. At every cell with a+- &gt;= 1: the count is
+     sigma + 1, redundant.py's sigma, and the live classes are exactly
+     the integers of (-M+, M-), one class each; at the cells with one
+     reach 0, the count is 2. Hand cells: (2,1,5) 7, (2,2,2) 5,
+     (3,2,2) 3, (3,1,1) 3 and (5,2,2) 3 at rho = 0.
+  SC THE LEADING-NONZERO LAW. The count is 3 exactly at a+- &lt;= b - 1;
+     there the first nonzero digit's sign is the string's at every
+     string SA reads; elsewhere the two-digit witness of (3) writes 0
+     with a nonzero lead.
+  SD THE FULL WIDTH. At the cells of radices 2..4 with 1 &lt;= a+- &lt;= b,
+     at every width n &gt;= 1 with at most 20,000 strings: the least k
+     whose k-digit prefixes fix the sign of every width-n string is n,
+     the rho = 0 cells included.
+  SE THE FACTORIZATION. At twelve cells, 200 seeded random strings of
+     lengths 1 to 64 each: the balanced product of the per-digit maps
+     gives the exact sign, as does the automaton run in sequence, at
+     tree depth ceil(log2 n).
+  SF COMPARISON. At every cell with a+- &gt;= 1: the automaton at
+     (b, |I|, |I|) has 2 ceil(w) + 1 states, at least the sign's, and
+     its live differences are exactly the integers u whose box
+     [u - M-, u + M+] meets [-M-, M+] in interior points.
+
+KILLS, as what the script prints.
+  K1 an SA line off: the automaton is not the sign's; nothing below is
+     read.
+  K2 an SB count off sigma + 1, or a live class off the interval: (1)
+     or (2) is wrong.
+  K3 an SC count of 3 off a+- &lt;= b - 1, a misread first nonzero digit,
+     or a witness not writing 0: (3) is wrong.
+  K4 an SD width decided at k &lt; n: (4) is wrong.
+  K5 an SE mismatch or a deeper tree: (5) is wrong.
+  K6 an SF count off 2 ceil(w) + 1 or below the sign's, or a live
+     difference off the box meet: (6) is wrong.
+
+POSITIVE CONTROL: SA, read before any verdict line.
+
+FINDINGS (entered after the run; every number is a print).
+  - SA holds over 583 distinct cells: 949,180 strings read, each sign
+    exact, and no count moved when the clamp widened by 3. K1 did not
+    fire.
+  - SB holds: the count is sigma + 1 at all 511 signed cells, the live
+    classes are the integers of (-M+, M-) one class each, and the 72
+    cells with one reach 0 have 2 states. The hand cells print (2,1,5)
+    7, (2,2,2) 5, (3,2,2) 3, (3,1,1) 3, (5,2,2) 3. K2 did not fire.
+  - SC holds: 165 cells have count 3 and they are exactly the 165 with
+    a+- &lt;= b - 1; there the first nonzero digit is the sign at every
+    string read, and elsewhere the two-digit witness writes 0. K3 did
+    not fire.
+  - SD holds at 28 cells and 164 (cell, width) pairs, rho = 0 at
+    (3,1,1), (4,1,2) and (4,2,1): no width is decided by a shorter
+    prefix. K4 did not fire.
+  - SE holds at 12 cells and 2,400 strings. K5 did not fire.
+  - SF holds at 511 cells: 2 ceil(w) + 1 states, never fewer than the
+    sign's, the live differences exactly the meeting boxes. K6 did not
+    fire.
+  - One engine repair before the first run, not touching the slate: a
+    witness clause in SC that could never fire was removed. On audit
+    the other was too: (-1, b) writes -b + b = 0 at every radix, so
+    K3's witness could never fail; that the law fails above the line
+    is SC's count, 3 exactly at a+- &lt;= b - 1. SE's depth is
+    ceil(log2 n) by the tree's halving and is no longer checked; SF's
+    automata, built at (b, I, I) past SA's grid, now read the exact
+    sign on random strings.
+  - (5)'s last sentence, that a bounded carry chain and a bounded
+    lookahead are one condition for a digit-output map, is framing:
+    no section checks it and no claim rests on it.
+
+RUN RECORD: 14/14 checks, 0.9 s, peak commit 20.7 MB under a memory guard;
+after an audit (SC's witness cut, SF's exact sign added), 14/14, 1.0 s,
+20.7 MB.
+"""
+
+import math
+import random
+import time
+from fractions import Fraction as Fr
+
+import redundant as rd
+
+CHECKS = []
+CAP_SA = 4_000
+CAP_SD = 20_000
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tail = f"  ({detail})" if detail else ""
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}{tail}")
+
+
+<span id="tag"></span>def tag(c):
+    return f"({c[0]},{c[1]},{c[2]})"
+
+
+<span id="sgn"></span>def sgn(x):
+    return (x &gt; 0) - (x &lt; 0)
+
+
+<span id="ceil_frac"></span>def ceil_frac(p, q):
+    return -(-p // q)
+
+
+# ---- the cells ----
+
+<span id="covering"></span>def covering(b, am, ap):
+    return am + ap + 1 &gt;= b and am + ap &gt;= 1
+
+
+<span id="sym_grid"></span>def sym_grid():
+    return [(b, a, a) for b in range(2, 13) for a in range(1, 13)
+            if covering(b, a, a)]
+
+
+<span id="asym_grid"></span>def asym_grid():
+    return [(b, am, ap) for b in range(2, 10) for am in range(9)
+            for ap in range(9) if covering(b, am, ap)]
+
+
+<span id="all_cells"></span>def all_cells():
+    return sorted(set(sym_grid()) | set(asym_grid()))
+
+
+<span id="signed"></span>def signed(c):
+    return c[1] &gt;= 1 and c[2] &gt;= 1
+
+
+# ---- the engine ----
+
+POS, NEG = "P", "N"
+
+
+<span id="Automaton"></span>class Automaton:
+    """The prefix machine u -&gt; b u + d, clamped to [-B, B] with two
+    sinks, minimised by partition refinement from the start state 0."""
+
+    def __init__(self, b, am, ap, B):
+        self.b, self.D, self.B = b, list(range(-am, ap + 1)), B
+        states, todo = {0}, [0]
+        while todo:
+            s = todo.pop()
+            for d in self.D:
+                t = self.step(s, d)
+                if t not in states:
+                    states.add(t)
+                    todo.append(t)
+        self.states = sorted(states, key=str)
+        cls = {s: self.out(s) for s in self.states}
+        while True:
+            sig = {s: (cls[s],) + tuple(cls[self.step(s, d)]
+                                         for d in self.D)
+                   for s in self.states}
+            ids = {v: i for i, v in enumerate(sorted(set(sig.values())))}
+            new = {s: ids[sig[s]] for s in self.states}
+            if len(set(new.values())) == len(set(cls.values())):
+                cls = new
+                break
+            cls = new
+        self.cls = cls
+        self.count = len(set(cls.values()))
+        dead = {cls[s] for s in (POS, NEG) if s in cls}
+        self.live = sorted(s for s in self.states
+                           if s not in (POS, NEG) and cls[s] not in dead)
+        self.out_of = {cls[s]: self.out(s) for s in self.states}
+        self.trans = {}
+        for s in self.states:
+            for d in self.D:
+                self.trans[(cls[s], d)] = cls[self.step(s, d)]
+
+    def step(self, s, d):
+        if s in (POS, NEG):
+            return s
+        v = self.b * s + d
+        if v &gt; self.B:
+            return POS
+        if v &lt; -self.B:
+            return NEG
+        return v
+
+    @staticmethod
+    def out(s):
+        return 1 if s == POS else -1 if s == NEG else sgn(s)
+
+    def digit_map(self, d):
+        """The class map of one digit, as a tuple over class ids."""
+        n = self.count
+        return tuple(self.trans[(k, d)] for k in range(n))
+
+    def run(self, digits):
+        k = self.cls[0]
+        for d in digits:
+            k = self.trans[(k, d)]
+        return self.out_of[k]
+
+
+<span id="build"></span>def build(c, extra=0):
+    b, am, ap = c
+    return Automaton(b, am, ap, max(am, ap) + 2 + extra)
+
+
+<span id="value"></span>def value(b, digits):
+    v = 0
+    for d in digits:
+        v = b * v + d
+    return v
+
+
+<span id="strings"></span>def strings(D, n):
+    """Every string of length n over D, as a digit tuple; its value at
+    radix b is left to the caller. A plain product."""
+    if n == 0:
+        yield ()
+        return
+    for s in strings(D, n - 1):
+        for d in D:
+            yield s + (d,)
+
+
+<span id="max_len"></span>def max_len(size, cap):
+    n, total = 0, 1
+    while total * size &lt;= cap:
+        n += 1
+        total *= size
+    return n
+
+
+<span id="walk"></span>def walk(A, b, nmax):
+    """Depth-first over every string of length 1..nmax: yields
+    (digits, exact value, automaton class)."""
+    stack = [((), 0, A.cls[0])]
+    while stack:
+        s, v, k = stack.pop()
+        if s:
+            yield s, v, k
+        if len(s) &lt; nmax:
+            for d in A.D:
+                stack.append((s + (d,), b * v + d, A.trans[(k, d)]))
+
+
+<span id="live_interval"></span>def live_interval(c):
+    b, am, ap = c
+    Mm, Mp = Fr(am, b - 1), Fr(ap, b - 1)
+    lo, hi = math.floor(-Mp) + 1, math.ceil(Mm) - 1
+    return list(range(lo, hi + 1))
+
+
+<span id="first_nonzero"></span>def first_nonzero(digits):
+    for d in digits:
+        if d:
+            return sgn(d)
+    return 0
+
+
+<span id="least_deciding_prefix"></span>def least_deciding_prefix(b, D, n):
+    """The least k whose k-digit prefixes fix the sign of every width-n
+    string."""
+    signs = {}
+    for s in strings(D, n):
+        signs[s] = sgn(value(b, s))
+    for k in range(n + 1):
+        seen = {}
+        ok = True
+        for s, g in signs.items():
+            if seen.setdefault(s[:k], g) != g:
+                ok = False
+                break
+        if ok:
+            return k
+    return None
+
+
+<span id="compose"></span>def compose(f, g):
+    """First f, then g, as class maps."""
+    return tuple(g[x] for x in f)
+
+
+<span id="tree_product"></span>def tree_product(maps):
+    depth = 0
+    while len(maps) &gt; 1:
+        maps = [compose(maps[i], maps[i + 1]) if i + 1 &lt; len(maps)
+                else maps[i] for i in range(0, len(maps), 2)]
+        depth += 1
+    return maps[0], depth
+
+
+# ---- the sections ----
+
+AUTOMATA = {}
+
+
+<span id="automaton"></span>def automaton(c):
+    if c not in AUTOMATA:
+        AUTOMATA[c] = build(c)
+    return AUTOMATA[c]
+
+
+<span id="section_sa"></span>def section_sa():
+    print("SA  the controls")
+    cells = all_cells()
+    misread, moved, strings_read = [], [], 0
+    for c in cells:
+        A = automaton(c)
+        nmax = max_len(len(A.D), CAP_SA)
+        for s, v, k in walk(A, c[0], nmax):
+            strings_read += 1
+            if A.out_of[k] != sgn(v):
+                misread.append((tag(c), s))
+                break
+        if build(c, extra=3).count != A.count:
+            moved.append(tag(c))
+    print(f"    {len(cells)} cells, {strings_read} strings read")
+    check("SA the automaton reports the exact sign of every string read",
+          not misread, f"off {misread[:4]}")
+    check("SA the count does not move when the clamp widens by 3",
+          not moved, f"off {moved[:4]}")
+
+
+<span id="section_sb"></span>def section_sb():
+    print("SB  the sign count")
+    cells = all_cells()
+    sg = [c for c in cells if signed(c)]
+    un = [c for c in cells if not signed(c)]
+    off_count, off_live = [], []
+    for c in sg:
+        A = automaton(c)
+        if A.count != rd.sigma(*c) + 1:
+            off_count.append((tag(c), A.count, rd.sigma(*c) + 1))
+        classes = {A.cls[u] for u in A.live}
+        if A.live != live_interval(c) or len(classes) != len(A.live):
+            off_live.append((tag(c), A.live, live_interval(c)))
+    un_off = [(tag(c), automaton(c).count) for c in un
+              if automaton(c).count != 2]
+    print(f"    {len(sg)} signed cells, {len(un)} with one reach 0")
+    check("SB count = sigma + 1 at every signed cell", not off_count,
+          f"off {off_count[:4]}")
+    check("SB live classes = the integers of (-M+, M-), one each",
+          not off_live, f"off {off_live[:3]}")
+    check("SB count 2 at every cell with one reach 0", not un_off,
+          f"off {un_off[:4]}")
+    hand = {(2, 1, 5): 7, (2, 2, 2): 5, (3, 2, 2): 3, (3, 1, 1): 3,
+            (5, 2, 2): 3}
+    got = {c: automaton(c).count for c in hand}
+    print(f"    hand cells: " + ", ".join(f"{tag(c)} {got[c]}"
+                                          for c in hand))
+    check("SB the hand cells", got == hand, f"got {got}")
+
+
+<span id="section_sc"></span>def section_sc():
+    print("SC  the leading-nonzero law")
+    cells = [c for c in all_cells() if signed(c)]
+    three = [c for c in cells if automaton(c).count == 3]
+    below = [c for c in cells if c[1] &lt;= c[0] - 1 and c[2] &lt;= c[0] - 1]
+    misread = []
+    for c in below:
+        A = automaton(c)
+        nmax = max_len(len(A.D), CAP_SA)
+        for s, v, k in walk(A, c[0], nmax):
+            if first_nonzero(s) != sgn(v) or ((v == 0) != (not any(s))):
+                misread.append((tag(c), s))
+                break
+    print(f"    {len(three)} cells of count 3, {len(below)} with "
+          f"a+- &lt;= b - 1")
+    check("SC count 3 exactly at a+- &lt;= b - 1",
+          sorted(three) == sorted(below))
+    check("SC there the first nonzero digit is the sign, and 0 iff all "
+          "digits are 0", not misread, f"off {misread[:4]}")
+
+
+<span id="section_sd"></span>def section_sd():
+    print("SD  the full width")
+    cells = [(b, am, ap) for b in range(2, 5) for am in range(1, b + 1)
+             for ap in range(1, b + 1) if covering(b, am, ap)]
+    off, read, zero = [], 0, []
+    for c in cells:
+        b, am, ap = c
+        D = list(range(-am, ap + 1))
+        if am + ap + 1 == b:
+            zero.append(tag(c))
+        for n in range(1, max_len(len(D), CAP_SD) + 1):
+            read += 1
+            k = least_deciding_prefix(b, D, n)
+            if k != n:
+                off.append((tag(c), n, k))
+    print(f"    {len(cells)} cells, {read} (cell, width) pairs, "
+          f"rho = 0 at {zero}")
+    check("SD the least deciding prefix is the whole width", not off,
+          f"off {off[:4]}")
+
+
+<span id="section_se"></span>def section_se():
+    print("SE  the factorization")
+    rng = random.Random(20260925)
+    cells = [(2, 1, 1), (2, 2, 2), (2, 1, 5), (3, 1, 1), (3, 2, 2),
+             (3, 4, 1), (4, 2, 3), (4, 5, 5), (5, 2, 2), (6, 4, 7),
+             (7, 3, 12), (9, 8, 8)]
+    off = []
+    for c in cells:
+        A = automaton(c)
+        for _ in range(200):
+            n = rng.randint(1, 64)
+            s = [rng.choice(A.D) for _ in range(n)]
+            prod, depth = tree_product([A.digit_map(d) for d in s])
+            tree = A.out_of[prod[A.cls[0]]]
+            exact = sgn(value(c[0], s))
+            if tree != exact or A.run(s) != exact:
+                off.append((tag(c), n))
+    print(f"    {len(cells)} cells, {200 * len(cells)} strings")
+    check("SE the balanced product, the run and the exact sign agree",
+          not off, f"off {off[:4]}")
+
+
+<span id="section_sf"></span>def section_sf():
+    print("SF  comparison")
+    cells = [c for c in all_cells() if signed(c)]
+    off_count, below, off_live, off_sign = [], [], [], []
+    rng = random.Random(20261008)
+    for c in cells:
+        b, am, ap = c
+        I = am + ap
+        C = build((b, I, I))
+        for _ in range(20):
+            s = [rng.randint(-I, I) for _ in range(rng.randint(1, 10))]
+            if C.run(s) != sgn(value(b, s)):
+                off_sign.append((tag(c), s))
+        want = 2 * ceil_frac(I, b - 1) + 1
+        if C.count != want:
+            off_count.append((tag(c), C.count, want))
+        if C.count &lt; automaton(c).count:
+            below.append(tag(c))
+        Mm, Mp = Fr(am, b - 1), Fr(ap, b - 1)
+        meet = [u for u in range(-2 * I - 2, 2 * I + 3)
+                if max(u - Mm, -Mm) &lt; min(u + Mp, Mp)]
+        if C.live != meet:
+            off_live.append((tag(c), C.live, meet))
+    print(f"    {len(cells)} cells")
+    check("SF comparison has 2 ceil(w) + 1 states", not off_count,
+          f"off {off_count[:4]}")
+    check("SF never fewer than the sign's", not below, f"off {below[:4]}")
+    check("SF live differences = the boxes whose interiors meet",
+          not off_live, f"off {off_live[:3]}")
+    check("SF the comparison automaton reads the exact sign, 20 random "
+          "strings a cell", not off_sign, f"off {off_sign[:3]}")
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_sa()
+    if not all(CHECKS):
+        print("the controls failed; nothing below is read")
+        raise SystemExit(1)
+    for section in (section_sb, section_sc, section_sd, section_se,
+                    section_sf):
+        t1 = time.time()
+        section()
+        print(f"    ({time.time() - t1:.1f} s)")
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/sign.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

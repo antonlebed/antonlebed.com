@@ -1,0 +1,942 @@
+"""bridges.py -- where growth meets open number theory: the primes a
+world grown along a fixed alphabet ever opens, the phoenix that lives
+on the least move, the atoms of the odd part of lambda and the least
+odd number that is never one, and the rudder that steers the lock.
+
+QUESTION. growth.py grows Z/M by the cheapest move a demand admits.
+Several of its reachable configurations turn out to exist iff a prime
+p exists whose p - 1 has a prescribed multiplicative shape, so a
+question about a growth world IS a question about primes. Which of
+these bridges are exact equivalences, which run only one way, and
+which land on a proved theorem rather than an open one?
+
+THE OBJECT. lambda is the Carmichael function, W(L) the wall, the
+largest M with lambda(M) | L (growth.py). For a set S of primes, S' is
+its complement and n_(S') the part of n prime to S. An ALPHABET WORLD
+(s, S) starts at the seed s and repeats two phases forever: FILL, the
+greedy transparent walk (least m with lambda(Mm) = lambda(M)), which
+dies at exactly W(lambda(M)) (growth.py, the three fates); then PUSH,
+the least move (the least power of q raising lambda) at one q in S, under
+any schedule that pushes every q in S infinitely often. The PHOENIX
+is the alphabet world S = {2}. A world's SEATS are the primes it
+ever seats. The ODD PART of lambda(M) is written odd(lambda(M)); an
+ATOM is A(q, a) = q^(a-1) odd(q - 1), q an odd prime, a >= 1. An odd h is
+REALIZABLE when h = odd(lambda(M)) for some M. An odd h is SIERPINSKI
+when h 2^b + 1 is composite for every b >= 1.
+
+THE ARGUMENT (written before the engine).
+  (1) THE SEATING LAW. Let L_t be lambda after t pushes; fills do not
+      move lambda, and lambda(W(L)) = L whenever L = lambda(M) with
+      M | W(L). At the wall an odd prime r is seated iff (r - 1) | L,
+      at depth v_r(L) + 1. A push of an unseated q opens it at cost q
+      and multiplies L's S'-part by at most (q - 1)_(S'); a push of a
+      seated q deepens it by one and adds exactly one factor q, with
+      no S'-part, since (q - 1) | L already; a push of 2 adds one
+      factor 2. So once every q in S has been pushed, L_t's S'-part
+      is F = (lcm(lambda(s), q - 1 : q in S))_(S') forever, and its
+      S-part diverges at every q in S. The seats are the union of
+      the supports of W(L_t):
+          Seats(s, S) = {p prime : (p - 1)_(S') divides F},
+      schedule-free. An odd seat outside S ends at depth
+      v_p(F) + 1. S is SHIFT-CLOSED when every q - 1, q in S, is
+      S-smooth; then F = lambda(s)_(S'), and at s = 1 the seats are
+      exactly the primes p with p - 1 S-smooth, so the world opens
+      infinitely many seats iff there are infinitely many such
+      primes: an equivalence per alphabet, Fermat's question at
+      {2}, Pierpont's at {2, 3}.
+  (2) THE PHOENIX. At a wall every m >= 2 raises lambda, so the
+      dynamics demand's own least move is 2: the phoenix is the one
+      greedy law "the least transparent move, else the least move",
+      with no free choice. Its F is h = odd(lambda(s)), frozen at
+      birth, and its seats are spectrum(h) = {p : odd(p - 1) | h}.
+      spectrum is monotone in h under divisibility, so every
+      phoenix contains spectrum(1) = {2} with the Fermat primes: the
+      seed-1 phoenix opens infinitely many seats iff there are
+      infinitely many Fermat primes. The Fermat primes open at
+      v_2(lambda) = 1, 2, 4, 8, 16, their own exponents.
+  (3) THE ATOMS. lambda(M) is the lcm of lambda(q^a) over q^a || M,
+      and the odd part of an lcm is the lcm of the odd parts, so
+      odd(lambda(M)) = lcm of A(q, a) over the odd q^a || M, the
+      2-column contributing nothing. REALIZABILITY CRITERION: odd h is
+      realizable iff every prime power l^j || h is served by an atom
+      A | h with v_l(A) = j. (Only if: the lcm attains v_l = j at some
+      atom, and every atom divides h. If: take each serving atom's
+      q^a, the largest a per q; each A(q, a) grows with a and the one
+      kept is itself a serving atom, so the product M has
+      odd(lambda(M)) = h.) An atom equals h iff h 2^b + 1 is prime for
+      some b >= 1 (a = 1), or h = q^(a-1) odd(q - 1) with a >= 2 and
+      q | h, a finite check: the odd parts one prime power writes from
+      the state 1 are the h with some h 2^b + 1 prime, plus a finite
+      correction.
+  (4) THE LEAST UNREALIZABLE ODD NUMBER. If l^j || h is unserved then
+      l^j itself is no atom. l^j is an atom iff l^j 2^b + 1 is prime
+      for some b >= 1, or l is a Fermat prime (then A(l, j + 1) = l^j).
+      So an unrealizable h has a unitary prime-power divisor l^j,
+      l not a Fermat prime, that is Sierpinski; and such an l^j is
+      itself unrealizable, since the only divisor of l^j with
+      v_l = j is l^j. The least unrealizable odd number is therefore
+      the least Sierpinski prime power of non-Fermat base. 271129 is
+      prime and Sierpinski (a covering set {3, 5, 7, 13, 17, 241} of
+      period 24), and 271129 - 1 = 2^3 33891, so it bounds that least
+      number: no M has odd(lambda(M)) = 271129. 78557, the Sierpinski
+      number with covering set {3, 5, 7, 13, 19, 37, 73} of period 36,
+      is 17 * 4621, no prime power: no ATOM, yet realizable, by two
+      primes 137 and 18927617, where 137 = 17 2^3 + 1 and 18927617 =
+      4621 2^12 + 1. The old record called the 78557 obstruction an
+      impossible edit l^e; 78557 is not a prime power, and the
+      obstruction it certifies is to one prime power, not to
+      realizability.
+  (5) TRANSPARENT RUNGS ARE TRANSPARENT MOVES. lambda(Mp) =
+      lcm(lambda(M), p - 1) for a prime p not dividing M, so rung k of
+      the primorial tower is transparent (lambda(p_k#) =
+      lambda(p_(k-1)#)) iff p_k is a move the transparency demand
+      admits at p_(k-1)#, and the tower is the greedy independence
+      walk from 1. The density theorem is the statement that along
+      independence's walk the transparency demand admits almost every
+      move: one walk, two demands, agreeing on a set of density 1.
+  (6) THE RUDDER. From any state one multiplication locks greedy
+      dynamics onto any prime q. At q = 2: raise 2 to depth
+      max(3, v_2(lambda) + 2); 2's door is then 1, price 2, the least
+      possible move, forever. At odd q: raise q to depth
+      v_q(lambda') + 1, lambda' the lambda after the multiplication,
+      so its door is 1, price q, times a prime P = 1 (mod B),
+      P != 1 (mod q), P not dividing the state, where B is the lcm
+      over the primes l < q of l - 1 and of l^(a_l + c_l + 2), a_l the
+      depth of l and c_l least with l^(c_l + 2) > q. Then every least move
+      at l < q costs more than q: an unseated l has (l - 1) | lambda and
+      pays l^(v_l + 2) > q; a seated l pays l^(v_l - a_l + 2) > q; at
+      l = 2 the same with the two-adic scan. q is prime to B, so
+      Dirichlet supplies P; P - 1 carries no q, so q's door stays 1;
+      P's own least move costs at least P > q. Deepening q adds only powers of
+      q to lambda, which moves no rival's price down (every least
+      move only grows, growth.py), so the lock holds forever.
+
+DESIGN. Standard library; one process. growth.py supplies factor,
+lambda, the wall and the least moves; lambda is carried as a factorization,
+with the factorization of P - 1 supplied where P exceeds the trial
+bound.
+  C  POSITIVE CONTROLS, before any verdict; a failed control stops
+     the run. C1 lambda against the unit group's exponent at every
+     M <= 300. C2 the wall formula against the largest M below 131100
+     with lambda(M) | L, L = 2..24 even, 131100 past W(24) = 131040.
+     C3 the primality test: below 3 10^24, by Miller-Rabin, it
+     certifies 7 = 3 2 + 1 and refuses 78557 2 + 1 and 2^32 + 1; past
+     it, by Proth's theorem, it certifies 47 2^583 + 1 and
+     383 2^6393 + 1 and refuses 3 2^82 + 1 (a factor 7) and
+     3 2^90 + 1 (no factor below 2000). C4 the
+     covering checker accepts 78557's set over one period and
+     rejects a planted non-cover ({3, 5} for k = 1).
+  W  the seating law. W1 the pushes run in lambda-space, L -> lambda
+     of the wall times the least move, at nine alphabets {2}, {2, 3},
+     {2, 5}, {2, 3, 5}, {2, 3, 5, 7}, {3}, {5}, {3, 5}, {2, 11} from
+     s = 1 and at {2, 3} and {2} from s = 7, 11, 65, 105, under a
+     round-robin and a seeded random schedule, 25 pushes per letter.
+     At every step with L <= 10^6 the wall is built from its primes,
+     lambda(W(L)) = L read and the step held to lambda of that wall
+     times its least move. The final S'-part of L and the seats below
+     10^6 print against F and the predicate: a lambda-space push adds
+     (q - 1)'s S'-part by construction, so they read only that 25
+     pushes per letter carry every seat below 10^6. W2 the count of
+     seats below each power of 10, and the {2} seat set against 2 and
+     the Fermat primes.
+  P  the phoenix. P1 the greedy law "least transparent move, else the
+     least move" run by brute force from s = 1, 7, 11 through the
+     first walls with M <= 2 10^7, against fill-to-wall plus a push
+     of 2, a state with no transparent m <= 1000 read as a wall and
+     held to W(lambda). P2 2^j + 1 prime for j <= 40 only at j = 1, 2,
+     4, 8, 16, the seed-1 phoenix's seats; each opens at
+     v_2(lambda) = j by the seating predicate. P3, a print: the
+     spectra along the chain 1 | 3 | 9 | 45 | 315 below 10^6, nested
+     by divisibility.
+  A  the atoms. A1, a print: odd(lambda(M)) against the lcm of the
+     atoms, every M <= 20000, (3)'s identity read through growth.py's
+     lambda. A2 every odd h <= 999 served by atoms, Proth witnesses
+     searched to b <= 1200, 383's witness b = 6393 the one C3
+     certifies; the M built from the serving atoms has odd(lambda) =
+     h by the criterion's if-half, recomputed.
+     A3, a print: the odd h < 1000 the brute set odd(lambda(M))
+     over M <= 10^6 already holds. A4 78557: the covering over its period, no
+     atom by the finite correction either, and the two-prime
+     realization, its lambda computed. A5 271129: prime, not 2^n + 1,
+     the covering, hence unrealizable; that no M <= 10^6 realizes it
+     prints, vacuous there, no prime q <= 10^6 having 271129 | q - 1.
+  S  the search below 271129: every odd prime power l^j < 271129 of
+     non-Fermat base, the least b <= 1000 with l^j 2^b + 1 prime,
+     certified; the survivors listed.
+  T  the transparency reading, a print: the transparent share at
+     k = 50, 500, 2000; rung k transparent iff p_k is a transparent
+     move at p_(k-1)# is (5), one predicate.
+  R  the rudder. R1 the 2-lock from 200 states (ten specials and 190
+     seeded random M <= 10^6), 30 greedy picks after the
+     multiplication. R2 the odd targets 3, 5, 7, 13, 17 from the states
+     30, 3^15, 2^20, 510510, 17^6, 30 greedy picks after the
+     multiplication, the menu scanned at every prime up to q that
+     could undercut the running least. Each P is certified prime by
+     Pocklington's test on P - 1, factored. The code
+     builds B with each l to the power a_l + c_l + 4, a multiple of
+     the B of (6), which the argument allows, since it needs only that
+     B carry those powers and q not divide it.
+
+PREDICTIONS, fixed before the run.
+  C  C1, C2 agreement everywhere; C3 and C4 as stated.
+  W  W1 zero disagreements; F = 1 at the five alphabets holding 2 and
+     shift-closed, 2 at {3}, 4 at {5}, 4 at {3, 5}, 5 at {2, 11}. The
+     counts below 10^6 reproduce the replaced record's: 6, 42, 20,
+     141, 324, 8, 7, 46, 21. W2 {2} stalls at 6 past 65537; {2, 3}
+     reads 4, 10, 18, 25, 32, 42 across the decades 10..10^6.
+  P  P1 zero disagreements, no transparent m at any wall. P2 the
+     five Fermat primes at v_2(lambda) = 1, 2, 4, 8, 16. P3 the
+     sizes nondecreasing, 6, 12, 18, 30, 56 as in the replaced
+     record.
+  A  A1 zero mismatches. A2 every odd h <= 999 realizable, 47 at
+     b = 583 and 383 the only one past the b bound.
+     A4, A5 as argued in (4).
+  S  the survivors are primes, a few dozen at most; no prime power
+     l^j with j >= 2 survives. TRANSPLANT: from memory of the prime
+     Sierpinski problem, unresolved primes below 271129 include
+     22699 and 67607; this is a recollection, not a source, and
+     the search, not it, is what may be quoted.
+     Added after the outside read (W. Keller, The Sierpinski Problem:
+     Definition and Status, prothsearch.com/sierp.html, updated
+     2026-07-29): every odd k < 271129 carries a known prime
+     k 2^n + 1 but 78557, proved Sierpinski, and 20 still open, whose
+     prime powers are nine
+     primes, 22699, 67607, 79309, 79817, 152267, 156511, 222113,
+     225931, 237019. S2: the one proper-power survivor, 143641 = 379^2,
+     resolves at b = 1212, Proth-certified and least (a scratch sieve
+     found it; the run re-derives it from b = 1). S3: all nine listed
+     primes are search survivors; one with a prime at b <= 1000 would
+     put the search and the list at odds, and is a kill.
+  T  zero disagreements; the share 0.47, 0.72, 0.77 as
+     tower_growth.py's density theorem prints.
+  R  R1 200/200; R2 25/25.
+A KILL is any disagreement in W1, P1, P3, A1 or T; a seat set
+unequal to its predicate; a covering that fails in A4 or A5, which
+kills the bound 271129 and the 78557 reading with it; an odd h <= 999
+not realized; a rudder pair that does not lock. A control out of its
+band voids the verdicts that lean on it. A replaced record's figure
+not reproduced, with the identities green, is a definition to read,
+not a kill. (Ruled on a code read: P3, T and A1 hold by construction
+and print, as do W1's F and seat comparisons, which read the push
+count; W1 now reads lambda of walls built from their primes.)
+
+FINDINGS. 16/16 checks PASS and no kill (A3 is a print: an lcm of odd
+atoms is odd, so as a check it could not fail). Two predictions missed and one
+control was built too small, recorded below.
+  C  lambda is the unit exponent at every M <= 300. C2 FAILED on its
+     first run: the brute search stopped at 70000 while W(24) =
+     131040, so the control's range, not the formula, was out of band;
+     widened to 131100 it agrees at every even L <= 24. The Proth
+     certificate and the covering checker behave as stated, 78557's
+     period 36, and both refusals past 3 10^24 hold.
+  W  lambda(W(L)) = L and the step agree at all 489 steps with
+     L <= 10^6; F and the seats agree in 17 (seed, alphabet) cases
+     under both schedules; F = 1 at {2}, {2, 3}, {2, 5}, {2, 3, 5},
+     {2, 3, 5, 7}, 2 at {3}, 4 at {5} and {3, 5}, 5 at {2, 11};
+     seats below 10^6: 6, 42, 20, 141, 324, 8, 7, 46, 21, the
+     replaced record's. By
+     decade 10..10^6: {2} 3, 4, 5, 5, 6, 6; {2, 3} 4, 10, 18, 25, 32,
+     42; {2, 3, 5} 4, 14, 34, 59, 95, 141; {2, 3, 5, 7} 4, 17, 52, 101,
+     194, 324; {2, 5} 3, 6, 11, 13, 18, 20.
+  P  the greedy law "least transparent move, else the least move"
+     stopped at 15 walls from seeds 1, 7, 11 below 2 10^7, every one
+     equal to W(lambda). 2^j + 1 is prime for j <= 40 only at j = 1, 2,
+     4, 8, 16. The spectra along 1 | 3 | 9 | 45 | 315 below 10^6 are
+     nested with sizes 6, 13, 20, 35, 65; MISSED against the replaced
+     record's 6, 12, 18, 30, 56, which counted to a different bound
+     (its spectrum(3) omits 786433 = 3 2^18 + 1): a definition, not a
+     kill.
+  A  odd(lambda(M)) is the lcm of its atoms at every M <= 20000. Every
+     odd h <= 999 is realized by a built M; the atoms needing b > 64
+     are 47 (b = 583, and every h <= 999 whose serving atom the
+     search took at 47), 587 (227), 631 (144), 881 (1027) and 383
+     (6393, the certified witness). M <= 10^6 already realizes 471 of
+     the 500 odd h < 1000. 78557 is covered with period 36, is no atom
+     by the finite correction either, and odd(lambda(137 18927617)) =
+     78557. 271129 is prime, 271128 = 2^3 3 11 13 79, its covering
+     holds with period 24, and no M <= 10^6 realizes it (vacuously).
+  S  23844 prime powers of non-Fermat base lie below 271129; 513 resolve
+     only at 200 < b <= 1000; 278 SURVIVE to b <= 1000, the first 383,
+     881, 2897, 3061, 4861, 5297, 5897, 6379, 7013, 8269, and among them
+     one proper power, 143641 = 379^2. MISSED: the slate predicted a few
+     dozen survivors and no proper power. The survivors below 1000 are
+     exactly 383 and 881, the two A2 resolved past b = 1000. S2: 143641
+     resolves at least b = 1212, so no proper power survives. S3: all
+     nine primes the literature leaves open are survivors. With that
+     list, every prime power of non-Fermat base below 271129 outside the
+     nine carries a known prime l^j 2^b + 1, so the least unrealizable
+     odd number is the least prime Sierpinski number, one of the nine or
+     271129.
+  T  the transparent share 23 of 49 (0.469) at k = 50, 358 of 499
+     (0.717) at 500, 1531 of 1999 (0.766) at 2000, tower_growth.py's
+     share over the k - 1 rungs that can move.
+  R  200/200 states lock onto 2 after one multiplication; 25/25
+     (state, odd target) pairs lock after one multiplication, the
+     primes P from 17 to about 7.7 10^28, each Pocklington-certified,
+     larger than the replaced record's because B here is built from
+     every prime below q and not only from the rival moves that needed
+     raising.
+  Tiers: (1), (2) and (6) are theorems, verified in the ranges
+  printed; (3) is a criterion, proved both ways, verified in the
+  ranges printed; (4) is a rule, proved, with the bound 271129 proved and the search
+  an observation, and the reading of the least unrealizable number as
+  the least prime Sierpinski number rests on the literature's list of
+  known primes; (5) is a property.
+
+RUN RECORD. python bridges.py: 19/19 checks, 9.0 s, peak 57.5 MB under
+a 512 MB ceiling. The slate's "windows" were renamed SEATS and its odd
+number D renamed h, its modulus N renamed M, before this record was
+written: a window is a place-set, D is an alphabet's degree bound, and
+N is the primorial. A code read made the checks that held by
+construction prints (P3, A1, T1, W1's F and seat comparisons and its
+monotonicity), built the walls W1 now reads, made the controls stop the
+run, gave C3 two refusals past 3 10^24 and the rudder's P a certificate:
+16/16, 9.2 s, peak 57.5 MB under a memory guard.
+"""
+
+import os
+import random
+import sys
+import time
+from math import gcd
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import growth  # noqa: E402
+from growth import (factor, lam_int, value, merge_add, lcm,  # noqa: E402
+                    v2, is_prime_mr, least_move, wall)
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  [{'PASS' if ok else 'FAIL'}] {name}"
+          + (f" -- {detail}" if detail else ""))
+
+
+def control(name, ok, detail=""):
+    check(name, ok, detail)
+    if not ok:
+        print("  control failed: run stopped")
+        raise SystemExit(1)
+
+
+def section(title):
+    print()
+    print("=" * 72)
+    print(title)
+    print("=" * 72)
+
+
+# ------------------------------------------------------------ arithmetic
+
+def sieve(n):
+    s = bytearray([1]) * (n + 1)
+    s[0] = s[1] = 0
+    for i in range(2, int(n ** 0.5) + 1):
+        if s[i]:
+            s[i * i::i] = bytearray(len(s[i * i::i]))
+    return s
+
+
+X = 10 ** 6
+ISP = sieve(X)
+PRIMES_X = [i for i in range(X + 1) if ISP[i]]
+
+
+def odd(n):
+    while n % 2 == 0:
+        n //= 2
+    return n
+
+
+def part_off(n, S):
+    """The part of n prime to every prime in S."""
+    for q in S:
+        while n % q == 0:
+            n //= q
+    return n
+
+
+def jacobi(a, n):
+    a %= n
+    t = 1
+    while a:
+        while a % 2 == 0:
+            a //= 2
+            if n % 8 in (3, 5):
+                t = -t
+        a, n = n, a
+        if a % 4 == 3 and n % 4 == 3:
+            t = -t
+        a %= n
+    return t if n == 1 else 0
+
+
+SMALL = [p for p in PRIMES_X if p < 2000]
+SMALL_PROD = 1
+for _p in SMALL:
+    SMALL_PROD *= _p
+
+
+def proth_prime(k, b):
+    """Is k 2^b + 1 prime, with a proof. Below 3 10^24 deterministic
+    Miller-Rabin (thirteen prime bases); above, k < 2^b holds and
+    Proth's theorem is applied with a base of Jacobi symbol -1, which
+    exists for every prime n; the first 59 odd primes are tried, and
+    none qualifying raises."""
+    n = k * (1 << b) + 1
+    if n < 3 * 10 ** 24:
+        return is_prime_mr(n)
+    assert k < (1 << b)
+    if gcd(n, SMALL_PROD) != 1:
+        return False
+    for a in SMALL[1:60]:
+        if jacobi(a, n) == -1:
+            return pow(a, (n - 1) // 2, n) == n - 1
+    raise AssertionError("no non-residue base found")
+
+
+LEAST = {}
+
+
+def least_proth(k, bmax):
+    if (k, bmax) not in LEAST:
+        LEAST[(k, bmax)] = next((b for b in range(1, bmax + 1)
+                                 if proth_prime(k, b)), None)
+    return LEAST[(k, bmax)]
+
+
+def covers(k, cover):
+    """Does the set `cover` divide k 2^b + 1 for every b >= 1? Checked
+    over one period, the lcm of the orders of 2 modulo the cover."""
+    per = 1
+    for p in cover:
+        o, x = 1, 2 % p
+        while x != 1:
+            x = x * 2 % p
+            o += 1
+        per = lcm(per, o)
+    ok = all(any((k * pow(2, b, p) + 1) % p == 0 for p in cover)
+             for b in range(1, per + 1))
+    return ok, per
+
+
+def fermat(p):
+    return p > 2 and (p - 1) & (p - 2) == 0
+
+
+def atom(q, a):
+    return q ** (a - 1) * odd(q - 1)
+
+
+# lambda as a factorization, with factorizations of large p - 1 supplied
+KNOWN = {}
+
+
+def lam_pp(p, a):
+    if a == 0:
+        return {}
+    if p == 2:
+        x = a - 1 if a <= 2 else a - 2
+        return {2: x} if x else {}
+    out = dict(KNOWN[p]) if p in KNOWN else factor(p - 1)
+    if a > 1:
+        out[p] = out.get(p, 0) + a - 1
+    return out
+
+
+def pocklington(n, nf):
+    """n prime, proved: nf is the complete factorization of n - 1."""
+    assert value(nf) == n - 1
+    for r in nf:
+        for a in range(2, 1000):
+            if pow(a, n - 1, n) != 1:
+                return False
+            if gcd(pow(a, (n - 1) // r, n) - 1, n) == 1:
+                break
+        else:
+            return False
+    return True
+
+
+def lamf(mf):
+    out = {}
+    for p, e in mf.items():
+        for r, c in lam_pp(p, e).items():
+            if c > out.get(r, 0):
+                out[r] = c
+    return out
+
+
+# ------------------------------------------------------------ section C
+
+def unit_exponent(M):
+    L = 1
+    for a in range(1, M):
+        if gcd(a, M) != 1:
+            continue
+        o, y = 1, a
+        while y != 1:
+            y = y * a % M
+            o += 1
+        L = lcm(L, o)
+    return L
+
+
+def section_c():
+    section("C  POSITIVE CONTROLS, before any verdict")
+    bad = sum(unit_exponent(M) != lam_int(M) for M in range(2, 301))
+    control("C1 lambda is the unit group's exponent, M <= 300", bad == 0,
+          f"{bad} off")
+    top = 131100
+    lam_small = [0] + [lam_int(M) if M > 1 else 1 for M in range(1, top)]
+    bad = []
+    for L in range(2, 25, 2):
+        brute = max(M for M in range(1, top) if L % lam_small[M] == 0)
+        if brute != wall(L):
+            bad.append(L)
+    control("C2 the wall formula against the largest M < 131100, even "
+            "L <= 24", not bad, f"W(12) = {wall(12)}, W(24) = {wall(24)}")
+    ok = (proth_prime(3, 1) and proth_prime(47, 583)
+          and proth_prime(383, 6393) and not proth_prime(78557, 1)
+          and not proth_prime(1, 32) and not proth_prime(3, 82)
+          and not proth_prime(3, 90))
+    control("C3 the primality test: 7, 47 2^583+1, 383 2^6393+1 prime; "
+            "78557 2+1, 2^32+1, 3 2^82+1, 3 2^90+1 refused", ok)
+    good, per = covers(78557, (3, 5, 7, 13, 19, 37, 73))
+    planted, _ = covers(1, (3, 5))
+    control("C4 the covering checker: 78557's set accepted, a planted "
+            "non-cover rejected", good and not planted, f"period {per}")
+
+
+# ------------------------------------------------------------ section W
+
+def run_world(s, S, schedule, pushes, rnd=None):
+    """Pushes in lambda-space: L -> lambda(W(L) * least move). Returns the
+    final L as a factorization, the seats below X, L before each push
+    and after the last, and the pushes in order."""
+    L = lamf(factor(s)) if s > 1 else {}
+    seq = []
+    for _ in range(pushes):
+        seq.extend(S)
+    if schedule == "random":
+        rnd.shuffle(seq)
+    seen = set()
+    Ls = [dict(L)]
+    for q in seq:
+        Lv = value(L)
+        if q == 2:
+            a = v2(Lv) + 2 if Lv % 2 == 0 else 1
+        elif Lv % (q - 1) == 0:
+            a = L.get(q, 0) + 1
+        else:
+            a = 0
+        d = least_move(q, a, L)
+        r = 0
+        while d > 1:
+            d //= q
+            r += 1
+        L2 = dict(L)
+        for p, c in lam_pp(q, a + r).items():
+            if c > L2.get(p, 0):
+                L2[p] = c
+        L = L2
+        Ls.append(dict(L))
+    Lfinal = value(L)
+    for p in PRIMES_X:
+        if Lfinal % (p - 1) == 0:
+            seen.add(p)
+    return L, seen, Ls, seq
+
+
+def wall_f(L):
+    """W(L) as a factorization, built from its primes: 2 to v_2(L) + 2
+    and each odd prime p with (p - 1) | L to v_p(L) + 1; 2 alone at odd
+    L. Its odd primes are read from PRIMES_X, so L <= 10^6."""
+    Lv = value(L)
+    if Lv % 2:
+        return {2: 1}
+    out = {2: L.get(2, 0) + 2}
+    for p in PRIMES_X[1:]:
+        if p - 1 > Lv:
+            break
+        if Lv % (p - 1) == 0:
+            out[p] = L.get(p, 0) + 1
+    return out
+
+
+def seating_law(s, S):
+    base = lam_int(s) if s > 1 else 1
+    for q in S:
+        base = lcm(base, q - 1)
+    F = part_off(base, S)
+    return F, {p for p in PRIMES_X if F % part_off(p - 1, S) == 0}
+
+
+ALPHABETS = [(2,), (2, 3), (2, 5), (2, 3, 5), (2, 3, 5, 7), (3,), (5,),
+             (3, 5), (2, 11)]
+
+
+def section_w():
+    section("W  THE SEATING LAW")
+    rnd = random.Random(1400)
+    cases = [(1, S) for S in ALPHABETS]
+    cases += [(s, S) for s in (7, 11, 65, 105) for S in ((2,), (2, 3))]
+    bad, rows, steps, off = 0, [], 0, 0
+    for s, S in cases:
+        F, law = seating_law(s, S)
+        for sched in ("round", "random"):
+            L, seen, Ls, seq = run_world(s, S, sched, 25, rnd)
+            for i, q in enumerate(seq):
+                if value(Ls[i]) > X:
+                    break
+                steps += 1
+                Wf = wall_f(Ls[i])
+                d = least_move(q, Wf.get(q, 0), Ls[i])
+                if (lamf(Wf) != Ls[i]
+                        or lamf(merge_add(Wf, factor(d))) != Ls[i + 1]):
+                    off += 1
+            if part_off(value(L), S) != F or seen != law:
+                bad += 1
+        if s == 1:
+            rows.append((S, F, len(law)))
+    for S, F, n in rows:
+        print(f"    S={str(S):16} F={F:<3} seats below 10^6: {n}")
+    check("W1 lambda(W(L)) = L and the lambda-space step, the wall built "
+          "from its primes, every step with L <= 10^6", off == 0,
+          f"{steps} steps, {off} off")
+    print(f"    F and the seats below 10^6 after 25 pushes per letter: "
+          f"{bad} disagreements in 17 (seed, alphabet) cases x 2 "
+          "schedules")
+    print("    seats below 10^j, j = 1..6:")
+    for S in ((2,), (2, 3), (2, 3, 5), (2, 3, 5, 7), (2, 5)):
+        _, law = seating_law(1, S)
+        counts = [sum(1 for p in law if p < 10 ** j) for j in range(1, 7)]
+        print(f"      S={str(S):14} {counts}")
+    _, w2 = seating_law(1, (2,))
+    check("W2 S = {2} from seed 1 is 2 and the Fermat primes below 10^6",
+          sorted(w2) == [2, 3, 5, 17, 257, 65537])
+
+
+# ------------------------------------------------------------ section P
+
+def section_p():
+    section("P  THE PHOENIX")
+    fm = [None, None] + [factor(m) for m in range(2, 1001)]
+    bad = 0
+    walls_seen = 0
+    for s in (1, 7, 11):
+        # the one greedy law: least transparent move, else the least move
+        Mf = factor(s) if s > 1 else {}
+        while value(Mf) <= 2 * 10 ** 7:
+            L = lamf(Mf)
+            m = 2
+            while m <= 1000 and lamf(merge_add(Mf, fm[m])) != L:
+                m += 1
+            if m <= 1000:
+                Mf = merge_add(Mf, fm[m])
+                continue
+            # no transparent m <= 1000: the state must be the wall
+            walls_seen += 1
+            if value(Mf) != wall(value(L)):
+                bad += 1
+            Mf = merge_add(Mf, {2: 1})
+    check("P1 the greedy law's walls are W(lambda), 3 seeds, M <= 2 10^7",
+          bad == 0 and walls_seen > 0, f"{walls_seen} walls, {bad} off")
+    opened = []
+    for j in range(1, 41):
+        if proth_prime(1, j):
+            opened.append(j)
+    check("P2 2^j + 1 prime for j <= 40 only at 1, 2, 4, 8, 16",
+          opened == [1, 2, 4, 8, 16], f"{opened}")
+    sizes = [sum(1 for p in PRIMES_X if h % odd(p - 1) == 0)
+             for h in (1, 3, 9, 45, 315)]
+    print(f"    P3 spectrum sizes along 1 | 3 | 9 | 45 | 315 below 10^6: "
+          f"{sizes}, nested by divisibility")
+
+
+# ------------------------------------------------------------ section A
+
+def covering_atoms(h, bmax, witness):
+    """For each l^j || h a prime power q^a whose atom divides h with
+    v_l = j, or None. Atoms by the finite correction first, then by
+    primes m 2^b + 1 over the divisors m of h."""
+    hf = factor(h)
+    divs = [1]
+    for p, e in hf.items():
+        divs = [d * p ** k for d in divs for k in range(e + 1)]
+    chosen = {}
+    for l, j in hf.items():
+        found = None
+        # a >= 2: q | h, q^(a-1) odd(q - 1) | h with v_l = j
+        for q in hf:
+            for a in range(2, hf[q] + 2):
+                A = atom(q, a)
+                if h % A == 0 and factor(A).get(l, 0) == j:
+                    found = (q, a, None)
+                    break
+            if found:
+                break
+        if not found:
+            for m in sorted(divs):
+                if factor(m).get(l, 0) != j:
+                    continue
+                b = witness.get(m) or least_proth(m, bmax)
+                if b is not None:
+                    q = m * (1 << b) + 1
+                    KNOWN[q] = merge_add(factor(m), {2: b})
+                    found = (q, 1, b)
+                    break
+        if not found:
+            return None
+        chosen[l] = found
+    return chosen
+
+
+def section_a():
+    section("A  THE ATOMS OF odd(lambda)")
+    bad = 0
+    for M in range(1, 20001):
+        g = 1
+        for q, a in factor(M).items() if M > 1 else []:
+            if q != 2:
+                g = lcm(g, atom(q, a))
+        if odd(lam_int(M) if M > 1 else 1) != g:
+            bad += 1
+    print(f"    A1 odd(lambda(M)) against the lcm of its atoms, "
+          f"M <= 20000: {bad} off")
+    witness = {383: 6393}
+    missing, big = [], []
+    for h in range(1, 1000, 2):
+        ch = covering_atoms(h, 1200, witness)
+        if ch is None:
+            missing.append(h)
+            continue
+        Mf = {}
+        for q, a, b in ch.values():
+            Mf[q] = max(Mf.get(q, 0), a)
+            if b is not None and b > 64:
+                big.append((h, b))
+        if odd(value(lamf(Mf))) != h:
+            missing.append(h)
+    check("A2 every odd h <= 999 realized by a built M", not missing,
+          f"missing {missing}; past b = 64: {sorted(set(big))}")
+    spf = list(range(X + 1))
+    for p in PRIMES_X:
+        if p * p > X:
+            break
+        if spf[p] == p:
+            for k in range(p * p, X + 1, p):
+                if spf[k] == k:
+                    spf[k] = p
+    lam_odd = set()
+    hit271 = False
+    for M in range(2, X + 1):
+        n, g = M, 1
+        while n > 1:
+            q, a = spf[n], 0
+            while n % q == 0:
+                n //= q
+                a += 1
+            if q != 2:
+                g = lcm(g, atom(q, a))
+        lam_odd.add(g)
+        if g == 271129:
+            hit271 = True
+    small = {g for g in lam_odd if g < 1000}
+    print(f"    A3 {len(small)} of 500 odd h < 1000 seen by M <= 10^6")
+    ok78, per78 = covers(78557, (3, 5, 7, 13, 19, 37, 73))
+    corr = any(h == 78557 for h in [atom(q, a) for q in (17, 4621)
+                                    for a in (2, 3)])
+    two = (is_prime_mr(137) and is_prime_mr(18927617)
+           and 137 == 17 * 8 + 1 and 18927617 == 4621 * 4096 + 1)
+    g78 = odd(value(lamf({137: 1, 18927617: 1})))
+    check("A4 78557 = 17 * 4621: covered (no Proth atom), no finite "
+          "correction, realized by 137 * 18927617",
+          ok78 and not corr and two and g78 == 78557,
+          f"period {per78}; odd(lambda) of the product = {g78}")
+    ok27, per27 = covers(271129, (3, 5, 7, 13, 17, 241))
+    check("A5 271129: prime, not 2^n + 1, covered, hence unrealizable",
+          is_prime_mr(271129) and not fermat(271129) and ok27,
+          f"period {per27}; 271128 = {factor(271128)}")
+    print(f"    A5 an M <= 10^6 realizing it: {hit271} (vacuous: no prime "
+          "q <= 10^6 has 271129 | q - 1)")
+
+
+# ------------------------------------------------------------ section S
+
+def section_s():
+    section("S  THE SEARCH BELOW 271129")
+    bound = 271129
+    pps = []
+    for l in PRIMES_X:
+        if l < 3 or l >= bound:
+            continue
+        if fermat(l):
+            continue
+        x = l
+        while x < bound:
+            pps.append(x)
+            x *= l
+    survivors, hard = [], []
+    for k in sorted(pps):
+        b = least_proth(k, 1000)
+        if b is None:
+            survivors.append(k)
+        elif b > 200:
+            hard.append((k, b))
+    powers = [k for k in survivors if not is_prime_mr(k)]
+    print(f"    {len(pps)} prime powers of non-Fermat base below {bound}")
+    print(f"    least b past 200: {len(hard)} of them, the largest "
+          f"{max(hard, key=lambda x: x[1])}")
+    print(f"    survivors to b <= 1000: {len(survivors)}, the first ten "
+          f"{survivors[:10]}")
+    print(f"    proper powers among them: {[(k, factor(k)) for k in powers]}")
+    check("S1 the survivors below 1000 are the two A2 resolved past "
+          "b = 1000", [k for k in survivors if k < 1000] == [383, 881],
+          f"{len(survivors)} survivors")
+    b379 = least_proth(143641, 1212)
+    check("S2 143641 = 379^2 resolves at least b = 1212, Proth-certified",
+          b379 == 1212, f"least b {b379}")
+    listed = [22699, 67607, 79309, 79817, 152267, 156511, 222113, 225931,
+              237019]
+    check("S3 the nine primes still open in the literature are search "
+          "survivors", all(k in survivors for k in listed),
+          f"not survivors: {[k for k in listed if k not in survivors]}")
+
+
+# ------------------------------------------------------------ section T
+
+def section_t():
+    section("T  TRANSPARENT RUNGS ARE TRANSPARENT MOVES")
+    ps = PRIMES_X[:2000]
+    Lf = {}
+    trans, shares = 0, {}
+    for k, p in enumerate(ps, start=1):
+        if k > 1:
+            # rung k transparent: lambda(p_k#) == lambda(p_(k-1)#)
+            new = dict(Lf)
+            for r, c in factor(p - 1).items():
+                if c > new.get(r, 0):
+                    new[r] = c
+            trans += new == Lf
+            Lf = new
+        if k in (50, 500, 2000):
+            shares[k] = (trans, k - 1, round(trans / (k - 1), 3))
+    print(f"    T1 transparent share (rungs, of k - 1, share) at k = 50, "
+          f"500, 2000: {shares}")
+
+
+# ------------------------------------------------------------ section R
+
+def menu_pick(mf, L, qmax):
+    """The least lambda-raising move over the primes up to qmax, the
+    scan stopping where q, the least price at q, passes the least."""
+    best, bq = None, None
+    for q in growth.PRIMES:
+        if q > qmax or (best is not None and q >= best):
+            break
+        d = least_move(q, mf.get(q, 0), L)
+        if best is None or d < best:
+            best, bq = d, q
+    return bq, best
+
+
+def deepen(mf, q, cost):
+    mf = dict(mf)
+    while cost > 1:
+        cost //= q
+        mf[q] = mf.get(q, 0) + 1
+    return mf
+
+
+def rudder(mf, q):
+    L = lamf(mf)
+    if q == 2:
+        push = {2: max(3, L.get(2, 0) + 2) - mf.get(2, 0)}
+        return {k: v for k, v in push.items() if v > 0}, None
+    # q to depth v_q(lambda') + 1: lambda' has v_q = max(v_q(L), depth - 1)
+    depth = L.get(q, 0) + 1
+    push = {q: depth - mf.get(q, 0)} if depth > mf.get(q, 0) else {}
+    B = 1
+    for r in growth.PRIMES:
+        if r >= q:
+            break
+        t = 1
+        while r ** t <= q:
+            t += 1
+        B = lcm(B, (r - 1) * r ** (mf.get(r, 0) + t + 2))
+    g = 2
+    inv = pow(B, -1, q)
+    x = (1 + B * ((g - 1) * inv % q)) % (B * q)
+    Mv = value(mf)
+    while True:
+        if x > q and Mv % x and is_prime_mr(x):
+            KNOWN[x] = merge_add(factor(B), factor((x - 1) // B))
+            assert (x - 1) // B < 4 * 10 ** 8 and pocklington(x, KNOWN[x])
+            return push, x
+        x += B * q
+
+
+def section_r():
+    section("R  THE RUDDER")
+    rnd = random.Random(1400)
+    specials = [3 ** 15, 17 ** 6, 5 ** 10, 510510, 24, 240, 504, 30030,
+                2 ** 20, 1]
+    states = specials + [rnd.randrange(2, 10 ** 6) for _ in range(190)]
+    ok2 = 0
+    for M in states:
+        mf = factor(M) if M > 1 else {}
+        push, _ = rudder(mf, 2)
+        cur = merge_add(mf, push)
+        good = True
+        for _ in range(30):
+            L = lamf(cur)
+            q, cost = menu_pick(cur, L, 2)
+            if q != 2 or cost != 2:
+                good = False
+                break
+            cur = deepen(cur, 2, cost)
+        ok2 += good
+    check("R1 one push locks 200 states onto 2", ok2 == 200, f"{ok2}/200")
+    okq, total = 0, 0
+    for M in (30, 3 ** 15, 2 ** 20, 510510, 17 ** 6):
+        mf = factor(M)
+        for q in (3, 5, 7, 13, 17):
+            total += 1
+            push, P = rudder(mf, q)
+            cur = merge_add(mf, push)
+            cur = merge_add(cur, {P: 1})
+            good = True
+            for _ in range(30):
+                L = lamf(cur)
+                qq, cost = menu_pick(cur, L, q)
+                if qq != q or cost != q:
+                    good = False
+                    break
+                cur = deepen(cur, q, cost)
+            okq += good
+            print(f"    {M:>9} -> {q:>2}: push {push} * P = {P}"
+                  f"{'' if good else '  MISSED'}")
+    check("R2 one push locks every (state, odd target) pair", okq == total,
+          f"{okq}/{total}")
+
+
+def main():
+    t0 = time.time()
+    section_c()
+    section_w()
+    section_p()
+    section_a()
+    section_s()
+    section_t()
+    section_r()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,2942 @@
+"""
+shifts.py -- a digit shift of the trailing Ostrowski numeration read as
+a change of numeration, and the one criterion that decides where every
+map linear in the digits reads.
+
+QUESTION. Fix an irrational alpha = [0; a_1, a_2, ...] with denominators
+q_k, numerators p_k and remainders theta_k = q_k alpha - p_k (theta_(-1)
+= -1), which alternate in sign and shrink (ostrowski.py). The SHIFT by
+stride r >= 1 sends n = sum d_k q_k, the greedy string, to sigma_r(n) =
+sum d_k q_(k+r). The DROP sends n to sum_(k>=1) d_k q_(k-1). A reader
+at lookahead c commits the output's depth-t tile having seen the
+input's depth-(t + c) tile. The affine maps n -> m n + omega are circle
+maps, and ostrowski.py reads them where no non-cut point is carried
+onto a cut. A shift's image point is sum d_k theta_(k+r), a function of
+the string. Is it a function of the point, and does the same criterion
+decide it?
+
+THE ARGUMENT (written before this script).
+  (1) THE CHANGE OF NUMERATION. Let alpha_r = [0; a_(r+1), a_(r+2),
+      ...], with remainders theta^(r)_k. Then theta_(k+r) = -theta_(r-1)
+      theta^(r)_k for every k >= -1: both sides obey u_(k+1) =
+      a_(k+r+1) u_k + u_(k-1), and they agree at k = -1 and at k = 0,
+      because -theta_r / theta_(r-1) = alpha_r. In integers, q_(k+r) =
+      q^(r)_k q_r + p^(r)_k q_(r-1), and p likewise. So sigma_r(n) alpha
+      = -theta_(r-1) S_r(d) mod 1, with S_r(d) = sum d_k theta^(r)_k:
+      the shift reads alpha's digits as alpha_r's and scales by
+      |theta_(r-1)|. The drop is stride -1: its point is sum_(k>=0) d_k
+      theta_(k-1) mod 1, since theta_(-1) = -1 is an integer.
+  (2) A MAP OF THE CIRCLE. At r >= 0, a_(k+1) |theta_(k+r)| <=
+      a_(k+1) / q_(k+r+1) <= 1 / q_k, so g_r(x) = sum d_k(x)
+      theta_(k+r) converges uniformly in the string; the drop's does
+      wherever sum a_(k+1) / q_k converges, at every alpha with bounded
+      quotients and at e - 2 among them. g_r is continuous at every
+      non-cut, which has one coding, and has two one-sided values at
+      each cut, one per coding.
+  (3) THE CAP-FILLINGS ARE EXTREME FOR EVERY ALTERNATING WEIGHT. Let
+      sign(w_j) = eps sign(theta_j) at every large j. Among the legal
+      tails from k, sum d_j w_j is largest exactly at the tail with
+      caps where eps theta_j > 0 and zeros elsewhere, which is legal,
+      since the digit below a cap sits at a zero. It is smallest at the
+      other parity's tail. These are the cap-fillings, the tails of a
+      cut's two codings (ostrowski.py). So the points on one side of
+      a cut, whose strings follow that side's coding for long, have
+      images on ONE side of the cut's image. A non-cut's string is
+      never eventually a cap-filling, so at every depth there are legal
+      tails above and below its own, and so integers with images on
+      BOTH sides of its image, agreeing with it that deep.
+  (4) THE LANDING CRITERION. Let f(n) alpha = sum d_k(n) w_k mod 1,
+      weights as in (3) with sum cap_k |w_k| finite, and g the map of
+      (2). At a depth t with q_t >= 2, f reads at some lookahead iff g
+      carries no non-cut onto a cut -j alpha with j <= q_t. If it does,
+      (3) puts integers of every input tile about that point on both
+      sides of the cut, in two output tiles. If f reads at no
+      lookahead, compactness gives a point every one-sided
+      neighbourhood of which splits; (3) says it is no cut, and
+      continuity says it lands on a cut. So f reads at no lookahead
+      exactly from the first depth t with q_t >= max(s, 2), -s alpha the
+      shallowest cut a non-cut lands on, which is the depth where that
+      cut's two codings part (ostrowski.py). The shifts (w_k =
+      theta_(k+r)), the drop (theta_(k-1)) and x m (m theta_k) are all
+      of this form.
+  (5) THE COPY READER. If a_(k+1) <= a_(k+r+1) at every k >= 1 and a_1
+      <= a_(r+1) + 1, the shifted string is legal and greedy, since a
+      digit at its cap there was at its cap before: sigma_r reads at
+      lookahead 0 at every depth, periodic alpha or not.
+  (6) THE LANDING WALK. A string's sum sum_j m d_j theta_(j+r) is a
+      lattice point lambda = kappa - s alpha exactly when D_k = lambda
+      - sum_(j<k) m d_j theta_(j+r), the value it still owes, stays at
+      every k between the least and greatest legal tail sums from k,
+      ends included. Written in flush.py's frame, D_k = x
+      theta_(k+r) + y theta_(k+r-1) with x, y integers, and a step is
+      X = y, Y = x - m d_k - a_(k+r+1) y: flush.py's step with one
+      player. At a purely periodic alpha the frame repeats with the
+      period, and the conjugate side u = x zeta'_(k+r) + y (zeta'_j =
+      theta'_j / theta'_(j-1) > 1) steps as u -> u / zeta' - m d, a
+      contraction. On a cycle u is its fixed point, in [-U, 0] with U =
+      m A zeta'_min / (zeta'_min - 1), A the largest quotient, and 0
+      only at x = y = 0. The real side bounds x zeta + y, zeta =
+      theta_(k+r) / theta_(k+r-1). So every cycle lies
+      in a finite box. A state whose value equals an extreme tail sum
+      has one live successor, the cap-filling's, so a cycle is all
+      extreme (a cut's coding) or all interior. And v, the value's
+      alpha-coefficient, falls along a walk, so on a nonzero cycle it
+      is negative: the landing is a cut. f is DISCONTINUOUS iff the
+      box graph has a cycle through a live, interior, nonzero state.
+  (7) THE COMBS. At the one-class numeration [0; (1^(P-1), a)^oo] with
+      P even and a >= 2, and r odd: every even position has cap 1, so
+      theta_(2i) = theta_(2i+1) - theta_(2i-1). The comb of 1s at the
+      odd positions has image sum_i theta_(2i+r'), r' = r + 1 even,
+      telescoping to -theta_r: the cut -q_r alpha. The comb holds 1
+      where the class slot's cap is a, so it is no cut. At odd P and r
+      mod P odd: the comb with 1 at the positions 2, 4, .., P - 3 of
+      each period and 2 at its class slot P - 1. With xi = MP + r, the
+      1s give sum theta_(xi+2i) = theta_(xi+P-2) - theta_(xi+1) (each
+      a_(xi+2i+1) = 1, since rho = r mod P is odd and rho + 2i + 1 is
+      even, in [rho + 3, rho + P - 2]), and 2 theta_(xi+P-1) =
+      theta_(xi+P+1) - theta_(xi+P-2) (a_(xi+P) = a_(xi+P+1) = 1), so a
+      period gives theta_(xi+P+1) - theta_(xi+1) and the image telescopes
+      to -theta_(r+1): the cut -q_(r+1) alpha. Two zeros open each
+      period, so it is no cut; the truncations after M periods miss by
+      theta_(MP+r+1), whose sign alternates with M. At a
+      numeration whose quotients are 1 off one residue class mod 3 and
+      at least 2 on it, and r = 1 mod 3: the comb of 2s at the class
+      positions c0, c0 + 3, ... (c0 the first where 2 is legal) has
+      image sum 2 theta_j, and 2 theta_j = theta_(j+2) - theta_(j-1)
+      wherever a_(j+1) = a_(j+2) = 1, which r = 1 mod 3 gives. So it
+      telescopes to -theta_(c0+r-1); it has two zeros between teeth,
+      so it is no cut. e - 2 is such a numeration, with c0 = 1.
+  (8) THE EVEN RESIDUES (a second sitting's argument, written before
+      its engine). At the one-class numeration, a >= 2, with rho = r
+      mod P even and nonzero, the walk of sigma_r has no nonzero cycle
+      but, at even P, the extreme one, the cap-filling of the even
+      positions. Index by j = k +
+      r: the weight is theta_j, the quotient under it a_(j+1) = a iff j = -1
+      mod P, and the digit's cap c_j = a iff j = rho - 1 mod P, else 1.
+      A cycle is a periodic legal string z; extend it to every j in Z
+      and read its state (x, y) at a depth j = 0 mod P, re-indexed to
+      0, since the frame repeats. Its future is F = sum_(j>=0) z_j
+      theta_j = x alpha - y. The period is a unit: theta_(j+P) = eta
+      theta_j with eta = -theta_(P-1) (argument (1) with alpha_P =
+      alpha, an algebraic identity, so it holds for the conjugates
+      theta'_j too, at every j in Z), and eta eta' = +-1. Every
+      theta'_j is negative: theta'_j = q_j alpha' - p_j < 0 at j >= -1,
+      since alpha' < -1, and theta'_(j-P) = theta'_j / eta' with eta' =
+      -theta'_(P-1) > 0. Summing one period geometrically, the conjugate
+      of F is C = sum_(j<0) z_j |theta'_j|, the PAST read on the
+      conjugate side, and C > 0 unless z = 0. So
+          x = (F - C) / (alpha - alpha'),   and x = 0 gives F = C = -y.
+      (i) x < 1. F is at most Fmax, the cap-filling of the even
+      positions under the caps c (argument (3)), and C > 0, so F - C <
+      Fmax <= 1 < alpha - alpha'. At even P every even position has c_j
+      = a_(j+1) = 1, so Fmax = sum over even j of (theta_(j+1) -
+      theta_(j-1)) = 1. At odd P a class slot changes parity each period
+      and Fmax = 1 - (a - 1)|eta|(1 - |theta_c|)/(1 - eta^2) < 1, c =
+      rho - 1.
+      (ii) x > -1. C - F is at most the sum of z_j |theta'_j| over j < 0
+      plus c_j |theta_j| over odd j >= 0, the even j >= 0 dropped (their
+      weights -theta_j are negative). In the past every weight is
+      positive and grows with j. A digit at an even j < 0 takes a unit
+      of cap off j + 1 (legality), so it is charged to its odd right
+      neighbour, leaving the remainder [a |theta'_j| - |theta'_(j+1)|]_+
+      only at an even class slot, which exists at odd P alone. With the
+      quotients a_(j+1) in place of the caps, the odd sums telescope to
+      alpha on the future and |alpha'| on the past, so C - F <=
+      alpha - alpha' + T, T = (a - 1)(S(c) - S(-1)) + the remainders,
+      S(i) the sum of vartheta_j over odd j = i mod P, vartheta_j =
+      |theta_j| at j >= 0 and |theta'_j| at j < 0, each geometric in
+      |eta|. Write R_i = |theta'_i| / |theta'_(P-1)| = |eta| |theta'_i|.
+      Even P, every class slot odd: T = -(a - 1)(1 + |eta| - |theta_c| -
+      R_c) / (1 - |eta|), and |theta_c| <= |theta_1| = 1 - alpha < 1/2,
+      R_c <= R_(P-3) <= 1/2 (|theta'_(P-1)| >= 2 |theta'_(P-3)|), so T <
+      0. Odd P: T (1 - eta^2) = (a - 1)(|theta_c| + |eta| R_c - 1 -
+      eta^2) + [(a - 1) R_c - R_(c-1)]_+ <= (a - 1)(|theta_c| + (1 +
+      |eta|) R_c - 1 - eta^2). At P >= 5 this is negative: c <= P - 4
+      gives R_c <= 1/3 (|theta'_(P-1)| = 2|theta'_(P-3)| +
+      |theta'_(P-4)|), |theta_c| < 1/2 and |eta| < 1/2; c = P - 2 gives
+      R_c <= 2/3, |theta_(P-2)| < 1/q_(P-1) <= 1/5 and |eta| < 1/q_P <=
+      1/13. At P = 3 (c = 1) the exact value is T = (a^2 - a s - 2) /
+      (4(a + 1)), s = sqrt(a^2 + 2a + 2) > a + 1, negative.
+      (iii) The census. On x = 0, F = C = -y is a positive integer at
+      most Fmax <= 1. At odd P none exists; at even P F = 1 = Fmax, so
+      z is the cap-filling at every depth: a cut's coding, an
+      extreme cycle. The period multiple never enters.
+  (9) THE DROP (a third sitting's argument, written before its
+      engine). (i) THE FRAME READS r MOD P. At a purely periodic alpha
+      the walk of (6) reads r only through a_(k+r+1), the caps a_(k+1)
+      and the frame (theta_(k+r), theta_(k+r-1)). Moving r by P leaves
+      the first two alone and multiplies the frame, the value D_k and
+      both tail extremes by eta alike (eta < 0 swaps the extremes), so
+      the live, interior and extreme states and the steps are the same:
+      the drop's walk IS the walk of sigma_(P-1), and whether a stride
+      r >= -1 is DISCONTINUOUS depends on r mod P alone. At the
+      one-class numeration the drop is then DISCONTINUOUS at even P
+      (P - 1 odd, the combs) and reads at a finite lookahead at every
+      depth at odd P (P - 1 even, (8)); at P = 1 it has the walk of
+      sigma_P, which the copy reader reads at 0. (ii) THE ASCENT COMB.
+      a_j theta_(j-1) = theta_j - theta_(j-2), so the string with d_j =
+      a_j at j = j0 + 2, j0 + 4, ... and zeros elsewhere has drop image
+      sum (theta_j - theta_(j-2)) = -theta_(j0), the cut -q_(j0) alpha.
+      It is legal when a_j <= a_(j+1) at each of those j (a digit at its
+      cap has a zero below, the other parity), and it is no cap-filling
+      when the inequality is strict infinitely often. So where the
+      drop's sum converges ((2)) and the quotients ascend at every other
+      step from j0 + 2 on, a_j <= a_(j+1) at j = j0 + 2, j0 + 4, ...,
+      strictly infinitely often, the drop
+      reads at no lookahead from the first depth with
+      q_t >= max(q_(j0), 2) at the latest. At [0; 1, gamma_1, 1, gamma_2,
+      ...] every odd step ascends from 3 (j0 = 1, q_1 = 1): the cut
+      -alpha, the depth 2. This is the old parity-chain theorem's
+      hypothesis read as a condition on every other step, its heads q_s - 1 the comb's
+      truncations. (iii) THE STRING AT e - 2. Put 1 at position 1 and
+      the cap 2k at position 3k - 2 for every k >= 2. Its truncation
+      below 3m - 2 has image E_m - alpha with E_m = 2 alpha + sum_(k=2
+      .. m-1) 2k theta_(3k-3), and E_m = m theta_(3m-4) - (m - 1)
+      theta_(3m-3): at m = 2, 2 alpha = 2 theta_2 - theta_3 + 1; the step
+      adds 2m theta_(3m-3), and a_(3m-2) = a_(3m) = 1, a_(3m-1) = 2m
+      rewrite (m + 1) theta_(3m-3) + m theta_(3m-4) as (m + 1)
+      theta_(3m-1) - m theta_(3m). |E_m| <= m |theta_(3m-4)| + m
+      |theta_(3m-3)| -> 0, so the string lands on -alpha; each capped
+      digit has zeros on both sides and the teeth sit 3 apart, so it is
+      no cap-filling. The drop at e - 2 reads at no lookahead from t = 2,
+      the old e - 2 theorem, now one string. (iv) PAST THE CRITERION.
+      If a_(D+1)|theta_(D-1)| > 1 at infinitely many D (a_(D+1) >= q_D
+      + q_(D-1) suffices, as |theta_(D-1)| > 1/(q_D + q_(D-1))), the
+      drop's sum diverges (a_(D+1)/q_D > 1) and the drop reads at no
+      lookahead from t0 by one pair: j q_D and (j + 1) q_D, single
+      digits over zeros, share every input tile of depth <= D, and
+      their drops' points j theta_(D-1), (j + 1) theta_(D-1) sweep
+      past a whole turn as j runs below a_(D+1), so some pair
+      straddles -alpha on an arc of length |theta_(D-1)|. At depth t
+      <= D - 1 the cut gaps are at least |theta_(t-1)|, so -alpha is
+      the one cut on that arc and the two drops sit in two tiles. The
+      pair is j* = floor(tau/theta_(D-1)), tau = 1 - alpha when
+      theta_(D-1) > 0 and -alpha otherwise.
+  (10) THE UNIFORM LOOKAHEAD (a fourth sitting's argument, written
+      before its engine). At a purely periodic alpha, a map of the walk
+      (6) that is not DISCONTINUOUS reads at ONE lookahead at every
+      depth: LIPSCHITZ, never MIDDLE (reading.py's trichotomy).
+      (i) THE COLUMN IS THE WALK'S. The depth-t cuts are -j alpha, 1 <=
+      j <= q_t (ostrowski.py). Lookahead c fails at depth t iff some
+      input prefix of length t + c holds a depth-t cut strictly inside
+      the hull of its legal tails' images: integers approach both ends
+      of the hull, so some sit on each side of the cut, in two output
+      tiles; and two images in two tiles have a cut between them. An
+      extreme state has only the cap-filling's successor, itself
+      extreme, so the predecessors of an interior state are interior.
+      Hence c(t) = max(0, K(t) + 1 - t), K(t) the last step at which a
+      walk from some lambda = kappa - j alpha, 1 <= j <= q_t, stands at an
+      interior state. No such walk meets (0, 0), since v <= -j < 0.
+      (ii) THE BOX FROM DEPTH t ON. The conjugate coordinate u_k =
+      D'_k / theta'_(k+r-1) is lambda' / theta'_(k+r-1) plus the past
+      digits' term, which lies in [-U, 0] as in (6). lambda' = lambda +
+      j (alpha - alpha') and |theta'_i| = q_i (alpha - alpha') -
+      theta_i, so with |lambda| <= H0 (the hull at k_s) and q_i >= q_t
+      >= j, q_t >= 2, the first term lies in [-1 - G, G+],
+      G = (H0 + 1)/(2 (alpha - alpha') - 1). (As first written this said lambda' >
+      0 and an upper end 0; a proof read found a live start below
+      -j (alpha - alpha'), lambda' ~ -0.88 at the drop of
+      [0; (1, 1, 8, 2)^oo]. Then the term is at most (H0 - j g)/(j g - 1)
+      <= G+ = max(0, H0 - g)/(g - 1), g = alpha - alpha' > 1 since
+      alpha' < -1.) The real side bounds |x zeta + y| by H,
+      the hull in the frame's units, as in (6). So from k_1 = max(k_s,
+      t - r + 1) on, where q_(k+r-1) >= q_t, every interior state of
+      such a walk lies in the box B: u in [-U - 1 - G, G+], |x zeta + y|
+      <= H, one finite box per residue of the step mod P, the frame
+      repeating.
+      (iii) ONE LOOKAHEAD. B's interior states carry no cycle, since
+      such a cycle is (6)'s witness of DISCONTINUOUS, so their graph is
+      acyclic, with a longest path of L steps. A failing walk is inside
+      B from k_1 to K(t), so K(t) <= k_1 + L and
+          c(t) <= max(0, L + 1 + max(k_s - t, 1 - r))
+      at every depth, a bound fixed by the cell. The even residues and
+      the one-class drop at odd P are LIPSCHITZ.
+      (iv) OFF PERIODICITY the walk from the finite start set still
+      decides one depth exactly: if every walk from j <= q_t dies, that
+      depth reads at c(t) of (i), at any alpha where the sums converge.
+      No box closes it, so a depth with a walk that never dies within
+      the step cap is left undecided. It is read at e - 2, r = 2 mod 3.
+  (11) THE BLOCK CODE (a fifth sitting's argument, written before its
+      engine). Let a_j = 1 off j = 2 mod 3 and b_i = a_(3i-1) >= 2, as
+      at e - 2 (b_i = 2i), and let r = 3s + 2. Cut the output positions
+      into blocks (3i - 2, 3i - 1, 3i), caps (b_i, 1, 1). The shifted
+      string puts x_i, y_i in {0, 1} at 3i - 2, 3i - 1 (input caps 1)
+      and e_i <= b_(i-s) at 3i (input cap b_(i-s), the only digit over
+      its new cap). The quotients give q_(3i) = q_(3i-1) + q_(3i-2),
+      q_(3i+1) = q_(3i) + q_(3i-1), and so the positive spill 2 q_(3i)
+      = q_(3i+1) + q_(3i-2). Write h_i = floor(e_i / 2), b'_i = e_i mod
+      2, spill each pair, and X_i = x_i + h_i + h_(i-1). Then carry once:
+      c_(i+1) = y_i b'_i (q_(3i-1) + q_(3i) = q_(3i+1)), Z_i = X_i + c_i,
+      and block i's output is
+          (Z_i, 0, 0)       if y_i = b'_i = 1,
+          (Z_i - 1, 0, 1)   if y_i = 1, b'_i = 0, Z_i >= 1,
+          (0, 1, 0)         if y_i = 1, b'_i = 0, Z_i = 0,
+          (Z_i, 0, b'_i)    if y_i = 0,
+      the second by q_(3i-2) + q_(3i-1) = q_(3i). Every case keeps the
+      value. It is LEGAL, so it is the greedy string, if Z_i <= b_i with
+      equality only when block i - 1 ends in 0: a 1 in the input at
+      3i - 2 - r sits at its cap 1 and zeroes the digit below, so x_i = 1
+      forces e_(i-1) = 0, and X_i <= h_i + max(1, h_(i-1)); x_i = 1 needs
+      i >= s + 2. So the condition is
+          (G)  floor(b_(i-s)/2) + max(1, floor(b_(i-s-1)/2)) < b_i
+               at i >= s + 2, and floor(b_1/2) < b_(s+1),
+      under which X_i <= b_i - 1 and Z_i = b_i only with c_i = 1, which
+      leaves block i - 1 ending (Z, 0, 0). The carry reads y_i and b'_i
+      alone, never Z_i, so no carry chains: block i's output reads the
+      shifted string on 3i - 4 .. 3i, and output digit j reads it at
+      most at j + 2, the input at most at j + 2 - r <= j. So sigma_r
+      reads at lookahead 0 at every depth, a theorem at every alpha of
+      (G). At e - 2, (G) is (i - s) + max(1, i - s - 1) < 2i: it holds
+      at every s, tightest at s = 0 (r = 2), where the left side is
+      2i - 1. A constant odd class quotient b >= 3 satisfies (G) at every
+      s; an even one b = 2u fails it at every s, where X_i can reach b
+      with no carry to clear the cap.
+  (12) THE SHARP CONDITION AND THE BORROW (a sixth sitting's argument,
+      written before its engine). THE PHASES. Let the class quotient sit
+      at the class indices J_i = 3i + psi, psi in {-1, 0, 1} the phase
+      (e - 2 is psi = -1), and cut the output into blocks (J_i - 1,
+      J_i, J_i + 1), caps (b_i, 1, 1). The shift by r = 3s + 2 sends
+      the class digit at J_j - 1 to the third slot of block j + s and
+      J_j, J_j + 1 to the first two of
+      block j + s + 1 at every phase, so (11) runs unchanged; the phase
+      moves only the bottom. Write B_i for the input cap of the digit in
+      block i's third slot: b_(i-s), except at psi = 1, where the first
+      class digit is digit 0 and B_s = b_0 - 1 (and block 0's output cap
+      is b_0 - 1 too), and 0 where that slot gets no class digit. THE SHARP
+      CONDITION. The block code's output is legal, so the greedy string,
+      iff at every block Z_i <= b_i, strictly when block i - 1's output
+      ends in a nonzero (E_(i-1)). Over the legal shifted strings,
+      with c_i = 1 forcing x_i = 0 and e_(i-1) odd below its cap, and
+      E_(i-1) forcing e_(i-1) odd (y = 0) or even below its cap (y = 1,
+      Z_(i-1) >= 1) or 0 (x_i = 1), the maxima are, above the bottom,
+          no E:     floor(B_i/2) + max(1, floor(B_(i-1)/2))
+          c_i = 1:  floor(B_i/2) + floor(B_(i-1)/2)
+          E:        floor(B_i/2) + max(1, floor((B_(i-1) - 1)/2)),
+      and the third forces the other two, so the output is legal iff
+          (S)  floor(B_i/2) + max(1, floor((B_(i-1) - 1)/2)) < b_i
+      at every block whose two blocks below carry class digits of cap
+      >= 2; the lowest blocks are decided by the same enumeration, which
+      a dynamic programme over the block states (h, beta, y, e = 0, E)
+      runs exactly. (S) differs from (G) only at an even B_(i-1) >= 4, so
+      every constant class quotient b >= 3, even b included, satisfies
+      it at every s, and b = 2 alone fails. THE BORROW. Let eps_i = Z_i -
+      b_i + [E_(i-1)], the excess, the output illegal at block i iff
+      eps_i >= 1. At eps_i = 1 with E_(i-1), b_i q_(J_i-1) + q_(J_i-2) =
+      q_(J_i) fixes the block by lowering the nonzero last digit of
+      block i - 1 and raising the middle of block i, whose carries run
+      only upward. Output digit J_i - 2 then reads the shifted string to
+      J_i + 1, three places up, so the input three places less r: the
+      lookahead is at most max(0, 3 - r) at every depth while every
+      violation is of this kind. At r = 2 it is 1 at depth J_i - 1 exactly
+      where block i can violate, since e_i, read one input place beyond
+      that depth, moves the digit, and 0 elsewhere; at r >= 5 it is 0.
+      So a violation of this kind makes no MIDDLE. Thue-Morse class caps
+      {2, 3} and the constant 2 violate only so (with E, Z_i = 2 = b_i).
+      An excess of 2, or of 1 without E (Z_i = b_i + 1), borrows from a
+      digit that may be 0 and can chain down; its reach is not derived.
+  (13) THE BORROW CODE (the same sitting, written after PS's run and
+      before its own engine). The paragraph above leaves a gap: a fixed
+      block ending (0, 1, 1) carries upward, and the block above may
+      itself sit at its cap over that 1. Close it by fixing every
+      violating block AT ONCE. Assume
+          (S')  floor(B_i/2) + max(1, floor(B_(i-1)/2)) <= b_i
+      at every block (the lowest by the programme: every row it finds
+      has excess 0 with E), so the no-E and c_i = 1 maxima of (12) are
+      within the cap and every violation is o_1 = b_i over a last digit
+      1 of block i - 1. Run up the blocks with a pending unit u (0 at
+      the bottom). Add u to block i's first digit; on (0, 1, 0) that is
+      q_(J_i-1) + q_(J_i) = q_(J_i+1), giving (0, 0, 1). If now o_1 =
+      b_i over a 1, rewrite b_i q_(J_i-1) + q_(J_i-2) = q_(J_i): the 1
+      below becomes 0, the
+      block (0, 1, o_3). A block left (0, 1, 1) waits: if the block
+      above violates over its 1, that block's rewrite consumes it and
+      it stays (0, 1, 0); if not, q_(J_i) + q_(J_i+1) = q_(J_i+2) makes it (0,
+      0, 0) and sends u = 1 up. The unit never breaks the cap: it
+      arrives only where the block below ended 1, where the block above
+      did not violate, so its first digit was at most b - 1 there, and
+      now sits over a 0. A (0, 1, 0) turned (0, 0, 1) can make the block
+      above violate, with excess 1 over E, the kind the run fixes. So
+      the output is legal, the greedy string. Every change runs upward
+      but one: the last digit of block i - 1, decided by block i's first
+      digit, which reads the shifted string to J_i + 1 = (J_i - 2) + 3,
+      and by the run from below. So output digit j reads the shifted
+      string at most at j + 3, the input at j + 3 - r, and sigma_r reads
+      at lookahead max(0, 3 - r) at every depth: 0 at r >= 5, and at r
+      = 2 at most 1, so never MIDDLE. Thue-Morse class caps {2, 3} and
+      the constant 2 satisfy (S') at every s; b_i = 2 with b_(i-s) or
+      b_(i-s-1) at 4 or more fails it.
+
+PREDICTIONS (frozen before the engine ran).
+  C1 CONTROLS, run first. (a) The walk: x 1 is never DISCONTINUOUS; x 2
+     and x 3 are, at every periodic alpha tried, with s_min = 1, the
+     cut -alpha, so from t0 (ostrowski.py). (b) The brute column
+     reader: the identity reads at 0 at every depth; x 2 tracks its cap
+     from t0; a planted non-map n XOR 1 is flagged.
+  P1 THE CHANGE OF NUMERATION. The integer identities hold exactly at
+     every alpha, r = 1..8, k = 0..40; the bound of (2) at every k <=
+     40; over every legal tail of length 7 at four alphas and
+     several alternating weights, the maximum is attained by the
+     cap-filling alone.
+  P2 THE COPY READER. Wherever (5)'s hypothesis holds (golden at every
+     r, [0; 2, 4, 8, ...] at r = 1..6, e - 2 at r = 3, 6, the one-class
+     numerations at r = P), the greedy string of sigma_r(n) is n's
+     string shifted, for every n < N. Kill: one n.
+  P3 THE LANDING CRITERION AGAINST THE BRUTE. At every cell read, the
+     walk's verdict and s_min give a column: no lookahead at depths t
+     >= t* = min{t : q_t >= max(s_min, 2)}, bounded before. The brute
+     reader at two ranges labels a depth TRACK (both readings within 2
+     of the range's cap, or the reading rising with the range by the
+     cap's own move less 1, at depths 5 or more below the first
+     range's top; the second clause added after the first run, see the
+     run record) or BOUNDED (equal readings, 4 below the
+     cap), or leaves it undecided. Kill: a decided label against the column.
+  P4 THE COMBS. Every comb string is legal and not a cap-filling; its
+     truncations' images equal the cut plus the telescoped remainder
+     exactly; a raised-tooth partner (even P) or the next truncation
+     (odd P, mod 3) sits on the other side of the cut. At e - 2 the brute
+     tracks the cap exactly from t* = 2, 4, 7 at r = 1, 4, 7 (s = q_r
+     = 1, 7, 71; TRANSPLANT, the earlier record's partings), reads 0 at
+     r = 3, 6, and is BOUNDED at every decided depth at r = 2, 5, 8 (an
+     observation, not a prediction the argument makes).
+  P5 THE PARITY LAW. On the one-class family, P = 2..6, a = 2..4
+     (--full: P <= 9, a <= 5), r = 1..2P: r = 0 mod P is never
+     DISCONTINUOUS (the copy reader); r mod P odd always is; r mod P
+     even and nonzero never is. At r <= 8, s_min = q_r at even P and
+     q_(r+1) at odd P: the combs' cuts are the shallowest (TRANSPLANT
+     from the earlier record, which read it at r < P). Kill: one cell
+     off.
+  P6 THE EVEN RESIDUES (argument (8)). E0, run first, the positive
+     control: at the odd residue rho = 1 of the one-class (3, 2) and
+     (4, 2) numerations, the member test below finds a nonzero member.
+     E1: on random legal periodic strings at both parities of P and
+     of the period multiple M, N x = w* - w exactly, with N = p_(n-1)
+     + q_n - 1 - (-1)^n, w = sum e_j q_j and w* = sum e_j (-1)^j
+     q_(n-2-j), n = MP; and x (alpha - alpha') equals F - C, both
+     summed directly, to 1e-40. E2: over every legal cyclic string of
+     period MP <= 14 (--full 18) at eight cells, every x lies in (-1,
+     1), C - F <= alpha - alpha' + T and F <= Fmax; the members (x and
+     y integers) are the zero string and, at even P, the cap-filling
+     of the even positions, and no other. E3: the lemma's margins at P <= 40, a in {2, 3, 5, 100,
+     10^4}: T < 0 and Fmax < 1 from the closed forms, the hand bounds
+     of (8) each true, and the P = 3 formula equal to T. E4: the walk
+     finds no interior cycle at every even residue, P = 10..16, a in
+     {2, 7}, and at odd P no live state at all (no cycle, by (iii)).
+     Kill: one pattern off in E1 or E2, one margin nonnegative in E3,
+     one cycle in E4.
+  P7 THE DROP (argument (9)). D0, run first, the positive control: the
+     walks of the drop and sigma_(P-1) at [1, 2] are one nonempty
+     gated graph, and at golden one graph with no cycle. D1: at golden,
+     silver, bronze, [1, 2], [2, 1, 3, 1], [1, 1, 2], [2, 1, 1] and the
+     one-class (P, a), P = 2..6, a = 2..4 (--full P <= 9, a <= 5), the
+     two walks have equal live, interior and cycle state sets, and
+     equal verdicts. D2: on the one-class family the drop is
+     DISCONTINUOUS exactly at even P, with s_min = 1 (the ascent comb's
+     cut -alpha). D3: the ascent comb, exact in integers: at six
+     sequences (three with every odd step ascending from 3 over {1, 2},
+     Fibonacci word, Thue-Morse and random; one with every even step
+     ascending from 2 at random quotients; one eventually ascending,
+     from j0 = 9; the even-P one-class (4, 3)) every truncation's image
+     is -theta_(j0) + theta_(last tooth) exactly, the string is legal
+     and no cap-filling, and raising a strict last tooth by 1 crosses
+     the cut. The ingredient removed (strictness): at golden the comb
+     is a cap-filling, and the drop there reads. D4: the e - 2 string,
+     E_m = m theta_(3m-4) - (m - 1) theta_(3m-3) exactly at m = 2..60,
+     the string legal, the truncations alternating sides of -alpha.
+     D5: the brute at the three odd-class sequences tracks its cap from
+     t = 2. Kill: one set unequal in D1, one cell off in D2, one
+     identity or side off in D3 or D4, one decided depth off in D5.
+     Past the criterion ((9)(iv)), at the window a_1 = 2, a_(D+1) = q_D
+     + q_(D-1) at D = 4, 8, ..., 24, every other quotient 1: D6, run
+     first, the positive control, the decrement's pair q_K - 1, q_(K+1)
+     - 1 parting at t0 - 1, K = 1..30; D7 the pair (j*, j* + 1) at
+     each D straddling -alpha exactly, single digits, the inputs
+     parting at D and the drops at t0 - 1; D8, the big quotient
+     removed, the pair (0, q_D) parting at D - 1 at the window's D + 2
+     and at golden, D = 4..24. Kill: one D off in D7, one row at 0 in
+     D8. Revised after the first run: D8 cannot fail, the drop of q_D
+     being q_(D-1) at every alpha, and is removed.
+  P8 THE UNIFORM LOOKAHEAD (argument (10)). U0, run first, the positive
+     controls: the walk's column c(t) reproduces the brute's recorded
+     columns, the drop at golden 0 2 1 2 1 ... and at the one-class
+     (3, 2) 4 3 2 repeating (F5 and the run record); at the
+     DISCONTINUOUS one-class (3, 2) and (4, 2), r = 1, some walk from j
+     <= q_t survives to the step cap exactly from t* on. U1 THE BOX:
+     every interior state met at a step k >= max(k_s, t_j - r + 1), t_j
+     the least depth with q_t >= max(j, 2), lies in B. U2: at every
+     cell not DISCONTINUOUS among the periodic sequences of P3 and the
+     one-class family (P = 2..6, a = 2..4; --full P <= 9, a <= 5; r =
+     -1, 1..2P), B's interior graph is acyclic and c(t) <= max(0, L +
+     1 + max(k_s - t, 1 - r)) at every depth with q_t <= QMAX. U3 THE BRUTE:
+     c_N(t) <= c(t) at every depth; equality wherever t + c(t) <=
+     depth(N) - 3 is expected but is not a kill. U4 e - 2: at r = 2, 5,
+     8 every walk from j <= q_t dies, at every depth with q_t <= QMAX
+     (TRANSPLANT, the brute's BOUNDED observation), and the column is
+     printed; at r = 1, 4 some walk survives to the cap from t* on.
+     Kill: a control off in U0, one state outside B, one cycle or one
+     depth over the bound in U2, one brute reading above the walk's.
+  P9 THE BLOCK CODE (argument (11)). B0, run first, the positive
+     controls: the comparison flags the block code with its carry
+     removed at e - 2, r = 2, and flags the full block code at the (G)
+     failure [0; (1, 2, 1)^oo], r = 2 (a mismatch, or an output not
+     legal). B1: at e - 2, r = 2, 5, 8, 11, the block code equals the
+     greedy string of sigma_r(n) at every n < N (20000; --full
+     200000), and on 500 random legal strings of 60 digits per stride
+     (exact integers), every output legal. B2: the same at four more
+     (G) numerations: the constant class quotients 3 and 5
+     ([0; (1, 3, 1)^oo], [0; (1, 5, 1)^oo]) at r = 2, 5, and two random
+     class sequences drawn to satisfy (G) at s = 0 and s = 1. B3: the
+     walk from every cut (argument (10)(iv)) reads lookahead 0 at every
+     depth t with q_t <= QMAX at each B2 cell (TRANSPLANT from e - 2's
+     U4), and its column at the failure [0; (1, 2, 1)^oo], r = 2 is
+     printed, not predicted. Kill: a control that does not flag in B0,
+     one n or string off or one output not legal in B1 or B2, one
+     nonzero depth in B3.
+  PS THE SHARP CONDITION (argument (12)). S0, run first, the positive
+     controls: the programme finds a violating block at [0; (1, 2, 1)^oo],
+     r = 2, and none at e - 2, r = 2, 5, 8. S1 THE PHASES: at psi = 0 and
+     psi = 1, the constant class quotient 3 and two random class
+     sequences drawn to satisfy (S) (b_i in 2..7), at r = 2, 5, the
+     phase's block code is the greedy string at every n < N and on 500
+     random 60-digit strings, and the walk from every cut reads 0 at
+     every depth t with q_t <= QMAX. S2 THE PROGRAMME DECIDES: over 24
+     random class sequences (b_i in 2..5, psi in {-1, 0, 1}, r = 2, 5),
+     where the programme finds no violating block in the first 60 input
+     digits the block code is the greedy string on every n < N and 500
+     random 60-digit strings, and where it finds one, its witness string
+     is legal and the comparison flags it. S3 THE CLOSED FORM: at every block
+     whose two blocks below carry caps >= 2, over 3000 random cases
+     (b in 2..12, psi = -1, s = 0..2), (S) and the programme agree. S4
+     THE EVEN CONSTANTS: [0; (1, 4, 1)^oo] and [0; (1, 6, 1)^oo], where
+     (G) fails, at r = 2, 5: the block code is the greedy string and the
+     walk reads 0 at every depth. S5 THE BORROW (TRANSPLANT from the
+     (1, 2, 1) column): at r = 2, at the Thue-Morse class caps {2, 3}
+     and the S2 sequences whose every excess is at most 1 with E, the
+     walk's column is exactly 1 at the depths J_i - 1 of the violating
+     blocks and 0 at every other depth; at r = 5, 8 it is 0 at every
+     depth at the Thue-Morse caps and the constant 2. The column at an
+     excess-2 cell, the class quotients alternating 2 and 9 at r = 5, is
+     printed, not predicted. Kill: a control that does not flag in S0,
+     one n or string off or one nonzero depth in S1 or S4, one sequence
+     where the comparison and the programme disagree in S2, one case
+     off in S3, one depth off in S5.
+  PB THE BORROW CODE (argument (13), frozen after PS's run). R0, run
+     first, the positive controls: the borrow code with its rewrites
+     removed is flagged at [0; (1, 2, 1)^oo], r = 2, and the full borrow
+     code is flagged at the class quotients alternating 2 and 9, r = 5,
+     where (S') fails. R1: at the Thue-Morse class caps {2, 3} and the
+     constant 2 at each phase psi = -1, 0, 1, and at six random class
+     sequences drawn to satisfy (S') (b_i in 2..6, two per phase), at
+     r = 2, 5, 8, the borrow code is the greedy string at every n < N
+     and on 500 random 60-digit strings. R2: at the same cells the
+     walk's column is at most max(0, 3 - r) at every depth with q_t <=
+     QMAX, and at r = 2 it is 1 exactly at the depths J_i - 1 of the
+     blocks the programme finds violating and 0 elsewhere. Kill: a
+     control that does not flag in R0, one n or string off in R1, one
+     depth off in R2.
+
+THE DESIGN. Exact integers throughout: a real A + B alpha is held as
+A Q + B P, alpha replaced by a convergent P / Q past 10^60
+(ostrowski.py's Numeration); tail sums run to the depth where q_j
+passes 10^80, far below any gap compared. The walk builds, per phase of
+the period at a base depth K0, the states (x, y, flag) inside the box
+whose real value lies between the tail extremes, keeps the greatest
+fixed point with a live successor, and looks for a cycle among the
+interior nonzero ones (Tarjan). s_min is found by walking forward from
+each lambda = kappa - s alpha, s = 1, 2, ..., until every surviving state
+is in the box, and asking whether one reaches an interior cycle. The
+brute reader sorts the integers below N by their digit strings, so an
+input tile of each depth is a run, and reads each run's least and
+greatest output strings: their common prefix is the tile's. Default:
+the controls, the identities, the copy reader, the combs, a criterion
+sample and the parity law to P = 6; --full widens every section but the
+change of numeration, the window past the criterion and the even
+residues' sections other than the census E2. Each control stops the
+run if it fails (gate). The
+even residues' section holds its reals as decimals at 120 digits,
+reading alpha and alpha' off the period's quadratic; the lattice test
+and w* - w stay in exact integers. Its direct sums run the forward
+recurrence for theta_j and the backward one for theta'_j, both unstable
+in the direction summed, so they stop at 1e-45, where the amplified
+rounding is still below 1e-70. The uniform section walks every start
+lambda = kappa - j alpha, j <= QMAX (1000; --full 5000), at once,
+holding for each interior state the least j that reaches it, so K(t)
+is the last step whose least j is at most q_t; the step cap is t + 40
+past the deepest depth read. B's graph is built per residue mod P at
+the walk's base depth K0, the state at step k read at residue k mod P.
+The block section computes the block code from the shifted string and
+compares it digit for digit with ostrowski.py's greedy string of
+sigma_r(n), and checks legality against the caps; its random strings
+are drawn digit by digit under the caps with a cap forcing a zero
+below it. The sharp section's block code takes the phase psi and
+places its blocks at (J_i - 1, J_i, J_i + 1); its programme walks the
+input's digits block by block, holding every reachable state (h, beta,
+y, e = 0, E) with the least witness prefix reaching it, and at each
+block computes Z_i and the output's legality against ostrowski.py's
+caps (digit 0 under a_1 - 1, no zero forced below it), so a violating
+block comes with a legal input string that reaches it.
+
+FINDINGS (entered after the run, from its prints; `--full`).
+  F1 CONTROLS (C1, all green, run first). The walk reads x 1 at golden,
+     silver and [1, 2] as never DISCONTINUOUS and x 2, x 3 as
+     DISCONTINUOUS with s_min = 1 at all three, on cycles of 3 to 16
+     states. The brute reads the identity at 0 at every depth, x 2 at
+     golden tracking its cap from t0 = 2, and flags n XOR 1.
+  F2 THE CHANGE OF NUMERATION (P1 lands). The continuant identities
+     hold with 0 off at eight alphas, r <= 8, k <= 40; the term bound
+     holds at r = 0..8 at the seven alphas other than the one-class
+     (4, 3); over 144 weight sets on every legal tail of
+     length 7 the cap-filling alone attains the maximum.
+  F3 THE COPY READER (P2 lands). 20 (numeration, stride) cases, the
+     hypothesis true at each and 0 of N off at every one: golden r =
+     1..6, [0; 2, 4, 8, ...] r = 1..6, e - 2 r = 3, 6, and the one-class
+     (3, 2), (4, 3), (5, 2) at r = P and 2P.
+  F4 THE COMBS (P4 lands). 30 checks: the odd-position comb at even P =
+     2..8, a = 2, 3, 5, every odd r <= 2P + 1, each with its raised
+     tooth across the cut; the odd-P comb at P = 3..9, same a, every r
+     <= 2P + 1 with r mod P odd, truncations alternating; the class
+     comb at e - 2, three random class-cap numerations (one per phase)
+     and the one-class (3, 2), (3, 4), at r = 1, 4, 7, 10. At e - 2 the
+     brute tracks the cap exactly from t* = 2, 4, 7 at r = 1, 4, 7 (0
+     at every depth before), reads 0 at r = 3, 6, and is BOUNDED at
+     every decided depth at r = 2, 5, 8, 10 depths each (observation;
+     settled later by F9's walk from every cut: lookahead 0 at every
+     depth t <= 10).
+  F5 THE LANDING CRITERION (P3 lands). 68 cells (five periodic alphas
+     at the drop and strides 1..3, six one-class ones at the drop and
+     1..2P; 64 distinct, since [1, 2] is the one-class (2, 2) and its
+     four cells are counted twice): 691 depths decided over the 68, 0
+     against the walk's column, 85
+     undecided. Where the brute decides the depths around a predicted
+     first depth at no lookahead, it starts tracking exactly there: the
+     one-class (4, 3) at r = 1, 3, 5, 7 from t* = 2, 3, 5, 7 (s_min =
+     1, 3, 14, 39). At the one-class (4, 2), the drop and r = 1, 3, 5,
+     7, it decides no depth from t* on, reading one value at both
+     ranges, one below the smaller range's cap. The drop reads at golden
+     (column 0 2 1 2 1 ...), silver, bronze and the three odd-P
+     one-class cells, and reads at no lookahead from t = 2 at the
+     three even-P one-class cells, [1, 2] = (2, 2) among them.
+  F6 THE PARITY LAW (P5 lands). 352 cells, P = 2..9, a = 2..5, r =
+     1..2P: DISCONTINUOUS exactly at r mod P odd, 0 off, every extreme
+     state with one live successor. s_min equals q_r (even P) or
+     q_(r+1) (odd P) at all 112 DISCONTINUOUS cells with r <= 8: the
+     combs' cuts are the shallowest there, and the depth they fix is
+     where each column opens.
+  F7 THE EVEN RESIDUES (P6 lands; --full). E0, run first: the odd
+     residue rho = 1 has a nonzero member at (3, 2), (2, 0, 0) repeated,
+     and at (4, 2), the comb (1, 0) repeated. E1: 227 random legal
+     periodic strings over seven cells and m = 1..3, N x = w* - w with
+     0 off, and x (alpha - alpha') against the directly summed F - C
+     within 3.5e-45 at worst. E2: 3,563,549 legal cyclic strings over
+     the eight cells, period to 18, every x in (-1, 1), both bounds
+     held with 0 off, and the members exactly the zero string and the
+     cap-filling of the even positions at the four even-P cells, the zero string alone at
+     the four odd-P ones. E3: 1900 cells, P = 3..40, max T = -0.2500 (the P = 3
+     limit -1/4 as a grows), the least odd-P gap 1 - Fmax = 3.02e-09
+     (Fmax rises to 1 as |eta| falls), every hand bound of (8) true and
+     the P = 3 closed form equal to T. E4: 80 walks at P = 10..16, no
+     interior cycle, and no live state at all at odd P. So argument (8)
+     is what the law's bounded half rests on at every P: the parity law
+     is a theorem.
+  F8 THE DROP (P7 lands; --full). D0, run first: at [1, 2] the drop's
+     walk and sigma_1's are one graph, 19 live states, a 2-state
+     cycle; at golden one graph of 5 live states and no cycle. D1: at
+     39 periodic sequences (the seven named and the one-class P = 2..9,
+     a = 2..5; 37 distinct alphas, the one-class (2, 2) and (3, 2)
+     repeating [1, 2] and [1, 1, 2]) the two walks' live, interior and
+     cycle sets are equal, 1373 live states compared over the 39, 0
+     off. D2: the one-class drop is
+     DISCONTINUOUS at exactly the 16 even-P cells of 32, s_min = 1 at
+     each. D3: the ascent comb lands exactly, 60 teeth, legal and
+     straddled by its raised strict tooth, at all six sequences: on
+     -alpha at the three odd-class sequences (j0 = 1), the even class
+     (j0 = 0) and the one-class (4, 3), and on -q_9 alpha = -32403
+     alpha at the sequence ascending from j0 = 9. At golden the comb is a
+     cap-filling and the drop reads. D4: E_m's identity holds at m =
+     2..60 with 0 off, the string legal, the sides alternating. D5: the
+     brute tracks its cap from t = 2 at all three odd-class sequences
+     (24, 22 and 21 depths over three range pairs), 0 decided against.
+     The walk also reads the drop at [2, 1, 3, 1], whose even class
+     ascends strictly, as DISCONTINUOUS with s_min = 1, as the comb
+     says. So the drop's two old theorems are two landing strings, and
+     at a periodic alpha it is the stride P - 1. Past the criterion:
+     D6 green at K = 1..30; D7 at every D, j* = 3, 129, 220716,
+     647577653847, then 25 and 51 digits, the inputs parting at D and
+     the drops at 0 = t0 - 1; D8's 27 rows (6 at the window, 21 at
+     golden) at exactly D - 1, which they are at every alpha: D8 was
+     a check that could not fail, and is removed. The predicted 26 and
+     52 digits were a_(D+1)'s, misread from the old record; j* equalled
+     its hits at D <= 16.
+  F9 THE UNIFORM LOOKAHEAD (P8 lands; --full). U0, run first: the walk's
+     column is 0 2 1 2 1 ... for the drop at golden and 0 4 3 2 4 3 2
+     ... at the one-class (3, 2), the brute's recorded columns, and at
+     the one-class (3, 2) and (4, 2), r = 1, some walk survives to the
+     cap exactly from t* = 2. U1: every interior state past k_1 lies in
+     B, 0 off. U2: 221 cells not DISCONTINUOUS, 3194 depths, B acyclic
+     at every cell, no depth over the bound; the widest column is 10,
+     the drop at the one-class (9, 2), where L = 11. Of the 23 columns
+     printed, most even-residue ones are 0 at every printed depth
+     (q_t <= QMAX) and the rest repeat with the period where the range shows a repeat: the
+     one-class (4, 2) at r = 2 reads 1 at every fourth depth, (6, 4)
+     and (6, 5) at r = 2 read 2 1 every sixth, the drop at (5, 3) reads
+     3 2 1 5 4 3 2 1 5 4 ...; (6, 2) at r = 2 and 4 reads a lone 1 at t
+     = 11. Whether every column repeats is not read. U3: the brute never
+     reads above the walk, and it equals the walk at all 3133 depths
+     with room. U4: at e - 2 every walk from j <= q_t dies at r =
+     2, 5, 8 at every depth t <= 10, with lookahead 0 at each, and at r
+     = 1, 4 some walk survives exactly from t* = 2, 4. So at a periodic
+     alpha the walk's maps are LIPSCHITZ or DISCONTINUOUS, and the
+     strides r = 2 mod 3 at e - 2 read at 0 at every depth t <= 10
+     (F10 proves every depth). (A later proof read found two faults.
+     The cell [1, 2] is the one-class (2, 2) and was walked twice; the
+     cells are now deduplicated. And a live start can lie below
+     -j(alpha - alpha'), so the box's u needs the upper end
+     G+ = max(0, H0 - g)/(g - 1), g = alpha - alpha' > 1, not 0; the
+     box and the check now carry it. Rerun --full: U1 0 off; U2 221
+     cells, 3194 depths, B acyclic, none over, widest 10 at the drop
+     of the one-class (9, 2); U3 0 of 3133 roomy depths unequal.
+     149 s, peak 36 MB.)
+  F10 THE BLOCK CODE (P9 lands; --full). B0, run first: with the carry
+     removed the comparison flags 168568 of 200000 integers at e - 2,
+     r = 2 (first [0, 2, 0, 1]), and the full block code is flagged at
+     7833 of 200000 at the (G) failure [0; (1, 2, 1)^oo], r = 2 (first
+     [0, 2, 0, 1, 0, 1, 0, 2]). B1: at e - 2, r = 2, 5, 8, 11, the block
+     code is the greedy string at all 200000 integers and all 500
+     random 60-digit strings, 0 off, every output legal. B2: the same,
+     0 off, at [0; (1, 3, 1)^oo] and [0; (1, 5, 1)^oo] at r = 2, 5 and
+     at the random (G) class sequences (s = 0: 2, 4, 6, 10, 12, 14, 15,
+     18, 23, 23, ...; s = 1: 3, 2, 6, 11, 12, 13, ..., which falls at
+     its second term). B3: the walk from every cut reads 0 at every
+     depth at all six B2 cells (t <= 13, 13, 10, 10, 10, 10). At the
+     (G) failure [0; (1, 2, 1)^oo], r = 2, the walk's column is 0 0 0
+     0 0 0 1 0 0 1 0 0 1 0: lookahead 1 at every third depth from t =
+     7, so (G) is not idle there. So e - 2's strides r = 2 mod 3 read at
+     lookahead 0 at every depth, a theorem, and so does every (G)
+     numeration.
+  F11 THE SHARP CONDITION (PS lands; --full). S0, run first: the
+     programme finds 18 violating blocks at [0; (1, 2, 1)^oo], r = 2, the
+     first at P = 8, where the walk's column first reads 1 at t = 7, and
+     none at e - 2, r = 2, 5, 8. S1: at psi = 0 and 1, the constant 3 at
+     r = 2, 5 and the random (S) sequences (psi = 0: 4, 7, 7, ...; 3, 7,
+     5, 6, ...; psi = 1: 2, 2, 3, 3, 5, 7, ...; 6, 7, 6, 7, ...) have no
+     violation, the phase's code is the greedy string at 200000 integers
+     and 500 strings, 0 off, and the walk reads 0 at every depth, t <= 9
+     to 13. S2: all 24 random sequences over 2..5 had violations, and
+     every witness was legal and flagged; the clean branch was not exercised there, only in S1 and
+     S4. S3: 3000 cases, (S) and the programme 0 off. S4: at [0; (1, 4,
+     1)^oo] and [0; (1, 6, 1)^oo], where (G) fails, r = 2, 5: no
+     violation, 0 of 200000 off, the walk 0 at every depth t <= 10. S5:
+     at the Thue-Morse caps, r = 2, every violation is excess 1 over E
+     and the column is 1 exactly at t = 10, the one violating depth in
+     range, 0 elsewhere to t = 13; no S2 sequence had only such
+     violations at r = 2. At r = 5, 8 the Thue-Morse caps (26 and 18
+     violations) and the constant 2 (18 each) read 0 at every depth, t
+     <= 13 and 14. The class quotients 2 and 9 alternating, r = 5, show
+     excesses up to 3, with and without E, and the column 0 ... 0 3 2 1
+     at t = 8, 9, 10.
+  F12 THE BORROW CODE (PB lands; --full). R0, run first: the rewrites
+     removed are flagged at 7833 of 200000 at [0; (1, 2, 1)^oo], r = 2,
+     and the full borrow code at 128617 of 200572 inputs at the
+     alternating 2 and 9, r = 5. R1: at 36 cells (the Thue-Morse caps,
+     the constant 2 and two random (S') sequences at each phase, r = 2,
+     5, 8) the borrow code is the greedy string at 200000 integers and
+     500 strings, 0 off. R2: at all 36 the walk's column is at most
+     max(0, 3 - r), and at r = 2 exactly 1 at the programme's violating
+     depths: the constant 2 at t = 7, 10, 13 (psi = -1), 8, 11, 14 (psi =
+     0), 9, 12 (psi = 1), the Thue-Morse caps at t = 10, 11, 9. So a
+     class sequence under (S') is LIPSCHITZ at lookahead 1 or reads at
+     0, never MIDDLE, a theorem by argument (13).
+
+RUN RECORD (the estimate first, then what it cost).
+  Estimated a minute default, a few --full. The default runs in 15 s
+  (67 checks); --full in 61.6 s, peak working set 48.9 MB under
+  a 512 MB memory guard, 73 of 73. The first runs stopped on three bugs of
+  this script, none a finding: the continuant table was indexed one
+  quotient late (5248 identities off, fixed before any verdict was
+  read), and two quotient lists were read past their ends. The brute's
+  TRACK label was widened after the first green run: gated cells whose
+  reading rose with the range by the cap's own move but sat 3 or 4
+  below the cap were undecided, and a clause reading the rise was
+  added. Its first form mislabelled one bounded column (the drop at
+  the one-class (3, 2), true column 4 3 2 repeating) at a depth where
+  the small range was too small to hold the witnesses, so the clause
+  was confined to depths 5 or more below the first range's top. Both
+  changes can only decide what was undecided; the kill on a decided
+  disagreement is unchanged. The rising clause is weak where the two
+  ranges' top depths differ by 2 or less (silver): there any rise
+  reads as TRACK.
+  The even residues' section added 15 checks: 82 in 16.3 s by
+  default, 88 in 134.3 s --full, peak working set 49.0 MB. Its first
+  runs stopped on three faults of this script, none a finding: the forward
+  recurrence overflowed when the direct sums ran to 1e-50 at 90 digits
+  (precision raised to 120, stop at 1e-45, the 1e-40 tolerance kept);
+  the odd-P maximum of Fmax was overwritten by the even cells' 1, so
+  E3 failed on bookkeeping with every cell below 1; and --full was
+  killed at 512 MB because the string list was built whole, now
+  generated one at a time. E3's check was tightened after the run from
+  the prediction's T < 0 to the T <= -1/4 the run printed; the
+  prediction's kill is still one margin nonnegative.
+  The drop's section added 14 checks: 102 of 102 in 159.4 s --full,
+  peak working set 61.3 MB. D5's first form read one range pair and
+  counted a pass on any decided depth; its first run passed the
+  Fibonacci-word sequence on depth 1 alone, before the column opens, so
+  the pass was required to hold a decided depth t >= 2, and the pair
+  was widened to (8000, 60000). Its first --full run, at (20000,
+  150000), left the Thue-Morse and random sequences undecided at every
+  depth (Thue-Morse rising 14 to 16 at t = 2 while the cap moved 16 to
+  20; random equal at 16), none decided against. The brute's label is
+  heuristic and a range pair whose gap holds no fresh landing decides
+  nothing, so D5 now reads every pair and passes on a TRACK at t >= 2
+  in some pair with none off in any. The kill is unchanged.
+  The uniform section added 12 checks: 108 of 108 in 42.1 s by default,
+  114 of 114 in 363.2 s --full (the section 193.2 s), peak working set
+  61.8 MB. Its first run failed U2 on the frozen bound's own statement,
+  L + 1 + max(k_s - t, 1 - r) without the clamp at 0 that (i) puts on
+  c(t): at silver, r = 3, L = 0, it read -1 against a column of 0. The
+  clamp was added to the argument and the check; no column changed.
+  The block section added 18 checks, 2.0 s by default: 132 of 132 in
+  387.9 s --full (the section 19.7 s), peak working set 109.4 MB under
+  a 512 MB memory guard. Its first run stopped on a newline escape this
+  script's own edit wrote into a string literal, before any check.
+  The sharp and borrow sections added 27 checks, 14.1 s by default:
+  159 of 159 in 570.2 s --full (the two sections 23.9 s and 93.8 s),
+  peak working set 119.6 MB under a 512 MB memory guard. The sharp
+  section's first run stopped on this script's own fault before its S5
+  strides past 2: the Thue-Morse numeration, 90 class quotients long,
+  never passed 10^80, so the walk read past its quotients; it was
+  lengthened to 200.
+  The section past the criterion added 2 checks, under 0.1 s, the same
+  at --full: 156 of 156 in 51.2 s by default, peak commit 36.7 MB under
+  a 512 MB memory guard (its first run, D8 then a third check, 157 of
+  157 in 52.0 s, peak 35.8 MB).
+  After a code read: every control stops the run if it fails; checks
+  that held by construction cut (D3's ingredient arm, D7's
+  a_(D+1) > q_D, even_comb's guard); x 2 and e - 2's r = 1, 4, 7 need a
+  TRACK seen, the criterion's checks are one count; U0 asks 4 3 2 in
+  order, U1b prints the least lambda' (-0.8837 at j = 1), U4 asks
+  lookahead 0, E1 checks E2's closed form, S2 asks a violation at all
+  24. 156 of 156 in 58.3 s by default, peak commit 36.9 MB; 162 of 162
+  in 474.6 s --full, peak commit 115.6 MB under a 512 MB memory guard,
+  a track seen at 22 of 27 DISCONTINUOUS criterion cells, E2 3,563,549
+  strings, R2's columns to t = 9 ... 14.
+"""
+
+import math
+import os
+import random
+import sys
+import time
+from decimal import Decimal, getcontext
+from fractions import Fraction
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from ostrowski import Numeration, e_minus_2, alphas  # noqa: E402
+
+CHECKS = []
+FULL = "--full" in sys.argv
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f" -- {detail}" if detail else ""))
+
+
+def gate(k0):
+    """Stop the run if a control checked since CHECKS[k0] failed."""
+    if not all(CHECKS[k0:]):
+        print("\nCONTROL FAILED: nothing below is read.")
+        sys.exit(1)
+
+
+def periodic(name, period):
+    reps = -(-800 // len(period))
+    return Numeration(name, list(period) * reps)
+
+
+def one_class(P, a):
+    return (1,) * (P - 1) + (a,)
+
+
+def seq_qp(quots, n):
+    """q_k, p_k for k = -1 .. n - 1 of [0; quots], as dicts."""
+    q, p = {-1: 0, 0: 1}, {-1: 1, 0: 0}
+    for k in range(1, n):
+        a = quots[k - 1]
+        q[k] = a * q[k - 1] + q[k - 2]
+        p[k] = a * p[k - 1] + p[k - 2]
+    return q, p
+
+
+# ------------------------------------------------------------ the numeration
+
+class Num:
+    """A numeration with its reals scaled by Q: theta_k is T(k)."""
+
+    def __init__(self, w):
+        self.w, self.Q, self.P = w, w.Q, w.P
+        self.top = 0
+        while w.q(self.top + 1) < 10 ** 80 and self.top + 3 < len(w.a):
+            self.top += 1
+        self._T = {}
+
+    def T(self, k):
+        v = self._T.get(k)
+        if v is None:
+            v = self._T[k] = -self.w.p(k) * self.Q + self.w.q(k) * self.P
+        return v
+
+    def cap(self, k):
+        return self.w.a[1] - 1 if k == 0 else self.w.a[k + 1]
+
+
+def shift_map(w, r):
+    """sigma_r on integers (r = -1: the drop)."""
+    def f(n):
+        d = w.digits(n)
+        if r >= 0:
+            return sum(dk * w.q(k + r) for k, dk in enumerate(d))
+        return sum(dk * w.q(k - 1) for k, dk in enumerate(d) if k >= 1)
+    return f
+
+
+# ------------------------------------------------------------ the walk
+
+NUMS = {}
+
+class Walk:
+    """The landing walk of f(n) alpha = sum m d_k theta_(k+r) mod 1 at
+    the purely periodic alpha with the given period (argument (6))."""
+
+    def __init__(self, per, r, m=1):
+        self.per, self.L, self.r, self.m = tuple(per), len(per), r, m
+        self.num = NUMS.get(self.per)
+        if self.num is None:
+            self.num = NUMS[self.per] = Num(periodic(str(per), per))
+        self.A = max(per)
+        L = self.L
+        self.K0 = L * max(2, -(-(abs(r) + 16) // L))
+        self.ks = max(0, -r)
+        self.cap_depth = self.K0 + 12 * L
+        num = self.num
+        assert num.top > self.cap_depth + abs(r) + 60, (per, num.top)
+        # Hp(k), Hn(k): the tail sums of cap_j w_j over the positive and
+        # the negative weights from position k on
+        self.Hp, self.Hn = {}, {}
+        hp = hn = 0
+        for j in range(num.top - 1, -1, -1):
+            wj = m * num.T(j + r)
+            if wj > 0:
+                hp += num.cap(j) * wj
+            else:
+                hn += num.cap(j) * wj
+            self.Hp[j], self.Hn[j] = hp, hn
+        self._bd = {}
+        self.rhoc = [self._rho_conj(j) for j in range(L)]
+        self.build()
+
+    def a(self, j):
+        return self.per[(j - 1) % self.L]
+
+    def _rho_conj(self, j):
+        """zeta'_j = [a_j; a_(j-1), ..., a_1, a_P, ...], by residue mod P."""
+        v = 1.0
+        for i in range(j - 400, j + 1):
+            v = self.a(i) + 1.0 / v
+        return v
+
+    def bounds(self, k, f):
+        """(lo, hi, tol): the least and greatest legal tail sums from
+        position k given flag f (the digit at k - 1 was 0), scaled."""
+        key = (k, f)
+        v = self._bd.get(key)
+        if v is None:
+            hi, lo = self.Hp[k], self.Hn[k]
+            if not f:
+                wk = self.m * self.num.T(k + self.r)
+                if wk > 0:
+                    hi -= wk
+                else:
+                    lo -= wk
+            tol = abs(self.num.T(k + self.r + 30))
+            v = self._bd[key] = (lo, hi, tol)
+        return v
+
+    def value(self, k, x, y):
+        return x * self.num.T(k + self.r) + y * self.num.T(k + self.r - 1)
+
+    def live(self, k, x, y, f):
+        lo, hi, tol = self.bounds(k, f)
+        D = self.value(k, x, y)
+        return lo - tol <= D <= hi + tol
+
+    def extreme(self, k, x, y, f):
+        lo, hi, tol = self.bounds(k, f)
+        D = self.value(k, x, y)
+        return abs(D - hi) <= tol or abs(D - lo) <= tol
+
+    def steps(self, k, x, y, f):
+        cap = self.num.cap(k) - (0 if f else 1)
+        a1 = self.a(k + self.r + 1)
+        for d in range(cap + 1):
+            yield d, y, x - self.m * d - a1 * y, d == 0
+
+    def admissible(self, p, x, y):
+        """Inside the box of argument (6), with a unit of slack."""
+        k = self.K0 + p
+        rho = self.num.T(k + self.r) / self.num.T(k + self.r - 1)
+        rc = self.rhoc[(k + self.r) % self.L]
+        u = x * rc + y
+        return -self.U - 1 <= u <= 1 and abs(x * rho + y) <= self.H + 1
+
+    def build(self):
+        L, K0 = self.L, self.K0
+        rmin = min(self.rhoc)
+        self.U = self.m * self.A * rmin / (rmin - 1)
+        H = 0.0
+        for p in range(L):
+            k = K0 + p
+            t0 = abs(self.num.T(k + self.r - 1))
+            for f in (True, False):
+                lo, hi, _tol = self.bounds(k, f)
+                H = max(H, abs(lo) / t0, abs(hi) / t0)
+        self.H = H
+        B = int(self.U + self.H) + 3
+        states = []
+        for p in range(L):
+            k = K0 + p
+            rho = self.num.T(k + self.r) / self.num.T(k + self.r - 1)
+            rc = self.rhoc[(k + self.r) % L]
+            for x in range(-B, B + 1):
+                ylo = max(-self.H - 1 - x * rho, -self.U - 1 - x * rc)
+                yhi = min(self.H + 1 - x * rho, 1 - x * rc)
+                for y in range(math.ceil(ylo), math.floor(yhi) + 1):
+                    if (x, y) == (0, 0):
+                        continue
+                    for f in (True, False):
+                        if self.live(k, x, y, f):
+                            states.append((p, x, y, f))
+        sset = set(states)
+        succ = {}
+        for st in states:
+            p, x, y, f = st
+            out = []
+            for _d, X, Y, f2 in self.steps(K0 + p, x, y, f):
+                s2 = ((p + 1) % L, X, Y, f2)
+                if s2 in sset:
+                    out.append(s2)
+            succ[st] = out
+        alive = set(states)
+        changed = True
+        while changed:
+            changed = False
+            for st in list(alive):
+                if not any(s2 in alive for s2 in succ[st]):
+                    alive.discard(st)
+                    changed = True
+        self.alive = alive
+        interior = {st for st in alive
+                    if not self.extreme(K0 + st[0], st[1], st[2], st[3])}
+        self.interior = interior
+        g = {st: [s2 for s2 in succ[st] if s2 in interior]
+             for st in interior}
+        cyc = set()
+        for comp in tarjan(g):
+            if len(comp) > 1 or comp[0] in g[comp[0]]:
+                cyc.update(comp)
+        self.cycle_states = cyc
+        pred = {st: [] for st in interior}
+        for st, out in g.items():
+            for s2 in out:
+                pred[s2].append(st)
+        reach, todo = set(cyc), list(cyc)
+        while todo:
+            st = todo.pop()
+            for s0 in pred[st]:
+                if s0 not in reach:
+                    reach.add(s0)
+                    todo.append(s0)
+        self.reach = reach
+        self.gated = bool(cyc)
+        # extreme states: one live successor each (argument (6))
+        self.extreme_ok = all(
+            sum(1 for s2 in succ[st] if s2 in alive) == 1
+            for st in alive - interior)
+
+    def landed(self, s):
+        """Does some legal string from a non-cut land on the cut -s
+        alpha (True / False), or is it undecided (None)?"""
+        w, r, ks = self.num.w, self.r, self.ks
+        ia, ib = ks + r, ks + r - 1
+        pa, pb, qa, qb = w.p(ia), w.p(ib), w.q(ia), w.q(ib)
+        det = -pa * qb + pb * qa
+        assert det in (1, -1)
+        lo, hi, _tol = self.bounds(ks, True)
+        # lambda = m0 - s alpha within [lo, hi] (scaled by Q)
+        m_lo = (lo + s * self.num.P) // self.num.Q
+        m_hi = (hi + s * self.num.P) // self.num.Q + 1
+        cur = set()
+        for m0 in range(m_lo, m_hi + 1):
+            x = (m0 * qb - pb * s) * det
+            y = (pa * s - qa * m0) * det
+            if self.live(ks, x, y, True):
+                cur.add((x, y, True))
+        k, cap = ks, self.cap_depth
+        while cur and k < cap:
+            if k >= self.K0:
+                p = k % self.L
+                inbox = [self.admissible(p, x, y) for x, y, f in cur]
+                if any(ok and (p, x, y, f) in self.reach
+                       for ok, (x, y, f) in zip(inbox, cur)):
+                    return True
+                if all(inbox):
+                    return False
+            nxt = set()
+            for x, y, f in cur:
+                for _d, X, Y, f2 in self.steps(k, x, y, f):
+                    if (X, Y) != (0, 0) and self.live(k + 1, X, Y, f2):
+                        nxt.add((X, Y, f2))
+            cur, k = nxt, k + 1
+        return False if not cur else None
+
+    def s_min(self, smax):
+        for s in range(1, smax + 1):
+            v = self.landed(s)
+            if v is None:
+                return None, s
+            if v:
+                return s, s
+        return None, smax
+
+
+def tarjan(g):
+    """Strongly connected components of a dict graph, iteratively."""
+    index, low, onst, stack, comps, cnt = {}, {}, set(), [], [], [0]
+    for root in g:
+        if root in index:
+            continue
+        work = [(root, iter(g[root]))]
+        index[root] = low[root] = cnt[0]
+        cnt[0] += 1
+        stack.append(root)
+        onst.add(root)
+        while work:
+            v, it = work[-1]
+            advanced = False
+            for w in it:
+                if w not in index:
+                    index[w] = low[w] = cnt[0]
+                    cnt[0] += 1
+                    stack.append(w)
+                    onst.add(w)
+                    work.append((w, iter(g[w])))
+                    advanced = True
+                    break
+                if w in onst:
+                    low[v] = min(low[v], index[w])
+            if advanced:
+                continue
+            work.pop()
+            if work:
+                low[work[-1][0]] = min(low[work[-1][0]], low[v])
+            if low[v] == index[v]:
+                comp = []
+                while True:
+                    w = stack.pop()
+                    onst.discard(w)
+                    comp.append(w)
+                    if w == v:
+                        break
+                comps.append(comp)
+    return comps
+
+
+def first_depth(w, s):
+    t = 1
+    while w.q(t) < max(s, 2):
+        t += 1
+    return t
+
+
+# ------------------------------------------------------------ the brute
+
+def column(w, f, N):
+    """c_N(t) for every depth t: the least c such that every input tile
+    of depth t + c among n < N holds one output prefix of depth t."""
+    outs = [f(n) for n in range(N)]
+    D = max(len(w.digits(max(outs))), len(w.digits(N - 1))) + 2
+    B = max(4, (max(max(w.a[1:D + 2]), 1) + 1).bit_length())
+
+    def enc(v):
+        e = 0
+        for k, dk in enumerate(w.digits(v)):
+            e |= dk << (B * (D - 1 - k))
+        return e
+    ein = [enc(n) for n in range(N)]
+    eout = [enc(v) for v in outs]
+    order = sorted(range(N), key=ein.__getitem__)
+    mu = []
+    for s in range(D + 1):
+        shift = B * (D - s)
+        best, key, mn, mx, cnt = None, None, None, None, 0
+        for i in order + [None]:
+            kk = None if i is None else ein[i] >> shift
+            if kk != key or i is None:
+                if cnt >= 2 and mn != mx:
+                    u = D - 1 - ((mn ^ mx).bit_length() - 1) // B
+                    best = u + 1 if best is None else min(best, u + 1)
+                if i is None:
+                    break
+                key, mn, mx, cnt = kk, eout[i], eout[i], 1
+            else:
+                cnt += 1
+                v = eout[i]
+                if v < mn:
+                    mn = v
+                if v > mx:
+                    mx = v
+        mu.append(best if best is not None else 10 ** 9)
+    col = {}
+    for t in range(1, D):
+        c = 0
+        while t + c <= D and mu[t + c] < t + 1:
+            c += 1
+        col[t] = c
+    return col
+
+
+def labels(w, f, N1, N2):
+    """Per depth: TRACK, BOUNDED or None, and the two readings."""
+    c1, c2 = column(w, f, N1), column(w, f, N2)
+    T1, T2 = w.depth_of(N1), w.depth_of(N2)
+    out = {}
+    for t in range(1, T1 - 2):
+        cap1, cap2 = T1 + 1 - t, T2 + 1 - t
+        a, b = c1[t], c2[t]
+        if (a >= cap1 - 2 and b >= cap2 - 2) or (
+                t <= T1 - 5 and b - a >= T2 - T1 - 1 and b > a):
+            lab = "TRACK"
+        elif a == b and b <= cap1 - 4:
+            lab = "BOUNDED"
+        else:
+            lab = None
+        out[t] = (lab, a, b)
+    return out
+
+
+def compare(w, f, N1, N2, tstar):
+    """Brute labels against the column tstar predicts (None: never
+    DISCONTINUOUS). Returns (decided, off, undecided, the row)."""
+    lab = labels(w, f, N1, N2)
+    dec = off = und = 0
+    row = []
+    for t, (lb, a, b) in sorted(lab.items()):
+        want = "TRACK" if (tstar is not None and t >= tstar) else "BOUNDED"
+        if lb is None:
+            und += 1
+            row.append("?")
+        else:
+            dec += 1
+            if lb != want:
+                off += 1
+                row.append("X")
+            else:
+                row.append("G" if lb == "TRACK" else str(b))
+    return dec, off, und, " ".join(row)
+
+
+# ------------------------------------------------------------ sections
+
+def section_controls():
+    print("== C1 controls, run first")
+    for name, per in (("golden", (1,)), ("silver", (2,)), ("[1, 2]", (1, 2))):
+        wk1 = Walk(per, 0, 1)
+        check(f"walk: x 1 at {name} never DISCONTINUOUS", not wk1.gated)
+        for m in (2, 3):
+            wk = Walk(per, 0, m)
+            s, _ = wk.s_min(3)
+            check(f"walk: x {m} at {name} DISCONTINUOUS, s_min = 1",
+                  wk.gated and s == 1 and wk.extreme_ok,
+                  f"cycle states {len(wk.cycle_states)}")
+    w = periodic("golden", (1,))
+    N1, N2 = (3000, 20000) if not FULL else (8000, 60000)
+    lab = labels(w, lambda n: n, N1, N2)
+    check("brute: the identity reads at 0 at every depth",
+          all(b == 0 and lb == "BOUNDED" for lb, a, b in lab.values()))
+    dec, off, und, row = compare(w, lambda n: 2 * n, N1, N2, w.t0)
+    check("brute: x 2 at golden tracks its cap from t0",
+          dec > 0 and off == 0 and "G" in row.split(), row)
+    col = column(w, lambda n: n ^ 1, N2)
+    check("brute: the planted non-map n XOR 1 is flagged",
+          any(col[t] >= w.depth_of(N2) - t - 1 for t in range(2, 6)))
+
+
+def section_change():
+    print("\n== P1 the change of numeration")
+    ws = [(n, qs) for n, qs in alphas()]
+    ws.append(("one-class (4, 3)", list(one_class(4, 3)) * 60))
+    bad = 0
+    for name, qs in ws:
+        q, p = seq_qp(qs, 60)
+        for r in range(1, 9):
+            qr, pr = seq_qp(qs[r:], 45)
+            for k in range(0, 41):
+                if q[k + r] != qr[k] * q[r] + pr[k] * q[r - 1]:
+                    bad += 1
+                if p[k + r] != qr[k] * p[r] + pr[k] * p[r - 1]:
+                    bad += 1
+    check("q_(k+r) = q^(r)_k q_r + p^(r)_k q_(r-1), p likewise, "
+          "7 alphas + one-class, r <= 8, k <= 40", bad == 0, f"{bad} off")
+    bad = 0
+    for name, qs in alphas():
+        w = Numeration(name, qs)
+        for r in range(0, 9):
+            for k in range(0, 41):
+                cap = w.a[1] - 1 if k == 0 else w.a[k + 1]
+                th = abs(w.value(w.theta(k + r)))
+                if cap * th * w.q(k) > 1:
+                    bad += 1
+    check("cap_k |theta_(k+r)| <= 1 / q_k (r = 0..8, k <= 40)", bad == 0)
+    # the cap-fillings are the unique extremes of every alternating weight
+    rnd = random.Random(3)
+    bad = tested = 0
+    for name, qs in list(alphas())[:4]:
+        w = Numeration(name, qs)
+        for k in (1, 2, 3):
+            tails = legal_tails(w, k, 7)
+            for trial in range(6):
+                if trial < 3:
+                    wt = [w.value(w.theta(j + (-1, 2, 5)[trial]))
+                          for j in range(k, k + 7)]
+                else:
+                    eps = rnd.choice((1, -1))
+                    wt = [eps * (-1) ** j * rnd.uniform(0.1, 2.0)
+                          for j in range(k, k + 7)]
+                for flag in (True, False):
+                    ts = [tl for tl in tails
+                          if flag or tl[0] < w.a[k + 1]]
+                    vals = [sum(float(a) * b for a, b in zip(tl, wt))
+                            for tl in ts]
+                    top = max(vals)
+                    arg = [tl for tl, v in zip(ts, vals)
+                           if v > top - 1e-12]
+                    cf = cap_filling(w, k, 7, wt[0] > 0, flag)
+                    tested += 1
+                    if arg != [cf]:
+                        bad += 1
+    check("over every legal tail of length 7, the cap-filling alone "
+          "attains the maximum", bad == 0, f"{tested} weight sets")
+
+
+def legal_tails(w, k, n):
+    out = []
+
+    def rec(pos, cur, lastzero):
+        if pos == k + n:
+            out.append(tuple(cur))
+            return
+        cap = w.a[pos + 1]
+        for d in range(cap + 1 if lastzero else cap):
+            rec(pos + 1, cur + [d], d == 0)
+    rec(k, [], True)
+    return out
+
+
+def cap_filling(w, k, n, first_positive, flag):
+    tl = []
+    for j in range(k, k + n):
+        on = ((j - k) % 2 == 0) == first_positive
+        cap = w.a[j + 1] - (0 if (flag or j > k) else 1)
+        tl.append(cap if on else 0)
+    return tuple(tl)
+
+
+def section_copy():
+    print("\n== P2 the copy reader")
+    N = 20000 if FULL else 4000
+    cases = [("golden", [1] * 320, range(1, 7)),
+             ("[0; 2, 4, 8, ...]", [2 ** i for i in range(1, 24)],
+              range(1, 7)),
+             ("e - 2", e_minus_2(200), (3, 6))]
+    for P, a in ((3, 2), (4, 3), (5, 2)):
+        cases.append((f"one-class ({P}, {a})",
+                      list(one_class(P, a)) * (400 // P), (P, 2 * P)))
+    for name, qs, rs in cases:
+        w = Numeration(name, qs)
+        for r in rs:
+            hyp = qs[0] <= qs[r] + 1 and all(
+                qs[k] <= qs[k + r] for k in range(1, min(40, len(qs) - r)))
+            bad = 0
+            for n in range(1, N):
+                d = w.digits(n)
+                img = sum(dk * w.q(k + r) for k, dk in enumerate(d))
+                if w.digits(img) != [0] * r + d:
+                    bad += 1
+            check(f"{name}, r = {r}: hypothesis holds and sigma_r(n)'s "
+                  f"string is n's shifted", hyp and bad == 0,
+                  f"{bad} of {N} off")
+
+
+def section_combs():
+    print("\n== P4 the combs")
+    Ps = (2, 4, 6, 8) if FULL else (2, 4, 6)
+    for P in Ps:
+        for a in (2, 3, 5):
+            qs = list(one_class(P, a)) * (400 // P)
+            w = Numeration(f"({P}, {a})", qs)
+            ok = True
+            for r in range(1, 2 * P + 2, 2):
+                ok &= even_comb(w, P, r)
+            check(f"one-class ({P}, {a}): the odd-position comb lands on "
+                  f"-q_r alpha at every odd r <= {2 * P + 1}, straddled",
+                  ok)
+    for P in ((3, 5, 7, 9) if FULL else (3, 5, 7)):
+        for a in (2, 3, 5):
+            qs = list(one_class(P, a)) * (400 // P)
+            w = Numeration(f"({P}, {a})", qs)
+            rs = [r for r in range(1, 2 * P + 2) if (r % P) % 2 == 1]
+            ok = all(odd_comb(w, P, r) for r in rs)
+            check(f"one-class ({P}, {a}): the odd-P comb lands on "
+                  f"-q_(r+1) alpha at r = {rs}, truncations alternating",
+                  ok)
+    wins = [("e - 2", e_minus_2(200))]
+    for phase in (0, 1, 2):
+        rnd = random.Random(phase)
+        qs = [1] * 400
+        for i in range(1, 400):
+            if i % 3 == phase:
+                qs[i - 1] = rnd.randint(2, 6)
+        wins.append((f"random class caps, class index = {phase} mod 3",
+                     qs))
+    for P, a in ((3, 2), (3, 4)):
+        wins.append((f"one-class ({P}, {a})",
+                     list(one_class(P, a)) * (400 // P)))
+    for name, qs in wins:
+        w = Numeration(name, qs)
+        ok = all(class_comb(w, r) for r in (1, 4, 7, 10))
+        check(f"{name}: the class comb lands on -theta_(c0 + r - 1) at "
+              f"r = 1, 4, 7, 10, truncations alternating sides", ok)
+
+
+def even_comb(w, P, r):
+    """The comb of 1s at the odd positions under odd stride r."""
+    M = 12 * P
+    d = [1 if k % 2 == 1 else 0 for k in range(M)]
+    if not w.legal(d):
+        return False
+    # a class slot sits at an odd position under cap a >= 2 and holds 1,
+    # so the comb is no cap-filling
+    img = [0, 0]
+    for k, dk in enumerate(d):
+        th = w.theta(k + r)
+        img[0] += dk * th[0]
+        img[1] += dk * th[1]
+    tr = w.theta(r)
+    # telescoping: sum_i theta_(2i), 2i = r + 1 .. M - 1 + r, is
+    # theta_(M + r) - theta_r
+    rem = w.theta(M + r)
+    want = (-tr[0] + rem[0], -tr[1] + rem[1])
+    if tuple(img) != want:
+        return False
+    # the raised tooth: the deepest class slot k = P - 1 mod P (odd),
+    # digit 2 there, lands on the other side of the cut -theta_r
+    ks = [k for k in range(M) if k % P == P - 1 and w.a[k + 1] >= 2]
+    if not ks:
+        return False
+    kt = ks[-1]
+    d2 = list(d)
+    d2[kt] = 2
+    if not w.legal(d2):
+        return False
+    th = w.theta(kt + r)
+    img2 = (img[0] + th[0], img[1] + th[1])
+    cut = (-tr[0], -tr[1])
+    s1 = w.sign((img[0] - cut[0], img[1] - cut[1]))
+    s2 = w.sign((img2[0] - cut[0], img2[1] - cut[1]))
+    return s1 * s2 < 0
+
+
+def odd_comb(w, P, r):
+    """1 at the positions 2, 4, .., P - 3 of each period, 2 at P - 1."""
+    M = 10
+    d = []
+    for _m in range(M):
+        d += [1 if (i % 2 == 0 and 2 <= i <= P - 3) else
+              (2 if i == P - 1 else 0) for i in range(P)]
+    if not w.legal(d):
+        return False
+    target = w.theta(r + 1)
+    img, sides = [0, 0], []
+    for m in range(M):
+        for i in range(P):
+            dk = d[m * P + i]
+            if dk:
+                th = w.theta(m * P + i + r)
+                img[0] += dk * th[0]
+                img[1] += dk * th[1]
+        rem = w.theta((m + 1) * P + r + 1)
+        if tuple(img) != (-target[0] + rem[0], -target[1] + rem[1]):
+            return False
+        sides.append(w.sign(rem))
+    return all(sides[i] != sides[i + 1] for i in range(M - 1))
+
+
+def class_comb(w, r):
+    qs = w.a
+    top = len(qs) - 2
+    cls = [k for k in range(1, top) if qs[k + 1] >= 2]
+    phase = cls[0] % 3
+    if any((k % 3 == phase) != (qs[k + 1] >= 2) for k in range(0, top)):
+        return False
+    c0 = next(k for k in range(0, top) if k % 3 == phase and
+              (qs[k + 1] - (1 if k == 0 else 0)) >= 2)
+    M = min(60, (top - c0 - r - 4) // 3)
+    d = [0] * (c0 + 3 * M + 1)
+    for i in range(M):
+        d[c0 + 3 * i] = 2
+    if not w.legal(d):
+        return False
+    target = w.theta(c0 + r - 1)
+    sides = []
+    img = [0, 0]
+    for i in range(M):
+        th = w.theta(c0 + 3 * i + r)
+        img[0] += 2 * th[0]
+        img[1] += 2 * th[1]
+        rem = w.theta(c0 + 3 * i + r + 2)
+        want = (-target[0] + rem[0], -target[1] + rem[1])
+        if tuple(img) != want:
+            return False
+        sides.append(w.sign(rem))
+    return all(sides[i] != sides[i + 1] for i in range(len(sides) - 1))
+
+
+def section_e2():
+    print("\n== P4 e - 2 against the brute")
+    w = Numeration("e - 2", e_minus_2(200))
+    N1, N2 = (20000, 150000) if FULL else (8000, 60000)
+    for r in range(1, 9):
+        f = shift_map(w, r)
+        if r % 3 == 1:
+            s = w.q(r)
+            ts = first_depth(w, s)
+            dec, off, und, row = compare(w, f, N1, N2, ts)
+            check(f"r = {r}: no lookahead from t* = {ts} (s = q_r = {s}), "
+                  f"a track seen", dec > 0 and off == 0 and "G" in row.split(),
+                  f"{row}   [undecided {und}]")
+        elif r % 3 == 0:
+            col = column(w, f, N2)
+            check(f"r = {r}: the copy reader, 0 at every depth",
+                  all(v == 0 for v in col.values()))
+        else:
+            dec, off, und, row = compare(w, f, N1, N2, None)
+            print(f"  (observation) r = {r}: BOUNDED at every decided "
+                  f"depth: {off == 0}   {row}   [undecided {und}]")
+
+
+def criterion_cells():
+    cells = []
+    for name, per in (("golden", (1,)), ("silver", (2,)), ("bronze", (3,)),
+                      ("[1, 2]", (1, 2)), ("[2, 1, 3, 1]", (2, 1, 3, 1))):
+        for r in (-1, 1, 2, 3):
+            cells.append((name, per, r))
+    for P, a in ((2, 2), (3, 2), (3, 3), (4, 2)) + (((5, 2), (4, 3))
+                                                   if FULL else ()):
+        for r in [-1] + list(range(1, 2 * P + 1)):
+            cells.append((f"one-class ({P}, {a})", one_class(P, a), r))
+    return cells
+
+
+def section_criterion():
+    print("\n== P3 the landing criterion against the brute")
+    N1, N2 = (8000, 60000) if FULL else (3000, 20000)
+    tot_dec = tot_off = tot_und = 0
+    nos = gated = tracked = 0
+    for name, per, r in criterion_cells():
+        wk = Walk(per, r)
+        w = wk.num.w
+        smax = 600
+        s, _ = wk.s_min(smax) if wk.gated else (None, None)
+        ts = first_depth(w, s) if s is not None else None
+        if wk.gated and s is None:
+            nos += 1
+            print(f"  {name} r = {r}: DISCONTINUOUS but no s <= {smax}")
+            continue
+        dec, off, und, row = compare(w, shift_map(w, r), N1, N2, ts)
+        tot_dec, tot_off, tot_und = tot_dec + dec, tot_off + off, \
+            tot_und + und
+        verdict = f"DISC from t* = {ts} (s_min {s})" if wk.gated else \
+            "reads"
+        print(f"  {name:18s} r = {r:2d}: {verdict:28s} {row}"
+              + (f"   [undecided {und}]" if und else "")
+              + ("   [brute off the walk]" if off else ""))
+        if wk.gated:
+            gated += 1
+            tracked += "G" in row.split()
+    check(f"the brute's decided depths agree with the walk's column",
+          tot_off == 0 and tot_dec > 0 and nos == 0,
+          f"{tot_dec} decided, {tot_off} off, {tot_und} undecided; a track "
+          f"seen at {tracked} of {gated} DISCONTINUOUS cells")
+
+
+def section_parity():
+    print("\n== P5 the parity law on the one-class family")
+    Ps = range(2, 10) if FULL else range(2, 7)
+    As = range(2, 6) if FULL else range(2, 5)
+    off, cells, smin_off, smin_read = [], 0, [], 0
+    t_start = time.time()
+    for P in Ps:
+        for a in As:
+            row = []
+            for r in range(1, 2 * P + 1):
+                wk = Walk(one_class(P, a), r)
+                cells += 1
+                res = r % P
+                want = res % 2 == 1
+                if wk.gated != want or not wk.extreme_ok:
+                    off.append((P, a, r))
+                mark = "G" if wk.gated else "."
+                if wk.gated and r <= 8:
+                    w = wk.num.w
+                    pred = w.q(r) if P % 2 == 0 else w.q(r + 1)
+                    s, _ = wk.s_min(pred)
+                    smin_read += 1
+                    if s != pred:
+                        smin_off.append((P, a, r, s, pred))
+                row.append(mark)
+            print(f"  P = {P}, a = {a}: " + "".join(row))
+    check(f"the parity law: DISCONTINUOUS exactly at r mod P odd",
+          not off, f"{cells} cells, off {off}")
+    check("s_min = q_r at even P and q_(r+1) at odd P, r <= 8",
+          not smin_off, f"{smin_read} cells read, off {smin_off}")
+    print(f"  ({time.time() - t_start:.1f} s)")
+
+
+# ------------------------------------------------------------ the drop
+
+def same_walk(per):
+    """The drop's walk against sigma_(P-1)'s (argument (9)(i))."""
+    P = len(per)
+    wd, ws = Walk(per, -1), Walk(per, P - 1)
+    same = (wd.alive == ws.alive and wd.interior == ws.interior
+            and wd.cycle_states == ws.cycle_states)
+    return same and wd.gated == ws.gated, wd
+
+
+def ascent_sequence(kind, n=400):
+    rnd = random.Random(kind)
+    if kind in ("Fibonacci word", "Thue-Morse", "random {1, 2}"):
+        if kind == "Fibonacci word":
+            s = "1"
+            prev = "12"
+            while len(s) < n:
+                s, prev = prev, prev + s
+            xs = [int(c) for c in s]
+        elif kind == "Thue-Morse":
+            xs = [1 + bin(i).count("1") % 2 for i in range(n)]
+        else:
+            xs = [rnd.randint(1, 2) for _ in range(n)]
+        qs = []
+        for x in xs[:n // 2]:
+            qs += [1, x]
+        return qs, 1
+    if kind == "even class, random":
+        qs = [0] * n
+        for j in range(1, n + 1):
+            if j % 2 == 1:
+                qs[j - 1] = rnd.randint(1, 5)
+        for j in range(2, n + 1, 2):
+            nxt = qs[j] if j < n else 5
+            qs[j - 1] = rnd.randint(1, max(1, nxt))
+        return qs, 0
+    if kind == "eventually, from j0 = 9":
+        qs = [rnd.randint(1, 6) for _ in range(10)]
+        while len(qs) < n:
+            qs += [rnd.randint(1, 3), rnd.randint(3, 5)]
+        return qs[:n], 9
+    if kind == "one-class (4, 3)":
+        return list(one_class(4, 3)) * (n // 4), 1
+    raise ValueError(kind)
+
+
+def ascent_comb(w, j0, M):
+    """Truncations of the comb d_j = a_j at j = j0 + 2 .. j0 + 2M."""
+    top = j0 + 2 * M
+    d = [0] * (top + 1)
+    for j in range(j0 + 2, top + 1, 2):
+        d[j] = w.a[j]
+    if not w.legal(d):
+        return False, "illegal"
+    if all(d[j] == w.a[j + 1] for j in range(j0 + 2, top + 1, 2)):
+        return False, "a cap-filling"
+    cut = w.theta(j0)
+    img, side0 = [0, 0], None
+    for j in range(j0 + 2, top + 1, 2):
+        th = w.theta(j - 1)
+        img[0] += d[j] * th[0]
+        img[1] += d[j] * th[1]
+        rem = w.theta(j)
+        if tuple(img) != (-cut[0] + rem[0], -cut[1] + rem[1]):
+            return False, f"identity off at tooth {j}"
+    # raise the deepest strict tooth: the other side of the cut
+    strict = [j for j in range(j0 + 2, top + 1, 2) if w.a[j] < w.a[j + 1]]
+    if not strict:
+        return False, "no strict tooth"
+    jt = strict[-1]
+    d2 = d[:jt + 1]
+    d2[jt] += 1
+    img1 = [sum(d[j] * w.theta(j - 1)[i] for j in range(1, jt + 1))
+            for i in (0, 1)]
+    img2 = (img1[0] + w.theta(jt - 1)[0], img1[1] + w.theta(jt - 1)[1])
+    s1 = w.sign((img1[0] + cut[0], img1[1] + cut[1]))
+    s2 = w.sign((img2[0] + cut[0], img2[1] + cut[1]))
+    return (w.legal(d2) and s1 * s2 < 0), f"raised tooth {jt}"
+
+
+def section_drop():
+    print("\n== P7 the drop")
+    ok0, wd = same_walk((1, 2))
+    okg, wg = same_walk((1,))
+    k0 = len(CHECKS)
+    check("D0 control, run first: [1, 2] one gated graph, golden one "
+          "graph with no cycle",
+          ok0 and wd.gated and len(wd.cycle_states) > 0 and okg
+          and not wg.gated,
+          f"[1, 2] cycle states {len(wd.cycle_states)}, live "
+          f"{len(wd.alive)}; golden live {len(wg.alive)}")
+    gate(k0)
+    pers = [(1,), (2,), (3,), (1, 2), (2, 1, 3, 1), (1, 1, 2), (2, 1, 1)]
+    Ps = range(2, 10) if FULL else range(2, 7)
+    As = range(2, 6) if FULL else range(2, 5)
+    fam = [(P, a) for P in Ps for a in As]
+    pers += [one_class(P, a) for P, a in fam]
+    bad, n_live = [], 0
+    for per in pers:
+        ok, wd = same_walk(per)
+        n_live += len(wd.alive)
+        if not ok:
+            bad.append(per)
+    check(f"D1 the drop's walk is sigma_(P-1)'s at {len(pers)} periodic "
+          f"sequences: equal state sets and verdicts", not bad,
+          f"{n_live} live states compared, off {bad}")
+    off, row = [], []
+    for P, a in fam:
+        wk = Walk(one_class(P, a), -1)
+        want = P % 2 == 0
+        s = wk.s_min(1)[0] if wk.gated else None
+        if wk.gated != want or (want and s != 1):
+            off.append((P, a, wk.gated, s))
+        row.append("G" if wk.gated else ".")
+    print("  one-class drop, by (P, a): " + "".join(row))
+    check("D2 the one-class drop DISCONTINUOUS exactly at even P, s_min = 1",
+          not off, f"{len(fam)} cells, off {off}")
+    kinds = ("Fibonacci word", "Thue-Morse", "random {1, 2}",
+             "even class, random", "eventually, from j0 = 9",
+             "one-class (4, 3)")
+    for kind in kinds:
+        qs, j0 = ascent_sequence(kind)
+        w = Numeration(kind, qs)
+        M = 60
+        ok, why = ascent_comb(w, j0, M)
+        check(f"D3 ascent comb, {kind}: lands on -q_{j0} alpha = "
+              f"-{w.q(j0)} alpha, {M} teeth exact, legal, straddled",
+              ok, why)
+    # at golden every cap is 1, so the comb of 1s is a cap-filling, and
+    # the drop reads there (D0): the arm without a strict ascent
+    w = Numeration("e - 2", e_minus_2(260))
+    dd = [0] * 200
+    dd[1] = 1
+    for k in range(2, 60):
+        dd[3 * k - 2] = 2 * k
+    legal = w.legal(dd[:3 * 59 - 1])
+    ids, sides = True, []
+    for m in range(2, 61):
+        B = 2 + sum(2 * k * w.q(3 * k - 3) for k in range(2, m))
+        Bf = m * w.q(3 * m - 4) - (m - 1) * w.q(3 * m - 3)
+        ids &= B == Bf
+        E = (m * w.theta(3 * m - 4)[0] - (m - 1) * w.theta(3 * m - 3)[0],
+             Bf)
+        sides.append(w.sign(E))
+    alt = all(sides[i] == -sides[i + 1] for i in range(len(sides) - 1))
+    check("D4 e - 2: E_m = m theta_(3m-4) - (m - 1) theta_(3m-3) at m = "
+          "2..60, the string legal, truncations alternating about -alpha",
+          ids and legal and alt)
+    pairs = [(3000, 20000), (8000, 60000)] + (
+        [(20000, 150000)] if FULL else [])
+    for kind in kinds[:3]:
+        qs, _j0 = ascent_sequence(kind)
+        w = Numeration(kind, qs)
+        f = shift_map(w, -1)
+        deep = offs = 0
+        for N1, N2 in pairs:
+            _dec, off_, und, row = compare(w, f, N1, N2, 2)
+            n = sum(1 for t, (lb, _a, _b) in labels(w, f, N1, N2).items()
+                    if t >= 2 and lb == "TRACK")
+            deep, offs = deep + n, offs + off_
+            print(f"  {kind}, ranges {N1}, {N2}: {row}   [undecided {und}]")
+        check(f"D5 brute, {kind}: the drop tracks its cap from t = 2",
+              deep > 0 and offs == 0,
+              f"{deep} depths TRACK at t >= 2 over {len(pairs)} range "
+              f"pairs, {offs} off")
+
+
+WIDE_D = (4, 8, 12, 16, 20, 24)
+
+
+def wide_window(ds, n):
+    """a_1 = 2, a_(D+1) = q_D + q_(D-1) at D in ds, every other quotient
+    1: a_(D+1)|theta_(D-1)| > 1 at each D in ds."""
+    a, q = [2], [1, 2]
+    for D in range(1, n):
+        x = q[D] + q[D - 1] if D in ds else 1
+        a.append(x)
+        q.append(x * q[-1] + q[-2])
+    return a
+
+
+def parting(w, m, n):
+    """The lowest position where the greedy strings of m and n differ."""
+    d, e = w.digits(m), w.digits(n)
+    k = max(len(d), len(e))
+    d, e = d + [0] * (k - len(d)), e + [0] * (k - len(e))
+    return next(i for i in range(k) if d[i] != e[i])
+
+
+def drop_pair(w, D, j):
+    """The inputs j q_D, (j + 1) q_D: whether their greedy strings are
+    the single digits j and j + 1 at D, their parting, their drops'."""
+    m, n = j * w.q(D), (j + 1) * w.q(D)
+    single = all(w.digits(x * w.q(D)) == [0] * D + [x] for x in (j, j + 1)
+                 if x)
+    f = shift_map(w, -1)
+    return single, parting(w, m, n), parting(w, f(m), f(n))
+
+
+def section_wide():
+    print("\n== P7 the drop past the landing criterion")
+    w = Numeration("wide", wide_window(set(WIDE_D), max(WIDE_D) + 14))
+    off = [K for K in range(1, 31)
+           if parting(w, w.q(K) - 1, w.q(K + 1) - 1) != w.t0 - 1]
+    check("D6 control, run first: q_K - 1 and q_(K+1) - 1 part at t0 - 1 "
+          "at the window, K = 1..30, the two codings of -alpha", not off,
+          f"t0 = {w.t0}, off at K = {off}")
+    gate(len(CHECKS) - 1)
+    bad = []
+    for D in WIDE_D:
+        th = w.theta(D - 1)
+        tau = (1, -1) if w.sign(th) > 0 else (0, -1)
+        j = int(w.value(tau) / w.value(th))
+        lo = (tau[0] - j * th[0], tau[1] - j * th[1])
+        hi = ((j + 1) * th[0] - tau[0], (j + 1) * th[1] - tau[1])
+        s = w.sign(th)
+        straddle = w.sign(lo) == s and w.sign(hi) == s
+        single, pin, pout = drop_pair(w, D, j)
+        big = j + 1 <= w.a[D + 1]      # a_(D+1) > q_D by construction
+        jtxt = str(j) if j < 10 ** 12 else f"{len(str(j))} digits"
+        print(f"  D = {D:2d}: a_(D+1)/q_D = {w.a[D + 1] // w.q(D)}, "
+              f"j* = {jtxt}, inputs part at {pin}, drops at {pout}")
+        if not (straddle and single and big and pin == D
+                and pout == w.t0 - 1):
+            bad.append(D)
+    check(f"D7 at D = {', '.join(map(str, WIDE_D))}: the pair (j*, j* + 1) "
+          f"straddles -alpha, single digits, parting at D, drops at t0 - 1",
+          not bad, f"off at D = {bad}")
+
+
+# ------------------------------------------------------------ even residues
+
+getcontext().prec = 120
+
+
+class Cell:
+    """The one-class numeration (P, a) with rho = r mod P, argument (8):
+    exact continuants, and the reals and conjugates at 120 digits."""
+
+    def __init__(self, P, a, rho, n=0):
+        self.P, self.a, self.rho, self.c = P, a, rho, rho - 1
+        top = max(n, P) + 2
+        self.q, self.p = seq_qp([self.quot(k) for k in range(1, top + 2)],
+                                top + 2)
+        q, p = self.q, self.p
+        A, B, C = q[P - 1], q[P] - p[P - 1], -p[P]
+        s = Decimal(B * B - 4 * A * C).sqrt()
+        self.al, self.alc = (-B + s) / (2 * A), (-B - s) / (2 * A)
+        self.th = {j: abs(q[j] * self.al - p[j]) for j in range(-1, P + 1)}
+        self.thc = {j: abs(q[j] * self.alc - p[j]) for j in range(-1, P + 1)}
+        self.eta = self.th[P - 1]
+
+    def quot(self, j):
+        return self.a if j % self.P == 0 else 1
+
+    def cap(self, j):
+        return self.a if (j - self.c) % self.P == 0 else 1
+
+    def R(self, i):
+        return self.eta * self.thc[i]
+
+    def fmax(self):
+        P, a, e, c = self.P, self.a, self.eta, self.c
+        if P % 2 == 0:
+            return Decimal(1)
+        return 1 - (a - 1) * e * (1 - self.th[c]) / (1 - e * e)
+
+    def T(self):
+        P, a, e, c = self.P, self.a, self.eta, self.c
+        if P % 2 == 0:
+            return -(a - 1) * (1 + e - self.th[c] - self.R(c)) / (1 - e)
+        rem = max(Decimal(0), (a - 1) * self.R(c) - self.R(c - 1))
+        return ((a - 1) * (self.th[c] + e * self.R(c) - 1 - e * e)
+                + rem) / (1 - e * e)
+
+    def x_exact(self, e):
+        """(x, y) of the periodic string e at phase 0, from the period
+        equation F - eta^m F = W, and the palindrome form w* - w."""
+        q, p, n = self.q, self.p, len(e)
+        w = sum(d * q[j] for j, d in enumerate(e))
+        wp = sum(d * p[j] for j, d in enumerate(e))
+        ws = sum(d * (-1) ** j * q[n - 2 - j] for j, d in enumerate(e))
+        N = p[n - 1] + q[n] - 1 - (-1) ** n
+        x = Fraction(w * (p[n - 1] - 1) - wp * q[n - 1], N)
+        y = Fraction((q[n] - 1) * wp - p[n] * w, N)
+        return x, y, N, w, ws
+
+    def FC_direct(self, e):
+        """F = sum_(j>=0) e_j theta_j by the forward recurrence and C =
+        sum_(j<0) e_j |theta'_j| by the backward one, summed to 1e-45."""
+        n, eps = len(e), Decimal(10) ** -45
+        t0, t1, F, j = Decimal(-1), self.al, Decimal(0), 0
+        while abs(t1) > eps:
+            F += e[j % n] * t1
+            t0, t1 = t1, self.quot(j + 1) * t1 + t0
+            j += 1
+        u1, u0, C, j = Decimal(-1), self.alc, Decimal(0), -1
+        while abs(u1) > eps:
+            C += e[j % n] * abs(u1)
+            u0, u1 = u1, u0 - self.quot(j + 1) * u1
+            j -= 1
+        return F, C
+
+    def FC_closed(self, e):
+        n, m = len(e), len(e) // self.P
+        W = sum(d * (self.q[j] * self.al - self.p[j]) for j, d in enumerate(e))
+        Wc = sum(d * (self.q[j] * self.alc - self.p[j])
+                 for j, d in enumerate(e))
+        eta_r = -(self.q[self.P - 1] * self.al - self.p[self.P - 1])
+        eta_c = -(self.q[self.P - 1] * self.alc - self.p[self.P - 1])
+        return W / (1 - eta_r ** m), Wc / (1 - eta_c ** m)
+
+
+def legal_cycles(cell, n):
+    """Every string of length n, cyclically legal under the caps c,
+    generated one at a time."""
+    e = [0] * n
+
+    def rec(j):
+        if j == n:
+            if not (e[n - 1] and e[0] > cell.cap(0) - 1):
+                yield tuple(e)
+            return
+        top = cell.cap(j) - (1 if j and e[j - 1] else 0)
+        for d in range(top + 1):
+            e[j] = d
+            yield from rec(j + 1)
+        e[j] = 0
+
+    return rec(0)
+
+
+def comb_of(cell, n):
+    return tuple(cell.cap(j) if j % 2 == 0 else 0 for j in range(n))
+
+
+def section_even():
+    print("\n== P6 the even residues, argument (8)")
+    rng = random.Random(8)
+    # E0, the positive control: members exist at an odd residue
+    for P, a in ((3, 2), (4, 2)):
+        cell = Cell(P, a, 1, 4 * P)
+        mem = [e for e in legal_cycles(cell, 2 * P) if any(e)
+               and all(v.denominator == 1 for v in cell.x_exact(e)[:2])]
+        check(f"E0 control: rho = 1 at ({P}, {a}) has a nonzero member",
+              bool(mem), f"e.g. {mem[0] if mem else None}")
+    gate(len(CHECKS) - 2)
+    # E1, the two identities on random legal periodic strings
+    bad1 = bad2 = bad3 = tot = 0
+    worst = Decimal(0)
+    for P, a, rho in ((4, 2, 2), (6, 3, 4), (3, 2, 2), (5, 5, 4),
+                      (7, 2, 6), (4, 2, 1), (5, 3, 3)):
+        for m in (1, 2, 3):
+            n = m * P
+            cell = Cell(P, a, rho, n)
+            for _ in range(12):
+                e, prev = [], 0
+                for j in range(n):
+                    top = cell.cap(j) - (1 if prev else 0)
+                    d = rng.randint(0, top) if rng.random() < 0.5 else 0
+                    e.append(d)
+                    prev = d
+                if e[n - 1] and e[0] > cell.cap(0) - 1:
+                    e[0] = 0
+                if not any(e):
+                    continue
+                tot += 1
+                x, y, N, w, ws = cell.x_exact(e)
+                bad1 += x * N != ws - w
+                F, C = cell.FC_direct(e)
+                dev = abs(Decimal(x.numerator) / x.denominator
+                          * (cell.al - cell.alc) - (F - C))
+                worst = max(worst, dev)
+                bad2 += dev > Decimal(10) ** -40
+                Fc, Cc = cell.FC_closed(e)
+                bad3 += abs(Fc - F) + abs(Cc - C) > Decimal(10) ** -40
+    check("E1 N x = w* - w, the palindrome form", bad1 == 0,
+          f"{tot} strings, {bad1} off")
+    check("E1 x (alpha - alpha') = F - C, both summed directly, and E2's "
+          "closed F and C equal to them", bad2 == 0 and bad3 == 0,
+          f"{tot} strings, worst {float(worst):.1e}, closed form off at "
+          f"{bad3}")
+    # E2, every legal cyclic string at eight cells
+    nmax = 18 if FULL else 14
+    all_pats = 0
+    for P, a, rho in ((4, 2, 2), (4, 3, 2), (6, 2, 2), (6, 3, 4),
+                      (3, 2, 2), (3, 5, 2), (5, 2, 4), (7, 2, 6)):
+        pats = xoff = boff = foff = 0
+        members, extra = set(), []
+        for m in range(1, nmax // P + 1):
+            n = m * P
+            cell = Cell(P, a, rho, n)
+            gap, T, fm = cell.al - cell.alc, cell.T(), cell.fmax()
+            comb = comb_of(cell, n)
+            for e in legal_cycles(cell, n):
+                pats += 1
+                x, y = cell.x_exact(e)[:2]
+                xoff += not (-1 < x < 1)
+                F, C = cell.FC_closed(e)
+                boff += C - F > gap + T + Decimal(10) ** -40
+                foff += F > fm + Decimal(10) ** -40
+                if x.denominator == 1 and y.denominator == 1:
+                    if not any(e):
+                        members.add("zero")
+                    elif e == comb and P % 2 == 0:
+                        members.add("comb")
+                    else:
+                        extra.append(e)
+        want = {"zero", "comb"} if P % 2 == 0 else {"zero"}
+        all_pats += pats
+        check(f"E2 ({P}, {a}) rho = {rho}: |x| < 1, the bounds, members",
+              xoff == boff == foff == 0 and not extra and members == want,
+              f"{pats} strings, members {sorted(members)}, "
+              f"off {xoff}/{boff}/{foff}, extra {extra[:2]}")
+    print(f"  E2: {all_pats} legal cyclic strings over the eight cells")
+    # E3, the lemma's margins and the hand bounds
+    As = (2, 3, 5, 100, 10 ** 4)
+    tmax, fmx, hand_off, p3_off, cells = None, None, [], [], 0
+    for P in range(3, 41):
+        for a in As:
+            for rho in range(2, P, 2):
+                cell = Cell(P, a, rho)
+                cells += 1
+                T, fm, c, e = cell.T(), cell.fmax(), cell.c, cell.eta
+                tmax = T if tmax is None else max(tmax, T)
+                if P % 2:
+                    fmx = fm if fmx is None else max(fmx, fm)
+                ok = (1 - cell.al < Decimal(1) / 2
+                      and abs(e * cell.thc[P - 1] - 1) < Decimal(10) ** -60)
+                if P % 2 == 0:
+                    ok = ok and cell.R(c) <= Decimal(1) / 2
+                elif P >= 5:
+                    rel = cell.th[c] + (1 + e) * cell.R(c) - 1 - e * e
+                    ok = ok and rel < 0 and e < Decimal(1) / 13
+                    if c <= P - 4:
+                        ok = ok and cell.R(c) <= Decimal(1) / 3
+                    else:
+                        ok = ok and (cell.R(c) <= Decimal(2) / 3
+                                     and cell.th[c] < Decimal(1) / 5)
+                else:
+                    s = Decimal(a * a + 2 * a + 2).sqrt()
+                    f3 = (a * a - a * s - 2) / (4 * (a + 1))
+                    if abs(f3 - T) > Decimal(10) ** -60:
+                        p3_off.append(a)
+                if not ok:
+                    hand_off.append((P, a, rho))
+    check("E3 T <= -1/4 and Fmax < 1 at odd P, every cell",
+          tmax <= Decimal(-1) / 4 and fmx < 1,
+          f"{cells} cells, max T {float(tmax):.4f}, least odd 1 - Fmax "
+          f"{float(1 - fmx):.2e}")
+    check("E3 the hand bounds of (8), and T at P = 3 in closed form",
+          not hand_off and not p3_off, f"off {hand_off[:3]} {p3_off}")
+    # E4, the walk past the parity law's range
+    off, n4 = [], 0
+    for P in range(10, 17):
+        for a in (2, 7):
+            for rho in range(2, P, 2):
+                wk = Walk(one_class(P, a), rho)
+                n4 += 1
+                if wk.gated or (P % 2 and wk.alive):
+                    off.append((P, a, rho))
+    check("E4 the walk: no interior cycle, and at odd P no live state",
+          not off, f"{n4} cells, off {off}")
+
+
+# ------------------------------------------------------------ uniform
+
+QMAX = 5000 if FULL else 1000
+
+
+class LineWalk(Walk):
+    """The walk's predicates at any numeration, no box (argument
+    (10)(iv))."""
+
+    def __init__(self, w, r):
+        self.r, self.m, self.ks = r, 1, max(0, -r)
+        self.num = num = Num(w)
+        self.Hp, self.Hn = {}, {}
+        hp = hn = 0
+        for j in range(num.top - 1, -1, -1):
+            wj = num.T(j + r)
+            if wj > 0:
+                hp += num.cap(j) * wj
+            else:
+                hn += num.cap(j) * wj
+            self.Hp[j], self.Hn[j] = hp, hn
+        self._bd = {}
+
+    def a(self, j):
+        return self.num.w.a[j]
+
+
+def interior(wk, k, x, y, f):
+    return wk.live(k, x, y, f) and not wk.extreme(k, x, y, f)
+
+
+def joint_walk(wk, jmax, kcap, visit=None):
+    """minj[k]: the least j <= jmax whose lambda = kappa - j alpha has a
+    walk at an interior state at step k (argument (10)(i))."""
+    num, r, ks = wk.num, wk.r, wk.ks
+    w = num.w
+    ia, ib = ks + r, ks + r - 1
+    pa, pb, qa, qb = w.p(ia), w.p(ib), w.q(ia), w.q(ib)
+    det = -pa * qb + pb * qa
+    lo, hi, _tol = wk.bounds(ks, True)
+    cur = {}
+    for j in range(1, jmax + 1):
+        for m0 in range((lo + j * num.P) // num.Q,
+                        (hi + j * num.P) // num.Q + 2):
+            x = (m0 * qb - pb * j) * det
+            y = (pa * j - qa * m0) * det
+            if interior(wk, ks, x, y, True) and (x, y, True) not in cur:
+                cur[(x, y, True)] = j
+    minj, k = {}, ks
+    while cur and k <= kcap:
+        minj[k] = min(cur.values())
+        if visit:
+            visit(k, cur)
+        nxt = {}
+        for (x, y, f), j in cur.items():
+            for _d, X, Y, f2 in wk.steps(k, x, y, f):
+                assert (X, Y) != (0, 0)
+                if interior(wk, k + 1, X, Y, f2):
+                    key = (X, Y, f2)
+                    if nxt.get(key, jmax + 1) > j:
+                        nxt[key] = j
+        cur, k = nxt, k + 1
+    return minj
+
+
+def walk_col(w, minj, kcap, tmax):
+    """c(t) for t = 1..tmax, None where a walk from j <= q_t survives to
+    the cap."""
+    col = {}
+    for t in range(1, tmax + 1):
+        if w.q(t) < 2:
+            col[t] = 0
+            continue
+        ks = [k for k, j in minj.items() if j <= w.q(t)]
+        if ks and max(ks) >= kcap:
+            col[t] = None
+        else:
+            col[t] = max(0, max(ks) + 1 - t) if ks else 0
+    return col
+
+
+def alpha_gap(per):
+    """alpha - alpha' at the purely periodic alpha, from its quadratic."""
+    P = len(per)
+    q, p = seq_qp(list(per) * 2, P + 2)
+    A, B, C = q[P - 1], q[P] - p[P - 1], -p[P]
+    return math.sqrt(B * B - 4 * A * C) / A
+
+
+def box_graph(wk, G, Gp=0.0):
+    """B's interior states per phase, with a unit of slack, and the
+    longest path of their graph (None when it has a cycle)."""
+    L, K0 = wk.L, wk.K0
+    ulo = -wk.U - 1 - G - 1
+    B = int(wk.U + 2 + G + wk.H) + 3
+    states = set()
+    for p in range(L):
+        k = K0 + p
+        rho = wk.num.T(k + wk.r) / wk.num.T(k + wk.r - 1)
+        rc = wk.rhoc[(k + wk.r) % L]
+        for x in range(-B, B + 1):
+            ylo = max(-wk.H - 1 - x * rho, ulo - x * rc)
+            yhi = min(wk.H + 1 - x * rho, 1 + Gp - x * rc)
+            for y in range(math.ceil(ylo), math.floor(yhi) + 1):
+                if (x, y) == (0, 0):
+                    continue
+                for f in (True, False):
+                    if interior(wk, k, x, y, f):
+                        states.add((p, x, y, f))
+    g = {}
+    for st in states:
+        p, x, y, f = st
+        g[st] = [((p + 1) % L, X, Y, f2)
+                 for _d, X, Y, f2 in wk.steps(K0 + p, x, y, f)
+                 if ((p + 1) % L, X, Y, f2) in states]
+    for comp in tarjan(g):
+        if len(comp) > 1 or comp[0] in g[comp[0]]:
+            return len(states), None
+    lp = {}
+    for comp in tarjan(g):          # sinks first
+        st = comp[0]
+        lp[st] = max((1 + lp[s2] for s2 in g[st]), default=0)
+    return len(states), max(lp.values(), default=0)
+
+
+def uniform_cell(per, r, N, box_off):
+    """The column, the bound and the brute at one periodic cell."""
+    wk = Walk(per, r)
+    w = wk.num.w
+    tmax = w.depth_of(QMAX)
+    kcap = tmax + 40
+    lo, hi, _ = wk.bounds(wk.ks, True)
+    H0 = max(abs(lo), abs(hi)) / wk.num.Q
+    g = alpha_gap(per)
+    G = (H0 + 1) / (2 * g - 1)
+    Gp = max(0.0, H0 - g) / (g - 1)    # a start below -j g: g > 1
+    L = wk.L
+
+    def visit(k, cur):
+        rho = wk.num.T(k + r) / wk.num.T(k + r - 1)
+        rc = wk.rhoc[(k + r) % L]
+        for (x, y, _f), j in cur.items():
+            if k < max(wk.ks, first_depth(w, j) - r + 1):
+                continue
+            u = x * rc + y
+            if not (-wk.U - 1 - G - 1e-9 <= u <= Gp + 1e-9
+                    and abs(x * rho + y) <= wk.H + 1e-9):
+                box_off.append((per, r, k, x, y, j))
+    minj = joint_walk(wk, QMAX, kcap, visit)
+    col = walk_col(w, minj, kcap, tmax)
+    nst, lpath = box_graph(wk, G, Gp) if not wk.gated else (None, None)
+    brute = column(w, shift_map(w, r), N) if N else None
+    return wk, col, lpath, nst, brute
+
+
+def least_conj_start(wk, jmax):
+    """(lambda', j, kappa) at the least lambda' = kappa - j alpha' over
+    the interior starts lambda = kappa - j alpha, j <= jmax, as
+    joint_walk seeds them: lambda' < 0 is a start below -j(alpha -
+    alpha'), the case the box's upper end G+ is for."""
+    num, r, ks = wk.num, wk.r, wk.ks
+    w = num.w
+    ia, ib = ks + r, ks + r - 1
+    pa, pb, qa, qb = w.p(ia), w.p(ib), w.q(ia), w.q(ib)
+    det = -pa * qb + pb * qa
+    lo, hi, _tol = wk.bounds(ks, True)
+    alpha_c = num.P / num.Q - alpha_gap(wk.per)
+    best = None
+    for j in range(1, jmax + 1):
+        for m0 in range((lo + j * num.P) // num.Q,
+                        (hi + j * num.P) // num.Q + 2):
+            x = (m0 * qb - pb * j) * det
+            y = (pa * j - qa * m0) * det
+            if interior(wk, ks, x, y, True):
+                v = m0 - j * alpha_c
+                if best is None or v < best[0]:
+                    best = (v, j, m0)
+    return best
+
+
+def col_str(col):
+    return " ".join("G" if v is None else str(v)
+                    for _t, v in sorted(col.items()))
+
+
+def section_uniform():
+    print("\n== P8 the uniform lookahead")
+    t_start = time.time()
+    box_off = []
+    k0 = len(CHECKS)
+    # U0 controls, run first
+    _wk, cg, _l, _n, _b = uniform_cell((1,), -1, 0, box_off)
+    want = all(cg[t] == (2 if t % 2 == 0 else 1) for t in cg if t >= 2)
+    check("U0 control: the drop at golden, column 2 1 2 1 ... from t = 2",
+          want and cg[1] == 0, col_str(cg))
+    _wk, c3, _l, _n, _b = uniform_cell(one_class(3, 2), -1, 0, box_off)
+    tail = [c3[t] for t in sorted(c3) if t >= 2]
+    rep = len(tail) >= 6 and tail[:3] == [4, 3, 2] and all(
+        tail[i] == tail[i + 3] for i in range(len(tail) - 3))
+    check("U0 control: the drop at one-class (3, 2), 4 3 2 repeating",
+          rep, col_str(c3))
+    for P, a in ((3, 2), (4, 2)):
+        wk, cd, _l, _n, _b = uniform_cell(one_class(P, a), 1, 0, box_off)
+        w = wk.num.w
+        s = w.q(2) if P % 2 else w.q(1)
+        ts = first_depth(w, s)
+        ok = all((cd[t] is None) == (t >= ts) for t in cd if w.q(t) >= 2)
+        check(f"U0 control: one-class ({P}, {a}), r = 1, survives exactly "
+              f"from t* = {ts}", wk.gated and ok, col_str(cd))
+    gate(k0)
+    # U1b a cell whose box needs the upper end G+ > 0
+    wk, cb, lb, _n, _b = uniform_cell((1, 1, 8, 2), -1, 0, box_off)
+    lo, hi, _ = wk.bounds(wk.ks, True)
+    H0, g = max(abs(lo), abs(hi)) / wk.num.Q, alpha_gap((1, 1, 8, 2))
+    Gp = max(0.0, H0 - g) / (g - 1)
+    ok = lb is not None and all(
+        c is not None and c <= max(0, lb + 1 + max(wk.ks - t, 2))
+        for t, c in cb.items())
+    lam, jl, kl = least_conj_start(wk, QMAX)
+    check("U1b the drop at [0; (1, 1, 8, 2)^oo]: a live start below "
+          "-j(alpha - alpha'), G+ > 0, column within the bound",
+          lam < 0 and Gp > 0 and ok, f"least lambda' = {lam:.4f} at j = "
+          f"{jl}, kappa = {kl}; G+ = {Gp:.4f}, L = {lb}, column "
+          f"{col_str(cb)}")
+    # U2, U3 over every cell that is not DISCONTINUOUS
+    Ps = range(2, 10) if FULL else range(2, 7)
+    As = range(2, 6) if FULL else range(2, 5)
+    cells = [(name, per, r) for name, per, r in criterion_cells()
+             if not name.startswith("one-class")]
+    cells += [(f"one-class ({P}, {a})", one_class(P, a), r)
+              for P in Ps for a in As for r in [-1] + list(range(1, 2 * P + 1))]
+    seen = set()                    # [1, 2] is the one-class (2, 2)
+    cells = [c for c in cells if (tuple(c[1]), c[2]) not in seen
+             and not seen.add((tuple(c[1]), c[2]))]
+    N = 60000 if FULL else 20000
+    n_cells = n_depths = 0
+    over, cyc, above, unequal, roomy = [], [], [], 0, 0
+    worst = (0, None)
+    for name, per, r in cells:
+        if Walk(per, r).gated:
+            continue
+        wk, col, lpath, nst, brute = uniform_cell(per, r, N, box_off)
+        n_cells += 1
+        if lpath is None:
+            cyc.append((name, r))
+            continue
+        top = wk.num.w.depth_of(N)
+        for t, c in col.items():
+            n_depths += 1
+            bound = max(0, lpath + 1 + max(wk.ks - t, 1 - r))
+            if c is None or c > bound:
+                over.append((name, r, t, c, bound))
+            if t in brute and brute[t] > (c or 0):
+                above.append((name, r, t, brute[t], c))
+            if t + (c or 0) <= top - 3 and t in brute:
+                roomy += 1
+                unequal += brute[t] != c
+        cmax = max(v for v in col.values() if v is not None)
+        if cmax > worst[0]:
+            worst = (cmax, (name, r, lpath))
+        if name in ("golden", "one-class (4, 2)", "one-class (5, 3)") \
+                or (name.startswith("one-class (6") and r in (2, 4, -1)):
+            print(f"  {name:18s} r = {r:2d}: L = {lpath:2d} ({nst} box "
+                  f"states), column {col_str(col)}")
+    check("U1 the box: every interior state past k_1 lies in B",
+          not box_off, f"off {box_off[:4]}")
+    check(f"U2 {n_cells} cells not DISCONTINUOUS: B acyclic, c(t) within "
+          f"max(0, L + 1 + max(k_s - t, 1 - r))", not cyc and not over,
+          f"{n_depths} depths, cyclic {cyc}, over {over[:4]}; widest "
+          f"column {worst[0]} at {worst[1]}")
+    check("U3 the brute never reads above the walk's column", not above,
+          f"above {above[:4]}; {unequal} of {roomy} roomy depths "
+          "unequal (expected 0, not a kill)")
+    # U4 e - 2
+    w = Numeration("e - 2", e_minus_2(260))
+    for r in (1, 2, 4, 5, 8):
+        wk = LineWalk(w, r)
+        tmax = w.depth_of(QMAX)
+        kcap = tmax + 40
+        assert wk.num.top > kcap + r + 32
+        col = walk_col(w, joint_walk(wk, QMAX, kcap), kcap, tmax)
+        if r % 3 == 1:
+            ts = first_depth(w, w.q(r))
+            ok = all((col[t] is None) == (t >= ts) for t in col
+                     if w.q(t) >= 2)
+            check(f"U4 e - 2, r = {r}: survives exactly from t* = {ts}",
+                  ok, col_str(col))
+        else:
+            check(f"U4 e - 2, r = {r}: lookahead 0 at every depth t <= "
+                  f"{tmax}", all(v == 0 for v in col.values()), col_str(col))
+    print(f"  ({time.time() - t_start:.1f} s)")
+
+
+# ------------------------------------------------------------ the block code
+
+def class_quots(bs):
+    """[0; 1, b_1, 1, 1, b_2, 1, 1, ...]: a_(3i-1) = b_i, else 1."""
+    out = [1]
+    for b in bs:
+        out += [b, 1, 1]
+    return out
+
+
+def g_holds(bs, s):
+    """Argument (11)'s (G) at stride 3s + 2 over the listed b_i."""
+    b = [None] + list(bs)
+    if len(b) > s + 1 and not b[1] // 2 < b[s + 1]:
+        return False
+    for i in range(s + 2, len(b)):
+        if not b[i - s] // 2 + max(1, b[i - s - 1] // 2 if i - s - 1 >= 1
+                                   else 0) < b[i]:
+            return False
+    return True
+
+
+def block_code(d, r, carry=True):
+    """Argument (11): sigma_r's output string from the input string d."""
+    S = [0] * r + list(d) + [0] * 9
+    at = lambda j: S[j] if 0 <= j < len(S) else 0
+    g = [0] * (len(S) + 3)
+    c = h_prev = 0
+    for i in range(1, len(S) // 3 + 2):
+        x, y, e = at(3 * i - 2), at(3 * i - 1), at(3 * i)
+        h, bb = e // 2, e % 2
+        Z = x + h + h_prev + c
+        if not carry:
+            out, c = (Z, y, bb), 0
+        elif y and bb:
+            out, c = (Z, 0, 0), 1
+        elif y and Z >= 1:
+            out, c = (Z - 1, 0, 1), 0
+        elif y:
+            out, c = (0, 1, 0), 0
+        else:
+            out, c = (Z, 0, bb), 0
+        g[3 * i - 2:3 * i + 1] = out
+        h_prev = h
+    while g and g[-1] == 0:
+        g.pop()
+    return g
+
+
+def block_misses(w, r, ds, carry=True):
+    """Inputs whose block code is not the greedy string of sigma_r, or
+    not legal."""
+    bad = []
+    for d in ds:
+        m = sum(dk * w.q(k + r) for k, dk in enumerate(d) if dk)
+        g = block_code(d, r, carry)
+        if g != w.digits(m) if m else g != []:
+            bad.append(d)
+        elif not w.legal(g):
+            bad.append(d)
+    return bad
+
+
+def random_legal(w, n, rng):
+    d = [0]
+    for k in range(1, n):
+        cap = w.a[k + 1] - (1 if d[-1] else 0)
+        d.append(rng.randint(0, cap))
+    return d
+
+
+def random_g(s, n, rng):
+    bs = []
+    while len(bs) < n:
+        lo = 2
+        for _ in range(1000):
+            b = rng.randint(lo, (bs[-1] if bs else 3) + 5)
+            if g_holds(bs + [b], s):
+                break
+        else:
+            raise RuntimeError("no (G) quotient found")
+        bs.append(b)
+    return bs
+
+
+def section_block():
+    print("\n== P9 the block code")
+    t_start = time.time()
+    rng = random.Random(1383)
+    N = 200000 if FULL else 20000
+    e2 = Numeration("e - 2", e_minus_2(260))
+    fail = periodic("[0; (1, 2, 1)^oo]", (1, 2, 1))
+    ints = lambda w: [w.digits(n) for n in range(N)]
+    # B0 controls, run first
+    bad = block_misses(e2, 2, ints(e2), carry=False)
+    check("B0 control: the carry removed is flagged at e - 2, r = 2",
+          len(bad) > 0, f"{len(bad)} of {N} flagged, first {bad[:1]}")
+    bad = block_misses(fail, 2, ints(fail))
+    check("B0 control: the block code is flagged at the (G) failure "
+          "[0; (1, 2, 1)^oo], r = 2", len(bad) > 0,
+          f"{len(bad)} of {N} flagged, first {bad[:1]}")
+    gate(len(CHECKS) - 2)
+    # B1 e - 2, B2 more (G) numerations
+    g0, g1 = random_g(0, 90, rng), random_g(1, 90, rng)
+    cells = [("e - 2", e2, (2, 5, 8, 11), None),
+             ("[0; (1, 3, 1)^oo]", periodic("", (1, 3, 1)), (2, 5), [3]),
+             ("[0; (1, 5, 1)^oo]", periodic("", (1, 5, 1)), (2, 5), [5]),
+             ("random (G) at s = 0", Numeration("g0", class_quots(g0)),
+              (2,), g0),
+             ("random (G) at s = 1", Numeration("g1", class_quots(g1)),
+              (5,), g1)]
+    print(f"  random class quotients, s = 0: {g0[:12]} ...")
+    print(f"  random class quotients, s = 1: {g1[:12]} ...")
+    for name, w, rs, bs in cells:
+        for r in rs:
+            if bs is not None:
+                assert g_holds(bs * (30 if len(bs) == 1 else 1),
+                               (r - 2) // 3)
+            strings = [random_legal(w, 60, rng) for _ in range(500)]
+            b_int = block_misses(w, r, ints(w))
+            b_str = block_misses(w, r, strings)
+            tag = "B1" if name == "e - 2" else "B2"
+            check(f"{tag} {name}, r = {r}: the block code is the greedy "
+                  f"string", not b_int and not b_str,
+                  f"{N} integers, 500 strings of 60 digits; off "
+                  f"{len(b_int)}, {len(b_str)}")
+    # B3 the walk from every cut
+    for name, w, rs, _bs in cells[1:] + [("[0; (1, 2, 1)^oo] (G fails)",
+                                          fail, (2,), None)]:
+        for r in rs:
+            wk = LineWalk(w, r)
+            tmax = w.depth_of(QMAX)
+            kcap = tmax + 40
+            assert wk.num.top > kcap + r + 32
+            col = walk_col(w, joint_walk(wk, QMAX, kcap), kcap, tmax)
+            if "fails" in name:
+                print(f"  (observation) {name}, r = {r}: column "
+                      f"{col_str(col)}")
+                continue
+            check(f"B3 {name}, r = {r}: the walk reads 0 at every depth "
+                  f"t <= {tmax}", all(v == 0 for v in col.values()),
+                  col_str(col))
+    print(f"  ({time.time() - t_start:.1f} s)")
+
+
+# ------------------------------------------------------------ the sharp condition
+
+def phase_first(psi):
+    return {-1: 2, 0: 3, 1: 1}[psi]
+
+
+def phase_quots(bs, psi):
+    """a_p = the next class quotient at p = 3i + psi, else 1 (argument
+    (12)); bs[0] is b_1 at psi = -1, 0 and b_0 at psi = 1."""
+    first = phase_first(psi)
+    out = [1] * (first + 3 * len(bs))
+    for i, b in enumerate(bs):
+        out[first - 1 + 3 * i] = b
+    return out
+
+
+def block_code_phase(d, r, psi):
+    """Argument (11)'s code with its blocks at (J_i - 1, J_i, J_i + 1),
+    J_i = 3i + psi."""
+    S = [0] * r + list(d) + [0] * 9
+    at = lambda j: S[j] if 0 <= j < len(S) else 0
+    g = [0] * (len(S) + 6)
+    c = h_prev = 0
+    i = 1 if psi <= 0 else 0
+    while 3 * i + psi - 1 < len(S) + 3:
+        P = 3 * i + psi
+        x, y, e = at(P - 1), at(P), at(P + 1)
+        h, bb = e // 2, e % 2
+        Z = x + h + h_prev + c
+        if y and bb:
+            out, c = (Z, 0, 0), 1
+        elif y and Z >= 1:
+            out, c = (Z - 1, 0, 1), 0
+        elif y:
+            out, c = (0, 1, 0), 0
+        else:
+            out, c = (Z, 0, bb), 0
+        g[P - 1:P + 2] = out
+        h_prev = h
+        i += 1
+    while g and g[-1] == 0:
+        g.pop()
+    return g
+
+
+def phase_misses(w, r, psi, ds):
+    bad = []
+    for d in ds:
+        m = sum(dk * w.q(k + r) for k, dk in enumerate(d) if dk)
+        g = block_code_phase(d, r, psi)
+        if (g != w.digits(m) if m else g != []) or not w.legal(g):
+            bad.append(d)
+    return bad
+
+
+def in_cap(w, k, n_in):
+    """(cap, whether reaching it forces a zero below) of input digit k."""
+    if k < 0 or k >= n_in:
+        return 0, False
+    if k == 0:
+        return w.a[1] - 1, False
+    return w.a[k + 1], True
+
+
+def programme(w, r, psi, n_in):
+    """Argument (12)'s dynamic programme over the input's first n_in
+    digits: every reachable illegal block output, as rows (i, J_i,
+    o_1 - b_i, E_(i-1), witness input string)."""
+    rows = []
+    # a state after block i: (h_i, c_(i+1), output's last digit nonzero,
+    # e_i == 0), holding the first witness prefix that reaches it
+    states = {(0, 0, False, True): [0] * n_in}
+    i = 1 if psi <= 0 else 0
+    while 3 * i + psi - 1 - r < n_in:
+        P = 3 * i + psi
+        ks = (P - 1 - r, P - r, P + 1 - r)
+        (cx, fx), (cy, fy), (ce, fe) = (in_cap(w, k, n_in) for k in ks)
+        pos = P - 1
+        bcap = w.a[pos + 1] - (1 if pos == 0 else 0)
+        nxt = {}
+        for (hp, c, e3, ez), wit in states.items():
+            for x in range(cx + 1):
+                if fx and x == cx and cx and not ez:
+                    continue
+                for y in range(cy + 1):
+                    if fy and y == cy and cy and x:
+                        continue
+                    for e in range(ce + 1):
+                        if fe and e == ce and ce and y:
+                            continue
+                        h, bb = e // 2, e % 2
+                        Z = x + h + hp + c
+                        if y and bb:
+                            out, c2 = (Z, 0, 0), 1
+                        elif y and Z >= 1:
+                            out, c2 = (Z - 1, 0, 1), 0
+                        elif y:
+                            out, c2 = (0, 1, 0), 0
+                        else:
+                            out, c2 = (Z, 0, bb), 0
+                        wit2 = list(wit)
+                        for k, v in zip(ks, (x, y, e)):
+                            if 0 <= k < n_in:
+                                wit2[k] = v
+                        o1 = out[0]
+                        if o1 > bcap or (pos >= 1 and o1 == bcap and e3):
+                            rows.append((i, P, o1 - w.a[pos + 1], e3, wit2))
+                        nxt.setdefault((h, c2, out[2] != 0, e == 0), wit2)
+        states = nxt
+        i += 1
+    return rows
+
+
+def closed_S(Bi, Bim1, bi):
+    """Argument (12)'s (S) at a block whose two blocks below carry caps
+    >= 2."""
+    return Bi // 2 + max(1, (Bim1 - 1) // 2) < bi
+
+
+def thue_morse(n):
+    return [2 + bin(i).count("1") % 2 for i in range(n)]
+
+
+def walk_column(w, r):
+    wk = LineWalk(w, r)
+    tmax = w.depth_of(QMAX)
+    kcap = tmax + 40
+    assert wk.num.top > kcap + r + 32
+    return walk_col(w, joint_walk(wk, QMAX, kcap), kcap, tmax)
+
+
+def random_S(psi, s, n, rng, lo=2, hi=7):
+    """Class quotients drawn one at a time so the programme finds no
+    violation among the blocks they fill."""
+    bs, r = [], 3 * s + 2
+    while len(bs) < n:
+        for _ in range(2000):
+            cand = bs + [rng.randint(lo, hi)]
+            w = Numeration("s", phase_quots(cand + [hi + 9] * 60, psi))
+            top = phase_first(psi) + 3 * (len(cand) - 1) + r
+            if not [row for row in programme(w, r, psi, 3 * len(cand) + 3)
+                    if row[1] <= top]:
+                break
+        else:
+            raise RuntimeError("no (S) quotient found")
+        bs = cand
+    return bs
+
+
+def section_sharp():
+    print("\n== PS the sharp condition")
+    t_start = time.time()
+    rng = random.Random(1384)
+    N = 200000 if FULL else 20000
+    NIN = 60
+    ints = lambda w: [w.digits(n) for n in range(N)]
+    e2 = Numeration("e - 2", e_minus_2(260))
+    two = periodic("(1, 2, 1)", (1, 2, 1))
+    # S0 controls, run first
+    v = programme(two, 2, -1, NIN)
+    check("S0 control: the programme finds violations at "
+          "[0; (1, 2, 1)^oo], r = 2", len(v) > 0,
+          f"{len(set(row[0] for row in v))} blocks, first at P = "
+          f"{v[0][1] if v else None}")
+    for r in (2, 5, 8):
+        v = programme(e2, r, -1, NIN)
+        check(f"S0 control: none at e - 2, r = {r}", not v,
+              f"{len(v)} found")
+    gate(len(CHECKS) - 4)
+    # S1 the phases
+    for psi in (0, 1):
+        cells = [("constant 3", [3] * 90, (2, 5))]
+        for s in (0, 1):
+            cells.append((f"random (S) at s = {s}",
+                          random_S(psi, s, 30, rng) + [9] * 60, (3 * s + 2,)))
+        for name, bs, rs in cells:
+            w = Numeration(name, phase_quots(bs, psi))
+            for r in rs:
+                v = programme(w, r, psi, NIN)
+                strings = [random_legal(w, NIN, rng) for _ in range(500)]
+                b_int = phase_misses(w, r, psi, ints(w))
+                b_str = phase_misses(w, r, psi, strings)
+                col = walk_column(w, r)
+                check(f"S1 psi = {psi}, {name}, r = {r}: no violation, the "
+                      f"code greedy, the walk 0", not v and not b_int
+                      and not b_str and all(c == 0 for c in col.values()),
+                      f"{len(v)} found, off {len(b_int)}, {len(b_str)}; "
+                      f"column {col_str(col)}; b {bs[:10]} ...")
+    # S2 the programme decides
+    agree = n_viol = 0
+    s2_cells = []
+    for m in range(24):
+        psi = (-1, 0, 1)[m % 3]
+        r = 2 if m % 2 == 0 else 5
+        bs = [rng.randint(2, 5) for _ in range(90)]
+        w = Numeration(f"S2 #{m}", phase_quots(bs, psi))
+        v = programme(w, r, psi, NIN)
+        if v:
+            n_viol += 1
+            ok = all(w.legal(row[4]) and phase_misses(w, r, psi, [row[4]])
+                     for row in v)
+        else:
+            strings = [random_legal(w, NIN, rng) for _ in range(500)]
+            ok = not phase_misses(w, r, psi, ints(w) + strings)
+        agree += ok
+        s2_cells.append((m, psi, r, w, v))
+    check("S2 the programme decides the code at 24 random class sequences",
+          agree == 24, f"{n_viol} with violations (each witness legal and "
+          f"flagged), {24 - n_viol} clean and greedy; {agree} agree")
+    check("S2 every one of the 24 has a reachable violation", n_viol == 24,
+          f"{n_viol} of 24")
+    # S3 the closed form
+    off = 0
+    for _ in range(3000):
+        s = rng.randint(0, 2)
+        r = 3 * s + 2
+        bs = [rng.randint(2, 12) for _ in range(s + 5)]
+        w = Numeration("S3", phase_quots(bs + [2] * 80, -1))
+        i = s + 4                      # blocks i - 1, i - 2 carry b's
+        v = programme(w, r, -1, 3 * (i - s) + 1)
+        viol = any(row[0] == i for row in v)
+        off += viol == closed_S(bs[i - s - 1], bs[i - s - 2], bs[i - 1])
+    check("S3 the closed form (S) agrees with the programme", off == 0,
+          f"3000 cases, {off} off")
+    # S4 the even constants
+    for b in (4, 6):
+        w = periodic(f"(1, {b}, 1)", (1, b, 1))
+        for r in (2, 5):
+            v = programme(w, r, -1, NIN)
+            b_int = phase_misses(w, r, -1, ints(w))
+            col = walk_column(w, r)
+            check(f"S4 [0; (1, {b}, 1)^oo], r = {r}, where (G) fails: no "
+                  f"violation, the code greedy, the walk 0", not v and
+                  not b_int and all(c == 0 for c in col.values()),
+                  f"{len(v)} found, off {len(b_int)}; column {col_str(col)}")
+    # S5 the borrow
+    def e_type(v):
+        return all(row[2] == 0 and row[3] for row in v)
+
+    tm = Numeration("Thue-Morse {2, 3}", phase_quots(thue_morse(200), -1))
+    cells = [("Thue-Morse {2, 3}", tm, -1)]
+    cells += [(f"S2 #{m} (psi = {psi})", w, psi)
+              for m, psi, r, w, v in s2_cells if r == 2 and v and e_type(v)]
+    for name, w, psi in cells:
+        v = programme(w, 2, psi, NIN)
+        col = walk_column(w, 2)
+        want = {row[1] - 1 for row in v}
+        ok = e_type(v) and all(c == (1 if t in want else 0)
+                               for t, c in col.items())
+        check(f"S5 {name}, r = 2: every excess 1 with E, the column 1 "
+              f"exactly at J_i - 1", ok,
+              f"violating J_i - 1 in range {sorted(t for t in want if t in col)}"
+              f"; column {col_str(col)}")
+    for name, w in (("Thue-Morse {2, 3}", tm), ("[0; (1, 2, 1)^oo]", two)):
+        for r in (5, 8):
+            v = programme(w, r, -1, NIN)
+            col = walk_column(w, r)
+            check(f"S5 {name}, r = {r}: every excess 1 with E ({len(v)} "
+                  f"found), the walk 0 at every depth",
+                  v and e_type(v) and all(c == 0 for c in col.values()),
+                  f"column {col_str(col)}")
+    w = periodic("(1, 2, 1, 1, 9, 1)", (1, 2, 1, 1, 9, 1))
+    v = programme(w, 5, -1, NIN)
+    col = walk_column(w, 5)
+    kinds = sorted({(row[2], row[3]) for row in v})
+    print(f"  (observation) class quotients 2, 9 alternating, r = 5: "
+          f"excess kinds (o_1 - b, E) {kinds}; column {col_str(col)}")
+    print(f"  ({time.time() - t_start:.1f} s)")
+
+
+# ------------------------------------------------------------ the borrow code
+
+def borrow_code(w, d, r, psi, fix=True):
+    """Argument (13): the block code with every violation of the kind
+    (S') allows rewritten at once, run up the blocks."""
+    g = block_code_phase(d, r, psi) + [0] * 12
+    pending = False                   # block i - 1 left (0, 1, 1)
+    i = 1 if psi <= 0 else 0
+    while 3 * i + psi + 1 < len(g):
+        P = 3 * i + psi
+        o = g[P - 1:P + 2]
+        if fix and P - 1 >= 1 and o[0] == w.a[P] and g[P - 2]:
+            assert o[1] == 0, (d, P)
+            g[P - 2] = 0              # b q_(P-1) + q_(P-2) = q_P
+            o = [0, 1, o[2]]
+        elif fix and pending:
+            g[P - 4:P - 1] = [0, 0, 0]  # q_(P-3) + q_(P-2) = q_(P-1)
+            o = [0, 0, 1] if o[1] else [o[0] + 1, o[1], o[2]]
+        g[P - 1:P + 2] = o
+        pending = o == [0, 1, 1]
+        i += 1
+    assert not pending
+    while g and g[-1] == 0:
+        g.pop()
+    return g
+
+
+def borrow_misses(w, r, psi, ds, fix=True):
+    bad = []
+    for d in ds:
+        m = sum(dk * w.q(k + r) for k, dk in enumerate(d) if dk)
+        g = borrow_code(w, d, r, psi, fix)
+        if (g != w.digits(m) if m else g != []) or not w.legal(g):
+            bad.append(d)
+    return bad
+
+
+def sprime_holds(w, r, psi, n_in, top=None):
+    """(S') by the programme: every violation it finds has excess 0 over
+    a nonzero (rows at P <= top only, when top is given)."""
+    return all(row[2] == 0 and row[3]
+               for row in programme(w, r, psi, n_in)
+               if top is None or row[1] <= top)
+
+
+def random_Sp(psi, n, rng, lo=2, hi=6):
+    """Class quotients drawn one at a time so (S') holds at r = 2, 5, 8
+    over the blocks they fill."""
+    bs = []
+    while len(bs) < n:
+        for _ in range(2000):
+            cand = bs + [rng.randint(lo, hi)]
+            w = Numeration("s", phase_quots(cand + [2 * hi + 9] * 60, psi))
+            if all(sprime_holds(w, r, psi, 3 * len(cand) + 3,
+                                phase_first(psi) + 3 * (len(cand) - 1) + r)
+                   for r in (2, 5, 8)):
+                break
+        else:
+            raise RuntimeError("no (S') quotient found")
+        bs = cand
+    return bs
+
+
+def section_borrow():
+    print("\n== PB the borrow code")
+    t_start = time.time()
+    rng = random.Random(13841)
+    N = 200000 if FULL else 20000
+    NIN = 60
+    ints = lambda w: [w.digits(n) for n in range(N)]
+    # R0 controls, run first
+    two = periodic("(1, 2, 1)", (1, 2, 1))
+    bad = borrow_misses(two, 2, -1, ints(two), fix=False)
+    check("R0 control: the rewrites removed are flagged at "
+          "[0; (1, 2, 1)^oo], r = 2", len(bad) > 0,
+          f"{len(bad)} of {N} flagged, first {bad[:1]}")
+    alt = periodic("(1, 2, 1, 1, 9, 1)", (1, 2, 1, 1, 9, 1))
+    ds = ints(alt) + [row[4] for row in programme(alt, 5, -1, NIN)]
+    bad = []
+    for d in ds:
+        try:
+            bad += borrow_misses(alt, 5, -1, [d])
+        except AssertionError:
+            bad.append(d)
+    check("R0 control: the borrow code is flagged at the (S') failure, "
+          "class quotients 2 and 9 alternating, r = 5", len(bad) > 0,
+          f"{len(bad)} of {len(ds)} flagged")
+    gate(len(CHECKS) - 2)
+    # R1, R2
+    cells = []
+    for psi in (-1, 0, 1):
+        cells.append((f"Thue-Morse, psi = {psi}", thue_morse(200), psi))
+        cells.append((f"constant 2, psi = {psi}", [2] * 200, psi))
+        for m in range(2):
+            bs = random_Sp(psi, 30, rng)
+            cells.append((f"random (S') #{m}, psi = {psi}",
+                          bs + [2] * 170, psi))
+    n_r1 = n_r2 = 0
+    tops = []
+    for name, bs, psi in cells:
+        w = Numeration(name, phase_quots(bs, psi))
+        for r in (2, 5, 8):
+            assert sprime_holds(w, r, psi, NIN), (name, r)
+            strings = [random_legal(w, NIN, rng) for _ in range(500)]
+            b_int = borrow_misses(w, r, psi, ints(w))
+            b_str = borrow_misses(w, r, psi, strings)
+            n_r1 += not b_int and not b_str
+            col = walk_column(w, r)
+            tops.append(max(col))
+            if r == 2:
+                want = {row[1] - 1 for row in programme(w, r, psi, NIN)}
+                ok = all(c == (1 if t in want else 0)
+                         for t, c in col.items())
+            else:
+                ok = all(c == 0 for c in col.values())
+            n_r2 += ok
+            if not (ok and not b_int and not b_str) or r == 2 and \
+                    name.startswith(("Thue", "constant")):
+                print(f"  {name}, r = {r}: off {len(b_int)}, {len(b_str)}; "
+                      f"column {col_str(col)}")
+    n = 3 * len(cells)
+    check(f"R1 the borrow code is the greedy string at {n} (S') cells",
+          n_r1 == n, f"{n_r1} of {n} clean, {N} integers and 500 strings "
+          f"each")
+    check(f"R2 the walk reads at most max(0, 3 - r), and at r = 2 exactly "
+          f"the violating depths, at {n} cells", n_r2 == n,
+          f"{n_r2} of {n}, the columns to t = {min(tops)} ... {max(tops)}")
+    print(f"  ({time.time() - t_start:.1f} s)")
+
+
+def main():
+    t0 = time.time()
+    section_controls()
+    gate(0)
+    section_change()
+    section_copy()
+    section_combs()
+    section_e2()
+    section_criterion()
+    section_parity()
+    section_even()
+    section_drop()
+    section_wide()
+    section_uniform()
+    section_block()
+    section_sharp()
+    section_borrow()
+    n_ok = sum(CHECKS)
+    print(f"\n{n_ok} of {len(CHECKS)} checks passed "
+          f"({time.time() - t0:.1f} s{', full' if FULL else ''})")
+    sys.exit(0 if n_ok == len(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,968 @@
+"""cascade.py -- whether the greedy walk over a number ring must lock:
+the escape as a conjunction of carrier ladders, the budget that pins
+each ladder's ceiling, where the ladders die, and why a small-prime
+sieve's expected count does not see the level they die at.
+
+QUESTION. module_law.py proves that in the ideal world of a ring of
+integers O a greedy trajectory LOCKS (every later pick deepens one
+place) iff its costs are bounded infinitely often. Whether costs can
+diverge is left open there. This script asks what a divergent
+trajectory would need, shows that the need is a conjunction over the
+ring's rank-1 characteristics of one arithmetic ladder each, walks
+that ladder at every odd characteristic below 1000, asks where the
+walk's death holds for every seed and not only for a walk starting
+low, and names the one question a proof that every ladder dies must
+answer. It then asks whether the ladder's death is the same event as
+the fourth kind of least move over Z, the opening at full price
+(growth.py, section C).
+
+THE OBJECT. The setting is module_law.py's: O a ring of integers, a
+state an ideal M, L = lambda(M), a move an ideal priced by its norm,
+the greedy move the least-norm move raising L. A RANK-1 place is a
+place P over p with e = f = 1, so N(P) = p and the completion is Z_p;
+p is then a RANK-1 CHARACTERISTIC of O. Fix one. The LEVEL of a state
+at p is V = v_p(L). A CARRIER at level V is a place H not over p with
+p^(V+1) | N(H) - 1: opening H lifts v_p(L) past V. The CARRIER LADDER
+at p is the sequence of levels a trajectory climbs. The level's
+CANDIDATES are the numbers n = m p^(V+1) + 1 with 1 <= m <= p - 1 at
+odd p (at p = 2 the three of (3)); a level is DEAD when no candidate is
+a prime power (no ring has a carrier the walk can open there, see (3)),
+and the walk from level 1 stops at its first dead level, D(p). Below,
+a carrier means one the walk can open, and the word also names its
+norm, a prime-power candidate (as in proper_carriers, prime_carrier).
+
+THE ARGUMENT (written before the engine).
+  (1) THE CONJUNCTION. Let P be rank-1 over p, at depth a in M. Since
+      lambda(P^b) = (p - 1) p^(b - 1) for odd p, the move P^(V + 2 - a)
+      raises L whatever the rest of the state, at norm p^(V + 2 - a)
+      <= p^(V + 2); at p = 2, where lambda(2^b) = 2^(b - 2) for
+      b >= 3, the bound is 2^(V + 3). The greedy move costs no more.
+      So if costs diverge, V diverges, and it does so at EVERY rank-1
+      characteristic of O at once: each bounds the cost on its own at
+      every step, and a divergent trajectory must defeat all of them.
+      One ladder dying infinitely often closes the ring.
+  (2) THE RISES RUN THROUGH CARRIERS. A rise of v_p(L) is a pick at a
+      place over p or an opening of a carrier (deepening a place H not
+      over p adds only powers of H's own characteristic to its column,
+      whose p-part is v_p(N(H) - 1) from the opening on). Let a rise
+      run through a place P' over p, past the pump's start
+      (module_law.py's a0, from which E(a + e) = p E(a)). After
+      it P' OWNS v_p(L), so its next door is exactly e deep, at price
+      p^(ef) (module_law.py (4)), and the next move costs at most that.
+      Infinitely many such rises bound the costs infinitely often. So
+      along a divergent trajectory all but finitely many rises are
+      carrier openings.
+  (3) THE BUDGET PINS THE CEILING. A carrier opening the walk makes is a
+      least move, so
+      N(H) <= p^(V + 2 - a) <= p^(V + 2), and N(H), a power of a prime
+      other than p, cannot equal it: N(H) = m p^(V + 1) + 1 with
+      1 <= m <= p - 1, the rise is exactly one level (N(H) - 1 <
+      p^(V + 2)), and the supply at level V is those p - 1 numbers
+      that are prime powers. No ring does better, since a norm is a
+      prime power. At p = 2 the ceiling is 2^(V + 3), the candidates are
+      2^(V+1) + 1, 2^(V+2) + 1 and 3 2^(V+1) + 1, and the middle one
+      rises TWO levels; a prime power of the form 2^k + 1 is a Fermat
+      prime or 9 (Mihailescu), so the double rise is rationed by the
+      Fermat primes. A carrier never steps over a dead level (at odd p
+      it rises one level; at p = 2 the double rise from level V runs
+      through 2^(V+2) + 1, the first candidate of level V + 1 itself),
+      so a
+      divergent trajectory crosses a dead level only through a place
+      over p, which by (2) makes the next move cost at most p^(ef).
+      A divergent trajectory has finitely many moves that cheap, so it
+      crosses finitely many dead levels: INFINITELY MANY dead levels
+      at one rank-1 characteristic block every trajectory, and by
+      module_law.py (6) every trajectory of that ring locks. A single
+      dead level blocks nothing.
+  (4) THE ELEMENT WORLD. If P = (pi) is principal, pi^(V + 2 - a)
+      (pi^(V + 3 - a) at p = 2) is an element and (1) holds verbatim;
+      in (2) the move deepening P' by e, padded by an ideal in the
+      inverse class of P'^e, raises L at norm at most p^(ef) times the
+      least norm in that class, still bounded; in (3) a raising element
+      of norm below p^(V + 2) (2^(V + 3) at 2) can hold only one
+      carrier (each carrier's norm exceeds p^(V + 1), so two cost more
+      than p^(2V + 2), at least the ceiling except at p = 2, V = 0, where
+      two odd norms cost at least 9 > 8), so the ladder is the ideal
+      world's. An element walk whose costs diverge
+      therefore climbs the ideal world's ladder at every PRINCIPAL
+      rank-1 characteristic. At a non-principal rank-1 place the door's
+      price is padded by the least norm in a class, whose largest value over
+      the classes is tau_K; over an imaginary quadratic field the
+      classes are the reduced forms (a, b, c) of discriminant disc and
+      the least norm in a class is a, so tau_K = max a <= sqrt(|disc|/3),
+      and tau_K = 1 exactly when the class number is 1. Whether an
+      element walk with bounded costs locks is not settled here.
+  (5) THE RESIDUAL. A ring with a rank-1 characteristic carrying
+      infinitely many dead levels is closed for every seed. The ring
+      Q(sqrt(2 3 5 ... P)) ramifies every prime <= P, so its least
+      rank-1 characteristic exceeds P: no finite sweep of
+      characteristics closes every ring. What suffices is weaker than
+      "every ladder has infinitely many dead levels": the rank-1
+      characteristics of a degree-n field have density at least 1/n
+      (Chebotarev; the Frobenius fixes a root with probability at least
+      1/n), so if the characteristics with finitely many dead levels
+      have density zero, every ring is closed.
+  (6) THE EXPONENT IDENTITY. Let n = r^s be a candidate at level V >= 1
+      of an odd p, s >= 2 (a PROPER power; r != p since n = 1 mod p).
+      Put d = ord of r mod p^(V+1), so d | s; write s = d t. Then
+      r^d >= p^(V+1) + 1 and n > p^((V+1)t), so t < 1 + 1/(V+1) and
+      t = 1: s is the order. If p | s, r^(s/p) = 1 mod p^V, so
+      n >= (p^V + 1)^p > p^(V+2), too big; so s | p - 1. Since
+      p^(V+1) divides (r^s - 1)/(r - 1) (r = 1 mod p would make p
+      divide s), r^s > p^(V+1)(r - 1), and with r^s < p^(V+2) this
+      gives r < p + 1, so r < p and s >= V + 2. A proper power carrier
+      thus has r < p, s | p - 1, s >= V + 2: none at V >= p - 2, and
+      finitely many below, found by enumeration. Every other carrier
+      is a PRIME = 1 mod p^(V+1) below p^(V+2), a question about primes
+      in a progression below p times its modulus.
+  (7) THE SIEVE'S EXPECTED COUNT DOES NOT SEE THE LEVEL. A prime q != p divides
+      m p^(V+1) + 1 for exactly one class of m mod q, m = -p^(-V-1).
+      So the count of even m <= p - 1 whose candidate has no prime
+      factor below z is about ((p - 1)/2) prod (1 - 1/q) over odd q < z,
+      with no V in it, while a prime-count model makes the carriers
+      thin like 1/(V + 2). A covering congruence acts through the same
+      classes, so it closes a level only by an alignment of its classes
+      at that level; and since the class q kills at level V is periodic
+      in V with period ord_q(p), a covering found at one level recurs
+      every lcm of the orders, which is how dead levels are proved to
+      recur.
+  (8) THE FULL-PRICE OPENING IS A DEAD LEVEL READ OVER Z. Over Z, an
+      opening at full price at odd p is the least move with p coprime
+      to M, p | L and (p - 1) | L, at p^(V + 2) (growth.py (8)). It is
+      the least move from SOME state iff no prime = 1 mod p^(V+1) lies
+      below p^(V+2). Only if: such a prime r divides M (then p^(V+1)
+      divides L) or is open at its own door 1, price r, since
+      (r - 1) does not divide L. If: let B be the lcm of u - 1 over the
+      primes u < p^(V+2), u != p, of p - 1, and of s^(c_s) over s <
+      p^(V+2), s != p, c_s least with s^(c_s + 2) > p^(V+2) (for s = 2, with
+      2^(c + 3) > p^(V+2)), its p-part set to p^V (every u - 1 has
+      v_p <= V by the hypothesis); take a prime S = 1 mod B with
+      v_p(S - 1) = V exactly (Dirichlet, any class 1 + k B mod p B
+      with p not dividing k). The seed S has L = S - 1: every prime u
+      below p^(V+2) other than p is
+      either shut ((u - 1) | L, its least move u^(v_u(L)+2) above the price) or
+      absent, and S's own least move costs S > B. So the least move is p at
+      p^(V + 2), at full price. Level V being dead at odd p and the
+      full-price opening over Z at level V read one predicate, "no
+      prime = 1 mod p^(V+1) below p^(V+2)", and differ only at a level
+      holding a proper power candidate of (6) and no prime one.
+
+DESIGN. Standard library only; one process. growth.py's door menu is
+imported for the full-price specimen.
+  C  POSITIVE CONTROLS, before any verdict; a failed control stops
+     the run. C1 the supply: for p in
+     3, 5, 7, 11 and every level with p^(V+2) <= 2 10^6, the numbers
+     n < p^(V+2) with v_p(n - 1) > V, by a scan, against
+     {m p^(V+1) + 1 : 1 <= m <= p - 1}. C2 the primality test (Miller-
+     Rabin at the primes to 41, deterministic below 3.3 10^24 (J.
+     Sorenson and J. Webster, Strong pseudoprimes to twelve prime
+     bases, Math. Comp. 86, 2017); above it
+     a COMPOSITE verdict is a proof and a PRIME verdict can only
+     lengthen a ladder, the safe direction for a death) against trial
+     division below 20,000. C3 the confinement (6) as an enumeration
+     (r < p prime, s | p - 1, s >= 2) against a brute exact-root test
+     of every candidate at every level 1 <= V <= p + 2, odd p < 50,
+     the levels from p - 2 on holding none. C4 the recorded walks: at
+     2 the walk banking the most (the double rise first) climbs
+     through 9, 17, 97, 193, 257 and the least-norm walk through 5, 9,
+     17, 97, 193, 257, both dying at 8; 3 dies at 2; 5 at 3.
+  R  tau_K over the imaginary quadratic fields of fundamental
+     discriminant down to -1000: their count, and class numbers 1 and
+     2 against the nine Heegner discriminants and the eighteen of
+     Baker and Stark (A. Baker, Imaginary quadratic fields with class
+     number 2, Annals of Math. 94, 1971; H. M. Stark, On complex
+     quadratic fields with class-number two, Math. Comp. 29, 1975);
+     tau_K against the bound
+     sqrt(|D|/3) and the Minkowski bound (2/pi) sqrt(|D|), a print, the
+     reduced forms stopping at 3a^2 <= |D| and the one form with a = 1
+     making tau_K = 1 iff h = 1; at D = -23 the principal form
+     x^2 + xy + 6y^2 missing 2 and 3.
+  B  the budget: the double-rise supply 2^k + 1, k <= 300, prime
+     powers exactly 3, 5, 9, 17, 257, 65537.
+  S  the sweep: D(p) at every odd p < 1000, levels to 120; the count of
+     accepted odd-m carriers.
+  K  recurrence: at p = 2, 3, 5 the walk from every start V0 = 1..300;
+     the covering search at every odd p < 1000 (primes q < 2000 whose
+     order of p divides 5040); every level a covering kills from p - 2
+     to 200 certified dead, and p = 2's levels 10 <= V <= 400 with
+     V + 1 = 3 mod 8, the covering built by hand: there 3 divides
+     2^(V+1) + 1, 17 divides 2^(V+2) + 1 and 5 divides 3 2^(V+1) + 1,
+     none of them a power of its divisor past V = 2.
+  Q  the residual, a print: the least rank-1 characteristic of
+     Q(sqrt(2 3 ... P)) for every odd prime P <= 97, above P since
+     every prime to P ramifies.
+  X  the shape: the proper power carriers at every level of every odd
+     p < 1000 by the enumeration (6) licenses, its order clause read;
+     the pooled contrast over the primes with D(p) >= 10, levels 1 to
+     10, of carrier density (per p - 1) against sifted density (even
+     m, no prime factor below 10^4, per floor((p - 1)/2)); sifting
+     below 10^4 at every dead level D(p), p >= 100.
+  W  the weld: at every level of every odd p < 1000 where the two can
+     differ, "no prime carrier" against "dead"; the construction of (8)
+     at p = 3, V = 2, its least prime, and growth.py's menu at that seed.
+     That no dead level D(p) holds a prime carrier prints, D(p) being
+     defined so.
+
+PREDICTIONS, fixed before the run (the count figures are those of the
+scripts this one replaces; the argument says why the laws should hold).
+  C1-C3 exact agreement everywhere; C4 as recorded.
+  R  305 fields; tau_K = 1 iff h = 1; tau_K <= sqrt(|D|/3) and <= the
+     Minkowski bound everywhere; D = -23: h = 3, tau_K = 2, Minkowski
+     3.05, no element of norm 2 or 3.
+  B  exactly the six.
+  S  all 167 odd p < 1000 die at or below level 120; D(19) = D(23) = 1,
+     D(17) = 2, D(29) = 8, D(101) = 10, D(151) = 12, D(751) = 33,
+     D(997) = 45, the largest D(719) = 62; no accepted odd-m carrier.
+  K  every start dies, within 8 levels at 2, 4 at 3, 3 at 5; coverings
+     at exactly 3, 5, 7, 11, 13, 17, 19, 23, 31, 37; every level a
+     covering kills dead.
+  Q  L > P at every P.
+  X  the only proper power carrier at any level V >= 1 of any odd
+     p < 1000 is 3^5 = 243 = 2 11^2 + 1 at (11, 1) (a TRANSPLANT above
+     the dead levels: the replaced count stopped at D(p)); carrier
+     density falls by a ratio near 1/4 from level 1 to 10 while the
+     sifted density moves by a ratio within 5% of 1, near
+     2 e^(-gamma)/ln 10^4 = 0.1219; sifting empties the first dead level
+     D(p) at no p >= 100.
+  W  the two predicates agree at every level (the level (11, 1) also
+     holds the prime 727); the construction's least prime is
+     961440481, and growth.py's menu opens 3 there at 81, full price.
+A KILL is any disagreement in C, a characteristic in S alive at level
+120, a start in K whose walk has not died by level 400, a proper power
+carrier breaking (6)'s confinement, or a level in W where the two
+predicates differ with no proper power carrier to explain it. A count
+figure off its prediction is a finding to read. (Ruled on a code read:
+R1's bounds and its iff, Q, S's odd-m count and W's dead levels hold by
+construction and print; X1 searches inside (6)'s confinement, so its
+kill cannot fire; W1 reads the one level where the predicates can
+differ; C4's walk at 2 banks the most, and the least-norm walk is
+recorded beside it.)
+
+FINDINGS. Every prediction landed: 17/17 checks PASS.
+  C  the supply equals the scan at 27 (p, V); Miller-Rabin agrees with
+     trial division below 20,000; the confinement enumeration equals
+     the exact-root test on all 10,760 candidates of every level
+     1 <= V <= p + 2 at every odd p < 50, the one proper power being
+     3^5 at (11, 1); at 2 the walk banking the most climbs through 9,
+     17, 97, 193, 257 (standing at levels 1, 3, 4, 5, 6, 8) and the
+     least-norm walk through 5, 9, 17, 97, 193, 257, both dying at 8;
+     3 dies at 2, 5 at 3.
+  R  305 fields; class number 1 exactly at the nine Heegner
+     discriminants, tau_K = 1 there only, and 2 exactly at the eighteen
+     of Baker and Stark; tau_K <= sqrt(|D|/3) and
+     below the Minkowski bound everywhere (by the forms), mean tau_K
+     9.58, tau_K <= 4 at 11.8% of fields, mean tau_K / Minkowski 0.705,
+     so the constant grows with the field. D = -23: h = 3, tau_K = 2
+     against a Minkowski bound of 3.053.
+  B  2^k + 1 is a prime power for k <= 300 exactly at 3, 5, 9, 17, 257,
+     65537.
+  S  all 167 odd p < 1000 die, the dead level erratic: D(19) = D(23) =
+     1, D(17) = 2 beside D(29) = 8, D(101) = 10, D(151) = 12,
+     D(751) = 33 beside the largest, D(719) = 62, and D(997) = 45,
+     each an upper bound once its ladder passes 3.3 10^24, where a
+     prime verdict is probable only. No odd multiplier is ever
+     accepted, so the working set is the floor((p - 1)/2) even
+     ones.
+  K  every start V0 <= 300 dies, the longest spanning 8 levels at 2,
+     4 at 3 and 3 at 5, the start's included. The covering search
+     finds coverings at exactly 3, 5, 7, 11, 13, 17, 19, 23, 31 and
+     37 (the first found at 3 is
+     V + 1 = 1 mod 6 by 7; at 37 nine primes up to 67, period 1680),
+     and the 109 levels a covering kills, p = 2's class included, are
+     all dead.
+  Q  the least rank-1 characteristic of Q(sqrt(2 3 ... P)) exceeds P
+     at every odd P <= 97: 103 at P = 97.
+  X  across every level V >= 1 of every odd p < 1000, above the dead
+     levels too, the one proper power carrier is 3^5 = 2 11^2 + 1 at
+     (11, 1), inside the confinement. Pooled over the 144 primes with
+     D(p) >= 10, carrier density falls 0.05792 to 0.01418 from level 1
+     to 10 (ratio 0.245 against the model's 1/4) while sifted density
+     moves 0.11952 to 0.12250 (ratio 1.025), every level within 0.004
+     of 2 e^(-gamma)/ln 10^4 = 0.1219. Pooling on D(p) >= 10 (a carrier
+     at every level from 1 to 9) selects on the ratio's level-1
+     denominator and not on its level-10 count, its effect not
+     measured. The pooled p from 113 on, 136 of the 144, have a
+     level-10 candidate past 3.3 10^24, where a prime verdict is
+     probable. Sifting below 10^4 empties the first dead level D(p)
+     at no p >= 100.
+  W  "no prime carrier" and "dead" agree at every level of every odd
+     p < 1000; the one level with a proper power carrier, (11, 1),
+     also holds the prime 727. Every dead level D(p) is therefore a
+     full-price opening over Z. The construction of (8) at p = 3, V = 2
+     gives B = 480720240, its least prime P = 961440481, and growth.py's
+     menu opens 3 there at 81, full price.
+  Tiers: (1)-(3) and the element world (4) are theorems, the recorded
+  walks (C4) a rule: at 3 and 5 exhaustive to their dead levels, at 2
+  the two walks recorded, each through 257 to level 8; the residual (5)
+  and its density-zero sufficiency are theorems, the latter from
+  Chebotarev's density theorem; the exponent identity (6) and the
+  one-class count (7) are theorems; (8) is a criterion, proved both
+  ways. The sweep and the recurrence are rules verified in the ranges
+  printed; so is the weld's agreement, (6) and the enumeration it
+  licenses leaving one level where it can fail, read there. A single
+  dead level D(p) closes nothing: the sweep is evidence about ladders,
+  and the coverings, recurring, are what close. Whether every odd p
+  has infinitely many dead levels is not decided here: it asks for a
+  prime = 1 mod p^(V+1) below p^(V+2) to fail to exist infinitely
+  often; a sieve's expected count has no V in it, and the search found
+  coverings at ten odd p below 1000 only, 2's being built by hand.
+
+RUN RECORD. 20/20, 15.0 s wall, 9.9 MB peak commit under a memory guard. The
+first run was killed at its 600 s timeout inside C3: the exact-root
+test seeded Newton's method with a float root and stepped up one at a
+time to pass it, which a 53-bit float leaves astronomically far to go
+at 250-bit candidates. Seeded just above the float root instead, the
+control runs in about a second. (3) first said a dead level at or
+above a trajectory's level stops it, forgetting that deepening a place
+over p crosses it; corrected in review. A code read then made the
+checks that held by construction prints (R1's bounds, Q1, S3, W3),
+rebuilt R1 against the known class numbers 1 and 2, widened C3 past p - 2,
+recorded the least-norm walk at 2 beside the one banking the most, and
+made the controls stop the run: 17/17, 15.9 s, 9.7 MB.
+"""
+
+import os
+import sys
+import time
+from math import gcd, isqrt, log, pi, sqrt, exp
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  [{'PASS' if ok else 'FAIL'}] {name}"
+          + (f" -- {detail}" if detail else ""))
+
+
+def control(name, ok, detail=""):
+    check(name, ok, detail)
+    if not ok:
+        print("  control failed: run stopped")
+        raise SystemExit(1)
+
+
+def section(title):
+    print()
+    print("=" * 72)
+    print(title)
+    print("=" * 72)
+
+
+# ------------------------------------------------------------ arithmetic
+
+def primes_up_to(n):
+    s = bytearray([1]) * (n + 1)
+    s[0] = s[1] = 0
+    for i in range(2, isqrt(n) + 1):
+        if s[i]:
+            s[i * i::i] = bytearray(len(s[i * i::i]))
+    return [i for i in range(n + 1) if s[i]]
+
+
+PRIMES = primes_up_to(20000)
+ODD = [p for p in PRIMES if 2 < p < 1000]
+BASES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41)
+
+
+def is_prime(n):
+    """Miller-Rabin at the primes to 41, deterministic below 3.3 * 10^24
+    (Sorenson and Webster, 2017). Above it a composite verdict is a
+    proof."""
+    if n < 2:
+        return False
+    for b in BASES:
+        if n % b == 0:
+            return n == b
+    d, s = n - 1, 0
+    while d % 2 == 0:
+        d, s = d // 2, s + 1
+    for b in BASES:
+        x = pow(b, d, n)
+        if x in (1, n - 1):
+            continue
+        for _ in range(s - 1):
+            x = x * x % n
+            if x == n - 1:
+                break
+        else:
+            return False
+    return True
+
+
+def trial_prime(n):
+    if n < 2:
+        return False
+    for q in PRIMES:
+        if q * q > n:
+            return True
+        if n % q == 0:
+            return n == q
+    return True
+
+
+def iroot(n, k):
+    """The integer k-th root of n, floor: a float seed below 2^1000, then
+    Newton from above."""
+    if n < 2:
+        return n
+    if n.bit_length() < 1000:
+        x = int(n ** (1.0 / k) * (1 + 1e-12)) + 2
+    else:
+        x = 1 << ((n.bit_length() + k - 1) // k)
+    while True:
+        y = ((k - 1) * x + n // x ** (k - 1)) // k
+        if y >= x:
+            return x
+        x = y
+
+
+def proper_power_brute(n):
+    """(r, s) with n = r^s, r prime, s >= 2, by exact roots; else None."""
+    for k in PRIMES:
+        if (1 << k) > n:
+            break
+        r = iroot(n, k)
+        if r ** k == n:
+            # n = r^k; reduce r to a prime base if r is itself a power
+            sub = proper_power_brute(r)
+            if sub:
+                return sub[0], sub[1] * k
+            if trial_prime(r) if r < PRIMES[-1] ** 2 else is_prime(r):
+                return r, k
+            return None
+    return None
+
+
+def vp(n, p):
+    v = 0
+    while n % p == 0:
+        n //= p
+        v += 1
+    return v
+
+
+def divisors(n):
+    return [d for d in range(1, n + 1) if n % d == 0]
+
+
+# ------------------------------------------------------ the carrier ladder
+
+def proper_carriers(p):
+    """Every proper prime power carrier r^s at a level V >= 1 of odd p, by
+    the confinement (6): r < p prime, s | p - 1, s >= 2. -> {V: [(r, s)]}"""
+    out = {}
+    for r in PRIMES:
+        if r >= p:
+            break
+        for s in divisors(p - 1):
+            if s < 2:
+                continue
+            n = r ** s
+            if (n - 1) % p:
+                continue
+            V = vp(n - 1, p) - 1
+            if V >= 1 and n < p ** (V + 2):
+                out.setdefault(V, []).append((r, s))
+    return out
+
+
+SIEVE_Q = [q for q in PRIMES if 2 < q < 1000]
+
+
+def prime_carrier(p, V):
+    """The least even m <= p - 1 with m p^(V+1) + 1 prime, or None. Small
+    primes are sieved through their one class of m when every candidate
+    exceeds them."""
+    k = V + 1
+    pk = p ** k
+    alive = bytearray([1]) * p
+    if pk > 1000:
+        for q in SIEVE_Q:
+            if q == p:
+                continue
+            c = (-pow(p, -k, q)) % q
+            start = c if c % 2 == 0 else c + q
+            if start < p:
+                alive[start::2 * q] = bytearray(len(alive[start::2 * q]))
+    for m in range(2, p, 2):
+        if alive[m] and is_prime(m * pk + 1):
+            return m
+    return None
+
+
+def odd_carriers(p, V):
+    """Accepted odd-m candidates: even numbers, carriers only as 2^t."""
+    pk = p ** (V + 1)
+    return [m * pk + 1 for m in range(1, p, 2)
+            if (m * pk + 1) & (m * pk) == 0]
+
+
+def level_alive(p, V, props):
+    return (prime_carrier(p, V) is not None or V in props
+            or bool(odd_carriers(p, V)))
+
+
+def dead_level(p, V0, cap, props):
+    """The first dead level at or above V0 of odd p (the walk rises one
+    level at a time), or None below cap."""
+    V = V0
+    while V <= cap:
+        if not level_alive(p, V, props):
+            return V
+        V += 1
+    return None
+
+
+def pp(n):
+    return is_prime(n) or proper_power_brute(n) is not None
+
+
+def walk2(V0, cap, least=False):
+    """p = 2: level V, candidates 2^(V+1)+1, 2^(V+2)+1, 3 2^(V+1)+1; the
+    walk takes the carrier banking the most, or with least the one of
+    least norm. -> (dead level, trace)."""
+    V, trace = V0, []
+    while V <= cap:
+        c = [(2 ** (V + 2) + 1, 2), (2 ** (V + 1) + 1, 1),
+             (3 * 2 ** (V + 1) + 1, 1)]
+        got = [(n, rise) for n, rise in c if pp(n)]
+        if least:
+            got.sort()
+        if not got:
+            return V, trace
+        n, rise = got[0]
+        trace.append(n)
+        V += rise
+    return None, trace
+
+
+# ------------------------------------------------------------- section C
+
+def section_c():
+    section("C  POSITIVE CONTROLS, before any verdict reads them")
+    bad = 0
+    tested = 0
+    for p in (3, 5, 7, 11):
+        V = 1
+        while p ** (V + 2) <= 2 * 10 ** 6:
+            scan = {n for n in range(2, p ** (V + 2)) if vp(n - 1, p) > V}
+            gen = {m * p ** (V + 1) + 1 for m in range(1, p)}
+            bad += scan != gen
+            tested += 1
+            V += 1
+    control("C1 the supply is the p - 1 numbers m p^(V+1) + 1", bad == 0,
+            f"{tested} (p, V), {bad} off")
+    bad = sum(is_prime(n) != trial_prime(n) for n in range(20000))
+    control("C2 Miller-Rabin agrees with trial division below 20,000",
+            bad == 0, f"{bad} off")
+    bad, found, cands = 0, [], 0
+    for p in ODD:
+        if p >= 50:
+            break
+        props = proper_carriers(p)
+        for V in range(1, p + 3):
+            brute = []
+            for m in range(1, p):
+                n = m * p ** (V + 1) + 1
+                cands += 1
+                pw = proper_power_brute(n)
+                if pw:
+                    brute.append(pw)
+            if sorted(brute) != sorted(props.get(V, [])):
+                bad += 1
+            found += [(p, V, r, s) for r, s in brute]
+    control("C3 the confinement enumeration equals an exact-root test of "
+            "every candidate, odd p < 50, 1 <= V <= p + 2", bad == 0,
+            f"{cands} candidates, {bad} levels off; proper powers {found}")
+    D2, tr = walk2(1, 400)
+    D2l, trl = walk2(1, 400, least=True)
+    D3 = dead_level(3, 1, 120, proper_carriers(3))
+    D5 = dead_level(5, 1, 120, proper_carriers(5))
+    print(f"  p = 2 banking the most climbs through {tr} and dies at {D2};"
+          f" least-norm through {trl}, dead at {D2l}; "
+          f"D(3) = {D3}, D(5) = {D5}")
+    control("C4 the recorded walks: 2 through 9, 17, 97, 193, 257 banking "
+            "the most and through 5, 9, 17, 97, 193, 257 by least norm, "
+            "each dead at 8; D(3) = 2; D(5) = 3",
+            tr == [9, 17, 97, 193, 257] and D2 == 8
+            and trl == [5, 9, 17, 97, 193, 257] and D2l == 8
+            and D3 == 2 and D5 == 3)
+
+
+# ------------------------------------------------------------- section R
+
+def fundamental(D):
+    """D < 0 a fundamental discriminant."""
+    def sqfree(n):
+        return all(n % (q * q) for q in PRIMES if q * q <= n)
+    if D % 4 == 1:
+        return sqfree(-D)
+    if D % 4 == 0:
+        d = D // 4
+        return d % 4 in (2, 3) and sqfree(-d)
+    return False
+
+
+def reduced_forms(D):
+    """Reduced forms (a, b, c), b^2 - 4ac = D < 0."""
+    out = []
+    a = 1
+    while 3 * a * a <= -D:
+        for b in range(-a + 1, a + 1):
+            if (b * b - D) % (4 * a):
+                continue
+            c = (b * b - D) // (4 * a)
+            if c < a or (b < 0 and (a == c)):
+                continue
+            if gcd(gcd(a, abs(b)), c) != 1:
+                continue
+            out.append((a, b, c))
+        a += 1
+    return out
+
+
+def section_r():
+    section("R  tau_K OVER THE IMAGINARY QUADRATIC FIELDS, D >= -1000")
+    fields = []
+    for D in range(-3, -1001, -1):
+        if fundamental(D):
+            forms = reduced_forms(D)
+            tau = max(a for a, _, _ in forms)
+            fields.append((D, len(forms), tau))
+    ok1 = all((t == 1) == (h == 1) for _, h, t in fields)
+    ok2 = all(t <= sqrt(-D / 3) for D, _, t in fields)
+    ok3 = all(t <= 2 / pi * sqrt(-D) for D, _, t in fields)
+    mean = sum(t for _, _, t in fields) / len(fields)
+    share = sum(t <= 4 for _, _, t in fields) / len(fields)
+    ratio = sum(t / (2 / pi * sqrt(-D)) for D, _, t in fields) / len(fields)
+    print(f"  {len(fields)} fields; mean tau_K {mean:.2f}; tau_K <= 4 at "
+          f"{100 * share:.1f}%; mean tau_K / Minkowski {ratio:.3f}")
+    print(f"  tau_K = 1 iff h = 1: {ok1}; tau_K <= sqrt(|D|/3): {ok2}; "
+          f"<= Minkowski: {ok3} (the forms stop at 3a^2 <= |D|, one has "
+          "a = 1)")
+    h1 = sorted((-D for D, h, _ in fields if h == 1))
+    h2 = sorted((-D for D, h, _ in fields if h == 2))
+    check("R1 305 fundamental discriminants; class number 1 exactly at "
+          "the nine Heegner discriminants, 2 at the eighteen of "
+          "Baker and Stark",
+          len(fields) == 305 and h1 == [3, 4, 7, 8, 11, 19, 43, 67, 163]
+          and h2 == [15, 20, 24, 35, 40, 51, 52, 88, 91, 115, 123, 148,
+                     187, 232, 235, 267, 403, 427], f"{h1}; {h2}")
+    h, t = next((h, t) for D, h, t in fields if D == -23)
+    norms = {x * x + x * y + 6 * y * y for x in range(-20, 21)
+             for y in range(-20, 21)}
+    mink = 2 / pi * sqrt(23)
+    check("R2 D = -23: h = 3, tau_K = 2, Minkowski 3.05, no element of "
+          "norm 2 or 3", (h, t) == (3, 2) and abs(mink - 3.05) < 0.01
+          and 2 not in norms and 3 not in norms and 6 in norms,
+          f"h {h}, tau_K {t}, Minkowski {mink:.3f}")
+
+
+# ------------------------------------------------------------- section B
+
+def section_b():
+    section("B  THE BUDGET: THE DOUBLE RISE AT 2 IS RATIONED BY FERMAT")
+    got = [2 ** k + 1 for k in range(1, 301) if pp(2 ** k + 1)]
+    print(f"  prime powers 2^k + 1, 1 <= k <= 300: {got}")
+    check("B1 k <= 300: exactly 3, 5, 9, 17, 257, 65537",
+          got == [3, 5, 9, 17, 257, 65537], str(got))
+
+
+# ------------------------------------------------------------- section S
+
+DEATH = {}
+PROPS = {}
+
+
+def section_s():
+    section("S  THE SWEEP: THE DEAD LEVEL OF EVERY ODD p < 1000")
+    alive, odd_acc = [], []
+    for p in ODD:
+        PROPS[p] = proper_carriers(p)
+        D = dead_level(p, 1, 120, PROPS[p])
+        if D is None:
+            alive.append(p)
+            continue
+        DEATH[p] = D
+        for V in range(1, D + 1):
+            odd_acc += odd_carriers(p, V)
+    top = max(DEATH, key=DEATH.get)
+    want = {19: 1, 23: 1, 17: 2, 29: 8, 101: 10, 151: 12, 751: 33,
+            997: 45, 719: 62}
+    off = {p: DEATH.get(p) for p in want if DEATH.get(p) != want[p]}
+    print(f"  {len(DEATH)} odd p die, {len(alive)} alive at 120; largest "
+          f"D({top}) = {DEATH[top]}; recorded values off: {off}")
+    print(f"  accepted odd-m carriers below the dead levels: {odd_acc}")
+    check("S1 all 167 odd p < 1000 die at or below level 120",
+          len(DEATH) == 167 and not alive)
+    check("S2 the recorded dead levels, largest D(719) = 62",
+          not off and top == 719)
+    print(f"  odd-m carriers are powers of 2, among the proper powers: "
+          f"{len(odd_acc)} accepted")
+
+
+# ------------------------------------------------------------- section K
+
+QMAX, LMAX = 2000, 5040
+
+
+def ordmod(a, q):
+    k, x = 1, a % q
+    while x != 1:
+        x = x * a % q
+        k += 1
+    return k
+
+
+def covering(p):
+    """A residue k0 mod L at which the classes m = -p^(-k) mod q, q over
+    the primes below QMAX whose order of p divides LMAX, cover every even
+    m in [2, p - 1] at every k = k0 mod L. -> (L, k0, primes) or None."""
+    evens = list(range(2, p, 2))
+    full = (1 << len(evens)) - 1
+    S = [q for q in PRIMES[1:] if q != p and q < QMAX
+         and LMAX % ordmod(p, q) == 0]
+    if sum(-(-len(evens) // q) for q in S) < len(evens):
+        return None
+    masks, orders, cls = {}, {}, {}
+    for q in S:
+        orders[q] = ordmod(p, q)
+        tbl = [0] * q
+        for i, m in enumerate(evens):
+            tbl[m % q] |= 1 << i
+        masks[q] = tbl
+        inv = pow(p, -1, q)
+        cls[q] = [(-pow(inv, j, q)) % q for j in range(orders[q])]
+    L = 1
+    for q in S:
+        L = L * orders[q] // gcd(L, orders[q])
+    for k in range(L):
+        cov, used = 0, []
+        for q in S:
+            mk = masks[q][cls[q][k % orders[q]]]
+            if mk & ~cov:
+                cov |= mk
+                used.append(q)
+            if cov == full:
+                Lu = 1
+                for u in used:
+                    Lu = Lu * orders[u] // gcd(Lu, orders[u])
+                return Lu, k % Lu, used
+    return None
+
+
+def section_k():
+    section("K  RECURRENCE: A DEAD LEVEL ABOVE EVERY START")
+    worst, undead = {}, []
+    for p in (2, 3, 5):
+        props = proper_carriers(p) if p > 2 else {}
+        w = 0
+        for V0 in range(1, 301):
+            if p == 2:
+                D, _ = walk2(V0, 400)
+            else:
+                D = dead_level(p, V0, 400, props)
+            if D is None:
+                undead.append((p, V0))
+                continue
+            w = max(w, D - V0 + 1)
+        worst[p] = w
+    print(f"  longest climb, counting the start's level: {worst}")
+    check("K1 every start V0 <= 300 at 2, 3, 5 dies by level 400, the "
+          "longest spanning 8, 4 and 3 levels, the start's included",
+          not undead and worst == {2: 8, 3: 4, 5: 3}, f"undying {undead}")
+    covered = {}
+    for p in ODD:
+        c = covering(p)
+        if c:
+            covered[p] = c
+    print(f"  coverings at {sorted(covered)}")
+    for p in sorted(covered):
+        L, k0, used = covered[p]
+        print(f"    p = {p}: V + 1 = {k0} mod {L}, primes {used}")
+    check("K2 coverings at exactly 3, 5, 7, 11, 13, 17, 19, 23, 31, 37",
+          sorted(covered) == [3, 5, 7, 11, 13, 17, 19, 23, 31, 37])
+    n, live = 0, []
+    for p in sorted(covered):
+        L, k0, _ = covered[p]
+        for V in range(max(1, p - 2), 201):
+            if (V + 1) % L == k0:
+                n += 1
+                if level_alive(p, V, PROPS[p]):
+                    live.append((p, V))
+    for V in range(10, 401):
+        if (V + 1) % 8 == 3:
+            n += 1
+            if any(pp(x) for x in (2 ** (V + 1) + 1, 2 ** (V + 2) + 1,
+                                   3 * 2 ** (V + 1) + 1)):
+                live.append((2, V))
+    check("K3 every level a covering kills is dead (odd p to level 200; "
+          "p = 2 at 10 <= V <= 400, V + 1 = 3 mod 8)", not live,
+          f"{n} levels, alive {live}")
+
+
+# ------------------------------------------------------------- section Q
+
+def legendre(a, p):
+    return pow(a % p, (p - 1) // 2, p)
+
+
+def section_q():
+    section("Q  THE RESIDUAL: Q(sqrt(2 3 ... P)) HAS NO RANK-1 p <= P")
+    bad, rows = [], []
+    d = 2
+    for P in PRIMES[1:]:
+        if P > 97:
+            break
+        d *= P
+        # 2 ramifies (d even); an odd p is rank-1 iff it splits, i.e.
+        # d is a nonzero square mod p
+        L = next(p for p in PRIMES[1:] if d % p and legendre(d, p) == 1)
+        rows.append((P, L))
+        if L <= P:
+            bad.append(P)
+    print("  (P, least rank-1 characteristic): "
+          + ", ".join(f"({P}, {L})" for P, L in rows))
+    print(f"  L > P at every odd P <= 97, by ramification: {not bad}")
+
+
+# ------------------------------------------------------------- section X
+
+def sifted(p, V, qs):
+    """Even m <= p - 1 whose candidate has no prime factor in qs."""
+    k = V + 1
+    alive = bytearray([1]) * p
+    for q in qs:
+        if q == p:
+            continue
+        c = (-pow(p, -k, q)) % q
+        start = c if c % 2 == 0 else c + q
+        if start < p:
+            alive[start::2 * q] = bytearray(len(alive[start::2 * q]))
+    return sum(alive[m] for m in range(2, p, 2))
+
+
+def carriers_all(p, V):
+    pk = p ** (V + 1)
+    n = sum(is_prime(m * pk + 1) for m in range(2, p, 2))
+    return n + len(PROPS[p].get(V, []))
+
+
+def section_x():
+    section("X  THE SHAPE OF A DEAD LEVEL")
+    allp = {}
+    for p in ODD:
+        for V, lst in PROPS[p].items():
+            allp[(p, V)] = list(lst)
+    broke = [(p, V, r, s) for (p, V), lst in allp.items() for r, s in lst
+             if ordmod(r, p ** (V + 1)) != s]
+    print(f"  proper power carriers at any level V >= 1, odd p < 1000: "
+          f"{allp}")
+    check("X1 the enumeration (6) licenses finds one, 3^5 = 243 at "
+          "(11, 1), 5 the order of 3 mod 11^2",
+          allp == {(11, 1): [(3, 5)]} and not broke)
+    Z = 10 ** 4
+    qs = [q for q in PRIMES if 2 < q < Z]
+    pool = [p for p in ODD if DEATH[p] >= 10]
+    A, U = [], []
+    for V in range(1, 11):
+        a = sum(carriers_all(p, V) / (p - 1) for p in pool) / len(pool)
+        u = sum(sifted(p, V, qs) / ((p - 1) // 2) for p in pool) / len(pool)
+        A.append(a)
+        U.append(u)
+    lvl = 2 * exp(-0.5772156649) / log(Z)
+    print(f"  pool {len(pool)} primes with D(p) >= 10; carrier density "
+          f"{A[0]:.5f} -> {A[-1]:.5f} (ratio {A[-1] / A[0]:.3f}); sifted "
+          f"{U[0]:.5f} -> {U[-1]:.5f} (ratio {U[-1] / U[0]:.3f}); "
+          f"2e^-gamma/ln z {lvl:.4f}")
+    MR = 3317044064679887385961981
+    past = [p for p in pool if (p - 1) * p ** 11 + 1 >= MR]
+    print(f"  pooled p with a level-10 candidate past the Miller-Rabin "
+          f"bound: {len(past)} of {len(pool)}, the least {min(past)}, "
+          f"every pooled p from it on: "
+          f"{past == [p for p in pool if p >= min(past)]}")
+    check("X2 carrier density falls near 1/4 from level 1 to 10, sifted "
+          "density flat within 5% near 0.1219",
+          0.2 < A[-1] / A[0] < 0.3 and abs(U[-1] / U[0] - 1) < 0.05
+          and all(abs(u - lvl) < 0.01 for u in U),
+          " ".join(f"{u:.4f}" for u in U))
+    emptied = [p for p in ODD if p >= 100
+               and sifted(p, DEATH[p], qs) == 0]
+    check("X3 sifting below 10^4 empties the first dead level at no p >= 100",
+          not emptied, str(emptied))
+
+
+# ------------------------------------------------------------- section W
+
+def section_w():
+    section("W  THE WELD: THE FULL-PRICE OPENING IS A DEAD LEVEL OVER Z")
+    # the predicates can differ only where a proper power carrier sits:
+    # none exists at V >= p - 2, and S counts the odd-m ones
+    diff = []
+    for p in ODD:
+        for V in PROPS[p]:
+            no_prime = prime_carrier(p, V) is None
+            dead = not level_alive(p, V, PROPS[p])
+            if no_prime != dead:
+                diff.append((p, V))
+    held = sorted((p, V) for p in ODD for V in PROPS[p])
+    print(f"  levels holding a proper power carrier: {held}; least prime "
+          f"carrier at (11, 1): {prime_carrier(11, 1) * 121 + 1}")
+    check("W1 'no prime carrier' and 'dead' agree at every level of "
+          "every odd p < 1000 holding a proper power carrier, the only "
+          "levels where they can differ", not diff, str(diff))
+    import growth
+    p, V = 3, 2
+    price = p ** (V + 2)
+    B = p - 1
+    for r in PRIMES:
+        if r >= price:
+            break
+        if r == p:
+            continue
+        B = B * (r - 1) // gcd(B, r - 1)
+        c = 0
+        while (2 ** (c + 3) if r == 2 else r ** (c + 2)) <= price:
+            c += 1
+        B = B * r ** c // gcd(B, r ** c)
+    while B % p == 0:
+        B //= p
+    B *= p ** V
+    P = B + 1
+    while not (is_prime(P) and vp(P - 1, p) == V):
+        P += B
+    mf = {P: 1}
+    lamf = growth.lam(mf)
+    q, cost, _ = growth.menu(mf, lamf)
+    k = growth.kind(q, mf, lamf)
+    print(f"  B = {B}; the least prime P = 1 mod B with v_3(P - 1) = 2: "
+          f"{P}; growth.py's menu there: {q}^r = {cost}, {k}")
+    check("W2 the construction's least prime is 961440481 and the menu "
+          "opens 3 there at 81, full price",
+          P == 961440481 and (q, cost, k) == (3, 81, "full"))
+    atD = [p for p in ODD if prime_carrier(p, DEATH[p]) is not None]
+    print(f"  dead levels D(p) holding a prime carrier: {atD} (none by "
+          "D's definition; each is a full-price opening)")
+
+
+def main():
+    t0 = time.time()
+    section_c()
+    section_r()
+    section_b()
+    section_s()
+    section_k()
+    section_q()
+    section_x()
+    section_w()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

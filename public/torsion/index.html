@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TORSION — which torsion a curve holds, by monomials and by degree | Numbers read one place at a time</title>
+<meta name="description" content="TORSION — which torsion a curve holds, by monomials and by degree">
+<link rel="alternate" type="text/markdown" href="/torsion.md">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a> › <a href="/local/">One place up close</a></nav></header>
+<main><article>
+<h1>TORSION — which torsion a curve holds, by monomials and by degree</h1>
+<p class="lead">The object: a plane curve f(x, y) = 0 over F_p and a unit pair
+P = (a, b) whose order is m = lcm(ord a, ord b). Its orbit is the pairs
+(a^u, b^u), u a unit mod m (the orbits of <a href="/gates/#the-word-orbits">GATES: The word orbits</a>). The
+curve holds the orbit <dfn id="t-stably">stably</dfn> when every pair of it lies on the
+curve. Which orders m a curve can hold stably in the <a href="/torsion/#t-codeword-species">codeword species</a>
+defined below, counted first by its monomials s and then by its degree
+D, is a fact about cyclic codes: the cyclic code (Φ_m) of length m, its
+minimum distance d, and its low-weight words.</p>
+<nav class="toc" aria-label="Contents" data-generated="toc"><ol><li><a href="#the-fiber-criterion">The fiber criterion</a> <span>criterion</span></li><li><a href="#the-menu-law">The menu law</a> <span>theorem</span></li><li><a href="#the-pentagon-conic">The pentagon conic</a> <span>theorem</span></li><li><a href="#the-exponent-reduction">The exponent reduction</a> <span>criterion</span></li><li><a href="#the-triangle-cover-number">The triangle cover number</a> <span>rule</span></li><li><a href="#the-class-capacity">The class capacity</a> <span>theorem</span></li><li><a href="#the-squared-prime-exclusion">The squared-prime exclusion</a> <span>theorem</span></li><li><a href="#the-coverage-cap">The coverage cap</a> <span>rule</span></li><li><a href="#the-two-prime-majority">The two-prime majority</a> <span>theorem</span></li><li><a href="#the-gon-theorem">The gon theorem</a> <span>theorem</span></li><li><a href="#the-coset-collapse">The coset collapse</a> <span>theorem</span></li><li><a href="#the-realizability-law">The realizability law</a> <span>rule</span></li></ol></nav>
+<pre>SOME CURVE WITH            HOLDS CODEWORD ORDER m   BECAUSE
+s monomials                iff q_min(m) ≤ s         d(Φ_m) = q_min(m)
+degree D, m even           at every D ≥ 1           the antipodal word
+degree D, m = q odd prime  iff D ≥ κ(q) = Θ(√q)     the triangle covers Z/q
+degree D, other odd m      iff D ≥ q_min(m) − 1     the gon; three exclusions</pre>
+<h2 id="the-fiber-criterion">The fiber criterion</h2>
+<p class="tag">Tier: <a href="/key/#criterion">criterion</a>.<br>
+Verifier: proof; <a href="/code/torsion/#section_f">torsion.py::section_f</a>.</p>
+<p>Fix θ of order m and write P = (θ^A, θ^B), gcd(A, B, m) = 1. The
+monomial x^i y^j takes the value θ^(Ai + Bj), so f(a^t, b^t) = F(θ^t),
+where the <dfn id="t-collected-fiber">collected fiber</dfn></p>
+<pre>F(T) = Σ_e c_e T^e  in F_p[T]/(T^m − 1),
+c_e = the sum of f's coefficients over the monomials with Ai + Bj ≡ e.</pre>
+<p>The orbit is held iff Φ_m divides F. Either F = 0, and f vanishes on
+the whole group ⟨P⟩, the <dfn id="t-group-species">group species</dfn>. Or F is a nonzero codeword of
+(Φ_m), the <dfn id="t-codeword-species">codeword species</dfn>.</p>
+<p>Proof. As u runs over the units mod m, θ^u runs over the primitive
+m-th roots, which are the roots of Φ_m and distinct in F_p. And F, of
+degree below m, vanishes at every m-th root iff it is 0.</p>
+<p>The group species is the finite shadow of Lang's theorem on torsion
+points of subvarieties of tori (Lang 1965, the proof credited there to
+Ihara, Serre and Tate): whole cyclic groups lie on the curve. What
+follows concerns the codeword species, and the table's q_min(m), κ(q),
+antipodal word, gon and three exclusions are bound in the blocks below,
+the last three at <a href="/torsion/#the-menu-law">The menu law</a>, <a href="/torsion/#the-gon-theorem">The gon theorem</a>
+and <a href="/torsion/#the-realizability-law">The realizability law</a>.</p>
+<p>The script checks the criterion against brute force at every unit pair
+of F_p, p = 7, 11, 13, 31. It runs a battery of every line x + y = η,
+the pentagon conic below, x²y − 1, xy + 1, x⁸ + x⁴ + 1 and 24 random
+curves of degree up to 4, 64,164 tests in all. The lines give back the
+skeleton of <a href="/gates/#the-crystallographic-skeleton">GATES: The crystallographic skeleton</a>.</p>
+<h2 id="the-menu-law">The menu law</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/torsion/#section_m">torsion.py::section_m</a>.</p>
+<p>For m &gt; 1 the minimum distance of (Φ_m) is q_min(m), the least prime
+factor of m, over every field of characteristic prime to m that holds a
+primitive m-th root of unity. Weight 1 never occurs, and weight 2 occurs
+iff m is even. So some curve with at most s monomials holds codeword
+torsion of order m iff q_min(m) ≤ s.</p>
+<p>Proof. Lower bound, the BCH bound: the units mod m hold q_min − 1
+consecutive integers. Take t₀ ≡ 1 modulo every prime r | m; then
+t₀ + k ≡ 1 + k is nonzero mod r for k ≤ q_min − 2. A nonzero sum of
+w ≤ q_min − 1 terms c_e θ^(et) cannot vanish at w consecutive t, since
+the determinant is Vandermonde in the distinct nodes θ^e. Upper bound:
+with q = q_min(m), the <dfn id="t-q-gon">q-gon</dfn></p>
+<pre>(T^m − 1)/(T^(m/q) − 1) = 1 + T^(m/q) + … + T^((q−1)m/q)</pre>
+<p>vanishes at every primitive root, because θ^(m/q) is a primitive q-th
+root. At q = 2 it is the antipodal word 1 + T^(m/2). A single term T^e
+vanishes nowhere. The one-variable curve Σ_(h&lt;q) x^(hm/q) realizes the
+law with q monomials.</p>
+<p>The lower half is the BCH bound, known. What the law adds is its reading
+on curves: the monomial count admits torsion by least prime, and even
+orders are admitted at every size. A line has s = 3, so codeword torsion
+on lines has q_min(m) ≤ 3. The lines x + y = η with η ≠ 0 narrow this to
+the orders 2, 3 and 6, the crystallographic list {1, 2, 3, 4, 6} less
+order 1, which is the group species, and order 4, which needs η = 0
+(<a href="/gates/#the-crystallographic-skeleton">GATES: The crystallographic skeleton</a>, at every p ≥ 5; the script's
+control at p = 7, 11, 13, 31), while the line x + y = 0 holds every even
+order, the pairs (θ, −θ); by the realizability law the codeword orders
+some line holds are the even m and 3. The script checks the run of units
+at every m ≤ 3000, the q-gon at m ≤ 60, exhausts the supports below
+q_min at m = 9, 15, 21, 25, 35, 45, and finds weight 2 at exactly the
+even m ≤ 30.</p>
+<h2 id="the-pentagon-conic">The pentagon conic</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/torsion/#section_p">torsion.py::section_p</a>.</p>
+<p>At every prime p ≡ 1 mod 5 the conic y² + xy + x + y + 1 = 0 holds
+exactly one stable orbit of order 5, the pairs (θ^u, θ^(2u)), and it is
+of the codeword species. So a conic holds an order no line holds, at
+five monomials, the fewest the menu law allows for order 5.</p>
+<p>Proof. The exponents are {0, A, B, A + B, 2B}, and (Φ_5) is the line of
+the all-ones word, so the orbit is held iff the five exponents are all
+of Z/5. Collisions would give coefficient sums of two to five 1s, which
+are nonzero at p &gt; 5 and so never the group species; at B ≡ 0 the
+exponents collide. Otherwise scaling (A, B) jointly by a unit to B = 1
+leaves {0, A, 1, A + 1, 2}, which is Z/5 only at A = 3, and
+(3, 1) = 3·(1, 2) mod 5. The script finds this one orbit at p = 11, 31,
+41, 61.</p>
+<h2 id="the-exponent-reduction">The exponent reduction</h2>
+<p class="tag">Tier: <a href="/key/#criterion">criterion</a>.<br>
+Verifier: proof; <a href="/code/torsion/#section_r">torsion.py::section_r</a>.</p>
+<p>With m dividing p − 1, so that orbits of order m exist, a curve of
+degree at most D holds a codeword-species orbit of order m iff some
+(A, B) with gcd(A, B, m) = 1 has a nonzero (Φ_m)-codeword supported in the
+<dfn id="t-triangle-exponent-set">triangle exponent set</dfn></p>
+<pre>E(A, B, D) = {Ai + Bj mod m : i, j ≥ 0, i + j ≤ D}.</pre>
+<p>D_min(m) is the least D at which this holds.</p>
+<p>Proof. The collected fiber of a degree-D curve lies in E(A, B, D). Any
+vector on E is the fiber of a curve with one monomial per exponent.
+Joint scaling by a unit and the swap of x and y preserve the question,
+so the script works over scaling classes, calling a class (A, B) live
+when E(A, B, D) carries a nonzero codeword. It checks the reduction at
+degree 1 by brute force over every line and every pair of order m at
+(m, p) = (3, 7) and (9, 19). The first finds 12 held (line, pair) incidences
+of the codeword species, the six lines μ(1 + x + y), μ ≠ 0, on the pairs
+(2, 4) and (4, 2), beside 36 of the group species, and the pairs' one
+scaling class, (1, 2), is the one live class. The second finds no
+incidence of the codeword species and no live class.</p>
+<h2 id="the-triangle-cover-number">The triangle cover number</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (verified q ≤ 149; the bracket proved).<br>
+Verifier: <a href="/code/torsion/#section_k">torsion.py::section_k</a>.</p>
+<p>At an odd prime m = q the code (Φ_q) is the line of the all-ones word,
+so a codeword on E needs E = Z/q, and scaling, after the swap when
+A ≡ 0, makes A = 1. So D_min(q) = κ(q), the least D such that
+{i + Bj : i + j ≤ D} covers Z/q for some B. That is the least diameter
+of a directed double-loop network on Z/q with steps 1 and B. Its bracket:</p>
+<pre>(κ + 1)(κ + 2)/2 ≥ q,        κ(q) ≤ 2⌈√q⌉ − 1,        κ(q) ≤ q − 2.</pre>
+<p>The first is a count. The second uses B = ⌈√q⌉ and D = 2B − 1, whose
+rows [jB, jB + D − j], j ≤ B, chain from 0 to B² + B − 1. The third
+uses B = 2 and D = q − 2, whose first two rows are [0, q − 2] and
+[2, q − 1]. The network literature's lower bound ⌈√(3q)⌉ − 2 is the
+sharper floor (Wong and Coppersmith 1974 for steps 1 and B; Fiol,
+Yebra, Alegre and Valero 1987 for any steps). The script computes κ
+at the 34 odd primes up to 149:</p>
+<pre>q   3  5  7 11 13 17 19 23 29 31 37 41 43 47 53 59 61
+κ   1  2  3  4  5  6  6  7  8  8  9 10 10 10 12 12 12
+q  67 71 73 79 83 89 97 101 103 107 109 113 127 131 137 139 149
+κ  14 13 14 14 14 16 16  16  17  16  17  17  18  18  20  19  20</pre>
+<p>28 of the 34 sit on the network floor, and 53, 67, 73, 89, 103 and 137
+sit one above it. κ is not monotone: κ(107) = 16 &lt; 17 = κ(103). At
+q = 5, 7, 11, 13 a direct search for a nonzero codeword on E agrees
+with the cover on both sides of κ(q).</p>
+<h2 id="the-class-capacity">The class capacity</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/torsion/#section_l">torsion.py::section_l</a>.</p>
+<p>Let gcd(A, B, m) = 1 and D ≤ q_min(m) − 2. For every divisor m″ &gt; 1 of
+m, each class of Ai + Bj modulo m″ holds at most D + 1 points (i, j) of
+the degree-D triangle.</p>
+<p>Proof. Every prime of m″ exceeds D + 1. If A is a unit mod m″, each
+j ≤ D fixes i mod m″, and m″ &gt; D leaves at most one i. Otherwise a prime
+r | gcd(A, m″) cannot divide B, so Bj fixes j mod r, at most one j
+below r. With j fixed, the solutions i form one progression of step
+m″/gcd(A, m″), which is 1 (one row of at most D + 1 points) or exceeds
+D (one point).</p>
+<h2 id="the-squared-prime-exclusion">The squared-prime exclusion</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/torsion/#section_l">torsion.py::section_l</a>.</p>
+<p>If q = q_min(m) and q² | m, no nonzero (Φ_m)-codeword lies in any
+E(A, B, D) with gcd(A, B, m) = 1 and D ≤ q − 2; at a larger gcd,
+E(3, 6, 1) = {0, 3, 6} at m = 9 carries Φ₉ itself.</p>
+<p>Proof. Write m = Q·m′ with Q = q^k the q-part, k ≥ 2, and slice the
+codeword c by the class x mod Q into words γ_x on Z/m′. For each unit u
+of Z/m′, the vector x ↦ γ̂_x(u) of transforms is a (Φ_Q)-codeword, and
+the words of (Φ_Q) are those invariant under x ↦ x + Q/q. So
+γ_x − γ_(x+Q/q) lies in (Φ_m′). Both slices sit in the class of x mod q,
+because q divides Q/q, and that class holds at most q − 1 exponents.
+Every prime of m′ exceeds q, so this is below the menu law's distance,
+and the difference is 0 (at m′ = 1 the code (Φ₁) is 0 itself). Then c is
+invariant under translation by the order-q element, so its support is a
+union of cosets of the order-q subgroup ⟨m/q⟩. Each coset lies in one
+class mod q: q points against a capacity of q − 1. So c = 0. At m′ = 1
+and odd q this is the case m = q^k, k ≥ 2, of the realizability law's
+last row.</p>
+<h2 id="the-coverage-cap">The coverage cap</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (proved: analytic for ℓ ≥ 213, exhaustive at every prime
+below).<br>
+Verifier: <a href="/code/coverage_cap/#section_y">coverage_cap.py::section_y</a>, <a href="/code/coverage_cap/#section_o">coverage_cap.py::section_o</a>,
+<a href="/code/coverage_cap/#section_l">coverage_cap.py::section_l</a>, <a href="/code/coverage_cap/#section_x">coverage_cap.py::section_x</a>,
+<a href="/code/coverage_cap/#section_f">coverage_cap.py::section_f</a>.</p>
+<p>For a prime ℓ, a multiplier B ≢ 0, 1 mod ℓ and 0 ≤ D ≤ ℓ − 2, every
+class w mod ℓ holds at most ⌊D/2⌋ + 1 points (i, j) of the degree-D
+triangle with i + Bj ≡ w. At B = 1 the class D holds D + 1.</p>
+<p>The proof is analytic for ℓ ≥ 213 and exhaustive below. Put U = D − j
+and V = i: the class i + Bj ≡ w becomes V ≡ w − BD + BU, so the proof
+reads the count as a translate of the lattice {(U, V) : V ≡ BU mod ℓ},
+of determinant ℓ, inside the triangle 0 ≤ V ≤ U ≤ D. Three exact
+symmetries hold, the involutions B ↔ 1 − B and time reversal B ↔ 1/B,
+and a duality carrying D to ℓ − 3 − D with the cap transferred exactly,
+beside one exact count, equicoverage: (ℓ − 1)/2 at every class when
+D = ℓ − 2. So only D ≤ (ℓ − 3)/2 needs proving, and the maximum is
+constant on the orbit of B under the group of six maps the two
+involutions generate.</p>
+<p>With b = min(B, ℓ + 1 − B), write a point of the class as
+i + bj = w + Wℓ; the points sharing one <dfn id="t-wrap-number">wrap number</dfn> W are at most
+⌊D/b⌋ + 1, and the wrap numbers span at most bD/ℓ, which settles bD &lt; ℓ
+and every D with D² &lt; ℓ. Above that, the points lie on lines along a
+shortest lattice vector (t′, s′), t′ ≥ 1, of length λ, in the frame
+(U, V) of the triangle 0 ≤ V ≤ U ≤ D, which gives two bounds. For λ ≥ 7,
+a unimodal-sum bound using Brunn's concavity of chords gives
+D²/(2ℓ) + √2·D/λ + √2·λD/ℓ + 1. For λ &lt; 7, n consecutive lattice points
+along the vector inside the triangle satisfy (n − 1)·ρ ≤ D, with ρ = s′,
+t′ or t′ − s′ as s′ &gt; t′, 0 ≤ s′ ≤ t′ or s′ &lt; 0, which gives
+D²/(2ℓ) + √2·λD/ℓ + ⌊D/ρ⌋ + 1. The directions with ρ ≤ 4 are the orbits of
+2, 3 and 4: the orbit of 2 is settled by one wrap number, and the others
+by the two wrap numbers that carry points at B = −2 and −3, which give
+D/3 + 2, below the cap for D ≥ 10, the smaller D falling under D² &lt; ℓ.
+Every case lands below the cap at ℓ ≥ 213. The script checks each
+symmetry exactly at the primes from 5 to 47 (equicoverage at every
+modulus from 5 to 79), and against brute force the product of the
+wrap-number bounds at the primes from 5 to 103, the two lattice bounds
+at ℓ = 211 and 401, three D each, and the run count (n − 1)·ρ ≤ D on
+54,240 random runs; the unimodal-sum inequality beneath both lattice
+bounds is proved, with no test of its own. It runs the assembled case
+split at every B and every D ≤ (ℓ − 3)/2 for the primes 213 ≤ ℓ ≤ 449
+and ℓ = 1009, the cases D² &lt; ℓ and the orbit of 2 left to their proofs,
+and the cap itself at every prime ℓ ≤ 211, every D and every B, 596,366
+triples. Among the 48,172 triples the symmetries and the wrap-number
+counts leave to brute force, equality holds only at
+(ℓ, D, B) = (13, 5, 4) and (13, 5, 10).</p>
+<h2 id="the-two-prime-majority">The two-prime majority</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/torsion/#section_t">torsion.py::section_t</a>.</p>
+<p>Let m = qq′ with q &lt; q′ odd primes, gcd(A, B, m) = 1 and D ≤ q − 2.
+Suppose E(A, B, D) either misses a class mod q′ or holds at most
+(q − 1)/2 exponents in every class mod q′. Then no nonzero
+(Φ_m)-codeword lies in it. The coverage cap supplies the second
+hypothesis whenever A is a unit mod q′ and B/A ≢ 0, 1, since
+⌊(q − 2)/2⌋ + 1 = (q − 1)/2. At A ≡ 0, B ≡ 0 or B ≡ A mod q′, the
+residues mod q′ take at most D + 1 &lt; q′ values, and E misses a class.</p>
+<p>Proof. Let c be a (Φ_m)-codeword supported in E, a function of e mod m.
+Its transform lies on the non-units, the multiples of q or of q′. By the
+CRT this means c(e₁, e₂) = α(e₁) + γ(e₂), with
+e₁ = e mod q and e₂ = e mod q′. If E misses the class e₂ = σ, then
+α(e₁) = −γ(σ) at every e₁, so α is a constant ν. Any e₂ with
+ν + γ(e₂) ≠ 0 then fills its whole class mod q′, q cells against a class
+capacity of q − 1. Otherwise, for each e₂, at most (q − 1)/2 of the q
+values e₁ have α(e₁) ≠ −γ(e₂). So −γ(e₂) is α's strict-majority value ξ,
+one ξ for every e₂. Then c = α(e₁) − ξ, and any e₁ with α(e₁) ≠ ξ fills
+its whole class mod q, q′ cells against q − 1. In both cases c = 0.</p>
+<p>At m = 143 and 221 the script finds every scaling class in one of the
+two cases: 19 and 22 classes miss a residue, 67 and 106 are capped.</p>
+<h2 id="the-gon-theorem">The gon theorem</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/torsion/#section_g">torsion.py::section_g</a>.</p>
+<p>For odd M, every nonzero word of (Φ_M) with weight below 2·q_min(M) is a
+<dfn id="t-scalar-gon">scalar gon</dfn>: one constant on one coset of the order-t subgroup of
+Z/M, for a prime t | M. Below, "gon" means scalar gon, and an r-gon is a
+gon on a coset of the order-r subgroup; the q-gon above is the one with
+constant 1 on the order-q subgroup itself.</p>
+<p>Proof, by induction on the number of distinct primes of M. At a prime
+power M = r^a a word of (Φ_M) has its transform on the multiples of r,
+so it is invariant under x ↦ x + M/r and weighs r times the number of
+order-r cosets it meets: below 2r, one r-gon. Otherwise let r be M's
+largest prime, M = M′·r^a with M′ &gt; 1 prime to r, and slice by Z/r^a.
+Within each coset of the order-r subgroup of Z/r^a the slices are
+congruent modulo (Φ_M′). A coset whose slices are equal and nonzero
+weighs at least r ≥ q_min; a coset holding two differing slices weighs
+at least q_min(M′) = q_min(M). So below 2·q_min exactly one coset is
+nonzero. If its slices are equal, the word is invariant under the
+order-r translation, and weight below 2r leaves one r-gon. If they
+differ and one is zero, every slice of the coset lies in (Φ_M′), each
+nonzero one weighing at least q_min: exactly one survives, a gon of M′
+by induction and so a gon of M. If they differ and none is zero, the r
+slices weigh at least (r − 2) + q_min ≥ 2·q_min, since M′ has a prime
+below r and so r ≥ q_min + 2.</p>
+<p>In characteristic 0, Lam and Leung determine which numbers of m-th
+roots of unity can sum to zero (J. Algebra 224, 2000), sums with
+nonnegative coefficients; signed low-weight words over F_p are outside
+their classification. The script spot-checks the theorem at M = 143,
+169 and 1859. At each M, at four sampled gon cosets the full coset
+carries exactly a scalar gon and the coset less a point carries
+nothing, and so do 30 random gon-free supports of size 2·q_min − 1.</p>
+<h2 id="the-coset-collapse">The coset collapse</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/torsion/#section_g">torsion.py::section_g</a>.</p>
+<p>If m is odd with at least three prime factors counted with multiplicity
+and q = q_min(m) with q² ∤ m, no nonzero (Φ_m)-codeword lies in any
+E(A, B, D) with gcd(A, B, m) = 1 and D ≤ q − 2.</p>
+<p>Proof. Slice c by x mod q into words γ_x on Z/M, M = m/q. For each unit
+of Z/M the transforms across x lie in (Φ_q), the constants, so the
+slices are congruent mod (Φ_M). A slice difference weighs at most
+2(D + 1) ≤ 2q − 2 &lt; 2·q_min(M), so by the gon theorem it is 0 or a
+scalar gon. If γ_x − γ_x₀ and γ_y − γ_x₀ were gons on different cosets,
+the slice difference γ_x − γ_y would combine them, meeting in at most
+one point, and weigh at least 2·q_min(M) − 2 &gt; 2q − 2. So
+γ_x = γ_x₀ + μ_x·G for one gon G, supported on a coset of the order-t
+subgroup (G = 0 if the slices are all equal, and the next step then
+kills c outright). Off supp(G) the slices agree, and a nonzero common
+value would fill a class mod M, q cells against q − 1.
+So c lies in one coset of the order-qt subgroup, one class mod m/(qt).
+Since m has three prime factors, m/(qt) &gt; 1, and that class holds at
+most q − 1 exponents, below d = q. So c = 0.</p>
+<p>The script finds no codeword at D = q − 2 over every scaling class at
+m = 385 and 1001, nor at 60 seeded draws (A, B) each at 2431 = 11·13·17
+and 1859 = 11·13².</p>
+<h2 id="the-realizability-law">The realizability law</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (proved; its m = qq′ case rests on the coverage cap, whose
+proof is exhaustive below ℓ = 213).<br>
+Verifier: <a href="/code/torsion/#section_l">torsion.py::section_l</a>, <a href="/code/coverage_cap/#section_f">coverage_cap.py::section_f</a>.</p>
+<p>The least degree of a curve holding a codeword-species orbit of order
+m &gt; 1 is</p>
+<pre>D_min(m) = 1              m even
+         = κ(q)           m = q an odd prime
+         = q_min(m) − 1   every other odd m</pre>
+<p>The even row is the antipodal word at (A, B) = (m/2, 1). The prime row
+is the triangle cover number. At every other odd m the q-gon enters at
+(A, B) = (m/q, 1) and D = q − 1. Below it the three exclusions are
+exhaustive: q² | m, m = qq′, or at least three prime factors, counted
+with multiplicity, with q² ∤ m. The monomial threshold q_min(m) is the
+same for q and for every m whose least prime is q, and the degree
+threshold separates them: a prime order costs κ(q) = Θ(√q), while a
+composite order pays q − 1 in full. Conics hold 5 but not 25 or 35
+(2 against 4), and quintics hold 13 while 169 waits for degree 12.
+Conics hold exactly the even orders, 5 and the multiples of 3. The law
+holds at every p with m dividing p − 1, so that orbits of order m exist:
+every lower bound is free of the characteristic, and every realization
+has coefficients 0 and 1; the runs use the least such p.</p>
+<p>The script excludes D = q_min − 2 over every scaling class at the prime
+powers 9, 25, 27, 49, 81, 121 and at the composites 15, 21, 33, 35, 45,
+55, 63, 75, 77, 99, 105, 143, 221. At each it rebuilds a realization at
+D = q_min − 1 as an actual curve on an actual orbit.</p>
+</article></main>
+<footer>Previous: <a href="/triple/">TRIPLE — what a cubic field's split primes carry</a> · <a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/torsion.md">Source text</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

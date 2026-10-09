@@ -1,0 +1,672 @@
+"""forget.py -- when a state provably no longer holds a datum, how that
+grade moves when the datum is coarsened, and which forgettings survive
+the demand that the state keep computing a function.
+
+QUESTION. A HISTORY SPACE H is a set with a positive weight pi, often
+a family pi_beta. A DATUM X and a STATE MAP Phi are functions on
+H; a FIBER is Phi^-1(s), every fiber here finite. The datum's
+posterior at s is pi conditioned on the fiber and pushed to X. Graded
+fiber by fiber, a fiber is READABLE when it meets one class of X,
+SPREAD when it meets two or more, and FLAT at a weight when the
+classes it meets carry equal mass. A spread fiber flat at some
+members of the family is TUNED there, and one flat at every member is
+ROBUST. What buys the robust grade? Does a
+grade for X pass to a function f(X), or to a finer datum? And if the
+state must RETAIN a function g of history (Phi refines g), which
+g-fibers can still be cut into spread flat blocks, and does keeping
+less make forgetting easier?
+
+THE WORLDS. A GROWN WORLD is a menu, a map from a state N (or from
+the route so far) to its moves m, each move multiplying: from N the
+walk moves to N*m with probability m^-beta / Psi, Psi the sum of n^-beta
+over the moves n offered (Psi_N when the menu reads the state alone, as in
+every world below). Grown from
+seed 1, a history is a ROUTE, the ordered moves; a DATED FIBER fixes
+the endpoint N and the age t, an AGE FIBER the age alone.
+  TUNED WORLD: menu(1) = {2, 3}, menu(2) = {3, 5, 15},
+    menu(3) = {2, 10}, others empty.
+  DEPTH COLUMN: the constant menu {2, 3}.
+  BREADTH: the squarefree moves 2 .. 30 coprime to the state.
+  RIGGED WORLD (control): menu(1) = {2, 3}, menu(2) = {3},
+    menu(3) = {2}; fiber (6, 2) holds the two routes 2,3 and 3,2 at
+    odds Psi_3 : Psi_2 = 3^beta : 2^beta by hand.
+  SYMMETRY WORLD (added on review, the depth column's one menu making
+    (C)'s multiset check vacuous): menu(1) = menu(3) = menu(10) =
+    {2, 3}, menu(2) = menu(6) = {5, 7}; fiber (30, 3) holds 2,5,3
+    (states 1, 2, 10) and 3,2,5 (states 1, 3, 6), the menus {2, 3},
+    {5, 7} passed in two orders.
+Weights are exact Fractions at beta = 1, 2, 3.
+
+THE ARGUMENT (written before the engine).
+  (A) WITNESS COLLAPSE. Phi factors through a quotient every class of
+      which meets every class of X iff every fiber of Phi does (take
+      the quotient Phi itself; conversely a fiber is a union of
+      classes). A presented quotient adds provenance, never extension.
+  (B) FACTORING. Let H = XX x R, pi_beta(x, r) = mu(x) nu_beta(r) and
+      Phi(x, r) = h(r). The fiber of s is XX x h^-1(s), so the
+      posterior of X there is mu at every s and beta: posterior =
+      prior, and robust when mu is uniform on two or more values
+      (flat is not posterior = prior). Conversely, if the
+      posterior is mu for every positive mu and nu, then on each
+      fiber F the sections F_x = {r : (x, r) in F} have nu(F_x) equal
+      for every x and every positive nu; generic nu separates distinct
+      subsets, so the sections coincide, F = XX x F_x, and Phi ignores
+      the XX slot. Posterior = prior under every product weight IS
+      the factoring.
+  (C) NORMALIZER SYMMETRY. On a dated fiber every route's numerator is
+      N^-beta, so the route posterior is proportional to the product
+      of 1/Psi over the states it passes before its endpoint. If the
+      multisets of those normalizers, as functions of beta, agree along
+      every route, the fiber is flat at every beta. The depth column
+      has one normalizer, so every one of its dated fibers holding two
+      routes is robust for the route.
+  (D) COARSENING. Let f be a function on X's values. A fiber meeting
+      one class of X meets one class of f(X): readability passes DOWN
+      to every function of the datum. A fiber meeting two classes of
+      f(X) meets two of X: spread passes UP to every finer datum.
+      Flatness passes neither way. Down: pushed forward, a flat
+      posterior gives each f-class mass in proportion to the number of
+      X-classes it holds. Up: a flat f-class may split unevenly. In the
+      depth column at 2^a 3^b, age a + b, the routes are the
+      C(a + b, a) arrangements, equally weighted by (C); those opening
+      with 2 number C(a + b - 1, a - 1), so the first move is 2
+      with posterior a / (a + b) at every beta -- robust for the route, flat for the
+      first move only at a = b. This is the COUNT LEAK.
+  (E) THE WORKING CLAUSE. Phi computes g iff Phi refines g, so the
+      admissible state maps form the interval [g, discrete] of the
+      partition lattice, and a choice inside one g-fiber constrains no
+      other. A g-fiber is CURED at a weight when it has a partition
+      into spread blocks flat at that weight; the fewest blocks is its
+      PRICE. A g-fiber meeting one class of X is readable under every
+      admissible Phi. The laws below read class masses and counts and
+      nothing else: a grown world enters only by supplying weights.
+  (F) TWO CLASSES. On a g-fiber meeting exactly two classes, of masses
+      w1 and w2, every spread block holds both and flat makes its two
+      masses equal; summing, w1 = w2. So such a fiber is cured iff
+      Phi = g is already flat there: refinement never cures it.
+  (G) NO MAJORITY. On a g-fiber of N equally weighted histories with
+      class counts c1 >= ... >= c_l, a cure exists iff c1 <= N - c1.
+      Necessity: a block takes t >= 1 from class 1 and at least t from
+      the rest, since flat blocks are equal per class and spread ones
+      hold a second class; sum over blocks. Under unequal weights the
+      same sum gives the mass test, largest class mass <= half.
+      Sufficiency at even N: list the histories sorted by class and
+      pair the i-th with the (i + N/2)-th; no class fills half the
+      list, so every pair is two classes. At odd N two classes would
+      force c1 <= c2, so c1 = c2 and N even; hence l >= 3. Take one
+      history from each of the three largest classes as a flat
+      triple. What remains has even size N - 3 and largest count
+      c1 - 1 or c4. Odd N gives c1 <= (N - 1) / 2, so
+      c1 - 1 <= (N - 3) / 2, and a fourth class has c4 <= N / 4 <=
+      (N - 3) / 2 once N >= 7, and c4 = 1 = (N - 3) / 2 at N = 5.
+      Recurse into the even case.
+      Weighted, sufficiency is subset-mass matching and is not
+      claimed: the MATCHING GAP.
+  (H) RETAINING LESS. In the depth column the first move is drawn once
+      and never read again, so on the AGE fiber of age t its posterior
+      is the first step's: P(2) = 2^-beta / (2^-beta + 3^-beta) =
+      3^beta / (2^beta + 3^beta) > 1/2 at every beta > 0. A strict
+      mass majority, so by (G)'s mass test no admissible Phi hides the
+      first move from the age alone, while the dated fibers with a = b
+      are flat. Admissibility grows as g coarsens; the grade does not.
+  (I) STRICT CURE. By (F) a two-class fiber is cured only when already
+      flat, so a cure that Phi = g lacks needs three classes or more.
+      One exists: the depth column's dated fiber (24, 4) with X the
+      first two moves holds the routes 3222, 2322, 2232, 2223 with
+      first pairs 32, 23, 22, 22: counts (2, 1, 1), baseline posterior
+      (1/2, 1/4, 1/4); the blocks {3222, 2232} and {2322, 2223} are
+      spread and flat at every beta, price 2.
+
+PREDICTIONS (fixed before the engine).
+  P1 control: the rigged fiber (6, 2) prints odds 3/2 at beta = 1 and
+     9/4 at beta = 2, and every world's routes of each age sum to 1.
+  P2 the tuned world: fiber (6, 2) flat at beta = 1, odds 117/70 at
+     beta = 2, its two routes' interior normalizers Psi_2 and Psi_3
+     unequal as polynomials; fiber (30, 2) holds the move sets
+     {2, 15} and {3, 10}, one order each, flat over sets at beta = 1
+     and not at 2.
+  P3 the depth column: every dated fiber to age 8 flat at beta = 1, 2,
+     3 for the route; the first move reads a / (a + b) exactly.
+  P4 breadth to age 3: every multi-route dated fiber is spread for the
+     route's order, and none is flat at beta = 1 (a count, printed).
+  P5 factoring: on random product spaces the posterior is mu at every
+     fiber; on random Phi reading the XX slot, some product weight
+     moves the posterior off mu.
+  P6 coarsening: on random small spaces readability never fails to
+     pass down nor spread up; flatness fails to pass down at least once
+     and up at least once.
+  P7 (F) and (G) agree with exhaustive partition search on every count
+     vector of 2 <= N <= 8 under uniform weight, and (F) on random weighted
+     two-class fibers; the mass test never admits a search cure it
+     denies.
+  P8 (H): the depth column's age fibers, ages 1 .. 6, read
+     3^beta / (2^beta + 3^beta) at beta = 1, 2, 3.
+  P9 (I): fiber (24, 4) is not flat under Phi = g and cured at price 2
+     at every beta; every strictly cured depth-column dated fiber to
+     age 6, X the first two moves, meets three classes or more.
+
+KILLS. Any mismatch between (F), (G) or the mass test and the search
+prints MISMATCH and kills the lemma it names. A strict cure on a
+two-class fiber kills (F). A robust fiber whose route normalizer
+multisets differ is not a kill but is printed: (C) is a sufficient
+condition only.
+
+FINDINGS. Every prediction held and no kill fired.
+  P1 the rigged odds print 3/2 and 9/4, every world's routes of each
+     age sum to 1 at beta = 1, 2, 3 (to age 2 in the tuned, rigged and
+     symmetry worlds, 3 in breadth, 6 in the depth column), and the
+     planted count vectors cure as by hand.
+  P2 the tuned fiber (6, 2) is flat at beta = 1 and reads 117/70 at
+     beta = 2 with Psi_2 on the bases 3, 5, 15 and Psi_3 on 2, 10,
+     both 3/5 at beta = 1, 7/45 against 13/50 at 2; fiber
+     (30, 2) holds (2, 15) and (3, 10), one order each, flat over sets
+     at beta = 1 and not at 2. So the one world hides the order at 6
+     and the set at 30.
+  P3 all 28 multi-route dated fibers of the depth column to age 8 are
+     flat for the route at every beta tested, and the first move reads
+     a / (a + b) at all 84 (fiber, beta) readings. The symmetry
+     world's fiber (30, 3) is exactly 2,5,3 and 3,2,5, its two menus
+     passed in two orders, and flat at beta = 1, 2, 3.
+  P4 every one of breadth's 363 multi-route dated fibers to age 3
+     holds each route's moves distinct and in every order, and none is
+     flat at beta = 1; at (6, 2) the routes 2,3 and 3,2 read
+     9416315619/16841740957 against 7425425338/16841740957.
+  P5 the posterior is mu on every fiber of 300 factored spaces. On
+     300 random state maps, some factored through r, under uniform mu
+     the weight nu(r) = 2^r moves the posterior off uniform at 202,
+     exactly the 202 with a fiber that is not a product (the first
+     version planted one slot-reading pair per map and moved all 300
+     by construction).
+  P6 over 4000 random spaces readability passed down and spread up at
+     every fiber; flatness failed to pass down at 45 fibers and up at
+     69, counting only fibers where the coarser datum is spread.
+  P7 the two-class and no-majority laws match exhaustive search on
+     all 65 count vectors of 2 <= N <= 8; weighted, two-class fibers cure
+     iff flat on all 242 of the 400 drawn that meet two classes, the
+     mass test never denies a found
+     cure, and 47 of the 86 fibers passing it have none: the matching
+     gap is real on this draw.
+  P8 the age fibers 1 .. 6 read 3^beta / (2^beta + 3^beta) exactly,
+     a strict majority at beta = 1, 2, 3.
+  P9 the dated fiber (24, 4) has counts (2, 1, 1), is not flat under
+     Phi = g at any beta tested, and cures at price 2 at every beta tested; the depth
+     column's three strict cures to age 6 (fibers of at most eight
+     routes) all meet three classes or more.
+
+RUN RECORD. python forget.py: 37 of 37 checks, 0.5 s, peak commit
+10.8 MB. The first run counted flatness failing upward on fibers
+where f(X) meets one class, which are flat by definition (1922);
+restricted to spread f(X) the count is 69, and no verdict moved. The
+breadth order check was added on review, the claim having rested on
+argument alone.
+"""
+
+import itertools
+import random
+import sys
+from collections import defaultdict
+from fractions import Fraction
+from math import comb, gcd
+
+BETAS = (1, 2, 3)
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f"  ({detail})" if detail else ""))
+
+
+def section(title):
+    print()
+    print(title)
+
+
+# ----------------------------------------------------------- grown worlds
+
+def squarefree(n):
+    d = 2
+    while d * d <= n:
+        if n % (d * d) == 0:
+            return False
+        d += 1
+    return True
+
+
+def tuned_menu(n):
+    return {1: (2, 3), 2: (3, 5, 15), 3: (2, 10)}.get(n, ())
+
+
+def rigged_menu(n):
+    return {1: (2, 3), 2: (3,), 3: (2,)}.get(n, ())
+
+
+def depth_menu(n):
+    return (2, 3)
+
+
+def sym_menu(n):
+    return {1: (2, 3), 2: (5, 7), 3: (2, 3), 6: (5, 7),
+            10: (2, 3)}.get(n, ())
+
+
+BREADTH_MOVES = tuple(m for m in range(2, 31) if squarefree(m))
+
+
+def breadth_menu(n):
+    return tuple(m for m in BREADTH_MOVES if gcd(m, n) == 1)
+
+
+def z(menu, n, beta):
+    return sum(Fraction(1, m ** beta) for m in menu(n))
+
+
+def routes(menu, age):
+    """Every route of the given age from seed 1: (moves, endpoint)."""
+    out = [((), 1)]
+    for _ in range(age):
+        out = [(r + (m,), n * m) for r, n in out for m in menu(n)]
+    return out
+
+
+def route_weight(menu, route, beta):
+    w, n = Fraction(1), 1
+    for m in route:
+        w *= Fraction(1, m ** beta) / z(menu, n, beta)
+        n *= m
+    return w
+
+
+def dated_fibers(menu, age):
+    fib = defaultdict(list)
+    for r, n in routes(menu, age):
+        fib[n].append(r)
+    return fib
+
+
+def interior_normalizers(route):
+    """The states a route passes before its last move, seed included."""
+    n, out = 1, []
+    for m in route:
+        out.append(n)
+        n *= m
+    return out
+
+
+# ------------------------------------------------------ fibers and grades
+
+def class_masses(items, weight, datum):
+    mass = defaultdict(Fraction)
+    for h in items:
+        mass[datum(h)] += weight(h)
+    return mass
+
+
+def is_flat(mass):
+    return len(set(mass.values())) == 1
+
+
+def posterior(mass):
+    tot = sum(mass.values())
+    return {k: v / tot for k, v in mass.items()}
+
+
+# ------------------------------------------------------- partition search
+
+def set_partitions(items):
+    if not items:
+        yield []
+        return
+    first, rest = items[0], items[1:]
+    for part in set_partitions(rest):
+        yield [[first]] + part
+        for i in range(len(part)):
+            yield part[:i] + [[first] + part[i]] + part[i + 1:]
+
+
+def cure_price(items, weight, datum):
+    """Fewest blocks of a partition into spread flat blocks, or None."""
+    best = None
+    for part in set_partitions(list(items)):
+        if best is not None and len(part) >= best:
+            continue
+        ok = True
+        for block in part:
+            mass = class_masses(block, weight, datum)
+            if len(mass) < 2 or not is_flat(mass):
+                ok = False
+                break
+        if ok:
+            best = len(part)
+    return best
+
+
+def token_fiber(counts):
+    """A uniform-weight fiber: one token per history, labelled by class."""
+    return [(c, i) for c, n in enumerate(counts) for i in range(n)]
+
+
+def no_majority(counts):
+    n = sum(counts)
+    return len(counts) >= 2 and max(counts) <= n - max(counts)
+
+
+def mass_test(mass):
+    tot = sum(mass.values())
+    return len(mass) >= 2 and max(mass.values()) * 2 <= tot
+
+
+# ---------------------------------------------------------------- sections
+
+def section_controls():
+    section("controls")
+    for beta, want in ((1, Fraction(3, 2)), (2, Fraction(9, 4))):
+        w = {r: route_weight(rigged_menu, r, beta)
+             for r in dated_fibers(rigged_menu, 2)[6]}
+        odds = w[(2, 3)] / w[(3, 2)]
+        check(f"rigged fiber (6, 2) odds at beta = {beta}", odds == want,
+              f"{odds}")
+    worlds = ((tuned_menu, 2), (depth_menu, 6), (breadth_menu, 3),
+              (rigged_menu, 2), (sym_menu, 2))
+    for menu, top in worlds:
+        bad = 0
+        for age in range(1, top + 1):
+            for beta in BETAS:
+                bad += sum(route_weight(menu, r, beta)
+                           for r, _ in routes(menu, age)) != 1
+        check(f"{menu.__name__}: routes of each age 1 .. {top} sum to 1 "
+              f"at beta = 1, 2, 3", bad == 0)
+    one = lambda h: Fraction(1)
+    lab = lambda h: h[0]
+    check("planted counts (2, 1, 1) cure at price 2",
+          cure_price(token_fiber((2, 1, 1)), one, lab) == 2)
+    check("planted counts (3, 1, 1) never cure",
+          cure_price(token_fiber((3, 1, 1)), one, lab) is None)
+
+
+def section_grades():
+    section("the grades: the tuned world, the depth column, breadth")
+    fib = dated_fibers(tuned_menu, 2)
+    w = {b: {r: route_weight(tuned_menu, r, b) for r in fib[6]}
+         for b in BETAS}
+    check("tuned (6, 2) is flat for the route at beta = 1",
+          w[1][(2, 3)] == w[1][(3, 2)])
+    odds = w[2][(2, 3)] / w[2][(3, 2)]
+    check("tuned (6, 2) odds at beta = 2 are 117/70",
+          odds == Fraction(117, 70), f"{odds}")
+    zs = {b: (z(tuned_menu, 2, b), z(tuned_menu, 3, b)) for b in BETAS}
+    check("its interior normalizers Psi_2, Psi_3 agree at beta = 1 and "
+          "differ at beta = 2, 3",
+          zs[1][0] == zs[1][1] and zs[2][0] != zs[2][1]
+          and zs[3][0] != zs[3][1],
+          ", ".join(f"beta {b}: {a} against {c}"
+                    for b, (a, c) in zs.items()))
+    sets = defaultdict(list)
+    for r in fib[30]:
+        sets[tuple(sorted(r))].append(r)
+    check("tuned (30, 2) holds the sets {2, 15}, {3, 10}, one order each",
+          sorted(sets) == [(2, 15), (3, 10)]
+          and all(len(v) == 1 for v in sets.values()), f"{dict(sets)}")
+    for b, want in ((1, True), (2, False)):
+        m = class_masses(fib[30], lambda r: route_weight(tuned_menu, r, b),
+                         lambda r: tuple(sorted(r)))
+        check(f"tuned (30, 2) flat over sets at beta = {b}: {want}",
+              is_flat(m) == want)
+    bad_flat = fibers = 0
+    for age in range(1, 9):
+        for n, rs in dated_fibers(depth_menu, age).items():
+            if len(rs) < 2:
+                continue
+            fibers += 1
+            for b in BETAS:
+                m = class_masses(rs, lambda r: route_weight(depth_menu, r, b),
+                                 lambda r: r)
+                bad_flat += not is_flat(m)
+    check("depth column: every multi-route dated fiber to age 8 flat "
+          "for the route at beta = 1, 2, 3", bad_flat == 0,
+          f"{fibers} fibers")
+    rs = sorted(dated_fibers(sym_menu, 3)[30])
+    seqs = [tuple(sym_menu(k) for k in interior_normalizers(r))
+            for r in rs]
+    flat = all(is_flat(class_masses(
+        rs, lambda r: route_weight(sym_menu, r, b), lambda r: r))
+        for b in BETAS)
+    check("symmetry world (30, 3): two routes passing distinct menus in "
+          "different orders, one multiset, flat at beta = 1, 2, 3",
+          rs == [(2, 5, 3), (3, 2, 5)] and seqs[0] != seqs[1]
+          and sorted(seqs[0]) == sorted(seqs[1])
+          and len(set(seqs[0])) == 2 and flat,
+          f"routes {rs}, menus {seqs}")
+    flat1 = multi = unordered = 0
+    for age in (2, 3):
+        for n, rs in dated_fibers(breadth_menu, age).items():
+            if len(rs) < 2:
+                continue
+            multi += 1
+            have = set(rs)
+            unordered += any(len(set(r)) < len(r) or not all(
+                p in have for p in itertools.permutations(r)) for r in rs)
+            m = class_masses(rs, lambda r: route_weight(breadth_menu, r, 1),
+                             lambda r: r)
+            flat1 += is_flat(m)
+    check("breadth: every multi-route dated fiber to age 3 holds each "
+          "route's moves distinct and in every order", unordered == 0)
+    check("breadth: no multi-route dated fiber to age 3 is flat at "
+          "beta = 1", flat1 == 0, f"{multi} fibers, {flat1} flat")
+    ex = dated_fibers(breadth_menu, 2)[6]
+    m = class_masses(ex, lambda r: route_weight(breadth_menu, r, 1),
+                     lambda r: r)
+    post = {k: str(v) for k, v in posterior(m).items()}
+    print(f"    breadth (6, 2): posterior over routes {post}")
+    check("breadth (6, 2) is spread for the order and not flat",
+          len(m) == 2 and not is_flat(m))
+
+
+def section_factoring():
+    section("factoring: posterior = prior under every product weight")
+    rng = random.Random(1)
+    bad_fwd = found = reads = bad_conv = 0
+    trials = 300
+    for _ in range(trials):
+        nx, nr = rng.randint(2, 3), rng.randint(2, 4)
+        mu = [Fraction(rng.randint(1, 9)) for _ in range(nx)]
+        nu = [Fraction(rng.randint(1, 9)) for _ in range(nr)]
+        f = [rng.randint(0, 2) for _ in range(nr)]
+        smu = sum(mu)
+        for s in set(f):
+            fiber = [(x, r) for x in range(nx) for r in range(nr)
+                     if f[r] == s]
+            post = posterior(class_masses(
+                fiber, lambda h: mu[h[0]] * nu[h[1]], lambda h: h[0]))
+            bad_fwd += any(post[x] != mu[x] / smu for x in range(nx))
+        # a random state map, factored through r or not: under uniform
+        # mu and the generic nu(r) = 2^r the posterior is uniform at
+        # every fiber iff every fiber is a product X x F_x
+        if rng.random() < 0.3:
+            phi = {(x, r): f[r] for x in range(nx) for r in range(nr)}
+        else:
+            phi = {(x, r): rng.randint(0, 2)
+                   for x in range(nx) for r in range(nr)}
+        nu_g = [Fraction(2 ** r) for r in range(nr)]
+        moved = reads_x = False
+        for s in set(phi.values()):
+            fiber = [h for h in phi if phi[h] == s]
+            post = posterior(class_masses(fiber, lambda h: nu_g[h[1]],
+                                          lambda h: h[0]))
+            moved |= any(post.get(x, 0) != Fraction(1, nx)
+                         for x in range(nx))
+            secs = {frozenset(r for (y, r) in fiber if y == x)
+                    for x in range(nx)}
+            reads_x |= len(secs) != 1
+        found += moved
+        reads += reads_x
+        bad_conv += moved != reads_x
+    check("posterior = mu at every fiber of every factored space",
+          bad_fwd == 0, f"{trials} spaces")
+    check("random state maps: nu(r) = 2^r moves the posterior off uniform "
+          "iff some fiber is not a product", bad_conv == 0 and 0 < found
+          < trials, f"{found} of {trials} maps moved, {reads} not "
+          f"products")
+
+
+def random_space(rng):
+    n = rng.randint(3, 7)
+    H = list(range(n))
+    wt = {h: Fraction(rng.randint(1, 4)) for h in H}
+    X = {h: rng.randint(0, 3) for h in H}
+    phi = {h: rng.randint(0, 2) for h in H}
+    f = {v: rng.randint(0, 1) for v in range(4)}
+    return H, wt, X, phi, f
+
+
+def section_coarsening():
+    section("coarsening: readability down, spread up, flatness neither")
+    rng = random.Random(2)
+    bad_read = bad_spread = down_fail = up_fail = 0
+    for _ in range(4000):
+        H, wt, X, phi, f = random_space(rng)
+        for s in set(phi.values()):
+            F = [h for h in H if phi[h] == s]
+            mx = class_masses(F, wt.get, X.get)
+            mf = class_masses(F, wt.get, lambda h: f[X[h]])
+            bad_read += len(mx) == 1 and len(mf) != 1
+            bad_spread += len(mf) >= 2 and len(mx) < 2
+            down_fail += len(mf) >= 2 and is_flat(mx) and not is_flat(mf)
+            up_fail += len(mf) >= 2 and is_flat(mf) and not is_flat(mx)
+    check("readability passes down to f(X) on every fiber", bad_read == 0)
+    check("spread passes up from f(X) to X on every fiber",
+          bad_spread == 0)
+    check("flatness fails to pass down at least once", down_fail > 0,
+          f"{down_fail} fibers")
+    check("flatness fails to pass up at least once", up_fail > 0,
+          f"{up_fail} fibers")
+    bad = n = 0
+    for age in range(2, 9):
+        for N, rs in dated_fibers(depth_menu, age).items():
+            a = rs[0].count(2)
+            b = age - a
+            if a == 0 or b == 0:
+                continue
+            for beta in BETAS:
+                m = class_masses(
+                    rs, lambda r: route_weight(depth_menu, r, beta),
+                    lambda r: r[0])
+                n += 1
+                bad += posterior(m)[2] != Fraction(a, a + b)
+    check("depth column: the first move reads a/(a + b) at every mixed "
+          "fiber to age 8, beta = 1, 2, 3", bad == 0, f"{n} readings")
+    check("the hand count C(a+b-1, a-1)/C(a+b, a) = a/(a+b), a, b <= 11",
+          all(Fraction(comb(a + b - 1, a - 1), comb(a + b, a))
+              == Fraction(a, a + b) for a in range(1, 12)
+              for b in range(1, 12)))
+
+
+def section_working():
+    section("the working clause: two classes, no majority, the mass test")
+    one = lambda h: Fraction(1)
+    lab = lambda h: h[0]
+    mism = vectors = 0
+    for n in range(2, 9):
+        for r in range(1, n + 1):
+            for counts in itertools.combinations_with_replacement(
+                    range(1, n + 1), r):
+                if sum(counts) != n:
+                    continue
+                counts = tuple(sorted(counts, reverse=True))
+                vectors += 1
+                cured = cure_price(token_fiber(counts), one, lab) is not None
+                if cured != no_majority(counts):
+                    mism += 1
+                    print(f"    MISMATCH no-majority {counts}")
+                if len(counts) == 2 and cured != (counts[0] == counts[1]):
+                    mism += 1
+                    print(f"    MISMATCH two classes {counts}")
+    check("no-majority and two-class laws match search on every count "
+          "vector, 2 <= N <= 8", mism == 0, f"{vectors} vectors")
+    rng = random.Random(3)
+    mism2 = mism3 = gap = passed = two = 0
+    for _ in range(400):
+        k = rng.randint(2, 7)
+        top = 2 if rng.random() < 0.6 else 1
+        items = [(rng.randint(0, top), i) for i in range(k)]
+        wt = {h: Fraction(rng.randint(1, 4)) for h in items}
+        m = class_masses(items, wt.get, lab)
+        price = cure_price(items, wt.get, lab)
+        two += len(m) == 2
+        if len(m) == 2 and (price is not None) != is_flat(m):
+            mism2 += 1
+            print(f"    MISMATCH weighted two classes {items}")
+        if price is not None and not mass_test(m):
+            mism3 += 1
+            print(f"    MISMATCH mass test {items}")
+        if mass_test(m):
+            passed += 1
+            gap += price is None
+    check("weighted two-class fibers: cured iff already flat",
+          mism2 == 0, f"{two} of the 400 fibers drawn")
+    check("the mass test never denies a cure the search finds",
+          mism3 == 0)
+    print(f"    matching gap: {gap} of {passed} fibers passing the mass "
+          f"test have no cure")
+    check("the matching gap is nonempty (sufficiency fails weighted)",
+          gap > 0)
+
+
+def section_retention():
+    section("retaining less: the age fiber against the dated fiber")
+    bad = 0
+    for age in range(1, 7):
+        rs = [r for r, _ in routes(depth_menu, age)]
+        for beta in BETAS:
+            m = class_masses(rs, lambda r: route_weight(depth_menu, r, beta),
+                             lambda r: r[0])
+            want = Fraction(3 ** beta, 2 ** beta + 3 ** beta)
+            bad += posterior(m)[2] != want or mass_test(m)
+    check("age fibers 1 .. 6 read P(2) = 3^b/(2^b + 3^b), a strict "
+          "majority", bad == 0)
+    first2 = lambda r: r[:2]
+    rs = dated_fibers(depth_menu, 4)[24]
+    nonflat = cured = True
+    for beta in BETAS:
+        w = lambda r: route_weight(depth_menu, r, beta)
+        nonflat &= not is_flat(class_masses(rs, w, first2))
+        cured &= cure_price(rs, w, first2) == 2
+    counts = sorted(class_masses(rs, lambda r: Fraction(1), first2)
+                    .values(), reverse=True)
+    check("dated (24, 4), X = first two moves: counts (2, 1, 1)",
+          counts == [2, 1, 1], f"{sorted(rs)}")
+    check("... Phi = g is not flat there at beta = 1, 2, 3", nonflat)
+    check("... cured at price 2 at beta = 1, 2, 3", cured)
+    strict = two_class = 0
+    for age in range(2, 7):
+        for N, rs in dated_fibers(depth_menu, age).items():
+            if len(rs) > 8:
+                continue
+            w = lambda r: route_weight(depth_menu, r, 1)
+            m = class_masses(rs, w, first2)
+            if len(m) < 2 or is_flat(m):
+                continue
+            if cure_price(rs, w, first2) is not None:
+                strict += 1
+                two_class += len(m) == 2
+    check("every strict cure in the depth column to age 6 meets three "
+          "classes or more", two_class == 0 and strict > 0,
+          f"{strict} strict cures")
+
+
+def main():
+    section_controls()
+    section_grades()
+    section_factoring()
+    section_coarsening()
+    section_working()
+    section_retention()
+    print()
+    n, ok = len(CHECKS), sum(CHECKS)
+    print(f"{ok} of {n} checks pass")
+    return 0 if ok == n else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

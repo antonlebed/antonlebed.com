@@ -1,0 +1,360 @@
+"""standing.py -- the standing-move dichotomy: when a greedy walk must
+lock, what coordinate prices the lock over Z, and how one schema reads
+the three fates of growth.
+
+QUESTION. A greedy walk steps by an argmin of cost over the admissible
+moves A(s) at its state s. Suppose it carries a STANDING FAMILY of
+recipes R_i, each a function from states to moves such that
+  (S1) R_i(s) lies in A(s) at every reachable s, and
+  (S2) cost(R_i(s)) = kappa_i(x_i(s)) for one integer coordinate x_i of the
+       state and a nondecreasing kappa_i,
+and the world is
+  (S3) norm-finite: finitely many moves under any cost ceiling, and a
+       move recurring infinitely often absorbs the tail.
+What does the family force, what coordinate prices the dynamics walk
+of growth.py, and do the other two fates of growth.py fit the same
+schema?
+
+THE ARGUMENT (written before the engine).
+  (1) THE DICHOTOMY. By (S1) the walk pays at most min_i kappa_i(x_i(s))
+      at every step (the PRICE CAP). If some x_i returns to a bounded value
+      infinitely often, a move of bounded cost is paid infinitely often,
+      so by (S3) one move recurs and absorbs the tail: the walk LOCKS.
+      Otherwise every coordinate diverges at once. A member with kappa_i
+      constant locks the walk outright; escaping is a conjunction over
+      the whole family. A recipe is not a fixed move: over Z the least
+      move at q = 5 is 5 at M = 71 and 25 at M = 355.
+  (2) THE EXCESS. Put x_q(M) = v_q(lambda(M)) - v_q(M). For the
+      dynamics walk take one recipe per odd prime q, the move
+      q^(x_q + 2) (corrected after the run), which raises lambda,
+      priced by x_q; the least move
+      at q (growth.py) costs at most that. The deepening door is
+      x_q + 2 exactly, and every door at odd q is
+      at most x_q + 2: an opening has x_q = v_q(lambda) and costs q
+      or q^(v + 2). At odd q the excess is at least -1, since q^a | M
+      gives lambda(q^a) | lambda(M), which carries q^(a - 1). The
+      recurrence invariant of the lock-prime law is x_q = -1: the lock
+      is the price cap sitting on the floor of the coordinate that prices it.
+      At q = 2 the floor and the invariant are -2 from v_2(M) = 3 on,
+      -1 before, and the bound reads 2^(x + 3); the odd-q figures
+      exclude 2.
+  (3) MORTALITY. From a transparent state the jump to the wall,
+      m = xi(M) = W(lambda(M)) / M, is admissible (lambda(W(L)) divides
+      L = lambda(M), which divides lambda(M xi)) and is priced by the
+      headroom xi alone, which falls to 1, where the walk stops: a
+      fate beside the dichotomy, which reads infinite walks (corrected
+      on review from "the absorbing branch").
+  (4) BREADTH. Fix D >= 3. For each reduced class c mod D let R_c(M)
+      be the least prime = c (mod D) not dividing M, priced by x_c,
+      the walk's count of primes in class c, through kappa_c(x) = the
+      (x + 1)-th prime of class c the seed lacks. (S1) is Dirichlet's
+      theorem for the class. The price cap is the least unused prime in a
+      reduced class, so it equals the greedy cost except at a pick
+      dividing D; every coordinate repeats when the walk picks another
+      class, and every one rises: the escape branch, with real
+      conjuncts.
+  (5) BLINDNESS. The greedy move itself, priced by M through the
+      walk's own cost sequence, meets (S1) and (S2) wherever that
+      sequence is nondecreasing, and M never repeats, so it reads a
+      locked walk as "the coordinate diverges". A family says something
+      only where its coordinates can repeat: the lock branch is a
+      sufficient condition, and the content is in choosing coordinates
+      that are projections of the state bounded along a lock.
+
+DESIGN. Standard library and growth.py. Seeds 1, 3, 5, 7, 9, 15, 71,
+100, 121, 210, 1001; twelve breadth steps and six depth steps each.
+  C  POSITIVE CONTROL: growth.py's menu against the brute least
+     lambda-raising m at every visited depth state; the healing rule
+     at every seed; seed 71's depth costs.
+  E  the excess over every odd prime q <= 50 at every M <= 2000 not
+     divisible by 2 and at every visited depth state: the deepening
+     door against x + 2, the bound in every branch, strict only at
+     openings costing q, the floor -1; along each locked tail the lock
+     prime's excess.
+  T  mortality: the transparent walk from seeds 3, 5, 7, the jump
+     admissible with lambda unchanged, xi along the walk.
+  B  breadth, D in {3, 4, 5, 8}: the class recipes found below 200000,
+     price cap against greedy, the strict steps, repeats and rises per class.
+  V  blindness: per seed the six depth costs, nondecreasing or not; M
+     strictly increasing.
+
+PREDICTIONS, fixed before the run (from the scripts this replaces).
+  C1 the menu agrees with brute at every visited state; healing at
+     11/11 seeds; seed 71 pays 5, 7, 17, 17, 17, 17.
+  E1 the deepening door equals x + 2 at every deepening state; the
+     bound holds at every (q, M), strict exactly at openings costing
+     q; the least excess is -1 and is attained.
+  E2 at every seed the lock prime's excess is -1 at every tail step
+     after the first deepening.
+  T1 the jump is admissible with lambda unchanged at every visited
+     state; off seed 5 xi reads 48, 24, 12, 6, 3, 1.
+  B1 every class recipe found; price cap >= greedy at every step; strict
+     exactly at a pick of a prime dividing D, one step per seed at most,
+     none at a seed that prime divides; every class coordinate repeats
+     and ends above its start at every seed.
+  V1 the depth costs are nondecreasing at 11 of 11 seeds and M strictly
+     increases at every step.
+A KILL is a greedy cost above its price cap, a missing recipe, or a class
+coordinate that never repeats or never rises.
+
+FINDINGS. Every prediction landed: 16/16 checks PASS; no kill printed.
+  Review added E1's door search: the least raising power of q found by
+  search is the door formula at all 16140 (state, q <= 47) readings
+  over the odd M from 3 to 1999 and each walk's seven states, a state
+  read once per list that holds it, and 2's door is x + 3 off the
+  states 1 and 2; before it, E1 compared the formula with itself. E2
+  also walks seed 2, which locks at 2, its excess -1 at 4 and -2 from
+  16 on.
+  C1 the menu = brute at all 66 visited depth states; healing at 11/11
+     seeds; seed 71 pays 5, 7, 17, 17, 17, 17.
+  E1 over 15064 (state, odd q <= 47) readings: the deepening door is
+     x + 2 at every deepening; the bound holds everywhere, 4456
+     exact and 10608 strict, every strict reading an opening costing
+     q; the least excess -1, at 1068 readings.
+  E2 the lock primes 3, 3, 5, 5, 3, 3, 17, 5, 7, 5, 7 at the eleven
+     seeds; the excess sits at -1 along every tail from the first
+     deepening.
+  T1 the jump to the wall is admissible with lambda unchanged at every
+     visited state off seeds 3, 5, 7, the greedy step never above it;
+     off seed 5 xi reads 48, 24, 12, 6, 3, 1.
+  B1 every class recipe found, and it is kappa_c of its coordinate;
+     price cap >= greedy at every step; the strict steps are the pick of 3, 2, 5, 2
+     at D = 3, 4, 5, 8, once per seed and never at a seed that prime
+     divides; every class coordinate repeats (62 to 112 times per class
+     over the eleven walks, at least 5 per seed) and ends above its
+     start.
+  V1 the depth costs are nondecreasing at 11 of 11 seeds (seed 1 reads
+     3 six times; 71 reads 5, 7, 17, 17, 17, 17).
+  Tiers: the dichotomy, the excess with its floor and the jump are
+  theorems, proved in the argument and verified at the seeds printed;
+  the class family's price cap against the greedy cost and the greedy move's
+  own family are observations at the seeds printed; (S1) for the class
+  family is Dirichlet's theorem and is checked only below 200000.
+  Blindness is a necessary condition on a family carrying information,
+  not a sufficient one.
+
+RUN RECORD. 16/16, 0.3 s wall, 11 MB peak commit under a memory guard.
+The recipe of (2) was first the least move at q; an opening costs q
+whatever x_q reads, so it is not priced by x_q alone, and after the run
+it became q^(x_q + 2), marked in place.
+"""
+
+from math import gcd
+
+from growth import (CHECKS, PRIMES, brute_least, check, factor, kind, lam,
+                    least_move, menu, merge_add, primes_up_to, section, step,
+                    value, wall)
+
+SEEDS = (1, 3, 5, 7, 9, 15, 71, 100, 121, 210, 1001)
+BIG = primes_up_to(200000)
+
+
+def seed_f(s):
+    return factor(s) if s > 1 else {}
+
+
+def depth_walk(seed, n=6):
+    """The dynamics walk: (state, lambda, pick, cost, kind) per step,
+    and the state after the last step."""
+    mf, rows = seed_f(seed), []
+    for _ in range(n):
+        lamf = lam(mf)
+        q, cost, _ = menu(mf, lamf)
+        rows.append((mf, lamf, q, cost, kind(q, mf, lamf)))
+        mf = step(mf, q, cost)
+    return rows, mf
+
+
+def breadth_walk(seed, n=12):
+    M, picks, states = seed, [], []
+    for _ in range(n):
+        states.append(M)
+        m = next(p for p in BIG if M % p)
+        picks.append(m)
+        M *= m
+    return states, picks
+
+
+def section_c():
+    section("C  POSITIVE CONTROL: the menu, the healing rule, seed 71")
+    bad = n = 0
+    for s in SEEDS:
+        rows, _ = depth_walk(s)
+        n += len(rows)
+        bad += sum(brute_least(mf) != cost for mf, _, _, cost, _ in rows)
+    check("C1 the menu is the brute least lambda-raising m at every "
+          "visited depth state", bad == 0, f"{n} states, {bad} off")
+    ok = all(breadth_walk(s)[1] == [p for p in BIG if s % p][:12]
+             for s in SEEDS)
+    check("C1 healing at every seed", ok)
+    costs = [c for _, _, _, c, _ in depth_walk(71)[0]]
+    check("C1 seed 71 pays 5, 7, 17, 17, 17, 17", costs ==
+          [5, 7, 17, 17, 17, 17], str(costs))
+
+
+def section_e():
+    section("E  THE EXCESS: the coordinate pricing the door")
+    states = [factor(M) for M in range(3, 2001, 2)]
+    for s in SEEDS:
+        rows, last = depth_walk(s)
+        states += [mf for mf, _, _, _, _ in rows] + [last]
+    exact = strict = 0
+    bad_deep = bad_bound = bad_strict = bad_formula = bad_two = 0
+    xmin, at_floor = 10 ** 9, 0
+    for mf in states:
+        lamf = lam(mf)
+        L = value(lamf)
+        for q in PRIMES[:15]:
+            a = mf.get(q, 0)
+            x = lamf.get(q, 0) - a
+            r = 1
+            while value(lam(merge_add(mf, {q: r}))) == L:
+                r += 1
+            d = q ** r
+            bad_formula += d != least_move(q, a, lamf)
+            if q == 2:
+                bad_two += value(mf) > 2 and d != 2 ** (x + 3)
+                continue
+            cap = q ** (x + 2)
+            if a >= 1:
+                bad_deep += d != cap
+                xmin = min(xmin, x)
+                at_floor += x == -1
+            bad_bound += d > cap
+            if d < cap:
+                strict += 1
+                bad_strict += not (a == 0 and d == q)
+            else:
+                exact += 1
+    print(f"  {exact} exact and {strict} strict over {exact + strict} "
+          f"(state, odd q <= 47) readings; least excess {xmin}, at "
+          f"{at_floor} readings")
+    check("E1 the door found by search is the door formula at every q "
+          "<= 47, and 2's is x + 3 off the states 1 and 2",
+          bad_formula == 0 and bad_two == 0,
+          f"{len(states) * 15} (state, q) readings, {bad_formula} and "
+          f"{bad_two} off")
+    check("E1 the deepening door is x + 2", bad_deep == 0,
+          f"{bad_deep} off")
+    check("E1 every door at odd q is at most x + 2", bad_bound == 0)
+    check("E1 strict exactly at openings costing q", bad_strict == 0)
+    check("E1 the excess at odd q floors at -1, attained",
+          xmin == -1 and at_floor > 0)
+    bad, locks = 0, {}
+    for s in SEEDS + (2,):
+        rows, last = depth_walk(s)
+        lock = next(q for _, _, q, _, k in rows if k != "ghost")
+        locks[s] = lock
+        trail = [mf for mf, _, _, _, _ in rows[1:]] + [last]
+        picks = [(q, k) for _, _, q, _, k in rows]
+        first = next(i for i, (q, k) in enumerate(picks)
+                     if q == lock and k == "deepen")
+        for mf in trail[first:]:
+            floor = -2 if lock == 2 and mf[2] >= 3 else -1
+            bad += lam(mf).get(lock, 0) - mf[lock] != floor
+    print("  lock primes:", locks)
+    check("E2 along every locked tail the lock prime's excess sits on its "
+          "floor from the first deepening", bad == 0, f"{bad} off")
+
+
+def section_t():
+    section("T  MORTALITY: the jump to the wall, priced by the headroom")
+    bad, trace5 = 0, None
+    for s in (3, 5, 7):
+        mf = factor(s)
+        L = value(lam(mf))
+        xis = []
+        while True:
+            M = value(mf)
+            bad += wall(L) % M != 0
+            xi = wall(L) // M
+            xis.append(xi)
+            if xi == 1:
+                break
+            bad += value(lam(merge_add(mf, factor(xi)))) != L
+            m = 2
+            while value(lam(merge_add(mf, factor(m)))) != L:
+                m += 1
+            bad += m > xi
+            mf = merge_add(mf, factor(m))
+        if s == 5:
+            trace5 = xis
+    print("  xi off seed 5:", trace5)
+    check("T1 the jump is admissible with lambda unchanged, greedy at or "
+          "under it", bad == 0, f"{bad} off")
+    check("T1 xi off seed 5 reads 48, 24, 12, 6, 3, 1",
+          trace5 == [48, 24, 12, 6, 3, 1])
+
+
+def section_b():
+    section("B  BREADTH: the class family, one recipe per reduced class")
+    ok_found = ok_cap = ok_strict = ok_rep = ok_rise = True
+    for m in (3, 4, 5, 8):
+        classes = [c for c in range(1, m) if gcd(c, m) == 1]
+        strict_all = {}
+        reps = {(s, c): 0 for s in SEEDS for c in classes}
+        for s in SEEDS:
+            f = {c: [p for p in BIG if p % m == c and s % p] for c in classes}
+            states, picks = breadth_walk(s)
+            xs_prev, strict = None, []
+            for M, pick in zip(states + [states[-1] * picks[-1]],
+                               picks + [None]):
+                xs = {c: sum(1 for p in factor(M) if p % m == c and s % p)
+                      for c in classes}
+                for c in classes:
+                    R = next(p for p in BIG if p % m == c and M % p)
+                    ok_found = ok_found and R == f[c][xs[c]]
+                if xs_prev is not None:
+                    for c in classes:
+                        reps[(s, c)] += xs[c] == xs_prev[c]
+                if pick is not None:
+                    cap = min(f[c][xs[c]] for c in classes)
+                    ok_cap = ok_cap and cap >= pick
+                    if cap > pick:
+                        strict.append(pick)
+                        ok_strict = ok_strict and m % pick == 0
+                if xs_prev is None:
+                    start = xs
+                xs_prev = xs
+            ok_strict = ok_strict and len(strict) <= 1
+            ok_strict = ok_strict and not (strict and
+                                           any(s % p == 0 for p in strict))
+            ok_rise = ok_rise and all(xs_prev[c] > start[c] for c in classes)
+            strict_all[s] = strict
+        ok_rep = ok_rep and min(reps.values()) > 0
+        per = {c: sum(reps[(s, c)] for s in SEEDS) for c in classes}
+        print(f"  D = {m}: strict steps by seed {strict_all}; repeats per "
+              f"class {per}, at least {min(reps.values())} per seed")
+    check("B1 every class recipe found, at kappa_c of its coordinate", ok_found)
+    check("B1 price cap >= greedy at every step", ok_cap)
+    check("B1 strict only at a pick dividing m (so at most once per seed, "
+          "each m run a prime power, the picks distinct primes)",
+          ok_strict)
+    check("B1 every class coordinate repeats at every seed and ends above "
+          "its start", ok_rep and ok_rise)
+
+
+def section_v():
+    section("V  BLINDNESS: the greedy move priced by M")
+    nondec = 0
+    for s in SEEDS:
+        costs = [c for _, _, _, c, _ in depth_walk(s)[0]]
+        print(f"  seed {s}: costs {costs}")
+        nondec += all(a <= b for a, b in zip(costs, costs[1:]))
+    check("V1 the depth costs are nondecreasing at 11 of 11 seeds",
+          nondec == 11, f"{nondec}")
+
+
+def main():
+    section_c()
+    section_e()
+    section_t()
+    section_b()
+    section_v()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

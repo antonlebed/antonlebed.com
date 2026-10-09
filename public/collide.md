@@ -1,0 +1,865 @@
+# COLLIDE — when two products of weighted sets are one polynomial
+
+The object: a **menu**, a finite set A of integers ≥ 2, read through its
+normalizer E_A = Σ_{m∈A} m^−β (β > 0 the weight exponent of FORGET.md),
+which after x_p = p^−β is a polynomial in one variable per prime with
+every coefficient 0 or 1. Its **core** is that polynomial divided by
+its monomial gcd. Two pairs of menus
+**collide** when E_A·E_B = E_C·E_D with {A, B} ≠ {C, D}. A factorization
+of a product over ℕ is **atomic** when no factor splits into two
+nonnegative ones, neither of them 1, its factors being atoms, and a
+**seed** is a core with a Z-irreducible factor having a negative
+coefficient, or a menu with such a core. The grown worlds of
+FORGET.md#the-quarantine-theorem meet this object as ties: two routes
+of a dated fiber weigh every β alike exactly when the products of the
+normalizers they pass agree, and at age 3, the start's normalizer
+cancelled, two routes whose menu multisets differ tie exactly when
+their two pairs of menus collide. The questions
+are what a tie with no witness must carry, which menus make a product
+factor two ways, how far the classification by number of terms reaches
+when read through menu sizes, what reads two factorizations jointly, and
+which pairs of factorizations share no dividing block, and how many
+dimensions a seed can span and whether its negative factor vanishes on
+roots of unity. Its verifiers are collide.py, faces.py, mixing.py,
+halfsize.py, rooted.py, quadrinomial.py, pentanomial.py and
+quarantine.py.
+
+The thesis: collision is cheap and non-uniqueness is not. Among small
+menus nearly every collision is a **regrouping**, one multiset of atoms
+grouped into menus two ways, and a designed world realizes nearly any of
+those as a witness-free tie. A product factors two ways only through a
+seed, a property of one menu, closed in its elements at size 2 and in
+its exponent vectors at size 3. Read through menu sizes, the known
+classification by number of terms settles the small size pairs; the
+first escape from one variable comes at (2,5), a two-dimensional polygon
+whose factorizations still part on an edge. The descent dimension, the
+least dimension of a face of the product's Newton polytope on which two
+atomic factorizations part, grades that
+(COLLIDE.md#the-descent-dimension): through ten terms it is an edge; at
+twelve a product exists whose two factorizations no proper face
+separates, and the face law says
+exactly which faces separate two factorizations that differ by one
+negative factor moved between blocks. Where no block divides one across,
+twelve terms counted with multiplicity leave a single family off one
+line, for every nonnegative product of content 1 and not only the 0/1
+ones, and between two binomials such mixing
+(COLLIDE.md#the-binomial-pair-criterion) needs a closed trail of
+translates whose signed count of steps is nonzero, which twelve cannot
+seat. A polynomial of n terms, at any coefficients, that factors into
+two non-monomials spans at most ⌊n/2⌋ dimensions, so a seed of size n
+does, and seeds reach the bound at every n ≥ 2; among 0/1 products a
+nonnegative split reaches it only at even n ≥ 4 and at n = 9. A seed's
+negative factor can miss every root of unity, first at size 3 and, along
+one variable, at degree 5; four terms that factor always carry a
+binomial, and off a line such a seed is rooted
+(COLLIDE.md#the-torsion-split), each negative factor vanishing at a
+tuple of roots of unity, while five terms are already free, a negative
+factor vanishing at none, beside a factor cyclotomic in a monomial.
+Whether five terms are ever free outright, no factor of the core
+vanishing at roots of unity (COLLIDE.md#the-torsion-split), is a
+question in one variable, and an example would answer in the negative a
+question Filaseta and Solan left open.
+
+## The frame
+Tier: property.
+Verifier: proof; collide.py::section_frame.
+
+The integer polynomials in the variables x_p are a UFD and a menu
+polynomial has content 1, so every integer factor of a product of menus
+is, up to sign, a sub-product of its Z-irreducible multiset, each factor
+normed to a positive leading coefficient. A factorization over ℕ is a
+partition of that multiset into blocks with nonnegative products.
+Monomials split off alone, so the question lives on the core. A core's
+factorizations depend only on its exponent vectors up to an affine
+unimodular map: such a map is an automorphism of the Laurent ring, and a
+polynomial divisible by no variable is irreducible there iff it is
+irreducible as a polynomial, since its factors are divisible by no
+variable, and a product of two polynomials divisible by no variable is
+divisible by none, each variable being a prime element of the
+polynomial ring.
+
+## Non-uniqueness needs a seed
+Tier: property.
+Verifier: proof; collide.py::section_ties.
+
+If every Z-irreducible factor of a product is nonnegative, its only
+atomic factorization is the one into those factors. So a product that
+factors two ways over ℕ carries a Z-irreducible with a negative
+coefficient, and since the Z-factors of E_A·E_B are those of E_A with
+those of E_B, that factor lives in one menu, a seed. Over every menu
+of size 1 to 3 in {2..16} ∪ {32}, 6 of the 4,487 colliding products
+factor two ways, none three, and three seeds carry them all:
+{2, 16}, {4, 32} and {2, 8, 32}.
+
+## A witness-free tie is a regrouping or passes a seed
+Tier: property.
+Verifier: proof; collide.py::section_ties; quarantine.py::section_arms.
+
+Let two routes tie at every β with distinct menu multisets. If no menu
+on either route is a seed, the product of the normalizers has one atomic
+factorization, and the two multisets group that one multiset of atoms
+two ways: a regrouping, possible only because some menu is not itself an
+atom. The regroupings that move a monomial between menus,
+E_A·E_{cB} = E_{cA}·E_B for every scale c, form the **scaling family**,
+of which the coarse world's tie x³·(x + x²) = (x³ + x⁴)·x
+(FORGET.md#recycled-worlds-need-no-witness) is one, at c = 4. If some
+menu is a seed, the tie passes one, as the rogue world's there does.
+Four singleton menus never realize a tie at age 3 (a route of age 3
+being three moves, each drawn from the menu its state offers,
+FORGET.md#the-quarantine-theorem): a singleton's normalizer is one
+monomial, so the tie makes the moves after the first multiply to one
+number on both routes, the routes share their endpoint, so the first
+moves agree, the routes share their first state and its menu, and the
+multisets agree. That is the only obstruction met: over the menus of
+size 1 to 3 in {2..16} ∪ {32} the 4,849 colliding pairs of pairs are
+4,841 regroupings and 8 that group the two factorizations of one of the
+6 non-unique products; 2 of the regroupings lie inside those products,
+the scaling family through a seed. Of the 4,849, 4,805 realize as a
+two-route fiber of age 3 in a recycling world
+(FORGET.md#the-quarantine-theorem), the other 44 being exactly the
+all-singleton ones. None realizes in a coprime world, as the quarantine
+theorem requires. So over those menus a witness-free tie is the generic
+product of design, while random draws rarely tie at all: the two arms
+whose menus need not be coprime to the state, 3,000 worlds each, menus
+of one or two moves on a ten-element universe, met three ties, all
+witnessed (quarantine.py::section_arms).
+
+## Term counts multiply
+Tier: property.
+Verifier: proof; collide.py::section_seeds.
+
+If a 0/1 polynomial with T terms is f·g with f and g nonnegative, then
+T = f(1)·g(1) ≥ #f·#g ≥ T, so term counts multiply and both factors
+are 0/1. At a prime menu size the core has no nonnegative
+factorization, so a menu of prime size is a seed iff its core is
+reducible over Z. At size 4 a reducible core that is not a seed is two
+0/1 binomials, the one split 4 admits, at every one of the 3,876 size-4
+menus of {2..20}.
+
+## Size 2 closes in the elements
+Tier: criterion.
+Verifier: proof; collide.py::section_seeds.
+
+Let g = gcd(m, n) and d the largest integer with m/g and n/g both
+perfect d-th powers. The menu {m, n} is a seed iff d has an odd prime
+factor.
+
+Proof. The core is x^u + x^v with disjoint supports, and the frame's map
+sends v − u to d·e₁, d the gcd of every entry, making the core 1 + X^d.
+That is reducible iff d has an odd prime factor, and a reducible core of
+prime size is a seed. {2..64} holds twelve seeds, eleven at d = 3 and
+{2, 64} at d = 5, and the criterion agrees with factorization at all
+1,953 of its size-2 menus. Read backwards the criterion generates every
+size-2 seed, {c·U^d, c·V^d} with U and V coprime and not both perfect
+powers of one exponent, and d with an odd prime factor.
+
+## Size 3 closes in the exponent vectors
+Tier: criterion.
+Verifier: proof; collide.py::section_seeds.
+
+A three-element menu is a seed iff its exponent vectors are collinear,
+at steps 0 < a < b along a primitive direction, with a/h + b/h ≡ 0
+mod 3 for h = gcd(a, b), and (a, b) is not (3^j, 2·3^j).
+
+Proof. The **trinomial lemma**: if the vectors are not collinear, the
+frame's map (the differences in Hermite form over a basis of their
+plane's saturated lattice) writes the core 1 + X^ρ + X^σ·Y^η with
+ρ, η ≥ 1, which is Eisenstein in Y at any prime factor of the
+squarefree 1 + X^ρ in Q[X, 1/X], so it is irreducible. If
+they are collinear the core is 1 + X^a + X^b. Ljunggren's theorem makes
+a trinomial with no root of unity among its zeros irreducible, and
+otherwise the product of the factor holding those zeros with an
+irreducible. At a root of unity where 1 + X^a + X^b vanishes, X^a and
+X^b are the two primitive cube roots of 1; the image of t ↦ (at, bt)
+in (Q/Z)² is the set of (s, s′) with (b/h)s = (a/h)s′, so such a root
+exists iff a/h + b/h ≡ 0 mod 3. The trinomial is then reducible unless
+it is a cyclotomic polynomial Φ_n, which needs Φ_n(1) = 3, so
+n = 3^(j+1) and the trinomial is 1 + X^(3^j) + X^(2·3^j). A reducible
+core of prime size is a seed. The criterion agrees with factorization
+at all 4,495 size-3 menus of {2..32}, whose one seed is {2, 8, 32},
+and at the 780 cores 1 + X^a + X^b with b ≤ 40. Read backwards it
+generates every size-3 seed: {c·V^b, c·U^a·V^(b−a), c·U^b} with U and
+V coprime, U/V not a perfect power, and a, b as above.
+
+## Ljunggren's theorem on trinomials
+Tier: known.
+Source: W. Ljunggren, On the irreducibility of certain trinomials and
+quadrinomials, Math. Scand. 8 (1960) 65–70, Theorem 1 and the
+corollary extending it to x^n + ε₁x^m + ε₂.
+
+A trinomial x^n + ε₁x^m + ε₂, εᵢ = ±1, with no root of unity among its
+zeros is irreducible over Q; with exactly q such zeros it is the product
+of a degree-q factor holding them and a factor that is constant or
+irreducible.
+
+## Menu size is the grading
+Tier: property.
+Verifier: proof; collide.py::section_pairs.
+
+Menus of sizes s₁ and s₂ have a product of s₁s₂ terms counted with
+multiplicity, as every count in the classification by number of terms
+is, so the classification by number of terms below is a classification
+by size pair. (2,2), (2,4) and (3,3) factor uniquely at every element
+bound. At (2,3) a product factoring two ways has its exponent vectors in
+arithmetic progression, so its Newton polytope is a segment: every
+coordinate carries the one six-term shape on one term bijection, and the
+combined linear system, invariant under translation, is solved by the
+all-ones vector and one progression. The mechanism is then an image of
+the one-variable identity (1 + x)(1 + x² + x⁴) = (1 + x + x²)(1 + x³),
+by substitution where the progression's direction is nonnegative and by
+weighted homogenization where it is mixed:
+{8, 27}·{4, 6, 9} = {2, 3}·{16, 36, 81}, whose shared negative factor is
+x_2² − x_2·x_3 + x_3². With sizes 2 and 3 drawn from
+{2..32} and size 4 from {2..20}, none of the 3,704, 18,270 and 8,989
+ordered pairs, a menu with itself included, carrying a seed at (2,2),
+(2,4) and (3,3) factors two ways, and the 39 at (2,3) that do all lie
+on segments.
+
+## Factorization by number of terms
+Tier: known.
+Source: C. E. van de Woestijne, Factors of disconnected graphs and
+polynomials with nonnegative integer coefficients, arXiv:1103.0709
+(2011), Lemmas 3.3, 3.4 and 3.10, Theorems 3.16 to 3.20.
+
+A polynomial over ℕ with n terms, counted with multiplicity, has factors
+whose term counts multiply to n, and factors uniquely when n is prime.
+Factorization in several variables is factorization in one, coordinate
+by coordinate, on one bijection of terms. At 4, 8 and 9 terms
+factorization over ℕ is unique; at 6 it is non-unique only for
+X^a(1 + X^b + ⋯ + X^(5b)); at 10 only for three sporadic polynomials and a
+pair of two-parameter families, the first
+(1 + X^(3b))(1 + X^a + X^b + X^(a+b) + X^(a+2b)) =
+(1 + X^b)(1 + X^a + X^(a+2b) + X^(3b) + X^(a+4b)), and the second
+(1 + X^(3b))(1 + X^a + X^b + X^(a+b) + X^(2b)) =
+(1 + X^b)(1 + X^a + X^(2b) + X^(a+3b) + X^(4b)).
+
+## The escape at (2,5)
+Tier: property.
+Verifier: collide.py::section_descent.
+
+The first ten-term family with its two exponents read as independent
+vectors, a = (0, 1) and b = (1, 0) over the primes 2 and 3, is
+{2, 16}·{2, 4, 6, 12, 24} = {2, 4}·{2, 6, 16, 24, 96}: a product that
+factors two ways with a two-dimensional Newton polygon, so no image of a
+one-variable identity. Its negative factor is still 1 − x + x²
+(x the prime 2), of Newton dimension 1: the second variable rides the
+cofactors, so neither a product's variable count, which a monomial
+raises for free, nor its negative factor's dimension grades a mechanism.
+Both read one factor at a time. Ten terms is the least count where this
+can happen, every smaller size pair being unique or on a segment, and at
+ten the sporadic shapes have one free exponent and stay on a segment, so
+the families are the only way off. The two factorizations, x the prime 2
+and y the prime 3, are (1 + x)(1 + y + x³ + x²y + x⁴y) and
+(1 + x³)(1 + x + y + xy + x²y), and the descent dimension below is
+δ = 1.
+
+## The descent dimension
+Tier: property.
+Verifier: proof; collide.py::section_descent; faces.py::section_edge.
+
+Initial forms are multiplicative, so a collision restricts to every face
+of the product's Newton polytope. On a face, each atom's initial form
+divided by its own monomial gcd (the largest monomial of coefficient 1
+that divides it, so the coefficients are kept), forms equal to 1
+dropped, gives one multiset per factorization. The **descent dimension**
+δ of two distinct atomic factorizations is the least dimension of a face
+on which the two multisets differ; the whole polytope always separates
+them, so δ ≤ its dimension. In a product of menus every vertex
+coefficient is 1, the product of the menus' vertex coefficients, and so
+every atom's vertex coefficients are 1: every initial form at a vertex
+is a monomial of coefficient 1 and δ ≥ 1. The product's vertex
+coefficients 1 make that so: where a vertex coefficient of the product
+is not 1, some atom's is not 1 there either.
+(x² − x + 2)(1 + x)(1 + x + x²)(2 + x) has three atomic factorizations,
+x² − x + 2 grouped with each other factor, and the grouping with 1 + x
+against the grouping with 2 + x reads at the vertex 0 as (2, 2) against
+(4), δ = 0. The support alone carries strictly less, the Newton polytope
+of a product being the Minkowski sum of its factors': {0, 1} + {0, 1, 3}
+and {0, 1, 2} + {0, 2} share a sumset with different convolutions. The
+six colliding products of two menus of size 1 to 3 in {2..16} ∪ {32}
+that factor two ways (COLLIDE.md#non-uniqueness-needs-a-seed) read δ = 1
+on segments.
+
+Through ten terms δ = 1 at every menu product with two atomic
+factorizations (faces.py::section_edge). Non-uniqueness needs a
+composite term count, and 4, 8 and 9 are unique, leaving 6 and 10. The
+six-term shape and the three sporadic ten-term shapes spend one exponent
+on a translation, so their exponent vectors are c + i·d, a segment. In
+the two ten-term families, with a and b independent vectors, the weights
+w with ⟨w, b⟩ = 0 pick two edges, one keeping the a-terms and one
+dropping them, and one of the two (the first in the family with a + 2b,
+the second in the one with 2b) reads {1 + v³, 1 + v + v²} against
+{1 + v, 1 + v² + v⁴}, v = X^b: an edge carrying the six-term identity.
+So δ = 2 needs twelve terms, eleven being prime, and a pair of menus of
+sizes at least 2 reaches twelve only at (2,6) and (3,4).
+
+## Two factorizations no proper face separates
+Tier: property.
+Verifier: faces.py::section_witness.
+
+{4, 6}·{3, 4, 8, 9, 18, 24} = {2, 4}·{6, 8, 9, 24, 27, 36}, x₀ the prime
+2 and x₁ the prime 3, is a twelve-term 0/1 core with exactly two atomic
+factorizations, (x₀ + x₁)·(x₀ + 1)n against (x₀ + 1)·(x₀ + x₁)n, n =
+x₀²x₁ + x₀² − x₀x₁ + x₁² + x₁. Its polygon's 16 proper faces separate
+nowhere, so δ = 2: the two factorizations part only on the whole
+polygon, and at the first term count where it could, the edge reading
+of the ten-term classification stops covering products that factor two
+ways. The face law says why: n's initial forms are monomials except at
+the normals ±(1, 0) and ±(1, 2), and x₀ + 1 and x₀ + x₁ are monomials
+except at ±(0, 1) and ±(1, 1).
+
+## The sign scan
+Tier: criterion.
+Verifier: proof; faces.py::section_scan.
+
+Let a seed's core be two Z-irreducibles, n with a negative coefficient
+and p nonnegative, and a partner's core one Z-irreducible q. The product
+factors two ways iff n·q has no negative coefficient and q ≠ p.
+
+Proof. q is the partner's 0/1 core, so nonnegative, and the product's
+Z-factors are n, p and q. Of the five partitions, {n, p, q} and {n, pq}
+leave n alone; {npq} splits as (np)·q and is not atomic; {np, q} always
+stands; {nq, p} stands iff nq ≥ 0, and is {np, q} again when q = p. If
+both of the seed's factors are negative the product is unique, every
+partition but {n₁n₂, q} leaving one alone. So whether a two-factor
+seed's product with a partner factors two ways is read off one product,
+n·q, and one comparison, q = p, with no factorization of the whole. Over
+20 two-factor seeds against the 4,049 menus of {2..14} of at most six
+elements with an irreducible core the scan agrees with a brute-force
+count of factorizations at all 80,980 pairs, 412 of them factoring two
+ways and 106 decided by q = p; the twelve-term product above is one of
+the 412.
+
+## The face law
+Tier: criterion.
+Verifier: proof; faces.py::section_law, faces.py::section_line,
+faces.py::section_sixteen.
+
+Let two atomic factorizations of a menu product read {pn, q} against
+{p, nq}, blocks both sides hold set aside. A face of weight w separates
+them iff in_w(n) is not a monomial and the initial forms of p and q
+there differ once each is divided by its monomial gcd.
+
+Proof. Initial forms multiply, and so does that division, the least
+exponent of each variable in a product being the sum of the least
+exponents. Write P, N, Q for the initial forms so divided; shared blocks
+give one form to both sides and cancel, so the face reads {PN, Q}
+against {P, NQ}, forms equal to 1 dropped. Let them agree with N ≠ 1:
+then PN ≠ 1 is kept, PN = P is impossible, and PN = NQ gives P = Q by
+cancellation. Conversely N = 1 or P = Q gives agreement. N = 1 means
+in_w(n) is a monomial of coefficient 1, and a monomial initial form
+γ·x^v of n has γ = 1: refine w generically, and the vertex it picks of
+the product has coefficient 1, the product of the menus' vertex
+coefficients, so the nonnegative integer blocks all have coefficient 1
+there, pn among them, whose coefficient is γ times p's.
+
+At product dimension 2, vertices never separating, δ = 1 iff at some
+normal of an edge of Newt(n) the forms P and Q differ, which needs p or
+q to have an edge there too. The clause P ≠ Q is load-bearing: a face
+where in_w(n) is not a monomial and P = Q is an **accident**. With t
+and y the primes 2 and 3, p = 1 + t, n univariate in t and
+q = Σ y^j·q_j, in_w(n) is non-monomial only at w = (0, ±1), where p
+reads itself and q its outermost layers, so δ = 2 iff both outermost
+layers of q are monomial multiples of p. Then
+q = (1 + t) + y(1 + t + t²) + y²(1 + t) gives
+{2, 16}·{2, 4, 6, 12, 18, 24, 36} = {2, 4}·{2, 6, 16, 18, 24, 96, 144},
+fourteen terms at δ = 2 through two accident faces, although n's
+segment is parallel to p. So δ = 2 has two mechanisms: n's normals
+missing both blocks', as at the twelve-term product, or every shared
+normal an accident.
+
+Twelve is empty at δ = 2 in this line shape: no such product with q
+not divisible by 1 + t has twelve terms, at any degree and layer count.
+Counted with multiplicity, F = pn·q has |pn|·|q| terms; pn(−1) = 0 makes
+|pn| even. The outermost layers are multiples of 1 + t, so some middle
+layer r has r(−1) ≠ 0, and since nq = Σ y^j·n·q_j is nonnegative, r is
+no monomial. So |F| ≥ 2·6, with equality only at pn = 1 + t^k, k odd and
+at least 3, and one two-term middle layer t^c(1 + t^m); the coefficient
+of t^(c+1) in n·r is −1 + [m = 1], so r is a multiple of 1 + t, a
+contradiction. Sixteen is empty too when q's middle layers have
+coefficients 0 and 1; one with a larger coefficient, F not 0/1, is
+open. At sixteen, |q| = 8 and pn = 1 + t^k,
+k odd and at least 3, as above, so F = q + t^k·q ≥ q coefficient by
+coefficient, q being a factor over ℕ, and every 0/1 F has 0/1 layers. A
+multiple of 1 + t has an even number of terms counted with multiplicity,
+so the outer layers hold at least 4 and the middle
+layers an even number, at most 4; none is a monomial and a two-term one
+is a multiple of 1 + t, as just shown, so r has four terms. With c now
+the least exponent of r, the coefficient of t^(c+1) in n·r is −1 plus 1
+if c + 1 is an exponent of r, so r = t^c(1 + t + t^a + t^b) with
+1 < a < b, and n·r/t^c = 1 + t^k + t^a·n + t^b·n. The −1 of t^a·n at
+a + 1 forces k = a + 1, since b = a + 1 makes r a multiple of 1 + t. At
+k = 3 the −1 of t^b·n at b + 1 is uncovered unless b = 3, a multiple
+again; at k ≥ 5 the −1 of t^a·n at k + 2 needs b = k, a multiple, or
+b = k + 2, which leaves a −1 at 2k. Both counts use q not divisible by
+1 + t: whether a twelve- or sixteen-term one exists with q an atom
+divisible by 1 + t, its cofactor carrying a negative coefficient, is
+open.
+
+The law and the faces agree at every face of the twelve-term product,
+of the escape at (2,5) and the fourteen-term product above, and of the
+products factoring two ways that two searches find: the scan's 207 of
+dimension at most 2, and 924 in the line shape with pn of degree at
+most 5 and q not divisible by 1 + t, of two layers or three, the middle
+one possibly zero, each of degree at most 5, q's least t-exponent 0,
+86 of them at δ = 2, of 14 and 18 terms. The 412 give 404 distinct
+products, and the other 197 lie past dimension 2, where the law holds
+as proved and the faces were not computed; every one has a menu product
+that is not 0/1, the first {2, 3, 6, 16}·{2, 3, 4, 5, 10}, while the 78
+whose menu product is 0/1 all sit at dimension at
+most 2.
+
+## The cycle lemma
+Tier: theorem.
+Verifier: proof; mixing.py::section_cycle.
+
+Let a multiset of six integers be tiled two ways,
+T + {0, α} = S + {0, s}, with T and S multisets of three and α, s
+distinct and positive. Then the multiset is a set, m + g·{0, 1, …, 5}
+with m its least element, g = min(α, s) and the other step 3g, and the
+two tilings, each multiset read as the exponents of a polynomial in v,
+are the six-term identity (1 + x)(1 + x² + x⁴) = (1 + x + x²)(1 + x³)
+in x = v^g.
+
+Proof. Join each point of T to its α-translate and each point of S to
+its s-translate. At every point the two kinds of edge meet equally
+often, so the edges split into closed trails alternating kind. A trail
+of one edge of each kind joins two points twice, forcing α = s, so one
+trail carries all three edges of each kind. Its signed α-steps sum to an
+odd A and its s-steps to an odd B, with |A|, |B| ≤ 3 and Aα + Bs = 0, so
+{|A|, |B|} = {1, 3}: one step is three times the other, and the three
+shorter steps share a sign. Each of the three sign patterns the longer
+steps can take visits six consecutive multiples of the shorter step, all
+distinct, so no point is doubled. Peeling every T + {0, α} with T in
+[0, 30] holding 0 and α ≤ 30, which is every T of width at most 30 up to
+translation, by every other binomial {0, s} (s a point of the multiset,
+whose least point 0 every peel keeps) finds 17 second tilings, all the
+identity.
+
+## The mixing theorem
+Tier: theorem.
+Verifier: proof; mixing.py::section_box.
+
+Two atomic factorizations of one product are shared when, the blocks
+both hold set aside as spectators, some block of one divides a block of
+the other, and mixing otherwise. Let F be a nonnegative product of
+content 1 whose coefficients sum to twelve. A mixing pair of its
+factorizations has a trinomial block T = 1 + v^a + v^b, up to a
+monomial, along a primitive monomial v, and either F lies on one line
+parallel to v or the pair is the family, e ≥ 1 and z a monomial off the
+line: {1 + v^(2e) + v^(4e), (1 + v^(3e)) + z(1 + v^e)} against
+{1 + v^(3e), (1 + v^(2e) + v^(4e)) + z(1 + v^e + v^(2e))}.
+
+Proof. A polynomial's value is its coefficient sum, its value at
+(1, …, 1), multiplicative over products. A spectator of value above 1
+leaves a residue of value 6, 4, 3 or 2 with two factorizations; by the
+classification by number of terms, which counts multiplicity, that is
+the six-term identity, where the smaller binomial divides the larger, so
+the pair is shared. Without spectators each side's block values are
+{2, 6}, {3, 4} or {2, 2, 3}, a lone block of value twelve being divided
+by every block across. Every block is reducible, since an irreducible
+block is an atom and divides some block across. Two sides of a binomial
+and a six-block are shared by the binomial-pair criterion at twelve
+terms, so some block has value 3, and a reducible one is a 0/1
+trinomial, a binomial of value 3 being Eisenstein at 2, collinear by the
+trinomial lemma (Size 3 closes in the exponent vectors).
+
+Let F meet two cosets of the line Zv or more, and slice every polynomial
+along the cosets: F_c = T·R_c, R the rest of T's side. Every irreducible
+factor of T lies in Z[v, 1/v] and divides the gcd of the slices of the
+block across that holds it; were that gcd a monomial for all blocks
+across but one, T would divide that one. So two blocks across have
+slices with a non-monomial gcd, and a weight vanishing on v, generic
+otherwise, reads the product of the blocks' top slices as F's top slice
+T·R_top, of value at least 4: R_top has value at least 2 at every
+extreme coset. R has value 4, so it meets exactly two cosets, each slice
+of value 2. The cosets of a product add as sets, so exactly one block
+across spans both, the rest lying on the line: each slice of F is the
+product L of the blocks on the line times the spanning block's slice
+there, and both slices of F having value 6, the spanning block's two
+slices have equal value: monomials, slices of value 3, or, beside L of
+value 3, slices of value 2. So R's slices are binomials, 1 + v^α and
+z(1 + v^α′) up to monomials: a doubled monomial 2m there makes F's slice 2m·T
+of content 2, while F has content 1 and so, by Gauss's lemma, has every
+block of content 1; only a slice 2m′ of a spanning four-block beside L =
+T′, a trinomial, can carry it, and 2m′T′ = 2mT makes T′ equal T up to a
+monomial, the pair shared. If the other side is {B, S}: B spanning them
+makes S one slice, divisible by T; B on the line divides both slices,
+T(1 + v^α) = B·S_0 and T(1 + v^α′) = B·S_1, and the cycle lemma reads
+each as B = 1 + v^α with S_0 = T or as the six-term identity, at an e
+that T and B fix together: T alone can sit at two, 1 + v² + v⁴ being the
+larger trinomial at e = 1 beside B = 1 + v³ and the smaller at e = 2
+beside B = 1 + v², but B is one block common to both slices, so two
+identity slices share one e. Two slices alike make S = S_0(1 + z) split.
+A binomial slice beside the identity at T = 1 + v^e + v^(2e) has B = 1 +
+v^e dividing R. What is left is T = 1 + v^(2e) + v^(4e) with α = 3e and
+α′ = e: the family. If the other side has a trinomial T′: T′ spanning
+both cosets leaves slices of values 8 and 4 against 6 and 6; a binomial
+spanning them makes both slices of F one polynomial and that binomial a
+spectator, or, T's side being {3, 4}, splits R = R₀(1 + z′); the
+four-block spanning them puts T′ on the line, and the cycle lemma makes
+T and T′ the two trinomials of one identity, so the four-block splits
+into two binomials.
+
+Coefficients enter only through content 1 and where the proof names
+them, the binomial of value 3 and the doubled slice; elsewhere the
+classification counts multiplicity, the cycle lemma holds for multisets
+and the slices are read by value, so the theorem holds for products that
+are not 0/1. The (3,4) box, menus of size 3 from {2..32} against menus
+of size 4 from {2..24} with a seed on either side, walks 85,253 pairs to
+336 whose product has two atomic factorizations or more. The 71 with a
+0/1 product read 55 shared with a spectator and 16 mixing, every one the
+family at e = 1; the 265 whose product is not 0/1 are all shared, so the
+box tests the theorem past 0/1 only on its shared side.
+
+On one line the theorem gives a trinomial block and loses only its
+family clause. The family's formula still mixes there,
+{2, 8, 32}·{2, 16, 512, 1024} at z = v^8 and e = 1, and the line
+holds more than the family: at the support {0, 1, 3, …, 11, 14} a mixing
+pair reads (3, 4) against (2, 2, 3). Whether every mixing pair on one
+line has a side made of a trinomial and a four-block is open.
+
+## The family mixes at every e
+Tier: property.
+Verifier: proof; mixing.py::section_family.
+
+With G = Φ₆(v^e) + z, irreducible as Eisenstein in the coordinate off
+the line at any prime factor of the squarefree Φ₆(v^e), the family's
+blocks are Φ₃(v^e)Φ₆(v^e) and (1 + v^e)G against (1 + v^e)Φ₆(v^e) and
+Φ₃(v^e)G. The product is 0/1 with twelve terms, its two slices
+{0, 2, 3, 4, 5, 7}·e and z·{0, 1, …, 5}·e. The cyclotomic factors of
+1 + v^e, Φ₃(v^e) and Φ₆(v^e) are pairwise disjoint, their indices
+differing at 2 or at 3, so no block divides one across. The trinomial
+and the binomial are atoms by the term-count law
+(COLLIDE.md#term-counts-multiply); a nonnegative split of (1 + v^e)G or
+Φ₃(v^e)G puts G in a part G·k with k on the line, whose slice k·z makes
+k nonnegative, and the values, G(1) = 2 against a nonnegative cofactor
+of value at least 2, make k a monomial, and then G·k carries Φ₆'s
+negative coefficient. At e = 1 to 4, and in four menu realizations from
+{2, 8, 32}·{2, 6, 12, 16} on, the product has exactly two factorizations
+and they mix.
+
+## The binomial-pair criterion
+Tier: criterion.
+Verifier: proof; mixing.py::section_binomial.
+
+Let (1 + u)H = (1 + u′)H′ with u ≠ u′ monomials and H, H′ any
+polynomials. Neither binomial divides a block across iff u = v^s and
+u′ = v^k for one primitive monomial v, with s′ = s/g and k′ = k/g both
+odd and at least 3, g = gcd(s, k), and some slice H_c of H along the
+cosets of the powers of W = v^g has H_c(−1) ≠ 0.
+
+Proof. Off one line the binomials' irreducible factors are cyclotomic
+polynomials in different primitive monomials, so the squarefree 1 + u is
+coprime to 1 + u′ and divides H′. On a line with s′ or k′ even the two
+are coprime again, and s′ = 1 or k′ = 1 makes one binomial divide the
+other. With s′ and k′ odd and at least 3, 1 + W^s′ and 1 + W^k′ share
+only the factor 1 + W, once each, so 1 + u divides H′ iff (1 + W)²
+divides every slice of the product, which is also the condition for
+1 + u′ to divide H; the slice is (1 + W^s′)·H_c, so that is H_c(−1) = 0.
+
+When H is nonnegative, twelve terms seat no mixing pair. The translates
+h ↦ h + s and h′ ↦ h′ + k join the product's points, counted with
+multiplicity, into closed trails alternating kind, and H_c(−1) is a
+signed sum over the slice's trails of A, the signed sum of a trail's
+s′-steps: every step is odd, so an s′-edge's lower end has the trail's
+starting parity when the step rises and the other parity when it falls.
+A trail of m edges of each kind, B the signed sum of its k′-steps,
+closes with As′ + Bk′ = 0 and |A|, |B| ≤ m, so a nonzero A is a
+multiple of k′, B one of s′, and m ≥ max(s′, k′) ≥ 5. Twelve slots
+hold such a trail only as five pairs beside a trail of one pair, which
+forces s′ = k′, or as six, where A is even and |A| = 2k′ ≤ 6,
+|B| = 2s′ ≤ 6 make s′ = k′ = 3. So a binomial pair of value twelve is
+shared, doubled points included, while at ten
+{0, 3} + {0, 2, 4, 6, 8} = {0, 5} + {0, 2, 3, 4, 6}, in menus
+{2, 16}·{2, 8, 32, 128, 512} = {2, 64}·{2, 8, 16, 32, 128}, mixes on one
+ten-point trail with H(−1) = 5. Over every multiset H of six points in
+[0, 12] with least point 0 and every s in [1, 12], the criterion equals
+direct division at all 3,036 tiling pairs of value twelve, 2,503 with a
+doubled point, none mixing; at ten, from five points in [0, 14] and
+s ≤ 14, and at fourteen, from seven points in [0, 10] and s ≤ 10, it
+agrees at every pair and meets 2 and 13 mixing pairs.
+
+## Yost's indecomposability bound
+Tier: known.
+Source: D. Yost, Irreducible convex sets, Mathematika 38 (1991)
+134–155, Proposition 6, as restated in K. Przesławski and D. Yost, More
+indecomposable polyhedra, Extracta Math. 31 (2016) 169–188
+(arXiv:1607.00643), whose Theorem 9 there adds the equality case, first
+proved in M. Kallay's unpublished 1979 thesis.
+
+A d-polytope with fewer than 2d vertices is Minkowski indecomposable:
+every summand of it is a homothet. A decomposable d-polytope with 2d
+vertices is combinatorially a prism over a (d − 1)-simplex.
+
+## The half-size law
+Tier: theorem.
+Verifier: proof; halfsize.py::section_products,
+halfsize.py::section_census.
+
+A Laurent polynomial over C with n terms that factors into two
+non-monomial factors has Newton dimension at most ⌊n/2⌋. So a seed of
+size n, whose 0/1 core carries its negative factor as a proper one, has
+core dimension at most ⌊n/2⌋, and the bound is attained at every n ≥ 2.
+
+Proof. Let f = gh have n terms and Newton dimension d, with n < 2d, so
+d ≥ 2. Newt f has at most n vertices, fewer than 2d, so it is
+indecomposable, and Newt g + Newt h = Newt f makes the two homothets
+λ·Newt f and μ·Newt f up to translation, with λ, μ > 0 since neither
+factor is a monomial. Newt f has a clean triangle, a triangular 2-face
+holding no support point but its vertices: a simplex holds at most d − 2
+further points, each spoiling at most the d − 1 triangles through one
+edge, against (d + 1)d(d − 1)/6 > (d − 2)(d − 1) triangles; any other
+polytope has a facet missing two vertices, since if every facet missed
+only one, no vertex would lie in the affine hull of the others, and that
+facet carries fewer than 2(d − 1) support points, so induction ends at a
+polygon holding at most three, a triangle. At a weight whose face is the
+clean triangle initial forms multiply, and f's, a trinomial with
+non-collinear exponents, splits into two factors with triangular Newton
+polygons. The trinomial lemma's argument forbids that at any nonzero
+coefficients: κ₀ + κ₁X^ρ + κ₂X^σY^η has the squarefree constant term
+κ₀ + κ₁X^ρ over C[X, 1/X], and is Eisenstein in Y at any root of it.
+
+The bound is attained by T = 1 − x + x² times
+A(x) + y₁B₁(x) + ⋯ + y_kB_k(x), each T·A and T·Bᵢ being 1 + x³ or
+1 + x² + x⁴: the product is 0/1, k + 1 binomial
+parts giving n = 2k + 2 terms at dimension k + 1 and one trinomial among
+them n = 2k + 3. At size 5 it is the menu {2, 16, 6, 24, 96}, core
+1 + x³ + y(1 + x² + x⁴). In a 0/1 product a nonnegative split of r and s
+terms reaches rs terms at dimension at most r + s − 2 ≤ rs/2, equal only
+when one factor is a binomial and the hull a prism over a simplex, the
+case the known bound leaves decomposable; so it reaches ⌊n/2⌋ only at
+even n ≥ 4 and, where (r − 2)(s − 2) = 1, at n = 9, while cancellation
+reaches it at every n ≥ 2 and never passes it. Off the 0/1 products
+merging terms let a nonnegative split reach it too: (1 + x)(1 + x + y)
+has five terms at dimension 2. Of 60,000 random integer products, 96
+reach 2d = n with fewer terms than the factors' counts multiply to, and
+none passes it, and no menu of size 5, 6 or 7 from {2..16} whose core
+lies above ⌊n/2⌋ factors.
+
+## The torsion split
+Tier: property.
+Verifier: proof; rooted.py::section_size3, rooted.py::section_trinomial.
+
+A factor is **torsion-rooted** when it vanishes at a tuple of roots of
+unity and torsion-free otherwise; along one variable an irreducible
+factor is torsion-rooted exactly when it is a cyclotomic polynomial. A
+seed is a **free seed** when some negative factor is torsion-free and a
+**rooted seed** when none is, and a free seed is a **mixed seed** when
+some factor of its core is torsion-rooted, **free outright** when none
+is. The least size of a free seed is 3. A size-2 core is 1 + X^d in the
+frame, all of whose factors are cyclotomic, while
+(1 + x + x²)(1 − x + x³) = 1 + x⁴ + x⁵ is the core of {2, 32, 64}, the
+cubic having no rational root and an odd degree, which no cyclotomic
+polynomial but x ± 1 has. A size-3 seed is a collinear trinomial, whose
+non-cyclotomic part is 1 or irreducible by Ljunggren's theorem, so a
+trinomial seed is free exactly when that part is not 1 and has a
+negative coefficient. Of the 435 trinomials 1 + x^a + x^b with b ≤ 30,
+110 are seeds: 12 rooted and 98 mixed. None is free outright, since a
+reducible trinomial's cyclotomic part cannot be 1.
+
+## The least free degree
+Tier: rule (verified exhaustively through degree 5).
+Verifier: rooted.py::section_floor.
+
+Along one variable the least degree of a free seed is 5, exhaustive over
+the 31 polynomials with 0/1 coefficients, constant term 1 and degree at
+most 5: degrees 3 and 4 hold only the rooted 1 + x³, 1 + x² + x⁴ and 1 +
+x + x³ + x⁴, and degree 5 holds four free seeds, all mixed, 1 + x⁴ +
+x⁵ among them.
+
+## Mills's theorem on quadrinomials
+Tier: known.
+Source: W. H. Mills, The factorization of certain quadrinomials, Math.
+Scand. 57 (1985) 44–50, Theorem 2.
+
+Let F = xⁿ + ε₁xᵐ + ε₂xᵖ + ε₃ with n > m > p > 0 and every εᵢ = ±1, and
+F = A·B with A holding exactly the roots of unity among F's roots. Then
+B is irreducible except when F is, for an integer r ≥ 1, one of four
+forms, x^(8r) + x^(7r) + x^r − 1, x^(8r) − x^(7r) − x^r − 1,
+x^(8r) + x^(4r) + x^(2r) − 1 and x^(8r) − x^(6r) − x^(4r) − 1. None has
+every sign plus, so an all-plus quadrinomial's
+non-cyclotomic part is 1 or irreducible.
+
+## The cofactor theorem
+Tier: theorem.
+Verifier: proof; quadrinomial.py::section_plane,
+quadrinomial.py::section_line, quadrinomial.py::section_rank3.
+
+A four-term 0/1 polynomial P that factors over Z into two non-monomial
+factors is P = m(1 + W)(q_s(W) + v·q_t(W)) with W and v monomials, s
+and t odd, and q_n(W) = 1 − W + ⋯ + W^(n−1); in particular it is
+divisible by a binomial 1 + W.
+
+Proof. At dimension 3 the half-size law forbids a factor, so P lies on a
+line or in a plane. Four unit complex numbers summing to zero are two
+antipodal pairs, since a nonzero sum of two unit numbers fixes the pair;
+so at every zero of P on the unit torus some pairing of its monomials
+has both ratios −1. On a line, Mills's theorem gives a reducible P a
+cyclotomic factor, hence a zero ζ at a root of unity, and
+P = xⁱ(1 + x^ν) + x^k(1 + x^τ) with ζ^ν = ζ^τ = −1: ν and τ share their
+2-adic valuation, so with d = gcd(ν, τ) both s = ν/d and t = τ/d are
+odd and 1 + x^d divides both halves. In a plane, P = gh, take
+coordinates in which neither factor's support is horizontal. For large K
+the map y ↦ x^K is injective on the supports, so
+P(x, x^K) = g_K·h_K is an all-plus quadrinomial with two factors, and by
+Mills's theorem one of them, say g_K for infinitely many K, has only
+roots of unity for roots. A nonzero root of a polynomial has
+multiplicity below its number of terms (Hajós's bound; the operators
+(x d/dx)^r, r below that number, give a Vandermonde system), so g_K has
+unboundedly many distinct roots ζ, each a zero of P at (ζ, ζ^K). A
+pairing whose differences u and
+u′ are not parallel holds there only if ζ^(2 gcd(A, C)) = 1 with
+A = u·(1, K) and C = u′·(1, K), and gcd(A, C) divides det(u, u′) ≠ 0: at
+most 2|det| roots for every K. So some root lies on a pairing along one
+primitive monomial w, P = m(1 + w^ν) + m′(1 + w^τ), with ω^ν = ω^τ = −1
+at ω = ζ^(w·(1, K)), w read there as its exponent vector, and the line's
+argument applies.
+
+Taking four points with least coordinate 0 on every axis, the box
+[0, 4]² holds 296 reducible non-collinear configurations and the line to
+degree 40 holds 4,306 reducible quadrinomials, every one of the
+theorem's shape; [0, 2]³ holds 8,424 configurations at dimension 3,
+none reducible.
+
+## The size-4 closure
+Tier: theorem.
+Verifier: proof; quadrinomial.py::section_plane, quadrinomial.py::section_line.
+
+Every Z-irreducible factor of a reducible four-term 0/1 polynomial off
+a line vanishes at a point of roots of unity, so a four-member seed off
+a line is rooted.
+
+Proof. In the cofactor theorem's form, v is independent of W off a
+line. The factors of 1 + W and of c = gcd(q_s, q_t) vanish at roots of
+unity.
+If s = t the rest is 1 + v. Otherwise R = a(W) + v·b(W), a = q_s/c and b
+= q_t/c coprime, squarefree and not both constant; in coordinates with
+W = x^d and v = xⁱy^j, j ≥ 1, R is Eisenstein in y at a prime of Q[x,
+1/x] dividing a once, or when a = 1 in 1/y at a prime dividing b, and
+primitive, so Z-irreducible. At x = 1, y^j = −1, where W = 1 and v = −1,
+R = (q_s(1) − q_t(1))/c(1) = 0. On a line v can be a power of W, and 1 +
+x³ + x⁴ + x⁵ = (1 + x)(1 − x + x² + x⁴) is a free seed, but mixed:
+Mills's theorem gives every reducible quadrinomial a cyclotomic factor,
+so no four-member seed is free outright, on a line or off it. Every
+factor of the box's 296 has a torsion zero of order at most 8, and the
+line's 4,292 seeds to degree 40 are 366 rooted and 3,926 mixed.
+
+## The row lemma
+Tier: theorem.
+Verifier: proof; pentanomial.py::section_box.
+
+A five-term 0/1 core off a line is a seed once it factors, and every
+factor of it that is cyclotomic in a monomial, Φ_n(w), is negative and
+torsion-rooted with 6 | n, the core's rows in w's direction having
+sizes 2 and 3.
+
+Proof. The core's value 5 at (1, 1) is prime, so one factor has value
+±5 and the rest ±1; a non-monomial factor with no negative coefficient
+has value at least 2, so at most one factor is nonnegative. In
+coordinates with w = x, Φ_n(x) divides every row, the terms sharing a
+y-exponent. A one-term row never vanishes and there are two rows or
+more, so the sizes are 2 and 3. The binomial row vanishing at a
+primitive n-th root makes n even; the trinomial row is three unit
+numbers summing to 0, an equilateral triangle, so 3 | n. Then n is no
+prime power, Φ_n(1) = 1, and Φ_n, whose constant and leading
+coefficients are 1, has a negative one. The box [0, 8]² holds 130
+seeds up to its symmetries, every one carrying such a factor.
+
+## The least free size off a line
+Tier: theorem.
+Verifier: proof; pentanomial.py::section_exhibit,
+pentanomial.py::section_box.
+
+Off a line the least size of a free seed is 5. The menu {2, 16, 6, 96,
+1536} has core 1 + x³ + y(1 + x⁴ + x⁸) = Φ₆(x)·R with R = (1 + x) +
+yΦ₃(x)Φ₁₂(x), linear in y with coprime coefficients, so irreducible,
+and negative. At a torus point |1 + x| = |Φ₃(x)Φ₁₂(x)| with x = e^(iθ);
+with t = 2 + 2cos θ that is (t − 1)²(t² − 4t + 1)² = t, a Z-irreducible
+sextic with a non-real root, so none of its roots is totally real and
+no root of unity x meets it. So R has no torsion zero, and the seed is
+free, mixed beside the rooted Φ₆, while seeds of size 2 and 3 lie on a
+line and size 4 off a line is rooted.
+The box [0, 8]²'s 130 seeds, up to the square's symmetries, are 33
+mixed, 97 rooted and none free outright.
+
+## Mann's bound
+Tier: known.
+Source: H. B. Mann, On linear relations between roots of unity,
+Mathematika 12 (1965) 107–117, Theorem 1, as restated in J.-H.
+Evertse, The number of solutions of linear equations in roots of unity
+(preprint, Leiden), section 2.
+Verifier: pentanomial.py::section_mann.
+
+In a vanishing sum of t roots of unity with no vanishing proper subsum,
+every ratio of two terms is a root of unity of squarefree order whose
+prime factors are at most t. At t = 5 every ratio is a 30th root of
+unity, and a vanishing five-term sum is minimal or a pair beside a
+triple. The argument is a count of cosets over a cyclotomic subfield,
+checked on the sums of five 60th and 84th roots.
+
+## The Filaseta–Solan question
+Tier: known.
+Source: M. Filaseta and J. Solan, An extension of a theorem of
+Ljunggren, Math. Scand. 84 (1999) 5–10, Theorem 1 and the remark after
+it.
+
+A 0/1 pentanomial with its irreducible reciprocal factors removed is 1
+or irreducible. Whether the same holds with cyclotomic factors removed
+is open; they prove it when the degree n is one of 2m, 2p, 2q, m + p,
+m + q, p + q for the middle exponents m > p > q.
+
+## The size-5 reduction
+Tier: theorem.
+Verifier: proof; pentanomial.py::section_bound,
+pentanomial.py::section_line, pentanomial.py::section_specialize.
+
+A free-outright seed of size 5 exists exactly when some 0/1 pentanomial
+in one variable is reducible with no cyclotomic factor. Off a line, a
+size-5 seed none of whose negative factors has a torsion zero exists
+only when some 0/1 pentanomial's non-cyclotomic part is reducible, a
+negative answer to the Filaseta–Solan question. On a line it can exist
+without one: 1 + x + x³ + x⁴ + x⁷ = Φ₅(x)(1 − x² + x³). A free-outright
+example is a negative answer whose cyclotomic part is 1, and it carries
+a non-cyclotomic reciprocal factor by their Theorem 1.
+
+Proof. By the half-size law the core P lies in a plane or on a line.
+Choose coordinates in which no factor's support is horizontal; for K
+past P's x-width, y ↦ x^K is injective on every support, so
+P_K = P(x, x^K) is a 0/1 pentanomial and each factor stays non-monomial.
+A free-outright P has no torsion zero, so P_K has no cyclotomic factor;
+the converse is a line seed, a reducible core of prime size being one.
+Now let P lie off a line with every negative factor torsion-free; their
+images carry no cyclotomic factor at any K, so two of them make P_K's
+non-cyclotomic part reducible. Otherwise P = GH with G nonnegative. At a
+zero (ζ, ζ^K), ζ a root of unity, the five terms split into minimal
+vanishing parts, and by Mann's bound ζ^(30A_u) = 1 for each difference u
+inside a part, A_u = u·(1, K). Two non-parallel constrained differences
+give ζ^(30g) = 1 with g = gcd(A_u, A_u′) dividing det(u, u′): at most
+30|det| roots, whatever K. Otherwise a pair and a triple sit on two
+lines along one primitive w, and ω = ζ^(w·(1, K)) is a common root of
+the binomial and trinomial rows, so their gcd, cyclotomic, divides P in
+w, and the row lemma makes it a negative rooted factor, which P lacks.
+So P has boundedly many such zeros at every K. If G_K had only roots of
+unity for roots, its degree span, at least K less a constant, and
+Hajós's bound would give it unboundedly many; so for large K it has a
+non-cyclotomic factor beside H_K. The box's 155 sampled irreducible
+cores hold at most 8 such zeros of order at most 400 at K = 20, 40, 60,
+against the bound, 30 times the summed |det(u, u′)|, at least 4500 on each;
+the line to degree 30 holds 3,007 reducible pentanomials and the box's
+seeds at K = 9..12 give 520 more of degree at most 104, none with a
+reducible non-cyclotomic part.
+
+## Open fronts
+
+Open here: the Filaseta–Solan question, and its sharper form, whether
+five terms are ever free outright; whether every mixing pair on one line
+has a side made of a trinomial and a four-block, and how mixing runs at
+other term counts, ten and fourteen already holding binomial pairs that
+mix; whether a twelve- or sixteen-term product at δ = 2 exists in the
+line shape with q an atom divisible by 1 + t, its cofactor carrying a
+negative coefficient, or a sixteen-term one, not 0/1, whose middle
+layer carries a coefficient above 1; which even term counts above
+eighteen occur at δ = 2 in the line shape; whether δ reaches 3 among
+menu products; and which products with a vertex coefficient other
+than 1 have δ = 0.

@@ -1,0 +1,1177 @@
+"""
+piecewise.py -- the least lookahead of a map of one signed-digit stream
+that is smooth on finitely many pieces: the three clauses that decide
+it, the segment lemma sorting the slopes a piece may carry, and the
+radius around a curve within which no table of chords reads lower.
+
+QUESTION. manystream.py reads every C^2 map of signed-digit streams at
+the margin law's L* unless it is affine, and redundant.py decides the
+affine maps by a lattice. A map built from pieces -- a corner, a curve
+beside a line, a table of chords, the literature's standard shape for a
+reciprocal or a logarithm -- is neither: its affine pieces have no
+curvature and its corners are not C^2. Three questions. What decides
+the delay of a map that is C^2 on each of finitely many pieces? Which
+slopes may an affine piece carry and still read below L*? And
+how close to a curve may a map of chords sit and still read one digit
+below the curve's own delay?
+
+THE READER is manystream.py's, with one stream: radix b, digits
+D = {-a-, ..., a+}, SLACK rho = a- + a+ + 1 - b >= 1, M+- = a+-/(b - 1),
+w = M- + M+, |I| = a- + a+. The prefix u of depth n is the BOX
+[(u - M-)/b^n, (u + M+)/b^n], u running over the integers of
+[-a- R_n, a+ R_n], R_n = (b^n - 1)/(b - 1). The output has a LEAD o,
+the least o whose root tile [-M- b^o, M+ b^o] holds the map's range;
+output digit t is committed after n = t + c input digits, L = c + o.
+By manystream.py's tile lemma the reader is dead at L iff some box of
+a depth n with t = n - c >= 1 has an image strictly containing a ZONE,
+in units e = b^(L - n) an interval [q + 1 - M-, q + M+], q an integer,
+of length w - 1. Death is a property of the boxes alone. A box whose
+map has |f'| <= LAM_LAW(L) = (w - 1) b^L / w over it never kills, so
+f is read at every L with b^L rho >= Lam |I|, Lam = sup |f'|: L* is
+the least such L, and the question is only ever the digits below it.
+
+THE MAPS. f is continuous on the root box [-M-, M+], cut at finitely
+many rational KINKS into pieces, each a polynomial monotone on its
+piece; an AFFINE piece is lam x + gamma, a rational slope
+lam = u/v in lowest terms and a rational offset gamma. A discontinuous map is dead at every L: a box
+round the jump has an image at least the jump wide at every depth.
+
+THE ARGUMENT (written before the engine).
+  (1) THE CURVED CLAUSE. A non-affine piece kills at L iff its
+      sup |f'| exceeds LAM_LAW(L). Sufficiency of the bound is the
+      width. Necessity is manystream.py's argument with the piece as
+      the root box: the component of {|f'| > the midpoint of the sup
+      and the threshold} holding the peak carries a point of nonzero
+      f'' unless f' is constant on it, and then a boundary point of the
+      component inside the piece reads the midpoint, so the component
+      is the piece and the piece is affine. Round a point of nonzero
+      f'' the lower ends of the boxes, read modulo the zone grid, have
+      a one-signed second difference and equidistribute, so one falls
+      in the dead arc. A piece that is affine on its whole excess region
+      and curved elsewhere is not an escape: the excess region is
+      relatively open and f' continuous, so on its boundary inside the
+      piece f' equals the threshold and not the sup, and a piece affine
+      on its excess region is affine outright.
+  (2) THE PIECE CLAUSE. A box inside an affine piece has an image of
+      width |lam| w / b^n. In units e its lower end at prefix j is
+      lam (j - M-)/b^L + gamma b^(n - L) for lam > 0 and
+      lam (j + M+)/b^L + gamma b^(n - L) for lam < 0; with psi the
+      fractional part of that end plus M-, the box kills iff
+      psi > 1 - xi, where
+          xi = |lam| w / b^L - (w - 1)
+      is the piece's EXCESS: no box kills at xi <= 0, every box at
+      xi > 1. Over j the phases psi form a lattice of step
+      delta / b^L, delta = gcd(u, v b^L)/v the affine criterion's own
+      lattice step at c = L (redundant.py), and its offset,
+      gamma b^(n - L) modulo 1, is eventually periodic in n. At
+      every depth from n_full on, where every affine piece holds a
+      whole lattice period of boxes plus w + 2 and every straddler of
+      every kink is a prefix, the phases are the whole lattice, so the
+      clause is a finite check over one cycle of offsets, the shallow
+      depths read at the actual prefixes.
+  (3) THE KINK CLAUSE. A box STRADDLING a kink kappa is one of at most
+      ceil(w) per kink and depth; its image is the hull of f at its
+      ends and at kappa. THE CONTAINMENT LEMMA: at a depth n >= n_full
+      a killing straddler implies a clause of a piece beside it. Its
+      hull ends are among f at its ends and f(kappa). A curved side
+      above the threshold is (1). If both sides are below it the image
+      is at most w - 1 wide and cannot kill; at an extremum kink a side
+      below the threshold never attains the far end of a killing hull.
+      Otherwise some hull end T is attained by an affine side of slope
+      magnitude |lam| above the threshold, and the image lies within
+      |lam| w / b^L of T on the side that piece's box images extend:
+      the other side adds at most LAM_LAW(L)(w - l) against |lam| l,
+      l the length of the box on T's side. So the image sits inside the image
+      of a box of that piece with the same end phase, translated by a
+      whole number of zones, and at n >= n_full that box exists; zones
+      are translation invariant, so that piece's clause fires. The kink
+      clause is therefore a finite scan of the depths below n_full.
+  (4) THE PIECEWISE THEOREM. f is dead at L iff (1), (2) or (3)
+      fires; its delay is the least L at which all three are empty, at
+      most L*, and below L* exactly when all three are empty at L* - 1:
+      a sup, a cycle and a shallow scan. It is the third branch beside
+      the dichotomy's two (a curved map at L*, an affine map by its
+      lattice).
+  (5) THE SEGMENT LEMMA. An open arc on the circle is missed by a
+      lattice iff the lattice's step is at least the arc's length and
+      its offset, modulo the step, lies in a closed range of length
+      the step less the arc; at equality the range is one point. So
+      an affine piece with excess xi > 0 at L
+      can be empty only when its step delta / b^L is at least xi. At
+      L = 0 a slope -u/v, or u/v, has step 1/v and
+      xi = ell / (v (b - 1)), ell = u |I| - v rho an integer, so the
+      piece can be empty (for some offset) iff ell <= b - 1 and is
+      empty for every offset iff ell <= 0, that is |lam| <= rho/|I|.
+      The ALIVE-ABLE slopes at L = 0 are every rational of magnitude
+      at most rho/|I| and, above it, exactly the u/v with
+      1 <= u |I| - v rho <= b - 1: slope 1 is the boundary
+      ell = b - 1, slope 1/2 is alive-able at every cell
+      (|I| - 2 rho <= b - 1 is |I| >= b, which is rho >= 1), and no
+      slope above 1 is. For numerator u the largest alive-able slope
+      is u / (u + ceil((u - 1)(b - 1)/rho)), so nothing is alive-able
+      strictly between max(1/2, LAM_GAP) and 1, LAM_GAP the largest of
+      these over u >= 2, predicted to be u = 2's,
+      2 / (2 + ceil((b - 1)/rho)).
+  (6) THE CHORD TABLE. A map of chords of a curve has a slope whose
+      denominator is built from the breakpoints', so its steepest
+      chord has a fine lattice and, by (5), is dead at L* - 1 for every
+      placement of the breakpoints unless its slope is arithmetically
+      simple. For the reciprocal 1/(s + x) at pole distance 1 (s =
+      1 + M-, sup |f'| = 1 at x = -M-, so L* = 1 at every cell) the
+      uniform 4-chord design's steepest chord at the four symmetric top
+      cells (a- = a+ = b - 1, w = 2) is -1/((1)(3/2)) = -2/3, whose
+      step 1/3 equals its excess: the design is predicted to read at 0, one below
+      the curve, on that range's one point, and a finer table's steeper
+      and finer chord to read at L*.
+  (7) THE SLIDE. For [x/2 | x - kappa/2] cut at kappa,
+      the slope-1 piece has offset -kappa/2 and at L = 0 excess 1,
+      its phase -kappa b^n / 2 modulo 1: the clause is empty iff
+      kappa b^n / 2 is an integer at every depth n at which the
+      piece holds a box (and n >= the first counted depth), and that
+      holds at every deeper depth once it holds at n1, the first. So a
+      breakpoint's alignment is read at ONE depth.
+  (8) THE ROBUST RADIUS. If F is within mu of f on the root box, then
+      over a box [x1, x2] on which f decreases, F's image contains
+      [f(x2) + mu, f(x1) - mu], since F is continuous. So a box whose
+      f-image strictly contains a zone with both OVERHANGS above mu
+      kills every F within mu, whatever its pieces and its lead (a
+      larger lead only counts more depths). With MU_ROB(L) the largest
+      over the curve's killing boxes at L of the smaller overhang, no
+      map within mu < MU_ROB(L* - 1) of the curve reads at L* - 1. A
+      depth-n box's two overhangs sum to at most
+      (Lambda w - (w - 1) b^L) / b^n in absolute units (Lambda = 1 for
+      the reciprocal at pole distance 1, the one curve searched), so MU_ROB is
+      attained at a bounded depth and the search stops there.
+
+THE DESIGN, frozen before the engine. Exact fractions throughout.
+  THE ENGINE scans depth by depth from the root box, children b u + e,
+  duplicates merged, keeping only boxes whose Lipschitz bound (the
+  largest sup |f'| of a piece the box meets) exceeds LAM_LAW(L), and
+  tests each box at a counted depth for a strictly contained zone. It
+  stops at the first kill, when the region empties, at depth NMAX or
+  past BUDGET boxes. A kill is a certificate; a survival is within
+  budget, and the clauses decide it.
+  THE CLAUSES are computed exactly: (1) as sup |f'| of a polynomial on
+  an interval, (2) over the shallow depths at the actual prefixes and
+  over one cycle of offsets from n_full at one full lattice period,
+  and (3) at every depth up to the cycle's end, recording any
+  straddler kill at a depth >= n_full with no clause of a piece beside
+  it firing at that depth.
+  THE CELLS: the 20 of radices 2..5 with 1 <= a+- <= b - 1, rho >= 1
+  (manystream.census).
+
+PREDICTIONS.
+  WA THE CONTROLS, read first. x: the clauses' floor equals the least
+     L at which manystream.clause_dead(k = 1) is empty, at 20 of 20
+     cells. x/2: the clauses' floor, clipped at 0, equals redundant.py's
+     stream reader of floor(n/2) at the 6 symmetric cells. At both
+     maps and every cell the engine kills at the floor - 1 and finds
+     nothing within budget at the floor.
+  WB THE SPECIMEN [x/2 | x] at 0: L* = 1 at every cell. At L = 0 the
+     slope-1 piece is alive (excess 1, phase 0), the kink empty, and
+     the slope-1/2 piece (excess 1 - w/2, phases M-/2 and M-/2 + 1/2)
+     dead iff w < 2, a- < b - 1 and a+ < b - 1: exactly (4,2,2),
+     (5,2,3), (5,3,2), (5,3,3). Floor 1 there and 0 at the other 16,
+     the engine agreeing at all 20.
+  WC THE CURVED CLAUSE, the identity on x >= 0 beside a curved piece:
+     3x/4 + x^2/4 (sup 3/4 above LAM_LAW(0) = 1 - 1/w <= 1/2) dead at
+     0 at 20 of 20, floor 1; x/5 + x^2/20 (sup 1/5 at or below it)
+     alive at 0 by the clauses and within budget, dead at -1 by the
+     identity's lattice, floor 0 at 20 of 20; and the C^2 map
+     x - (x + m)^3 on [-M-, -m], x above it, m = M-/2, affine on its
+     whole peak set, dead at 0 by the curved clause at 20 of 20.
+  WD THE KINK ALONE. The ten valley designs of radices 2..4 (a slope
+     of -1/2 or -2 on the left, 1/2, 3/2, 2, 3 or 2/3 on the right,
+     lead 1) and the eight same-sign designs (slope 1/2 on the left,
+     3/2, 2 or 2/3 on the right): at L* - 1 both piece clauses empty
+     and the kink clause firing at depth 0 or 1, below n_full, the
+     engine's kill at a straddling prefix; at L* every clause empty.
+  WE THE CONTAINMENT LEMMA over every map of WA to WD and every L read:
+     no straddler kills at a depth >= n_full without a clause of a
+     piece beside it firing at that depth.
+  WF SEVERAL STREAMS: |x| y (two) and max(x, y) z (three), products
+     inside every piece at Lam = 2 Mh, dead at L* - 1 at 20 of 20 each
+     by manystream.scan.
+  WS THE SEGMENT LEMMA: at the 20 cells and the 12 slopes -u/v, u/v in
+     the Farey sequence of order 6 in (0, 1], the piece clause of
+     lam x + gamma at L = 0 is empty for some gamma of the menu
+     r/(v(b - 1)), r = 0..v(b - 1) - 1, iff ell <= b - 1: 240 of 240.
+     The menu is exact for this half: every phase and both ends of the
+     arc sit on the grid of step 1/(v(b - 1)), so the closed range of
+     (5) holds a menu offset iff its length is at least 0. The other
+     half, empty for every offset iff ell <= 0, is xi <= 0 and owes no
+     check; the menu cannot test it, an arc of one grid step holding
+     no grid point. The gap: every alive-able slope in (1/2, 1) with
+     v <= 120 is at most max(1/2, LAM_GAP), and LAM_GAP is u = 2's and
+     alive-able, at 20 of 20.
+  WT THE CHORD MAPS: the reciprocal at pole distance 1 in uniform 4-
+     and 8-chord designs and an 8-chord design with its breakpoints
+     snapped to the box lower ends of the least depth with at least 32
+     prefixes, 60 designs: the steepest chord's step is below its
+     excess at L = 0, so the design is dead at 0 by (5), at 56, the
+     engine finding the kill; the other 4 are the uniform 4-chord
+     design at the four symmetric top cells, step = excess = 1/3, alive
+     at 0 by the clauses and within budget.
+  WL THE SLIDE: [x/2 | x - kappa/2] at the breakpoints kappa = j/(2 b^2),
+     |j| <= 2b, inside the root box, at the 20 cells: the slope-1 piece's
+     clause at L = 0 is empty iff kappa b^n1 / 2 is an integer, at
+     every run.
+  WR THE ROBUST RADIUS of the reciprocal: MU_ROB(0) attained at depth
+     <= 3 at every cell, from 1/150 at (5,4,4) to 1/12 at (4,2,2),
+     above b^-4 at 17 of 20; MU_ROB(-1) at least b^-2 at 19 of 20,
+     1/12 at (2,1,1). The uniform 4-chord design at the four top cells
+     sits outside the radius (its sup distance from the curve larger than
+     MU_ROB(0)), and it reads at 0 (WT).
+  WZ (added after the first full run, before its code) THE RADIUS IS
+     REACHED. The finest designs of an earlier depth-first search over
+     the alive-able slopes, carried as data at the eight cells where it
+     came within 5 percent of MU_ROB(0) -- (2,1,1), (3,1,2), (3,2,2),
+     (4,1,3), (4,2,2), (4,3,3), (5,1,4), (5,2,4) -- are each within
+     their mu of the curve, checked exactly (a chord less the convex
+     curve is concave, its peak where the two slopes meet), their
+     clauses empty at L = 0, the engine finding no kill within budget,
+     and mu at most 1.05 MU_ROB(0).
+
+KILLS, as what the script prints.
+  K1 a WA line off: the engine or the clauses are wrong; nothing below
+     is read.
+  K2 the clauses and the engine disagree at a (map, cell, L) of WB to
+     WD or WT: the theorem fails there.
+  K3 an engine kill at a map's L*: the width bound is wrong.
+  K4 a WE straddler: the containment lemma fails.
+  K5 a WS or WL disagreement: the segment lemma or the slide is wrong.
+  K6 the uniform 4-chord design, which reads at 0, sits within
+     MU_ROB(0) of the curve at a top cell: the robust kill is wrong.
+
+POSITIVE CONTROL: WA, read before any verdict line.
+
+FINDINGS (entered after the run; every number is a print).
+  - WA holds: x's floor is the k = 1 clause's at 20 of 20 cells, x/2's
+    floor is that of redundant.py's stream reader at the 6 symmetric
+    cells, and the engine kills below the floor and not at it at all 40
+    (map, cell). K1 did not fire.
+  - WB holds: the clauses are the hand reading at 20 of 20; floor 1 at
+    exactly (4,2,2), (5,2,3), (5,3,2), (5,3,3) and 0 at the other 16,
+    the engine agreeing at every cell.
+  - WC holds: above the threshold, floor 1 at every cell, kills at
+    input depth 1 to 4; below it, floor 0 at every cell, the kill at -1
+    at the root; the affine-peak C^2 map, floor 1 at every cell by the
+    curved clause, kills at input depth 1 to 3.
+  - WD holds: the 10 valleys and the 8 same-sign designs have both
+    piece clauses empty at L* - 1 and the kink firing below n_full,
+    first at depth 1 (nine valleys) or 0 ((4,3,3)), and at depth 0 at
+    three same-sign designs and 1 at five; the engine's kill is at a
+    straddling prefix at every one.
+  - WE holds: no deep straddler kill without a neighbour's clause over
+    every map and L read. K4 did not fire.
+  - WF holds: |x| y and max(x, y) z dead at L* - 1 at 20 of 20 each,
+    kills at output depth 1 to 2 and 1 to 3.
+  - WS holds at all 480 (cell, slope), both signs of the 12 slopes (the
+    frozen 240 counted one sign), and the empty offsets of the menu are
+    the lemma's range at all 480: every one at ell <= 0, v(b - ell) at
+    1 <= ell <= b - 1, none above; the gap's end is u = 2's at 20 of 20.
+    (A later proof read found that (5) reads u/v in lowest terms, the
+    lattice step being 1/v only then, so u/(u + ceil(...)) is the
+    largest alive-able slope of numerator u only when it is reduced:
+    LAM_GAP reduces to 1/2 or 1/3 at 13 of the 20 cells, where the
+    largest alive-able slope of numerator at least 2 over v <= 120 is
+    3/7, 5/11, 7/15 or 2/7. The gap stands; WS's last check prints the
+    13.)
+  - WT holds: 56 designs dead at 0 with the steepest chord's step below
+    its excess, the kills at input depth 0 to 3; the 4 below L*
+    are the uniform 4-chord design at (2,1,1), (3,2,2), (4,3,3),
+    (5,4,4), chord -2/3, step 1/3.
+  - WL holds at all 360 cuts, 26 aligned.
+  - WR holds: MU_ROB(0) from 1/150 at (5,4,4) to 1/12 at (4,2,2),
+    attained at depth 0 to 3, above b^-4 at 17 of 20 ((2,1,1) at 1/72,
+    (3,1,2) and (3,2,2) at 1/90 below), at least b^-3 at 12;
+    MU_ROB(-1) at least b^-2 at every cell but (2,1,1), 1/12, the least
+    at radix 3 and up 1/9. The 4-chord design sits 0.0337 from the
+    curve at each top cell, outside the radius. K6 did not fire.
+  - WZ: all 8 designs are within their mu of the curve and alive at 0,
+    and mu / MU_ROB(0) is 1.003 to 1.053. The frozen 1.05 missed at
+    (5,2,4), 1.053: the earlier record's "within 5 percent at eight
+    cells" was rounded, and it is seven, the eighth within 6 percent.
+    The check reads the print: all 8 within 6 percent, 7 within 5.
+  - Two changes before the findings, neither touching a verdict. The
+    frozen BUDGET of 20,000 boxes ran 55 s; at 4,000 every verdict and
+    every kill depth printed the same, in 16 s. WS's every-offset half
+    was dropped before the run.
+  - One check added after the run, not predicted: the count of empty
+    menu offsets against the lemma's range (the second check in
+    section_ws). It holds at all 480, but the menu
+    cannot test the every-offset half's only-if direction, since at
+    ell = 1 the range holds every menu offset as well.
+
+RUN RECORD: 24/24 checks, 16.2 s, peak commit 230.8 MB under a memory guard;
+after an audit (WD's depths asserted, floor 0 counted), 24/24, 16.0 s,
+230.5 MB.
+"""
+
+import math
+import time
+from fractions import Fraction as Fr
+
+import manystream as ms
+import redundant as rd
+
+CHECKS = []
+NMAX = 12
+BUDGET = 4_000
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tail = f"  ({detail})" if detail else ""
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}{tail}")
+
+
+def frac(x):
+    return x - math.floor(x)
+
+
+def pw(b, n):
+    return Fr(b) ** n
+
+
+def ev(p, x):
+    return p[0] + x * (p[1] + x * (p[2] + x * p[3]))
+
+
+def dev(p, x):
+    return p[1] + x * (2 * p[2] + x * 3 * p[3])
+
+
+def sgn(v):
+    return (v > 0) - (v < 0)
+
+
+def prefixes(cell, n):
+    R = ms.repunit(cell.b, n)
+    return -cell.am * R, cell.ap * R
+
+
+# ---- the maps ----
+
+class PW:
+    """A continuous map of the root box, cut at the kinks into pieces,
+    each a cubic c0 + c1 x + c2 x^2 + c3 x^3 monotone on its piece."""
+
+    def __init__(self, name, cell, kinks, polys):
+        self.name, self.cell = name, cell
+        self.k = [Fr(v) for v in kinks]
+        self.p = [tuple(Fr(c) for c in (list(q) + [0] * 4)[:4])
+                  for q in polys]
+        self.cuts = [-cell.Mm] + self.k + [cell.Mp]
+        assert len(self.p) == len(self.k) + 1
+        assert all(a < c for a, c in zip(self.cuts, self.cuts[1:]))
+        for j, kap in enumerate(self.k):
+            assert ev(self.p[j], kap) == ev(self.p[j + 1], kap), name
+        for j, q in enumerate(self.p):
+            lo, hi = self.cuts[j], self.cuts[j + 1]
+            pts = [lo, hi] + self.vertex(j, lo, hi)
+            signs = {sgn(dev(q, x)) for x in pts}
+            assert not {1, -1} <= signs, f"{name}: piece {j} not monotone"
+
+    def vertex(self, j, lo, hi):
+        q = self.p[j]
+        if q[3]:
+            v = -q[2] / (3 * q[3])
+            if lo < v < hi:
+                return [v]
+        return []
+
+    def affine(self, j):
+        return self.p[j][2] == 0 and self.p[j][3] == 0
+
+    def piece(self, x):
+        j = 0
+        while j < len(self.k) and x > self.k[j]:
+            j += 1
+        return j
+
+    def f(self, x):
+        return ev(self.p[self.piece(x)], x)
+
+    def image(self, x1, x2):
+        vals = [self.f(x1), self.f(x2)]
+        vals += [ev(self.p[i], kap) for i, kap in enumerate(self.k)
+                 if x1 < kap < x2]
+        return min(vals), max(vals)
+
+    def dsup(self, j, lo, hi):
+        return max(abs(dev(self.p[j], x))
+                   for x in [lo, hi] + self.vertex(j, lo, hi))
+
+    def rate(self, x1, x2):
+        best = Fr(0)
+        for j in range(len(self.p)):
+            lo, hi = max(x1, self.cuts[j]), min(x2, self.cuts[j + 1])
+            if lo < hi:
+                best = max(best, self.dsup(j, lo, hi))
+        return best
+
+    def lam(self):
+        return max(self.dsup(j, self.cuts[j], self.cuts[j + 1])
+                   for j in range(len(self.p)))
+
+    def lead(self):
+        return self.cell.lead(self.image(-self.cell.Mm, self.cell.Mp))
+
+    def law_L(self):
+        return self.cell.law_L(self.lam())
+
+
+def chords(name, cell, xs, fn):
+    """The map joining (x, fn(x)) over the breakpoints xs by chords."""
+    ys = [fn(x) for x in xs]
+    polys = []
+    for (x0, y0), (x1, y1) in zip(zip(xs, ys), zip(xs[1:], ys[1:])):
+        s = (y1 - y0) / (x1 - x0)
+        polys.append((y0 - s * x0, s))
+    return PW(name, cell, xs[1:-1], polys)
+
+
+def two_piece(cell, sl, sr, kappa, dl, name=None):
+    sl, sr, kappa, dl = Fr(sl), Fr(sr), Fr(kappa), Fr(dl)
+    dr = sl * kappa + dl - sr * kappa
+    return PW(name or f"[{sl}x + {dl} | {sr}x + {dr}] at {kappa}", cell,
+              [kappa], [(dl, sl), (dr, sr)])
+
+
+# ---- the engine ----
+
+def scan(f, L, o=None):
+    """((t, n, u), depth reached) of the first kill at L, or (None, n)."""
+    cell = f.cell
+    o = f.lead() if o is None else o
+    c = L - o
+    law = cell.lam_law(L)
+    D = range(-cell.am, cell.ap + 1)
+    level, read = [0], 0
+    for n in range(NMAX + 1):
+        kept = []
+        for u in level:
+            x1, x2 = cell.box(u, n)
+            read += 1
+            if f.rate(x1, x2) <= law:
+                continue
+            if n - c >= 1 and cell.kills(f.image(x1, x2), n, L):
+                return (n - c, n, u), n
+            kept.append(u)
+        if not kept or read > BUDGET:
+            return None, n
+        level = sorted({cell.b * u + e for u in kept for e in D})
+    return None, NMAX
+
+
+# ---- the table ----
+
+class Clauses:
+    def __init__(self, f, o=None):
+        self.f, self.c = f, f.cell
+        self.o = f.lead() if o is None else o
+        self.aff = [j for j in range(len(f.p)) if f.affine(j)]
+
+    def n0(self, L):
+        return max(0, L - self.o + 1)
+
+    def excess(self, j, L):
+        c = self.c
+        return abs(self.f.p[j][1]) * c.w / pw(c.b, L) - (c.w - 1)
+
+    def period(self, j, L):
+        s = self.f.p[j][1]
+        p, q = abs(s.numerator), s.denominator
+        if p == 0:
+            return 1
+        if L >= 0:
+            m = q * self.c.b ** L
+            return m // math.gcd(p, m)
+        return q // math.gcd(p * self.c.b ** (-L), q)
+
+    def n_full(self, L):
+        c = self.c
+        P = max([self.period(j, L) for j in self.aff] + [1])
+        n = 0
+        while True:
+            bn = pw(c.b, n)
+            ok = all((self.f.cuts[j + 1] - self.f.cuts[j]) * bn
+                     >= P + c.w + 2 for j in self.aff)
+            ok = ok and all(min(kap + c.Mm, c.Mp - kap) * bn >= c.w + 2
+                            for kap in self.f.k)
+            if ok:
+                return n
+            n += 1
+
+    def state(self, n, L):
+        c, f = self.c, self.f
+        s = pw(c.b, n - L)
+        return (tuple(frac(f.p[j][0] * s) for j in self.aff)
+                + tuple(frac(kap * pw(c.b, n) + c.Mm) for kap in f.k)
+                + tuple(frac(f.f(kap) * s) for kap in f.k))
+
+    def cycle(self, L):
+        nf = self.n_full(L)
+        seen, n = set(), nf
+        while True:
+            st = self.state(n, L)
+            if st in seen:
+                return nf, n - 1
+            seen.add(st)
+            n += 1
+
+    def phases(self, j, n, L, full):
+        c, (d, s) = self.c, self.f.p[j][:2]
+        bn, bL = pw(c.b, n), pw(c.b, L)
+        if full:
+            us = range(self.period(j, L))
+        else:
+            umin, umax = prefixes(c, n)
+            lo = math.ceil(self.f.cuts[j] * bn + c.Mm)
+            hi = math.floor(self.f.cuts[j + 1] * bn - c.Mp)
+            us = range(max(lo, umin), min(hi, umax) + 1)
+        end = -c.Mm if s > 0 else c.Mp
+        return [frac(s * (u + end) / bL + d * bn / bL + c.Mm) for u in us]
+
+    def piece_fires(self, j, n, L, full):
+        g = self.excess(j, L)
+        if g <= 0:
+            return False
+        return any(z > 1 - g for z in self.phases(j, n, L, full))
+
+    def straddlers(self, i, n):
+        c, kap = self.c, self.f.k[i]
+        bn = pw(c.b, n)
+        umin, umax = prefixes(c, n)
+        lo = math.floor(kap * bn - c.Mp) + 1
+        hi = math.ceil(kap * bn + c.Mm) - 1
+        return range(max(lo, umin), min(hi, umax) + 1)
+
+    def kink_fires(self, i, n, L):
+        c = self.c
+        for u in self.straddlers(i, n):
+            x1, x2 = c.box(u, n)
+            if c.kills(self.f.image(x1, x2), n, L):
+                return True
+        return False
+
+    def verdict(self, L):
+        """{'curved': [j], 'pieces': {j: [n]}, 'kinks': {i: [n]},
+        'nf', 'end', 'orphans': [(i, n)]}: the depths each clause fires
+        at, and the deep straddler kills no neighbour's clause explains."""
+        c, f = self.c, self.f
+        law = c.lam_law(L)
+        curved = [j for j in range(len(f.p)) if not f.affine(j)
+                  and f.dsup(j, f.cuts[j], f.cuts[j + 1]) > law]
+        nf, end = self.cycle(L)
+        depths = range(self.n0(L), max(end, nf) + 1)
+        pieces = {j: [n for n in depths
+                      if self.piece_fires(j, n, L, n >= nf)]
+                  for j in self.aff}
+        kinks = {i: [n for n in depths if self.kink_fires(i, n, L)]
+                 for i in range(len(f.k))}
+        orphans = []
+        for i, ns in kinks.items():
+            for n in ns:
+                if n < nf:
+                    continue
+                side = [i, i + 1]
+                if not any(j in curved or n in pieces.get(j, ())
+                           for j in side):
+                    orphans.append((i, n))
+        return dict(curved=curved, pieces=pieces, kinks=kinks, nf=nf,
+                    end=end, orphans=orphans)
+
+    def dead(self, L):
+        v = self.verdict(L)
+        return bool(v["curved"] or any(v["pieces"].values())
+                    or any(v["kinks"].values()))
+
+    def floor(self, Ls, below=4):
+        L = Ls
+        while L > Ls - below:
+            if self.dead(L - 1):
+                return L
+            L -= 1
+        return None
+
+
+ORPHANS = []
+
+
+def read_map(f, want_floor=None):
+    """Table floor, engine agreement at the floor and one below, K3 at
+    L*, the containment lemma at every L read. Returns the row."""
+    tab = Clauses(f)
+    Ls = f.law_L()
+    fl = tab.floor(Ls)
+    row = dict(Ls=Ls, floor=fl, o=tab.o, agree=True, kill=None)
+    for L in sorted({Ls, fl, fl - 1} if fl is not None else {Ls}):
+        v = tab.verdict(L)
+        ORPHANS.extend((f.name, f.cell.b, f.cell.am, f.cell.ap, L, x)
+                       for x in v["orphans"])
+        dead = bool(v["curved"] or any(v["pieces"].values())
+                    or any(v["kinks"].values()))
+        k, _ = scan(f, L, tab.o)
+        if (k is not None) != dead:
+            row["agree"] = False
+        if fl is not None and L == fl - 1:
+            row["kill"], row["clauses"] = k, v
+        if L == Ls and k is not None:
+            row["agree"] = False
+    return row
+
+
+def cells():
+    return [ms.Cell(*t) for t in ms.census()]
+
+
+def tag(cell):
+    return f"({cell.b},{cell.am},{cell.ap})"
+
+
+# ---- the sections ----
+
+def ident(cell):
+    return PW("x", cell, [], [(0, 1)])
+
+
+def half(cell):
+    return PW("x/2", cell, [], [(0, Fr(1, 2))])
+
+
+def specimen(cell, kappa=0):
+    return two_piece(cell, Fr(1, 2), 1, kappa, 0, "[x/2 | x]")
+
+
+def section_wa():
+    print("WA  the controls: x and x/2")
+    bad_id, bad_half, bad_eng, sym = [], [], [], 0
+    for cell in cells():
+        b, am, ap = cell.b, cell.am, cell.ap
+        r = read_map(ident(cell))
+        want = next(L for L in range(-6, 6)
+                    if not ms.clause_dead(b, am, ap, 1, L))
+        if r["floor"] != want:
+            bad_id.append((tag(cell), r["floor"], want))
+        if not r["agree"]:
+            bad_eng.append(("x", tag(cell)))
+        r = read_map(half(cell))
+        if not r["agree"]:
+            bad_eng.append(("x/2", tag(cell)))
+        if am == ap:
+            sym += 1
+            cm = rd.sum_game_c_min(b, am, ap, (Fr(1, 2),), Fr(0))
+            if max(r["floor"], 0) != cm:
+                bad_half.append((tag(cell), r["floor"], cm))
+    check("WA x: the clauses' floor is the k = 1 clause's", not bad_id,
+          f"20 cells, off {bad_id}")
+    check("WA x/2: the clauses' floor is redundant.py's stream reader's",
+          not bad_half and sym == 6,
+          f"{sym} symmetric cells, off {bad_half}")
+    check("WA the engine kills below the floor and not at it",
+          not bad_eng, f"40 (map, cell), off {bad_eng}")
+
+
+def section_wb():
+    print("WB  the specimen [x/2 | x] at 0")
+    hand_off, off, dead, zero = [], [], [], []
+    for cell in cells():
+        f = specimen(cell)
+        v = Clauses(f).verdict(0)
+        got = (bool(v["pieces"][0]), bool(v["pieces"][1]),
+               bool(v["kinks"][0]))
+        hand = (cell.w < 2 and cell.am < cell.b - 1
+                and cell.ap < cell.b - 1, False, False)
+        if got != hand:
+            hand_off.append((tag(cell), got, hand))
+        r = read_map(f)
+        if not r["agree"] or r["Ls"] != 1:
+            off.append(tag(cell))
+        if r["floor"] == 1:
+            dead.append(tag(cell))
+        if r["floor"] == 0:
+            zero.append(tag(cell))
+    print(f"    floor 1 at {dead}, 0 at {len(zero)}")
+    check("WB the clauses are the hand reading at L = 0", not hand_off,
+          f"off {hand_off}")
+    check("WB the engine agrees; the four cells", not off and dead ==
+          ["(4,2,2)", "(5,2,3)", "(5,3,2)", "(5,3,3)"], f"off {off}")
+
+
+def curved_specimens(cell):
+    m = cell.Mm / 2
+    return [
+        ("above", PW("3x/4 + x^2/4 | x", cell, [0],
+                     [(0, Fr(3, 4), Fr(1, 4)), (0, 1)]), 1),
+        ("below", PW("x/5 + x^2/20 | x", cell, [0],
+                     [(0, Fr(1, 5), Fr(1, 20)), (0, 1)]), 0),
+        ("affine peak", PW("x - (x + m)^3 | x", cell, [-m],
+                           [(-m ** 3, 1 - 3 * m * m, -3 * m, -1),
+                            (0, 1)]), 1),
+    ]
+
+
+def section_wc():
+    print("WC  the curved clause beside the identity")
+    for i in range(3):
+        off, depths = [], set()
+        name, want = None, None
+        for cell in cells():
+            name, f, want = curved_specimens(cell)[i]
+            r = read_map(f)
+            v = r.get("clauses")
+            if not r["agree"] or r["floor"] != want or r["Ls"] != 1:
+                off.append((tag(cell), r["floor"]))
+            elif want == 1 and not v["curved"]:
+                off.append((tag(cell), "not by the curved clause"))
+            if r["kill"]:
+                depths.add(r["kill"][1])
+        check(f"WC {name}: floor {want} at every cell", not off,
+              f"kills at input depth {sorted(depths)}, off {off}")
+
+
+VALLEYS = {  # cell: (left slope, right slope, kink, left offset)
+    (2, 1, 1): (-2, Fr(1, 2), Fr(-1, 6), Fr(-3, 2)),
+    (3, 1, 2): (Fr(-1, 2), Fr(3, 2), Fr(1, 4), Fr(-5, 12)),
+    (3, 2, 1): (Fr(-1, 2), Fr(3, 2), Fr(-1, 4), Fr(-1, 6)),
+    (3, 2, 2): (Fr(-1, 2), 3, Fr(1, 2), Fr(1, 12)),
+    (4, 1, 3): (Fr(-1, 2), 2, Fr(1, 2), Fr(-1, 6)),
+    (4, 2, 2): (Fr(-1, 2), 2, Fr(1, 6), Fr(1, 3)),
+    (4, 2, 3): (Fr(-1, 2), 2, Fr(11, 18), Fr(-7, 18)),
+    (4, 3, 1): (Fr(-1, 2), 2, Fr(-1, 6), Fr(-1, 6)),
+    (4, 3, 2): (Fr(-1, 2), 2, Fr(5, 18), Fr(1, 9)),
+    (4, 3, 3): (Fr(-1, 2), Fr(2, 3), Fr(-5, 6), Fr(4, 9)),
+}
+SAME_SIGN = {
+    (2, 1, 1): (Fr(1, 2), 2, Fr(-2, 3), 0),
+    (3, 1, 2): (Fr(1, 2), Fr(3, 2), Fr(1, 4), Fr(-2, 3)),
+    (3, 2, 1): (Fr(1, 2), Fr(3, 2), Fr(-1, 4), Fr(1, 12)),
+    (3, 2, 2): (Fr(1, 2), Fr(2, 3), Fr(-5, 6), Fr(-7, 12)),
+    (4, 1, 3): (Fr(1, 2), 2, Fr(1, 2), Fr(1, 3)),
+    (4, 2, 2): (Fr(1, 2), 2, Fr(1, 6), Fr(1, 6)),
+    (4, 3, 1): (Fr(1, 2), 2, Fr(-1, 6), 0),
+    (4, 3, 3): (Fr(1, 2), Fr(2, 3), Fr(-5, 6), Fr(5, 18)),
+}
+
+
+def section_wd():
+    print("WD  the kink alone")
+    for label, table in (("valley", VALLEYS), ("same-sign", SAME_SIGN)):
+        off, depths = [], []
+        for (b, am, ap), (sl, sr, kap, dl) in table.items():
+            cell = ms.Cell(b, am, ap)
+            f = two_piece(cell, sl, sr, kap, dl)
+            r = read_map(f)
+            v, k = r.get("clauses"), r["kill"]
+            alone = (v is not None and not v["curved"]
+                     and not any(v["pieces"].values()) and v["kinks"][0]
+                     and max(v["kinks"][0]) < v["nf"])
+            strad = k is not None and k[2] in Clauses(f).straddlers(0, k[1])
+            if not (r["agree"] and r["floor"] == r["Ls"] and alone
+                    and strad):
+                off.append(tag(cell))
+            else:
+                depths.append(min(v["kinks"][0]))
+        check(f"WD {len(table)} {label} designs: the kink clause fires alone "
+              f"below n_full, at depth 0 or 1",
+              not off and all(d in (0, 1) for d in depths),
+              f"first firing depths {depths}, off {off}")
+
+
+def section_we():
+    print("WE  the containment lemma")
+    check("WE no deep straddler kill without a neighbour's clause",
+          not ORPHANS, f"{ORPHANS[:5]}")
+
+
+def iabs(p):
+    lo, hi = p
+    if lo <= 0 <= hi:
+        return (Fr(0), max(-lo, hi))
+    return (min(abs(lo), abs(hi)), max(abs(lo), abs(hi)))
+
+
+def ihull0(p):
+    m = ms.isup(p)
+    return (-m, m)
+
+
+def abs_times(B):
+    return ms.imul(iabs(B[0]), B[1])
+
+
+def abs_partials(B):
+    x = B[0]
+    if x[0] < 0 < x[1]:
+        dx = ihull0(B[1])
+    else:
+        dx = ms.iscale(1 if x[0] >= 0 else -1, B[1])
+    return [dx, iabs(x)]
+
+
+def max_times(B):
+    m = (max(B[0][0], B[1][0]), max(B[0][1], B[1][1]))
+    return ms.imul(m, B[2])
+
+
+def max_partials(B):
+    x, y, z = B
+    m = (max(x[0], y[0]), max(x[1], y[1]))
+    zero = (Fr(0), Fr(0))
+    if x[0] >= y[1]:
+        return [z, zero, m]
+    if y[0] >= x[1]:
+        return [zero, z, m]
+    return [ihull0(z), ihull0(z), m]
+
+
+def section_wf():
+    print("WF  several streams")
+    maps = [("|x| y", 2, abs_times, abs_partials, lambda M: 2 * M),
+            ("max(x, y) z", 3, max_times, max_partials, lambda M: 2 * M)]
+    for mp in maps:
+        off, depths = [], set()
+        for (b, am, ap) in ms.census():
+            cell = ms.Cell(b, am, ap)
+            lam, o, Ls = ms.law_of(cell, mp)
+            k, _ = ms.scan(cell, mp, Ls - 1, o)
+            if k is None:
+                off.append((b, am, ap))
+            else:
+                depths.add(k)
+        check(f"WF {mp[0]} dead at L* - 1 at every cell", not off,
+              f"kills at output depth {sorted(depths)}, off {off}")
+
+
+def farey(n):
+    return sorted({Fr(p, q) for q in range(1, n + 1)
+                   for p in range(1, q + 1)})
+
+
+def sigma_gap(cell, pmax=400):
+    b, rho = cell.b, cell.rho
+    return max(Fr(p, p + math.ceil(Fr((p - 1) * (b - 1), rho)))
+               for p in range(2, pmax))
+
+
+def line_empty(cell, s, d):
+    tab = Clauses(PW("line", cell, [], [(d, s)]), o=0)
+    nf, end = tab.cycle(0)
+    return not any(tab.piece_fires(0, n, 0, True)
+                   for n in range(nf, end + 1))
+
+
+def section_ws():
+    print("WS  the segment lemma and the alive-able slopes at L = 0")
+    off, tot, miscount = [], 0, []
+    for cell in cells():
+        I = cell.I
+        for r in farey(6):
+            p, q = r.numerator, r.denominator
+            e = p * I - q * cell.rho
+            for s in (-r, r):
+                empties = [line_empty(cell, s, Fr(k, q * (cell.b - 1)))
+                           for k in range(q * (cell.b - 1))]
+                tot += 1
+                if any(empties) != (e <= cell.b - 1):
+                    off.append((tag(cell), str(s)))
+                # the closed range holds b - ell grid points a period
+                want = (len(empties) if e <= 0 else
+                        q * (cell.b - e) if e <= cell.b - 1 else 0)
+                if sum(empties) != want:
+                    miscount.append((tag(cell), str(s)))
+    check("WS the piece clause is the lemma's arithmetic", not off,
+          f"{tot} (cell, slope), off {off}")
+    check("WS the empty offsets are the lemma's range: every one at "
+          "ell <= 0, v(b - ell) at 1 <= ell <= b - 1, none above",
+          not miscount, f"{tot} (cell, slope), off {miscount}")
+    bad = []
+    for cell in cells():
+        I, b, rho = cell.I, cell.b, cell.rho
+        sg = sigma_gap(cell)
+        pred = Fr(2, 2 + math.ceil(Fr(b - 1, rho)))
+        top = max(Fr(1, 2), sg)
+        alive = [Fr(p, q) for q in range(2, 121) for p in range(1, q)
+                 if math.gcd(p, q) == 1 and Fr(p, q) > Fr(1, 2)
+                 and 1 <= p * I - q * rho <= b - 1]
+        e = sg.numerator * I - sg.denominator * rho
+        if sg != pred or any(s > top for s in alive) or \
+                not 1 <= e <= b - 1:
+            bad.append((tag(cell), str(sg), str(pred)))
+    check("WS the gap (max(1/2, LAM_GAP), 1), LAM_GAP at u = 2",
+          not bad, f"off {bad}")
+    reduced, bad, cells13 = 0, [], []
+    for cell in cells():
+        I, b, rho = cell.I, cell.b, cell.rho
+        pred = Fr(2, 2 + math.ceil(Fr(b - 1, rho)))
+        best = max(Fr(p, q) for q in range(2, 121) for p in range(2, q)
+                   if math.gcd(p, q) == 1 and 1 <= p * I - q * rho <= b - 1)
+        if pred.numerator == 1:
+            reduced += 1
+            cells13.append(f"{tag(cell)} {best}")
+            if not best < pred:
+                bad.append((tag(cell), str(best)))
+        elif best != pred:
+            bad.append((tag(cell), str(best)))
+    check("WS LAM_GAP reduces to numerator 1 at 13 of 20 cells, the "
+          "largest alive-able slope of numerator >= 2 below it there",
+          reduced == 13 and not bad, f"{reduced} reduced: {cells13}, "
+          f"off {bad}")
+
+
+def recip(cell):
+    s = 1 + cell.Mm
+    return lambda x: 1 / (s + x)
+
+
+def designs(cell):
+    lo, w = -cell.Mm, cell.w
+    out = []
+    for N in (4, 8):
+        out.append((f"uniform {N}",
+                    [lo + i * w / N for i in range(N + 1)]))
+    m = 0
+    while cell.I * ms.repunit(cell.b, m) + 1 < 32:
+        m += 1
+    bm = pw(cell.b, m)
+    xs = [lo]
+    for i in range(1, 8):
+        u = round((lo + i * w / 8) * bm + cell.Mm)
+        xs.append((u - cell.Mm) / bm)
+    xs.append(cell.Mp)
+    out.append((f"aligned 8 (depth {m})", xs))
+    return out
+
+
+def section_wt():
+    print("WT  the chord maps of the reciprocal at pole distance 1")
+    below, off, tot, kills = [], [], 0, {}
+    for cell in cells():
+        for label, xs in designs(cell):
+            f = chords(label, cell, xs, recip(cell))
+            tot += 1
+            j = max(range(len(f.p)), key=lambda i: abs(f.p[i][1]))
+            s = f.p[j][1]
+            tab = Clauses(f)
+            delta, g = Fr(1, s.denominator), tab.excess(j, 0)
+            k, _ = scan(f, 0, tab.o)
+            if delta < g:
+                if k is None:
+                    off.append((tag(cell), label, "no kill"))
+                else:
+                    kills[k[1]] = kills.get(k[1], 0) + 1
+            else:
+                alive = not tab.dead(0)
+                if alive and k is None:
+                    below.append((tag(cell), label, str(s), str(delta)))
+                else:
+                    off.append((tag(cell), label, str(s), alive))
+    print(f"    below the curve's L*: {below}")
+    print(f"    the kills at L = 0 by input depth: {kills}")
+    check("WT a step below the excess kills; the others read at 0",
+          not off and len(below) == 4 and tot == 60,
+          f"{tot} designs, off {off}")
+
+
+def section_wl():
+    print("WL  the slide: [x/2 | x - kappa/2] cut at kappa")
+    off, runs, on = [], 0, 0
+    for cell in cells():
+        b = cell.b
+        for j in range(-2 * b, 2 * b + 1):
+            kap = Fr(j, 2 * b * b)
+            if not -cell.Mm < kap < cell.Mp:
+                continue
+            tab = Clauses(specimen(cell, kap))
+            nf, end = tab.cycle(0)
+            n1 = next(n for n in range(tab.n0(0), 40)
+                      if tab.phases(1, n, 0, False))
+            fires = any(tab.piece_fires(1, n, 0, n >= nf)
+                        for n in range(tab.n0(0), max(end, nf) + 1))
+            law = (kap * pw(b, n1) / 2).denominator == 1
+            runs += 1
+            on += law
+            if fires == law:
+                off.append((tag(cell), str(kap)))
+    check("WL the slope-1 clause is empty iff kappa b^n1 / 2 is whole",
+          not off, f"{runs} runs, {on} aligned, off {off}")
+
+
+def overhangs(cell, fn, L, o):
+    """(EPS_ROB(L), (depth, u)): the largest smaller overhang over the
+    killing boxes of the decreasing curve fn, in absolute units."""
+    best, where, n = Fr(0), None, max(0, L - o + 1)
+    while True:
+        e = pw(cell.b, L - n)
+        room = (cell.w - (cell.w - 1) * pw(cell.b, L)) / pw(cell.b, n)
+        if where is not None and room <= 2 * best:
+            return best, where
+        umin, umax = prefixes(cell, n)
+        for u in range(umin, umax + 1):
+            x1, x2 = cell.box(u, n)
+            lo, hi = fn(x2) / e, fn(x1) / e
+            for q in range(math.floor(lo + cell.Mm) - 1,
+                           math.ceil(hi - cell.Mp) + 1):
+                zlo, zhi = q + 1 - cell.Mm, q + cell.Mp
+                if lo < zlo and zhi < hi:
+                    h = min(zlo - lo, hi - zhi) * e
+                    if h > best:
+                        best, where = h, (n, u)
+        n += 1
+
+
+def sup_dist(cell, f):
+    """The sup over the root box of chord map minus curve, the curve
+    1/(s + x) convex and each chord above it: on a chord of slope k the
+    gap peaks where the curve's slope is k, at s + x = 1/sqrt(-k)."""
+    s = float(1 + cell.Mm)
+    best = 0.0
+    for j in range(len(f.p)):
+        d, k = float(f.p[j][0]), float(f.p[j][1])
+        x = 1 / math.sqrt(-k) - s
+        x = min(max(x, float(f.cuts[j])), float(f.cuts[j + 1]))
+        best = max(best, d + k * x - 1 / (s + x))
+    return best
+
+
+def section_wr():
+    print("WR  the robust radius of the reciprocal at pole distance 1")
+    rows, off = [], []
+    for cell in cells():
+        fn = recip(cell)
+        o = cell.lead((fn(cell.Mp), fn(-cell.Mm)))
+        e0, w0 = overhangs(cell, fn, 0, o)
+        e1, w1 = overhangs(cell, fn, -1, o)
+        rows.append((cell, e0, w0, e1))
+        print(f"    {tag(cell)} o={o}: MU_ROB(0) = {e0} = "
+              f"b^-{-math.log(e0) / math.log(cell.b):.2f} at depth "
+              f"{w0[0]}; MU_ROB(-1) = {e1} at depth {w1[0]}")
+        if cell.am == cell.ap == cell.b - 1:
+            f = chords("uniform 4", cell, designs(cell)[0][1], fn)
+            acc = sup_dist(cell, f)
+            print(f"      the uniform 4-chord design: sup distance "
+                  f"{acc:.4f}")
+            if not acc > float(e0):
+                off.append((tag(cell), acc, float(e0)))
+    e0s = [e for _, e, _, _ in rows]
+    check("WR MU_ROB(0) attained at depth <= 3, from 1/150 to 1/12",
+          max(w[0] for _, _, w, _ in rows) <= 3
+          and min(e0s) == Fr(1, 150) and max(e0s) == Fr(1, 12),
+          f"above b^-4 at "
+          f"{sum(e > Fr(1, c.b ** 4) for c, e, _, _ in rows)}")
+    check("WR MU_ROB(-1) >= b^-2 but at (2,1,1)",
+          [tag(c) for c, _, _, e in rows if e < Fr(1, c.b ** 2)]
+          == ["(2,1,1)"])
+    check("WR the 4-chord design sits outside the radius", not off,
+          f"off {off}")
+
+
+def F(*vs):
+    return [Fr(v) for v in vs]
+
+
+ZIGZAGS = {  # cell: (mu, slopes, offsets, kinks)
+    (2, 1, 1): (Fr(5329, 366071), F(-1, "-4/7", "-2/7", "-1/7"),
+                F(0, "3/8", "113/224", "13/28"),
+                F("-7/8", "-29/64", "9/32")),
+    (3, 1, 2): (Fr(7859, 704985),
+                F(-1, "-1/3", -1, "-1/3", -1, "-1/2", "-1/4", "-1/6"),
+                F("1/2", "41/54", "259/486", "365/486", "29/54", "2/3",
+                  "103/162", "5/9"),
+                F("-7/18", "-55/162", "-53/162", "-26/81", "-7/27",
+                  "10/81", "26/27")),
+    (3, 2, 2): (Fr(7859, 704985), F(-1, "-3/5", "-1/3", "-1/6", "-1/8"),
+                F(0, "16/45", "596/1215", "1187/2430", "1087/2430"),
+                F("-8/9", "-41/81", "1/81", "80/81")),
+    (4, 1, 3): (Fr(26519, 729007),
+                F(-1, "-1/4", "-1/2", "-1/2", "-2/7", "-2/7", "-2/7",
+                  "-1/3", "-1/2", "-1/5"),
+                F("2/3", "73/96", "301/384", "301/384", "1135/1536",
+                  "1135/1536", "1135/1536", "24217/32256",
+                  "25603/32256", "24113/40320"),
+                F("-1/8", "3/32", "131/768", "161/768", "59/256",
+                  "31/128", "191/768", "33/128", "167/256")),
+    (4, 2, 2): (Fr(83763, 971233), F("-1/2", "-1/5"),
+                F("2/3", "457/960"), F("61/96")),
+    (4, 3, 3): (Fr(1225, 97319),
+                F(-1, "-1/2", -1, "-1/2", "-2/3", "-1/2", "-2/3", "-1/3",
+                  "-1/7"),
+                F(0, "113/256", "27/512", "225/512", "479/1536", "7/16",
+                  "5/16", "379/768", "2585/5376"),
+                F("-113/128", "-199/256", "-99/128", "-49/64", "-193/256",
+                  "-3/4", "-139/256", "17/256")),
+    (5, 1, 4): (Fr(28221, 841820), F(-1, "-1/2", "-1/4"),
+                F("3/4", "1937/2500", "1677/2500"),
+                F("-31/625", "52/125")),
+    (5, 2, 4): (Fr(7997, 227918), F(-1, "-2/5", "-1/6"),
+                F("1/2", "4229/6250", "1357/2500"),
+                F("-184/625", "717/1250")),
+}
+
+
+def within(cell, f, mu):
+    """Exact: is every piece of the decreasing chord map f within mu of
+    1/(s + x)? On a piece lam x + gamma the gap lam x + gamma - 1/(s + x)
+    is concave: its least value at an end, its peak gamma - lam s -
+    2 sqrt(-lam) where s + x = 1/sqrt(-lam), else at an end."""
+    s = 1 + cell.Mm
+    for j in range(len(f.p)):
+        gam, lam = f.p[j][:2]
+        lo, hi = f.cuts[j], f.cuts[j + 1]
+        ends = [gam + lam * x - 1 / (s + x) for x in (lo, hi)]
+        if min(ends) < -mu or max(ends) > mu:
+            return False
+        if lam < 0 and (s + lo) ** 2 * (-lam) < 1 < (s + hi) ** 2 * (-lam):
+            a = gam - lam * s - mu
+            if a > 0 and a * a > 4 * (-lam):
+                return False
+    return True
+
+
+def section_wz():
+    print("WZ  the radius is approached: the zigzag designs")
+    off, rows = [], []
+    for (b, am, ap), (mu, sl, th, ks) in ZIGZAGS.items():
+        cell = ms.Cell(b, am, ap)
+        f = PW("zigzag", cell, ks, list(zip(th, sl)))
+        e0, _ = overhangs(cell, recip(cell), 0,
+                          cell.lead((recip(cell)(cell.Mp),
+                                     recip(cell)(-cell.Mm))))
+        tab = Clauses(f)
+        k, _ = scan(f, 0, tab.o)
+        ok = (within(cell, f, mu) and not tab.dead(0) and k is None
+              and mu >= e0)
+        rows.append((tag(cell), len(sl), mu / e0))
+        if not ok:
+            off.append(tag(cell))
+    print(f"    (cell, pieces, mu / MU_ROB(0)): "
+          f"{[(c, n, f'{float(r):.3f}') for c, n, r in rows]}")
+    check("WZ each design within its mu of the curve and alive at 0",
+          not off and len(rows) == 8, f"off {off}")
+    near = sum(r <= Fr(105, 100) for _, _, r in rows)
+    check("WZ mu within 6 percent of MU_ROB(0) at all 8",
+          all(r <= Fr(106, 100) for _, _, r in rows),
+          f"within 5 percent at {near}")
+
+
+def main():
+    t0 = time.time()
+    section_wa()
+    if not all(CHECKS):
+        print("the controls failed; nothing below is read")
+        raise SystemExit(1)
+    for section in (section_wb, section_wc, section_wd, section_we,
+                    section_wf, section_ws, section_wt, section_wl,
+                    section_wr, section_wz):
+        t1 = time.time()
+        section()
+        print(f"    ({time.time() - t1:.1f} s)")
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

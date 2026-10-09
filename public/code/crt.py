@@ -1,0 +1,491 @@
+"""crt.py -- residue arithmetic on Z/N for N a product of coprime prime
+powers, with the primorial rungs Z/p_k# as the canonical family.
+
+USE. In Python, from the folder holding crt.py:
+
+    >>> from crt import primorial_ring, encode, decode, code_correct
+    >>> R = primorial_ring(7)             # Z/510510
+    >>> t = encode(42, R)
+    >>> t
+    (0, 0, 2, 0, 9, 3, 8)
+    >>> decode(t, R)
+    42
+    >>> code_correct((1,) + t[1:], R)     # channel 0 corrupted, then repaired
+    ((0, 0, 2, 0, 9, 3, 8), 0)
+
+A Ring is Z/N read through its CHANNELS: the reduction modulo each
+maximal prime power q_i dividing N. The Chinese Remainder Theorem
+makes that reading a ring isomorphism Z/N -> Z/q_1 x ... x Z/q_k, so
+an element is a tuple of residues and addition, subtraction,
+multiplication and powering act channel by channel with no channel
+seeing another. The rung Z/p_k# takes q_i = p_i, the first k primes,
+so every channel is a prime field.
+
+What the library provides:
+  - number-theory primitives (primality, factoring, phi, lambda, orders)
+  - Ring, and primorial_ring(k) for the rung built from the first k primes
+  - encode / decode, and decode_from: reconstruction from any channel
+    subset, exact modulo the product of the moduli it reads; word and
+    channel_set refuse a word of the wrong length and a channel out
+    of range or repeated, in every call that reads one beside its
+    ring (support takes no ring and reads any tuple)
+  - channel arithmetic on residue tuples
+  - idempotents: one per subset of channels, 2^k in all
+  - the residue code: with r parity channels, the codewords are the
+    integers below the product of the k - r smallest moduli. Any two
+    codewords agree on fewer than k - r channels (their difference is
+    a multiple of every modulus they agree on, and is smaller than any
+    product of k - r moduli), so the minimum distance is at least r + 1
+    and on a primorial rung exactly r + 1. With r = 3 the code corrects
+    any one wrong channel, detects any two, and reconstructs from any
+    k - 3 channels. On a rung it exists from k = 4, where the data
+    range is Z/2; the rate, the share (k - 3)/k of channels that carry
+    data, passes 1/2 at k = 7. The data channels are the SMALLEST
+    moduli, whatever order the ring lists them in; on a rung that is
+    the first k - 3 primes.
+
+The code's guarantee is a bound on SIZE: an integer is a codeword because
+it is small. Ring arithmetic does not keep integers small, so a sum or
+product of codewords need not be one.
+
+Standard library only. Run it to execute the self-test:
+
+    python crt.py
+"""
+
+from itertools import combinations
+from math import gcd, isqrt, lcm, prod
+
+
+# --------------------------------------------------------------------------
+# Number-theory primitives
+# --------------------------------------------------------------------------
+
+def is_prime(n):
+    """Deterministic trial division; fine to about 10^12."""
+    if n < 2:
+        return False
+    if n < 4:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    while i * i <= n:
+        if n % i == 0 or n % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+
+def primes_up_to(n):
+    """All primes <= n, by the sieve of Eratosthenes."""
+    if n < 2:
+        return []
+    sieve = bytearray([1]) * (n + 1)
+    sieve[0:2] = b"\x00\x00"
+    for i in range(2, isqrt(n) + 1):
+        if sieve[i]:
+            sieve[i * i::i] = bytearray(len(range(i * i, n + 1, i)))
+    return [i for i in range(n + 1) if sieve[i]]
+
+
+def first_primes(k):
+    """The first k primes."""
+    bound = 16
+    while True:
+        ps = primes_up_to(bound)
+        if len(ps) >= k:
+            return ps[:k]
+        bound *= 2
+
+
+def factorize(n):
+    """{prime: exponent} for n >= 1."""
+    out = {}
+    d = 2
+    while d * d <= n:
+        while n % d == 0:
+            out[d] = out.get(d, 0) + 1
+            n //= d
+        d += 1 if d == 2 else 2
+    if n > 1:
+        out[n] = out.get(n, 0) + 1
+    return out
+
+
+def euler_phi(n):
+    return prod(p ** (e - 1) * (p - 1) for p, e in factorize(n).items())
+
+
+def carmichael_lambda(n):
+    """The exponent of the unit group of Z/n."""
+    parts = []
+    for p, e in factorize(n).items():
+        if p == 2 and e >= 3:
+            parts.append(2 ** (e - 2))
+        else:
+            parts.append(p ** (e - 1) * (p - 1))
+    return lcm(*parts) if parts else 1
+
+
+def multiplicative_order(a, n):
+    """Least m >= 1 with a^m = 1 mod n, or None if a is not a unit."""
+    if gcd(a, n) != 1:
+        return None
+    lam = carmichael_lambda(n)
+    m = lam
+    for p in factorize(lam):
+        while m % p == 0 and pow(a, m // p, n) == 1:
+            m //= p
+    return m
+
+
+def mod_inverse(a, m):
+    return pow(a, -1, m)
+
+
+# --------------------------------------------------------------------------
+# Rings
+# --------------------------------------------------------------------------
+
+class Ring:
+    """Z/N with N = prod p_i^e_i over distinct primes p_i, read through the
+    channels Z/p_i^e_i in the order given."""
+
+    def __init__(self, primes, exponents=None, name=None):
+        primes = tuple(primes)
+        exponents = tuple(exponents) if exponents is not None else (1,) * len(primes)
+        if len(exponents) != len(primes):
+            raise ValueError("one exponent per prime")
+        if len(set(primes)) != len(primes) or not all(map(is_prime, primes)):
+            raise ValueError("channels need distinct primes")
+        if not all(e >= 1 for e in exponents):
+            raise ValueError("exponents must be >= 1")
+        self.primes = primes
+        self.exponents = exponents
+        self.moduli = tuple(p ** e for p, e in zip(primes, exponents))
+        self.k = len(primes)
+        self.N = prod(self.moduli)
+        self.phi = prod(euler_phi(q) for q in self.moduli)
+        self.lam = lcm(*(carmichael_lambda(q) for q in self.moduli)) if self.k else 1
+        self.name = name or f"Z/{self.N}"
+        # e_i = 1 on channel i, 0 on the others: decode is sum r_i e_i mod N
+        self.basis = tuple((self.N // q) * pow(self.N // q, -1, q) % self.N
+                           for q in self.moduli)
+
+    def __repr__(self):
+        return f"Ring({self.name}, k={self.k})"
+
+
+def primorial_ring(k):
+    """The rung Z/p_k#: the first k primes, every channel a prime field."""
+    return Ring(first_primes(k), name=f"rung {k}")
+
+
+# --------------------------------------------------------------------------
+# Encode, decode, reconstruct from a subset
+# --------------------------------------------------------------------------
+
+def word(a, ring):
+    """A residue word as a tuple, one residue per channel; any other
+    length is refused."""
+    a = tuple(a)
+    if len(a) != ring.k:
+        raise ValueError(f"expected {ring.k} residues, got {len(a)}")
+    return a
+
+
+def channel_set(channels, ring):
+    """Channel indices as a list of distinct indices, each in
+    0 .. k - 1; an index out of range or repeated is refused."""
+    channels = list(channels)
+    if any(not 0 <= i < ring.k for i in channels) or len(set(channels)) < len(channels):
+        raise ValueError(f"channels run 0 .. {ring.k - 1}, once each, "
+                         f"got {channels}")
+    return channels
+
+
+def encode(n, ring):
+    return tuple(n % q for q in ring.moduli)
+
+
+def decode(residues, ring):
+    residues = word(residues, ring)
+    return sum(r * e for r, e in zip(residues, ring.basis)) % ring.N
+
+
+def decode_from(residues, ring, channels):
+    """The integer mod prod(moduli of channels) that the given channels
+    of a residue tuple determine."""
+    residues, channels = word(residues, ring), channel_set(channels, ring)
+    mods = [ring.moduli[i] for i in channels]
+    M = prod(mods)
+    return sum(residues[i] * (M // q) * pow(M // q, -1, q)
+               for i, q in zip(channels, mods)) % M
+
+
+# --------------------------------------------------------------------------
+# Channel arithmetic
+# --------------------------------------------------------------------------
+
+def add(a, b, ring):
+    return tuple((x + y) % q for x, y, q in
+                 zip(word(a, ring), word(b, ring), ring.moduli))
+
+
+def sub(a, b, ring):
+    return tuple((x - y) % q for x, y, q in
+                 zip(word(a, ring), word(b, ring), ring.moduli))
+
+
+def mul(a, b, ring):
+    return tuple(x * y % q for x, y, q in
+                 zip(word(a, ring), word(b, ring), ring.moduli))
+
+
+def power(a, m, ring):
+    return tuple(pow(x, m, q) for x, q in zip(word(a, ring), ring.moduli))
+
+
+def neg(a, ring):
+    return tuple(-x % q for x, q in zip(word(a, ring), ring.moduli))
+
+
+def is_unit(n, ring):
+    return gcd(n, ring.N) == 1
+
+
+def support(residues):
+    """The channels on which a residue tuple is nonzero."""
+    return frozenset(i for i, r in enumerate(residues) if r)
+
+
+# --------------------------------------------------------------------------
+# Idempotents
+# --------------------------------------------------------------------------
+
+def idempotent(channels, ring):
+    """The element that is 1 on the given channels and 0 elsewhere."""
+    return sum(ring.basis[i] for i in channel_set(channels, ring)) % ring.N
+
+
+def idempotents(ring):
+    """All 2^k idempotents, as (channel set, element) pairs."""
+    for m in range(ring.k + 1):
+        for S in combinations(range(ring.k), m):
+            yield frozenset(S), idempotent(S, ring)
+
+
+# --------------------------------------------------------------------------
+# The residue code
+# --------------------------------------------------------------------------
+
+def code_channels(ring, r=3):
+    """(data, parity): data are the k - r channels of smallest modulus."""
+    if not 1 <= r < ring.k:
+        raise ValueError(f"need 1 <= r < k = {ring.k}")
+    order = sorted(range(ring.k), key=lambda i: ring.moduli[i])
+    return tuple(sorted(order[:ring.k - r])), tuple(sorted(order[ring.k - r:]))
+
+
+def code_range(ring, r=3):
+    """The codewords are the integers 0 .. code_range - 1."""
+    data, _ = code_channels(ring, r)
+    return prod(ring.moduli[i] for i in data)
+
+
+def code_syndrome(residues, ring, r=3):
+    """Each parity channel's residue minus what the data channels force;
+    all zero exactly on codewords."""
+    residues = word(residues, ring)
+    data, parity = code_channels(ring, r)
+    x = decode_from(residues, ring, data)
+    return tuple((residues[j] - x) % ring.moduli[j] for j in parity)
+
+
+def code_correct(residues, ring, r=3):
+    """Correct at most one wrong channel. Returns (codeword, channel), with
+    channel None when the word was already a codeword, or (None, None) when
+    no codeword lies within one channel. Needs r >= 2 for the correction
+    to be unique. With r >= 3 (distance >= 4) an error in two channels is
+    always detected; with r = 2 it can be miscorrected to the wrong
+    codeword."""
+    if r < 2:
+        raise ValueError("correcting one channel needs r >= 2")
+    L = code_range(ring, r)
+    residues = tuple(x % q for x, q in zip(word(residues, ring), ring.moduli))
+    if decode(residues, ring) < L:
+        return residues, None
+    for i in range(ring.k):
+        x = decode_from(residues, ring, [j for j in range(ring.k) if j != i])
+        if x < L:
+            return encode(x, ring), i
+    return None, None
+
+
+# --------------------------------------------------------------------------
+# Self-test
+# --------------------------------------------------------------------------
+
+def self_test():
+    import random
+    import time
+    t0 = time.time()
+    n_checks = 0
+
+    def check(name, ok):
+        nonlocal n_checks
+        if not ok:
+            raise AssertionError(f"FAIL: {name}")
+        n_checks += 1
+
+    # Primitives against direct computation
+    check("primes_up_to(100)", primes_up_to(100) == [p for p in range(101) if is_prime(p)])
+    check("first_primes(12)", first_primes(12) == [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37])
+    ok = True
+    for n in range(1, 400):
+        units = [a for a in range(1, n + 1) if gcd(a, n) == 1]
+        ok &= euler_phi(n) == len(units)
+        ok &= all(pow(a, carmichael_lambda(n), n) == 1 % n for a in units)
+        ok &= lcm(*(multiplicative_order(a, n) for a in units)) == carmichael_lambda(n)
+        ok &= prod(p ** e for p, e in factorize(n).items()) == n
+    check("phi, lambda, orders, factorize brute, n < 400", ok)
+
+    # The rungs: N, phi, lambda
+    table = {1: (2, 1, 1), 2: (6, 2, 2), 3: (30, 8, 4), 4: (210, 48, 12),
+             5: (2310, 480, 60), 6: (30030, 5760, 60),
+             7: (510510, 92160, 240), 8: (9699690, 1658880, 720)}
+    for k, (N, phi, lam) in table.items():
+        R = primorial_ring(k)
+        check(f"rung {k} N, phi, lambda", (R.N, R.phi, R.lam) == (N, phi, lam))
+    for bad in (((2, 2), None), ((2, 4), None), ((2, 3), (1,)), ((2,), (0,))):
+        try:
+            Ring(*bad)
+            check(f"Ring{bad} refused", False)
+        except ValueError:
+            check(f"Ring{bad} refused", True)
+
+    # Encode/decode: exhaustive on two rings, one with prime-power channels
+    for R in (primorial_ring(4), Ring((2, 3, 5), (3, 2, 1))):
+        check(f"{R.name} roundtrip, exhaustive",
+              all(decode(encode(n, R), R) == n for n in range(R.N)))
+
+    # Channel arithmetic is the ring's arithmetic
+    R = primorial_ring(7)
+    random.seed(1)
+    ok = True
+    for _ in range(300):
+        a, b, m = random.randrange(R.N), random.randrange(R.N), random.randrange(50)
+        ta, tb = encode(a, R), encode(b, R)
+        ok &= decode(add(ta, tb, R), R) == (a + b) % R.N
+        ok &= decode(sub(ta, tb, R), R) == (a - b) % R.N
+        ok &= decode(mul(ta, tb, R), R) == a * b % R.N
+        ok &= decode(power(ta, m, R), R) == pow(a, m, R.N)
+        ok &= decode(neg(ta, R), R) == -a % R.N
+        ok &= is_unit(a, R) == (0 not in ta)
+    check("channel arithmetic, 300 random pairs, rung 7", ok)
+    t, s = encode(42, R), encode(42, R)[:6]
+    wrong = (lambda: decode(t + (5,), R), lambda: decode_from(s, R, [0, 1]),
+             lambda: decode_from(t, R, [0, 1, -1]), lambda: decode_from(t, R, [0, 0]),
+             lambda: add(s, t, R), lambda: add(t, s, R), lambda: sub(s, t, R),
+             lambda: sub(t, s, R), lambda: mul(s, t, R), lambda: mul(t, s, R),
+             lambda: power(s, 2, R), lambda: neg(s, R), lambda: code_syndrome(s, R),
+             lambda: code_correct(s, R), lambda: idempotent([7], R),
+             lambda: idempotent([1, 1], R))
+    refused = 0
+    for call in wrong:
+        try:
+            call()
+        except ValueError as e:
+            refused += str(e).startswith(("expected", "channels run"))
+    check("rung 7: a wrong word or channel set refused at all 16 gated calls",
+          refused == len(wrong) == 16)
+    check("rung 7: a word may come as a generator",
+          add(iter(t), t, R) == add(t, t, R))
+
+    # Idempotents: 2^k distinct, each e^2 = e, support = its channel set
+    idem = list(idempotents(R))
+    check("rung 7: 128 idempotents", len(idem) == 128 and len({e for _, e in idem}) == 128)
+    check("rung 7: idempotent and supported on its set",
+          all(e * e % R.N == e and support(encode(e, R)) == S for S, e in idem))
+    R5 = primorial_ring(5)
+    check("rung 5: x^lambda is the idempotent of x's support, every x",
+          all(pow(x, R5.lam, R5.N) == idempotent(support(encode(x, R5)), R5)
+              for x in range(R5.N)))
+    check("rung 4: the idempotents are every x with x^2 = x",
+          sorted(e for _, e in idempotents(primorial_ring(4)))
+          == [x for x in range(210) if x * x % 210 == x])
+
+    # The residue code on the rungs k = 4..8, r = 3
+    for k in range(4, 9):
+        R = primorial_ring(k)
+        L = code_range(R)
+        data, parity = code_channels(R)
+        check(f"rung {k}: data are the first k - 3 primes",
+              data == tuple(range(k - 3)) and L == prod(first_primes(k - 3)))
+        words = range(L) if L <= 210 else random.sample(range(L), 200)
+        ok = True
+        for n in words:
+            w = encode(n, R)
+            ok &= code_syndrome(w, R) == (0, 0, 0)
+            ok &= code_correct(w, R) == (w, None)
+            for i in range(k):                     # every one-channel error
+                for e in range(1, R.moduli[i]):
+                    bad = list(w)
+                    bad[i] = (bad[i] + e) % R.moduli[i]
+                    ok &= code_syndrome(bad, R) != (0, 0, 0)
+                    ok &= code_correct(bad, R) == (w, i)
+            for S in combinations(range(k), k - 3):  # every k - 3 erasure set
+                ok &= decode_from(w, R, S) == n
+        scope = "every word" if L <= 210 else "200 sampled words"
+        check(f"rung {k}, {scope}: every one-channel error corrected, every "
+              f"(k - 3)-subset reconstructs", ok)
+
+    # Two wrong channels: detected, never miscorrected (distance 4)
+    R = primorial_ring(7)
+    ok = True
+    for n in range(code_range(R)):
+        w = encode(n, R)
+        for i, j in combinations(range(7), 2):
+            for ei in range(1, R.moduli[i]):
+                for ej in range(1, R.moduli[j]):
+                    bad = list(w)
+                    bad[i] = (bad[i] + ei) % R.moduli[i]
+                    bad[j] = (bad[j] + ej) % R.moduli[j]
+                    ok &= code_correct(bad, R) == (None, None)
+    check("rung 7, every word: every two-channel error detected, none "
+          "miscorrected", ok)
+
+    # r = 2 has distance 3: some two-channel errors land within one
+    # channel of another codeword and are miscorrected
+    R6 = primorial_ring(6)
+    w = encode(0, R6)
+    miscorrected = 0
+    for i, j in combinations(range(6), 2):
+        bad = list(w)
+        bad[i], bad[j] = 1, 1
+        c, _ = code_correct(bad, R6, r=2)
+        miscorrected += c is not None and c != w
+    check("rung 6, r = 2: some two-channel errors miscorrected", miscorrected > 0)
+
+    # A ring whose smallest moduli are not listed first
+    R = Ring((5, 7, 2, 3, 11, 13, 17), (2, 2, 3, 2, 1, 1, 1))
+    data, parity = code_channels(R)
+    check("mixed ring: data are the four smallest moduli",
+          sorted(R.moduli[i] for i in data) == [8, 9, 11, 13])
+    ok = True
+    for n in random.sample(range(code_range(R)), 100):
+        w = encode(n, R)
+        for i in range(R.k):
+            for e in range(1, R.moduli[i]):
+                bad = list(w)
+                bad[i] = (bad[i] + e) % R.moduli[i]
+                ok &= code_correct(bad, R) == (w, i)
+    check("mixed ring, 100 sampled words: every one-channel error "
+          "corrected", ok)
+
+    print(f"crt.py self-test: {n_checks} checks passed in {time.time() - t0:.2f}s")
+
+
+if __name__ == "__main__":
+    self_test()

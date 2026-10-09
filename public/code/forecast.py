@@ -1,0 +1,508 @@
+"""forecast.py -- the straddle-cover reader scored on forecasting its
+stream: a density forecast collapses to a length loss, a side forecast
+makes the best reader depend on the stream, and a reader can depart
+from the stream-free optimum only at a REVERSAL.
+
+QUESTION. learner.py's reader commits, at step n, a member C_n of the
+straddle cover holding the image J_n, and under every loss monotone in
+the committed intervals the greedy reader, which commits the bottom of
+J_n, is optimal on every stream at once. Its loss reads the committed
+lengths. Score the reader instead on FORECASTING the stream from what
+it has committed. Does the best reader then depend on the stream; and
+where in the cover can a departure from the greedy reader sit: at a
+nested pair of members the loss orders against containment, or at a
+choice between incomparable members of one rank, a LAYER, which is
+where rationed.py found an income lets the policy in?
+
+THE SLATE. rationed.py's nine rows (learner.py's eight and y -> 2y on
+the Fibonacci-word stream), learner.py's 100 policies at no resource
+limit, horizon N = 120, counted steps n = 8 .. 119. Two policies whose
+committed intervals agree at every counted step on every row are one
+BEHAVIOUR CLASS; every loss below is a function of the committed
+intervals and the row, so it is constant on a class, and argmin sets
+are read over classes. The GREEDY class holds the policies with both
+patiences 0; the REFUSER class holds those with both patiences
+infinite, which commit the root at every step (learner.py).
+
+THE LOSSES.
+  The DEFICIT loss is learner.py's: the product of the committed
+  lengths over the counted steps, infinite when one is unbounded,
+  infinite losses tying.
+  The SIDE LOSS. At step n the CUT m_n is the mediant of J_n's two
+  endpoints, interior to J_n and so to C_n. The stream's image point x
+  lies inside every image, so which side of m_n it lies on is decided
+  only by later images: the TRUTH is read by deepening, the first later
+  image lying wholly on one side of the cut. The reader's FORECAST is
+  the WIDER side of C_n at the cut, compared exactly; an unbounded
+  right side is wider; an exact tie forecasts left. The side loss
+  counts the counted steps whose forecast misses the truth. Under the
+  identity map the cut is the boundary between the next digit 1 and
+  the next digit at least 2, so the target is the stream's own next
+  digit question.
+  The COMPOSITE order compares side losses and breaks ties by the
+  deficit.
+  A ONE-BIT loss scores the side forecast at one counted position j
+  alone.
+  A BAND loss. Sort the distinct deficit values over all (class, row)
+  into POSITIONS 0, 1, ...; a band is an interval [a, b] of positions,
+  and its loss is 0 when the class's deficit on the row sits in the
+  band and 1 otherwise, the same band on every row. It reads nothing
+  but the committed lengths. A band is CLEAN when on every row some
+  class is in it and some class is out of it. A class's POSITION HULL
+  is the interval from its least to its greatest position over the
+  nine rows. A UNION BAND is [p_0, a] together with [b, p_top] for two
+  positions a < b - 1 that are consecutive in one class's sorted
+  positions, p_0 and p_top that class's extremes.
+
+THE ARGUMENT (written before the engine).
+  (A) THE COLLAPSE. Let the forecast at step n be the uniform density
+      on C_n, and let a score read it only through its density at the
+      outcome, lower density scoring worse. The outcome x lies in
+      J_(n+1), inside J_n, inside C_n, so its density is 1/|C_n|
+      whatever the stream, and the score is a function of |C_n|
+      increasing in it: a loss monotone in the committed intervals, so
+      the greedy reader is optimal on every stream by learner.py's
+      dominance. The log score of the next image, ln|C_n| - ln|J_(n+1)|
+      summed, is the logarithm of the deficit loss less a sum that no
+      policy moves. And a forecast read from the image J_n is the same
+      for every reader. So a score that lets the stream choose the
+      reader must read the committed interval for something other than
+      its length: a discrete decision, like the side.
+  (B) THE REVERSAL. Every sound reader's committed interval holds the
+      bottom of J_n (learner.py), which the greedy reader commits. So
+      if on some row a class scores strictly below the greedy class
+      under a loss, the loss orders two traces against containment,
+      the lower one's intervals containing the higher one's at every
+      step: a REVERSAL. Under the side loss, at every step where a
+      class hits and the greedy class misses, the class's interval
+      strictly contains the greedy one's. So with no resource limit the
+      stream enters the optimum only at a reversal, never inside a
+      layer: two members of one layer are incomparable, and the bottom
+      is alone in its layer.
+  (C) THE POLES. A loss that never rises as the intervals shrink keeps
+      the greedy class in every argmin (dominance). A loss that never
+      falls as they shrink keeps the refuser in every argmin, since the
+      root contains every member. For a clean band every row's argmin
+      is exactly its in-band set, so the nine argmin sets share a class
+      exactly when some class's nine positions all lie in the band,
+      that is, when the band contains that class's position hull.
+
+PREDICTIONS (fixed before the engine ran).
+  P0 [controls, read first] (i) The 100 policies fall into 38
+     behaviour classes over the nine rows' counted steps. (ii) On the
+     eight quadratic rows the deepening truth equals the side of the
+     exact algebraic point at every counted step (the point 2 of the
+     wall row included), and on the Fibonacci row it resolves at every
+     counted step within depth 320. (iii) The forecast of the interval
+     (0, 1) is R at the cut 1/3, L at 2/3 and L at the tie 1/2, and of
+     (1, infinity) R at the cut 2. (iv) Under the deficit the nine
+     rows' argmin sets share the greedy class.
+  P1 [the side loss] The nine argmin sets have no common class, under
+     the side loss alone and under the composite order. The greedy
+     class is outside the side argmin on exactly (id, golden),
+     (id, eights), (sq, golden), (dbl, golden), (dbl, sqrt2) and
+     (dbl, fib). The least side loss is 0 on the eight quadratic rows
+     and 47 on (dbl, fib). The nine side argmin sets are pairwise
+     distinct.
+  P2 [(B), the reversal] At every (row, step, class) where the class
+     hits and the greedy class misses, the class's interval strictly
+     contains the greedy one's. CONTROL: there is at least one such
+     site, and at least one where a class misses and the greedy class
+     hits, so the side loss is not monotone either way.
+  P3 [one bit] For every counted position j, the one-bit loss at j
+     leaves the nine argmin sets with no common class, alone and with
+     the deficit breaking its ties.
+  P4 [(C), the bands] Some clean band has no common class. Revised
+     after the runs: the hull statement is (C)'s proof and is not run,
+     a check of it on the position table computing one set statement
+     twice; the check that did is dropped. Some clean union band has a
+     common class and none of its common classes is the greedy class
+     or the refuser.
+
+KILLS (observables).
+  K0 any P0 control misses: nothing below is read.
+  K1 P1 prints a common class under either order: the side loss keeps
+     a stream-free reader on this slate.
+  K2 a P2 site where the hitting class does not contain the greedy
+     interval: (B) is false.
+  K3 some position j prints a common class: the side loss's break
+     needs more than one bit there.
+
+FINDINGS (entered after the run; 15 of 15 checks pass, 14 of 14 once the
+hull check was dropped).
+  F0 The controls pass: 38 classes; the deepening truth agrees with
+     the exact point at every counted step of the eight quadratic rows
+     and resolves on the Fibonacci row; the forecast units print as
+     fixed; under the deficit the greedy class is common to all nine.
+     The truth strings alternate under constant digits (the tile's
+     orientation flips each step) and are constant R on (id, sqrt3)
+     and (sq, golden).
+  F1 No common class under the side loss or the composite order. The
+     greedy class is outside the side argmin on exactly the six rows
+     predicted. The least side loss is 0 on the eight quadratic rows
+     and 47 of 112 on (dbl, fib); the argmin sets have 2 to 32 of 38
+     classes and are pairwise distinct over the nine rows.
+  F2 At 8,018 (row, step, class) sites a class hits where the greedy
+     class misses, and at every one its interval strictly contains the
+     greedy one's; at 6,792 sites the greedy class hits where a class
+     misses. The side loss is monotone in neither direction.
+  F3 All 112 one-bit losses leave no common class, alone and with the
+     deficit breaking ties.
+  F4 117 positions; the greedy class's hull is [0, 85] and the refuser's
+     [116, 116]. Of 403 clean bands, 146 have no common class, the first
+     [1, 85]. 213 (class, gap) choices give a clean union band, each
+     keeping its own seed class common by construction, and in 201 of
+     them neither pole is common; the first is seeded by the class of
+     (0, 0, 0, 1), bands [0, 0] and [13, 88], common to the classes of
+     (0, 0, 0, p), p = 1, 2, 3: tree patience 0 and chain patience 1 to
+     3.
+
+RUN RECORD. 14 checks, 10.5 s, peak 27 MB. The first run stopped in
+the reversal section on an indexing slip (a class's traces read as
+one row's); nothing above it changed on the second. Exact integers in
+every decision.
+"""
+
+import sys
+
+from learner import N0, INF, le, span, inside, run, loss, cmp, policies
+from rationed import ROWS9, images9
+
+N_MAIN = 120
+N_DEEP = 320
+GREEDY = (0, 0, 0, 0)
+REFUSER = (0, 0, INF, INF)
+
+# the image point (A + B sqrt(d)) / C of each quadratic stream
+POINTS = {"golden": (1, 1, 5, 2), "sqrt2": (0, 1, 2, 1),
+          "sqrt3": (0, 1, 3, 1), "eights": (-4, 1, 17, 1)}
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" +
+          (f"  ({detail})" if detail else ""))
+
+
+def section(title):
+    print()
+    print(title)
+
+
+# the side forecast
+
+def mediant(J):
+    (a, b), (c, d) = J
+    return (a + c, b + d)
+
+
+def forecast(C, cut):
+    """'R' when the right side of C at the cut is strictly wider, else
+    'L'; an unbounded right side is wider."""
+    lo, hi = span(C)
+    if hi[1] == 0:
+        return "R"
+    # right wider iff lo + hi > 2 cut
+    lhs = (lo[0] * hi[1] + hi[0] * lo[1]) * cut[1]
+    rhs = 2 * cut[0] * lo[1] * hi[1]
+    return "R" if lhs > rhs else "L"
+
+
+def truth_deep(deep, n):
+    cut = mediant(deep[n])
+    for J in deep[n + 1:]:
+        if le(J[1], cut):
+            return "L"
+        if le(cut, J[0]):
+            return "R"
+    return None
+
+
+def image_point(m, s):
+    A, B, d, C = POINTS[s]
+    if m == "id":
+        return A, B, d, C
+    if m == "dbl":
+        return 2 * A, 2 * B, d, C
+    return A * A + B * B * d, 2 * A * B, d, C * C
+
+
+def truth_exact(point, cut):
+    """Side of (A + B sqrt d)/C against p/q, B >= 0; None on equality."""
+    A, B, d, C = point
+    p, q = cut
+    u, w = p * C - A * q, B * q
+    if u < 0:
+        return "R"
+    if w == 0:
+        return None if u == 0 else "L"
+    return "R" if u * u < w * w * d else "L"
+
+
+# the classes and their scores
+
+def build(imgs):
+    """Classes over the counted steps: representative policy -> the
+    per-row committed traces."""
+    reps = {}
+    for p in policies():
+        tr = {row: run(imgs[row], p) for row in ROWS9}
+        key = tuple(tuple(tr[row][N0:]) for row in ROWS9)
+        if key not in reps:
+            reps[key] = (p, [p], tr)
+        else:
+            reps[key][1].append(p)
+    return [(p, members, tr) for p, members, tr in reps.values()]
+
+
+def class_of(classes, pol):
+    for i, (_, members, _) in enumerate(classes):
+        if pol in members:
+            return i
+    raise AssertionError("policy in no class")
+
+
+def argmin_by(values, key_cmp):
+    """Indices whose value is least under key_cmp."""
+    best = [0]
+    for i in range(1, len(values)):
+        c = key_cmp(values[i], values[best[0]])
+        if c < 0:
+            best = [i]
+        elif c == 0:
+            best.append(i)
+    return set(best)
+
+
+def common(sets):
+    out = None
+    for s in sets:
+        out = set(s) if out is None else out & s
+    return out
+
+
+def int_cmp(x, y):
+    return (x > y) - (x < y)
+
+
+def composite_cmp(x, y):
+    c = int_cmp(x[0], y[0])
+    return c if c else cmp(x[1], y[1])
+
+
+# the sections
+
+def section_controls(imgs, deep, classes, truths):
+    section("P0 CONTROLS")
+    check("38 behaviour classes among the 100 policies",
+          len(classes) == 38, f"{len(classes)} classes")
+    bad = unresolved = 0
+    for m, s in ROWS9:
+        for n in range(N0, N_MAIN):
+            if truths[(m, s)][n - N0] is None:
+                unresolved += 1
+            elif s != "fib":
+                ex = truth_exact(image_point(m, s), mediant(deep[(m, s)][n]))
+                bad += ex != truths[(m, s)][n - N0]
+    check("deepening truth equals the exact point's side on 8 rows",
+          bad == 0 and unresolved == 0,
+          f"{bad} disagreements, {unresolved} unresolved")
+    for (m, s) in ROWS9:
+        print(f"    truth {m + '/' + s:12s} " + "".join(truths[(m, s)]))
+    unit = (0, 1), (1, 1)
+    ok = (forecast((unit[0], unit[1], 0, 0), (1, 3)) == "R" and
+          forecast((unit[0], unit[1], 0, 0), (2, 3)) == "L" and
+          forecast((unit[0], unit[1], 0, 0), (1, 2)) == "L" and
+          forecast(((1, 1), (1, 0), 0, 0), (2, 1)) == "R")
+    check("forecast units: (0,1) at 1/3, 2/3, 1/2; (1,inf) at 2", ok)
+    g = class_of(classes, GREEDY)
+    sets = [argmin_by([loss(tr[row]) for _, _, tr in classes], cmp)
+            for row in ROWS9]
+    check("under the deficit the greedy class is common to all nine",
+          g in common(sets), f"common {sorted(common(sets))}")
+
+
+def side_hits(classes, deep, truths):
+    """hits[i][row] = list of 0/1 per counted step."""
+    out = []
+    for _, _, tr in classes:
+        per = {}
+        for row in ROWS9:
+            per[row] = [int(forecast(tr[row][n], mediant(deep[row][n])) ==
+                            truths[row][n - N0])
+                        for n in range(N0, N_MAIN)]
+        out.append(per)
+    return out
+
+
+def section_side(classes, hits):
+    section("P1 THE SIDE LOSS")
+    g = class_of(classes, GREEDY)
+    k = len(classes)
+    pure_sets, comp_sets = [], []
+    for row in ROWS9:
+        miss = [len(hits[i][row]) - sum(hits[i][row]) for i in range(k)]
+        vals = [(miss[i], loss(classes[i][2][row])) for i in range(k)]
+        ps = argmin_by(miss, int_cmp)
+        cs = argmin_by(vals, composite_cmp)
+        pure_sets.append(ps)
+        comp_sets.append(cs)
+        print(f"    {row[0] + '/' + row[1]:12s} least {min(miss):3d} "
+              f"most {max(miss):3d}  argmin {len(ps):2d} (composite "
+              f"{len(cs):2d})  greedy {'in' if g in ps else 'OUT'}")
+    check("no common class under the side loss",
+          not common(pure_sets), f"{sorted(common(pure_sets))}")
+    check("no common class under the composite order",
+          not common(comp_sets), f"{sorted(common(comp_sets))}")
+    out_rows = {row for row, s in zip(ROWS9, pure_sets) if g not in s}
+    want = {("id", "golden"), ("id", "eights"), ("sq", "golden"),
+            ("dbl", "golden"), ("dbl", "sqrt2"), ("dbl", "fib")}
+    check("greedy outside the side argmin on exactly the six rows",
+          out_rows == want, f"{sorted(out_rows)}")
+    least = {row: min(len(hits[i][row]) - sum(hits[i][row])
+                      for i in range(k)) for row in ROWS9}
+    check("least side loss 0 on eight rows, 47 on (dbl, fib)",
+          all(least[r] == 0 for r in ROWS9 if r[1] != "fib") and
+          least[("dbl", "fib")] == 47, f"fib {least[('dbl', 'fib')]}")
+    distinct = len({frozenset(s) for s in pure_sets})
+    check("the nine side argmin sets are pairwise distinct",
+          distinct == 9, f"{distinct} distinct sets")
+
+
+def section_reversal(classes, hits):
+    section("P2 THE REVERSAL")
+    g = class_of(classes, GREEDY)
+    gain = broken = loss_sites = 0
+    for row in ROWS9:
+        gtr = classes[g][2][row]
+        for i, (_, _, trs) in enumerate(classes):
+            tr = trs[row]
+            for j, n in enumerate(range(N0, N_MAIN)):
+                if hits[i][row][j] and not hits[g][row][j]:
+                    gain += 1
+                    if not (inside(gtr[n], tr[n]) and gtr[n] != tr[n]):
+                        broken += 1
+                if hits[g][row][j] and not hits[i][row][j]:
+                    loss_sites += 1
+    check("every class hitting where greedy misses strictly contains it",
+          broken == 0 and gain > 0,
+          f"{gain} sites, {broken} not containing")
+    check("and greedy also hits where some class misses",
+          loss_sites > 0, f"{loss_sites} sites")
+
+
+def section_one_bit(classes, hits):
+    section("P3 ONE BIT")
+    k = len(classes)
+    worst_pure = worst_comp = 0
+    for j in range(N_MAIN - N0):
+        ps, cs = [], []
+        for row in ROWS9:
+            miss = [1 - hits[i][row][j] for i in range(k)]
+            ps.append(argmin_by(miss, int_cmp))
+            cs.append(argmin_by([(miss[i], loss(classes[i][2][row]))
+                                 for i in range(k)], composite_cmp))
+        worst_pure += bool(common(ps))
+        worst_comp += bool(common(cs))
+    check("every position's one-bit loss leaves no common class",
+          worst_pure == 0 and worst_comp == 0,
+          f"{worst_pure} positions keep alone, {worst_comp} with deficit")
+
+
+def section_bands(classes):
+    section("P4 THE BANDS")
+    k = len(classes)
+    g = class_of(classes, GREEDY)
+    rf = class_of(classes, REFUSER)
+    vals = {(i, row): loss(classes[i][2][row])
+            for i in range(k) for row in ROWS9}
+    # positions: distinct values in the deficit order (infinite ties)
+    order = []
+    for v in vals.values():
+        if not any(cmp(v, w) == 0 for w in order):
+            order.append(v)
+    # insertion sort under cmp, exact
+    srt = []
+    for v in order:
+        at = len(srt)
+        for t, w in enumerate(srt):
+            if cmp(v, w) < 0:
+                at = t
+                break
+        srt.insert(at, v)
+    pos = {}
+    for key, v in vals.items():
+        pos[key] = next(t for t, w in enumerate(srt) if cmp(v, w) == 0)
+    P = len(srt)
+    hull = [(min(pos[(i, r)] for r in ROWS9), max(pos[(i, r)] for r in ROWS9))
+            for i in range(k)]
+    print(f"    {P} positions; greedy hull {hull[g]}, refuser hull {hull[rf]}")
+
+    def in_sets(member):
+        return [{i for i in range(k) if member(pos[(i, row)])}
+                for row in ROWS9]
+
+    clean = breakers = 0
+    first = None
+    for a in range(P):
+        for b in range(a, P):
+            sets = in_sets(lambda x: a <= x <= b)
+            if not all(0 < len(s) < k for s in sets):
+                continue
+            clean += 1
+            keep = bool(common(sets))
+            if not keep:
+                breakers += 1
+                first = first or (a, b)
+    check("some clean band has no common class", breakers > 0,
+          f"{clean} clean bands, {breakers} breakers, first {first}")
+    found = poleless = 0
+    specimen = None
+    for c in range(k):
+        ps = sorted({pos[(c, r)] for r in ROWS9})
+        for a, b in zip(ps, ps[1:]):
+            if b - a < 2:
+                continue
+            lo, hi = ps[0], ps[-1]
+            sets = in_sets(lambda x: lo <= x <= a or b <= x <= hi)
+            if not all(0 < len(s) < k for s in sets):
+                continue
+            com = common(sets)
+            found += 1
+            if g not in com and rf not in com:
+                poleless += 1
+                specimen = specimen or (c, (lo, a), (b, hi), sorted(com))
+    check("a clean union band keeps with neither pole common",
+          poleless > 0, f"{found} clean union bands, each keeping its "
+          f"seed class, {poleless} poleless")
+    if specimen:
+        c, b1, b2, com = specimen
+        print(f"    specimen: class {c} ({classes[c][0]}), bands {b1} "
+              f"and {b2}, common {com}")
+        print(f"    members: " + ", ".join(str(classes[i][0]) for i in com))
+
+
+def main():
+    imgs = images9(N_MAIN)
+    deep = images9(N_DEEP)
+    classes = build(imgs)
+    truths = {row: [truth_deep(deep[row], n) for n in range(N0, N_MAIN)]
+              for row in ROWS9}
+    section_controls(imgs, deep, classes, truths)
+    if not all(CHECKS):
+        print("\nA CONTROL FAILED: nothing below is read.")
+        sys.exit(1)
+    hits = side_hits(classes, deep, truths)
+    section_side(classes, hits)
+    section_reversal(classes, hits)
+    section_one_bit(classes, hits)
+    section_bands(classes)
+    print()
+    print(f"{sum(CHECKS)} of {len(CHECKS)} checks pass")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

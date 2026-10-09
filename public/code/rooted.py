@@ -1,0 +1,265 @@
+"""rooted.py -- whether a seed's negative factor vanishes at a point
+of roots of unity.
+
+QUESTION. A seed's core carries a Z-irreducible factor with a negative
+coefficient. A factor is TORSION-ROOTED when it vanishes at a tuple of
+roots of unity and TORSION-FREE otherwise; along one variable an
+irreducible factor is torsion-rooted exactly when it is a cyclotomic
+polynomial. A seed is FREE when some negative factor is torsion-free
+and ROOTED when none is; a free seed is MIXED when its core also
+carries a torsion-rooted factor, and FREE OUTRIGHT when no factor of
+its core is torsion-rooted.
+What is the least menu size, and the least degree along a line, of a
+free seed, and what decides a trinomial seed?
+
+THE ARGUMENT (written before the engine).
+  (1) SIZE 2 IS ROOTED. A size-2 core is 1 + X^d after the frame's
+      unimodular map (collide.py's size-2 criterion), and every factor
+      of 1 + X^d is a cyclotomic polynomial in X, which vanishes at a
+      root of unity.
+  (2) SIZE 3 IS FREE, BY HAND. (1 + x + x^2)(1 - x + x^3) = 1 + x^4 +
+      x^5, the core of the menu {2, 32, 64}. The cubic 1 - x + x^3 has
+      no rational root, so it is irreducible, and its odd degree makes
+      it no cyclotomic polynomial (only x - 1 and x + 1 have odd
+      degree). So the least size of a free seed is 3.
+  (3) THE TRINOMIAL RULE. A size-3 seed is collinear (collide.py's
+      size-3 criterion), so its core is 1 + x^a + x^b in the frame. By
+      Ljunggren's theorem (Math. Scand. 8 (1960) 65-70) its
+      non-cyclotomic part N is 1 or irreducible, so a trinomial seed is
+      free exactly when N is not 1 and has a negative coefficient, and
+      it is then mixed: a seed is reducible, so with N irreducible its
+      cyclotomic part is not 1.
+  (4) THE DEGREE FLOOR, a finite check: along a line, a 0/1 polynomial
+      with constant term 1 of degree at most 4 is reducible only with
+      every factor cyclotomic or nonnegative; degree 5 carries a free
+      seed, (2) being one.
+
+DESIGN. collide.py supplies the menu's polynomial; here everything
+else is one variable, factored with
+sympy, a factor tested cyclotomic by sympy's own test.
+  CONTROL: Phi_n for n = 1..30 read cyclotomic; 1 - x + x^3 and
+     x^2 - x - 1 read not.
+  SIZE2: 1 + x^d for d = 1..60, every factor cyclotomic.
+  SIZE3: 1 + x^4 + x^5 factored, and the menu {2, 32, 64}'s core.
+  TRINOMIAL: 1 + x^a + x^b for 0 < a < b <= 30: the number of
+     non-cyclotomic factors, with multiplicity, and the class of each
+     reducible one -- rooted, mixed, free outright -- and whether a
+     non-cyclotomic part N != 1 is ever nonnegative.
+  FLOOR: every 0/1 polynomial with constant term 1 and degree 1..6,
+     each class counted by degree.
+
+PREDICTIONS (fixed before the engine).
+  P1 CONTROL: 30 of 30 cyclotomic; the two others not.
+  P2 SIZE2: 60 of 60 all-cyclotomic.
+  P3 SIZE3: the two factors 1 + x + x^2 and x^3 - x + 1, the second
+     not cyclotomic and negative, so the seed is free, and mixed beside
+     Phi_3; the menu's core is the same polynomial.
+  P4 TRINOMIAL: at most one non-cyclotomic factor in every one of the
+     435 (Ljunggren); the free ones number 98 (TRANSPLANT: an earlier
+     count of the same range); how many are mixed, and whether any N
+     is nonnegative, is the measurement.
+  P5 FLOOR: no free seed at degree 4 or below; at degree 5 exactly 4
+     (TRANSPLANT, the same earlier count), 1 + x^4 + x^5 among them.
+
+KILLS. P1 is the positive control: if it misses, nothing after it is
+read. A non-cyclotomic factor of some 1 + x^d kills (1). Two
+non-cyclotomic factors in a trinomial contradicts the cited theorem
+and names the factoring engine. A free seed of degree at most 4 kills
+the floor.
+
+FINDINGS. Every prediction held and no kill fired.
+  P1 Phi_1..Phi_30 read cyclotomic, x^3 - x + 1 and x^2 - x - 1 not.
+  P2 1 + x^d for d = 1..60: every factor cyclotomic.
+  P3 1 + x^4 + x^5 = (x^2 + x + 1)(x^3 - x + 1), the cubic
+     non-cyclotomic and negative, so free and mixed; the menu {2, 32,
+     64} has that core on the prime 2.
+  P4 435 trinomials, at most one non-cyclotomic factor in any; 325 not
+     seeds, 12 rooted, 98 mixed, 0 free outright; no reducible
+     trinomial has a nonnegative non-cyclotomic part. None can be free
+     outright: a reducible trinomial's non-cyclotomic part is
+     irreducible, so its cyclotomic part is not 1.
+  P5 degrees 1 to 4 hold no free seed (rooted 0, 0, 1, 2); degree 5
+     holds 3 rooted and 4 mixed; degree 6, 3 and 2; none free
+     outright.
+Tiers: the least free size 3 and the trinomial rule are proved above;
+the least degree 5 is a rule, exhaustive over the 31 polynomials of
+degree at most 5.
+
+RUN RECORD. 6 of 6 checks, 0.2 s, peak commit 50 MB. The first run
+read MIXED as a free seed with a torsion-rooted NEGATIVE factor, and
+split the 98 free trinomials 24 mixed, 74 free outright; an audit
+restored the definition the size-5 reduction needs, any torsion-rooted
+factor, and every other print was unchanged.
+"""
+
+import os
+import sys
+import time
+from itertools import product
+
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+from sympy import Poly, cyclotomic_poly, symbols  # noqa: E402
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+from collide import GENS, menu_poly  # noqa: E402
+
+CHECKS = []
+X = symbols("x")
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f"  ({detail})" if detail else ""))
+
+
+def control(name, ok, detail=""):
+    check(name, ok, detail)
+    if not ok:
+        print("  control failed: run stopped")
+        raise SystemExit(1)
+
+
+def section(title):
+    print()
+    print(title)
+
+
+def uni(exps):
+    return Poly(sum(X ** e for e in exps), X)
+
+
+def split(f):
+    """Non-constant irreducible factors of f with multiplicity, each
+    normed to a positive leading coefficient, as (poly, cyclotomic?)."""
+    _, fl = f.factor_list()
+    out = []
+    for q, e in fl:
+        if q.degree() < 1:
+            continue
+        if q.LC() < 0:
+            q = -q
+        out += [(q, q.is_cyclotomic)] * e
+    return out
+
+
+def negative(q):
+    return any(c < 0 for c in q.coeffs())
+
+
+def kind(f):
+    """None when f is not a seed; else 'rooted', 'mixed' or 'outright'."""
+    fs = split(f)
+    if len(fs) < 2:
+        return None
+    neg = [cyc for q, cyc in fs if negative(q)]
+    if not neg:
+        return None
+    free = [c for c in neg if not c]
+    if not free:
+        return "rooted"
+    return "mixed" if any(c for _, c in fs) else "outright"
+
+
+def section_control():
+    section("CONTROL -- the cyclotomic test")
+    cyc = sum(Poly(cyclotomic_poly(n, X), X).is_cyclotomic
+              for n in range(1, 31))
+    others = [Poly(X ** 3 - X + 1, X).is_cyclotomic,
+              Poly(X ** 2 - X - 1, X).is_cyclotomic]
+    print(f"    Phi_1..Phi_30: {cyc} read cyclotomic; x^3 - x + 1 and "
+          f"x^2 - x - 1: {others}")
+    control("P1 the test reads 30 of 30 and neither other",
+          cyc == 30 and not any(others))
+
+
+def section_size2(top=60):
+    section("SIZE2 -- 1 + x^d")
+    good = sum(all(c for _, c in split(uni([0, d])))
+               for d in range(1, top + 1))
+    print(f"    d = 1..{top}: {good} with every factor cyclotomic")
+    check("P2 every factor of every 1 + x^d cyclotomic", good == top)
+
+
+def section_size3():
+    section("SIZE3 -- the least free size")
+    f = uni([0, 4, 5])
+    fs = split(f)
+    for q, c in fs:
+        print(f"    factor {q.as_expr()}: cyclotomic {c}, negative "
+              f"{negative(q)}")
+    menu = (2, 32, 64)
+    x0 = GENS[0]
+    same = menu_poly(menu) == Poly(x0 * (1 + x0 ** 4 + x0 ** 5), *GENS)
+    print(f"    menu {menu}: polynomial x0 (1 + x0^4 + x0^5), core "
+          f"1 + x^4 + x^5 on the prime 2: {same}")
+    want = {Poly(1 + X + X ** 2, X), Poly(X ** 3 - X + 1, X)}
+    check("P3 1 + x^4 + x^5 = Phi_3 (x^3 - x + 1), free", same
+          and {q for q, _ in fs} == want and kind(f) == "mixed")
+
+
+def section_trinomial(top=30):
+    section(f"TRINOMIAL -- 1 + x^a + x^b, b <= {top}")
+    tally = {None: 0, "rooted": 0, "mixed": 0, "outright": 0}
+    worst = 0
+    nonneg_n = 0
+    for b in range(2, top + 1):
+        for a in range(1, b):
+            f = uni([0, a, b])
+            fs = split(f)
+            noncyc = [q for q, c in fs if not c]
+            worst = max(worst, len(noncyc))
+            if len(fs) >= 2 and noncyc and not negative(noncyc[0]):
+                nonneg_n += 1
+                print(f"    nonnegative N: a = {a}, b = {b}, "
+                      f"N = {noncyc[0].as_expr()}")
+            tally[kind(f)] += 1
+    total = sum(tally.values())
+    free = tally["mixed"] + tally["outright"]
+    print(f"    {total} trinomials; most non-cyclotomic factors in one: "
+          f"{worst}; not seeds {tally[None]}, rooted {tally['rooted']}, "
+          f"mixed {tally['mixed']}, free outright {tally['outright']}; "
+          f"reducible with a nonnegative N: {nonneg_n}")
+    check("P4 Ljunggren: at most one non-cyclotomic factor", worst <= 1)
+    check("P4 98 free trinomial seeds", free == 98, f"{free}")
+
+
+def section_floor(top=6):
+    section(f"FLOOR -- every 0/1 polynomial of degree 1..{top}, f(0) = 1")
+    first = None
+    rows = {}
+    for deg in range(1, top + 1):
+        tally = {"rooted": 0, "mixed": 0, "outright": 0}
+        for mid in product((0, 1), repeat=deg - 1):
+            exps = [0] + [i + 1 for i, m in enumerate(mid) if m] + [deg]
+            k = kind(uni(exps))
+            if k:
+                tally[k] += 1
+        rows[deg] = tally
+        free = tally["mixed"] + tally["outright"]
+        if free and first is None:
+            first = deg
+        print(f"    degree {deg}: rooted {tally['rooted']}, mixed "
+              f"{tally['mixed']}, free outright {tally['outright']}")
+    at5 = rows[5]["mixed"] + rows[5]["outright"]
+    check("P5 least free degree 5, four there", first == 5 and at5 == 4,
+          f"first {first}, {at5} at degree 5")
+
+
+def main():
+    t0 = time.time()
+    section_control()
+    section_size2()
+    section_size3()
+    section_trinomial()
+    section_floor()
+    print()
+    n, ok = len(CHECKS), sum(CHECKS)
+    print(f"{ok} of {n} checks pass  [{time.time() - t0:.1f} s]")
+    return 0 if ok == n else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,737 @@
+"""machine.py -- the growth apparatus read as a machine: a state M, moves
+that multiply it, and the reads a program may make before it moves.
+What a program can decide about its own halting depends only on which
+read it holds.
+
+QUESTION. A growth walk only multiplies: M -> Mm. Read as a counter
+machine, the depths v_p(M) are counters that only rise, so the bare
+machine has no decrement. Is that the end of it, or does the same
+multiply-only world hold counters that fall? If it does, which reads
+of the state does a program need to be universal, and which reads
+leave it decidable?
+
+THE OBJECT. lambda is the Carmichael function, W(L) the wall (the
+largest M with lambda(M) | L, which is Adams' number; growth.py)
+and xi(M) = W(lambda(M))/M the headroom (headroom.py). A move m is
+TRANSPARENT at M when lambda(Mm) = lambda(M), which holds iff m |
+xi(M). An odd prime l is SEATED in M when l | M, and at a seated l,
+v_l(xi) = v_l(lambda) + 1 - v_l(M). A
+PROGRAM is a finite list of instructions over counters; Minsky's two
+instructions are INC(c) and DJZ(c): if counter c is zero go one way,
+else decrement it and go the other. Two counters with both are
+universal (Minsky 1967), cited.
+
+THE ARGUMENT (written before the engine).
+  (D) THE DEPTH MACHINE DECIDES. Take counters c_i = v_(p_i)(M), INC(i)
+      the push of p_i and the zero-test the presence read p_i | M. A
+      program over INC and the zero-test moves from (instruction,
+      zero-pattern) to the next such pair by a map that reads nothing
+      else, and a counter once nonzero stays nonzero. So the run's
+      projection to the finite set Q x {0, +}^eta is itself a
+      deterministic run there: it halts iff the projected run reaches
+      HALT, and otherwise it revisits a pair within |Q| 2^eta steps and
+      loops. Restore DJZ and the projection is unsound: the program
+      "at q0: zero -> HALT, else decrement to q1; at q1: zero -> LOOP,
+      else decrement to q0" halts from 2 and loops from 3, and both
+      runs start at the pair (q0, +).
+  (M) THE HEADROOM COUNTS BOTH WAYS. Fix odd primes l_1, ..., l_eta
+      seated in M and read the counter h_i = v_(l_i)(xi(M)).
+      DEC: push l = l_i. With a = v_l(M) before the push,
+      lambda(l^(a+1)) = l^a (l - 1) and (l - 1) already divides lambda,
+      so lambda moves only at l, to max(v_l(lambda), a); with v_l(M) up
+      by one, h_i goes to max(0, h_i - 1), and no other v(lambda) or
+      v(M) moves, so no sibling moves. (This is HEADROOM's ledger at a
+      prime move.)
+      ZERO-TEST: h_i = 0 iff l does not divide xi iff the push l is not
+      transparent, i.e. iff lambda(Ml) != lambda(M).
+      INC: push a prime q not dividing M with v_l(q - 1) = v_l(lambda)
+      + 1 and q not 1 mod any sibling l_j. lambda goes to lcm(lambda,
+      q - 1): v_l(lambda) rises by one, every sibling's is unchanged,
+      and v_l(M) and the siblings' v(M) are unchanged, so h_i rises by
+      one and nothing else counted moves. The conditions are
+      congruences to the coprime moduli l^(v_l(lambda)+2) and l_j, so
+      Dirichlet supplies such q at every state and every number of counters.
+      So pushes alone run any Minsky program on the headroom, reading
+      the zero-test off the transparency of one push: universal. The
+      increment is a SELECTOR, not a fixed move: its import is chosen from
+      v_l(lambda), and so is the padded decrement's below.
+  (S) WHICH READ PAYS. The three demands independence (gcd(m, M) = 1),
+      new idempotents (m has a prime M lacks) and semisimplicity (Mm
+      squarefree) answer, for a fixed m, as functions of the support of
+      M on the primes of m and of whether M is squarefree. Give a
+      program the same moves as (M): fixed pushes and the selectors above,
+      each selector's prime chosen off the fixed moves' primes (Dirichlet's
+      theorem still supplies one), else the import could flip a support
+      bit by the hidden v_l(lambda). A selector's import is a prime M
+      lacks, so on it independence and new idempotents answer yes and semisimplicity answers the
+      squarefree bit; on the padded decrement they answer no, yes, no.
+      So what these reads can see is (instruction, support on the
+      fixed moves' primes, the squarefree bit), each coordinate
+      write-once: finite, and (D)'s argument decides it. The comparison
+      with the sighted reads changes the read and nothing else. The
+      lambda-reading demands
+      (dynamics: lambda rises; new orders, the same predicate;
+      transparency, its complement) answer (M)'s zero-test exactly, so
+      a program holding one is universal.
+      AUTONOMY. If every move a program makes must itself be admissible
+      under the demand it reads, dynamics forbids the bare DEC (a
+      transparent push) but admits the PADDED DEC l q', q' a fresh
+      prime with q' not 1 mod any counter prime and (q' - 1) not
+      dividing lambda: lambda rises through q', q' carries no counter
+      prime into lambda, and the push of l does (M)'s decrement. INC
+      raises lambda by construction. So a dynamics-autonomous program
+      is universal. Transparency-autonomy is mortal: its reachable
+      states divide W(lambda(seed)) (growth.py, the three fates).
+
+THE PREDICTIONS (fixed before the engine ran).
+  P1 section_control: at every M <= 3000 and every odd l seated in M,
+     v_l(W(lambda(M))/M), computed from the wall itself, equals
+     v_l(lambda) + 1 - v_l(M).
+  P2 section_decide: on every program over two counters with at most
+     three instructions from a fixed family, HALT apart, from the
+     starts (0, 0), (0, 1), (1, 0) and (2, 3), the quotient decider's
+     verdict matches a direct run of |Q| 2^eta + 1 steps; the DJZ
+     program above halts from 0, 2, 4 and loops from 1, 3, 5, and as
+     a control the quotient gives its starts 2 and 3 one verdict.
+  P3 section_counters: DEC and the zero-test at every odd M <= 3000
+     and every seated odd l, INC at every odd M <= 1200, every seated
+     odd l and every odd prime q < 3000 not dividing M, with no
+     exception; siblings unmoved in every case.
+  P4 section_minsky: halts-iff-even, transfer and roundtrip, run on
+     pushes from the seed 15 (counters at 3 and 5, both 0) for x0 = 0
+     to 6, match a reference interpreter step for step, the counter
+     read off lambda and M equal to the reference counter at every
+     step; at 2, 3, 4 and 5 counters (3, 5, 7, 11, 13) every INC and
+     DEC moves its own counter by one and no sibling.
+  P5 section_square: 855 and 2565 (support {3, 5, 19}, neither
+     squarefree) read 1 and 0 at the counter prime 3; independence,
+     new idempotents and semisimplicity answer identically on both at
+     every 2 <= m <= 400, while dynamics answers the push 3 differently.
+     The three programs rerun dynamics-autonomously, with padded DEC,
+     match the reference, and every move made raises lambda.
+  P6 section_square (added at audit): on the moves the programs offer
+     (the bare push of a seated l, the INC import, the padded DEC) each
+     blind answer is fixed by the move's kind and the squarefree bit, by
+     construction: the import is fresh and l is seated. The zero-test
+     is not: over the runs it takes both values at some (counter,
+     squarefree bit) key.
+
+THE DESIGN. Pure Python. States are held as factorization dicts, so
+lambda and the counters are exact at any size; imports are found by
+search along q = 1 + l^(v_l(lambda)+1) t and certified by deterministic
+Miller-Rabin, exact below 3.3e24 (asserted). section_control and
+section_counters work from trial division and the wall's closed form,
+which is independent of the formula the Minsky engine reads.
+
+FINDINGS (entered after the run, from its printed output).
+  1. P1 hit: the formula holds at 5346 (M, seated odd l) cells, M <=
+     3000, 0 exceptions. The planted defect fires: from 15 the import
+     31, which is 1 mod both 3 and 5, moves both counters to 1, so the
+     State-based sibling checks of section_minsky can see a moved
+     sibling.
+  2. P2 hit: the quotient decider agrees with a direct run on 258,352
+     (program, start) cases, every INC/JZ program of up to three
+     instructions over two counters. Halts-iff-even with DJZ halts
+     from 0, 2, 4 and loops from 1, 3, 5, and the quotient answers
+     LOOP from both 2 and 3.
+  3. P3 hit: DEC, the zero-test and INC hold with 0 exceptions over
+     2816 DEC cells and 25,546 INC cells, and no sibling moves.
+  4. P4 hit: the three programs on pushes match the reference at
+     x0 = 0 to 6 (halts-iff-even H L H L H L H), the counter read at
+     every step; at 2 to 5 counters 56 more moves; all 266 shift
+     their own counter by exactly one and no sibling.
+  5. P5 hit: 855 and 2565 read 1 and 0 at 3; the three blind demands
+     answer alike on both at every 2 <= m <= 400; dynamics answers the
+     push 3 False and True. The autonomous runs match the reference, and
+     all 210 moves raise lambda.
+  6. P6 (added at audit, after the first green run, when the blind
+     half's proof was found to assume a finite move set the universal
+     machine does not use): over the autonomous runs the zero-test
+     takes both values at 3 of the 4 (counter, bit) keys.
+  Tiers: (D) and (M) are theorems, proved above, with universality
+  given Minsky's theorem and the imports' existence given Dirichlet's;
+  the engine checks the instruction set, never a claim over programs.
+
+RUN RECORD. 20 checks, 2.5 s, peak 17 MB. Two defects caught before the
+first run, on reading: a stray test in the import search, and a
+program enumerator whose later instructions could never jump back to
+the first. The planted-defect control was added after the first green
+run.
+"""
+
+import sys
+from itertools import product
+from math import gcd
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" +
+          (f"  ({detail})" if detail else ""))
+
+
+def section(title):
+    print()
+    print(title)
+
+
+# ----------------------------------------------------------------------
+# arithmetic
+
+MR_BASES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41)
+MR_LIMIT = 3317044064679887385961981
+
+
+def is_prime(n):
+    if n < 2:
+        return False
+    for p in MR_BASES:
+        if n % p == 0:
+            return n == p
+    assert n < MR_LIMIT, "Miller-Rabin bases not certified this high"
+    d, s = n - 1, 0
+    while d % 2 == 0:
+        d //= 2
+        s += 1
+    for a in MR_BASES:
+        x = pow(a, d, n)
+        if x in (1, n - 1):
+            continue
+        for _ in range(s - 1):
+            x = x * x % n
+            if x == n - 1:
+                break
+        else:
+            return False
+    return True
+
+
+def factor(n):
+    f, p = {}, 2
+    while p * p <= n:
+        while n % p == 0:
+            f[p] = f.get(p, 0) + 1
+            n //= p
+        p += 1
+    if n > 1:
+        f[n] = f.get(n, 0) + 1
+    return f
+
+
+def val(n, p):
+    v = 0
+    while n % p == 0:
+        n //= p
+        v += 1
+    return v
+
+
+def lcm_f(a, b):
+    out = dict(a)
+    for p, e in b.items():
+        if e > out.get(p, 0):
+            out[p] = e
+    return out
+
+
+def lam_pp_f(p, a, known=None):
+    """lambda(p^a) as a factor dict; known = factor dict of p - 1."""
+    if p == 2:
+        return {} if a == 1 else ({2: 1} if a == 2 else {2: a - 2})
+    f = dict(known if known is not None else factor(p - 1))
+    if a > 1:
+        f[p] = f.get(p, 0) + a - 1
+    return f
+
+
+def value(f):
+    out = 1
+    for p, e in f.items():
+        out *= p ** e
+    return out
+
+
+# ----------------------------------------------------------------------
+# the wall, from its closed form, for the small-scale sections
+
+def divisors(n):
+    ds = [1]
+    for p, e in factor(n).items():
+        ds = [d * p ** i for d in ds for i in range(e + 1)]
+    return ds
+
+
+def wall(L):
+    if L % 2:
+        return 2
+    w = 2 ** (val(L, 2) + 2)
+    for d in divisors(L):
+        p = d + 1
+        if p > 2 and is_prime(p):
+            w *= p ** (val(L, p) + 1)
+    return w
+
+
+def lam_int(M):
+    L = 1
+    for p, e in factor(M).items():
+        x = value(lam_pp_f(p, e))
+        L = L * x // gcd(L, x)
+    return L
+
+
+# ----------------------------------------------------------------------
+# section_control
+
+def section_control():
+    section("CONTROL -- the counter formula against the wall itself")
+    bad = cells = 0
+    for M in range(1, 3001):
+        L = lam_int(M)
+        xi = wall(L) // M
+        assert wall(L) % M == 0
+        for l in factor(M):
+            if l == 2:
+                continue
+            cells += 1
+            if val(xi, l) != val(L, l) + 1 - val(M, l):
+                bad += 1
+    print(f"  {cells} (M, seated odd l) cells, M <= 3000")
+    check("P1 v_l(xi) = v_l(lambda) + 1 - v_l(M) at every seated odd l",
+          bad == 0, f"{bad} exceptions")
+    st = State(15)
+    st.push_prime(31)
+    moved = (st.counter(3), st.counter(5))
+    print(f"  planted defect: from 15 the import 31 (30 = 2 3 5) moves "
+          f"the counters at 3 and 5 to {moved}")
+    check("P1 an import 1 mod a sibling moves that sibling",
+          moved == (1, 1))
+
+
+# ----------------------------------------------------------------------
+# section_decide: the depth machine and its quotient
+
+def run_direct(prog, counters, steps):
+    """INC/JZ/DJZ program; returns ('HALT'|'LOOP'|'OPEN', trace)."""
+    q, c, trace = 0, list(counters), []
+    for _ in range(steps):
+        ins = prog[q]
+        trace.append((q, tuple(x > 0 for x in c)))
+        if ins[0] == "HALT":
+            return "HALT", trace
+        if ins[0] == "LOOP":
+            return "LOOP", trace
+        if ins[0] == "INC":
+            c[ins[1]] += 1
+            q = ins[2]
+        elif ins[0] == "JZ":
+            q = ins[2] if c[ins[1]] == 0 else ins[3]
+        else:
+            if c[ins[1]] == 0:
+                q = ins[2]
+            else:
+                c[ins[1]] -= 1
+                q = ins[3]
+    return "OPEN", trace
+
+
+def decide(prog, counters):
+    """The quotient decider for INC/JZ programs."""
+    q, z, seen = 0, tuple(x > 0 for x in counters), set()
+    while (q, z) not in seen:
+        seen.add((q, z))
+        ins = prog[q]
+        if ins[0] == "HALT":
+            return "HALT"
+        if ins[0] == "LOOP":
+            return "LOOP"
+        if ins[0] == "INC":
+            z = tuple(True if i == ins[1] else b for i, b in enumerate(z))
+            q = ins[2]
+        else:
+            q = ins[2] if not z[ins[1]] else ins[3]
+    return "LOOP"
+
+
+def programs(n):
+    """Every INC/JZ program of n instructions over two counters, with
+    HALT at index n; targets range over 0..n."""
+    opts = []
+    for c in (0, 1):
+        for t in range(n + 1):
+            opts.append(("INC", c, t))
+        for x in range(n + 1):
+            for y in range(n + 1):
+                opts.append(("JZ", c, x, y))
+    for body in product(opts, repeat=n):
+        yield list(body) + [("HALT",)]
+
+
+HALTS_IFF_EVEN = [("DJZ", 0, 2, 1), ("DJZ", 0, 3, 0), ("HALT",),
+                  ("LOOP",)]
+
+
+def same_fate(verdict, run):
+    """The comparison P2 reads: halting in one iff halting in the other."""
+    return (verdict == "HALT") == (run == "HALT")
+
+
+def section_decide():
+    section("DECIDE -- the depth machine and its finite quotient")
+    out = {x: run_direct(HALTS_IFF_EVEN, (x,), 50) for x in range(6)}
+    print("  halts-iff-even with DJZ: " + " ".join(
+        f"{x}:{out[x][0]}" for x in range(6)))
+    check("P2 halts-iff-even halts from 0, 2, 4 and loops from 1, 3, 5",
+          all(out[x][0] == ("HALT" if x % 2 == 0 else "LOOP")
+              for x in range(6)))
+    v2, v3 = decide(HALTS_IFF_EVEN, (2,)), decide(HALTS_IFF_EVEN, (3,))
+    agrees = [same_fate(v, out[x][0]) for x, v in ((2, v2), (3, v3))]
+    check("P2 CONTROL the quotient gives the starts 2 and 3 one verdict, "
+          "and the comparison below fails on one", v2 == v3
+          and agrees.count(False) == 1, f"{v2} from both")
+    total = agree = 0
+    for n in (1, 2, 3):
+        for prog in programs(n):
+            k, Q = 2, len(prog)
+            for c0 in ((0, 0), (0, 1), (1, 0), (2, 3)):
+                total += 1
+                v = decide(prog, c0)
+                r, _ = run_direct(prog, c0, Q * 2 ** k + 1)
+                agree += same_fate(v, r)
+    print(f"  {total} (program, start) cases, up to three instructions")
+    check("P2 the quotient decider matches a direct run everywhere",
+          agree == total, f"{total - agree} disagreements")
+
+
+# ----------------------------------------------------------------------
+# the headroom machine: states as factor dicts
+
+class State:
+    """M and lambda(M) as factor dicts; pm1 holds each prime's p - 1."""
+
+    def __init__(self, seed):
+        self.m, self.lam, self.pm1 = {}, {}, {}
+        for p, e in factor(seed).items():
+            for _ in range(e):
+                self.push_prime(p)
+
+    def lam_after(self, p, pm1=None):
+        a = self.m.get(p, 0) + 1
+        known = pm1 if pm1 is not None else self.pm1.get(p)
+        return lcm_f(self.lam, lam_pp_f(p, a, known))
+
+    def push_prime(self, p, pm1=None):
+        if pm1 is not None:
+            self.pm1[p] = pm1
+        elif p not in self.pm1:
+            self.pm1[p] = factor(p - 1)
+        self.lam = self.lam_after(p, self.pm1[p])
+        self.m[p] = self.m.get(p, 0) + 1
+
+    def counter(self, l):
+        return self.lam.get(l, 0) + 1 - self.m.get(l, 0)
+
+    def transparent(self, l):
+        return self.lam_after(l) == self.lam
+
+
+def find_import(st, l, sibs, pad=False):
+    """A prime q, absent from M, with v_l(q - 1) = v_l(lambda) + 1 and
+    q not 1 mod any sibling (INC); with pad, q not 1 mod l or any
+    sibling and (q - 1) not dividing lambda (the padded DEC's fresh
+    prime)."""
+    v = st.lam.get(l, 0)
+    step = l ** (v + 1) if not pad else 2
+    t = 1
+    while True:
+        q = 1 + step * t
+        t += 1
+        if q in st.m or q in sibs or q == l:
+            continue
+        if not pad and (q - 1) % (l ** (v + 2)) == 0:
+            continue
+        if any((q - 1) % s == 0 for s in sibs):
+            continue
+        if pad and (q - 1) % l == 0:
+            continue
+        if not is_prime(q):
+            continue
+        f = factor_known(q - 1, l)
+        if pad and all(st.lam.get(p, 0) >= e for p, e in f.items()):
+            continue
+        return q, f
+
+
+def factor_known(n, l):
+    """Factor n = q - 1, stripping powers of l first (n = l^a t, t
+    small), then trial division."""
+    f = {}
+    while n % l == 0:
+        n //= l
+        f[l] = f.get(l, 0) + 1
+    for p, e in factor(n).items():
+        f[p] = f.get(p, 0) + e
+    return f
+
+
+# ----------------------------------------------------------------------
+# section_counters: the three laws at small scale, from the wall
+
+def section_counters():
+    section("COUNTERS -- DEC, the zero-test and INC, from the wall")
+    small_primes = [q for q in range(3, 3000) if is_prime(q)]
+    dec_bad = jz_bad = inc_bad = sib_bad = dec_n = inc_n = 0
+    xi_of = {}
+
+    def xi(M):
+        if M not in xi_of:
+            xi_of[M] = wall(lam_int(M)) // M
+        return xi_of[M]
+
+    for M in range(3, 3001, 2):
+        seated = [l for l in factor(M) if l != 2]
+        x = xi(M)
+        for l in seated:
+            c = val(x, l)
+            y = xi(M * l)
+            dec_n += 1
+            if val(y, l) != max(0, c - 1):
+                dec_bad += 1
+            if any(val(y, s) != val(x, s) for s in seated if s != l):
+                sib_bad += 1
+            if (c == 0) != (lam_int(M * l) != lam_int(M)):
+                jz_bad += 1
+        if M > 1200:
+            continue
+        L = lam_int(M)
+        for l in seated:
+            v = val(L, l)
+            for q in small_primes:
+                if M % q == 0 or val(q - 1, l) != v + 1:
+                    continue
+                if any((q - 1) % s == 0 for s in seated if s != l):
+                    continue
+                inc_n += 1
+                y = xi(M * q)
+                if val(y, l) != val(x, l) + 1:
+                    inc_bad += 1
+                if any(val(y, s) != val(x, s) for s in seated if s != l):
+                    sib_bad += 1
+    print(f"  {dec_n} DEC cells (odd M <= 3000), {inc_n} INC cells "
+          f"(odd M <= 1200, primes q < 3000)")
+    check("P3 DEC: the push l sends the counter to max(0, c - 1)",
+          dec_bad == 0, f"{dec_bad} exceptions")
+    check("P3 zero-test: counter 0 iff the push l moves lambda",
+          jz_bad == 0, f"{jz_bad} exceptions")
+    check("P3 INC: the import raises its counter by exactly one",
+          inc_bad == 0, f"{inc_bad} exceptions")
+    check("P3 no sibling counter moves under DEC or INC",
+          sib_bad == 0, f"{sib_bad} exceptions")
+
+
+# ----------------------------------------------------------------------
+# section_minsky: programs on pushes
+
+TRANSFER = [("DJZ", 0, 2, 1), ("INC", 1, 0), ("HALT",)]
+ROUNDTRIP = [("DJZ", 0, 2, 1), ("INC", 1, 0), ("DJZ", 1, 4, 3),
+             ("INC", 0, 2), ("HALT",)]
+PROGRAMS = (("halts-iff-even", HALTS_IFF_EVEN), ("transfer", TRANSFER),
+            ("roundtrip", ROUNDTRIP))
+
+
+def run_pushes(prog, x0, primes, autonomous=False, cap=200):
+    """Load x0 into counter 0 by INC, then run prog on pushes.
+    Returns (verdict, reference verdict, ok, stats)."""
+    st = State(value({p: 1 for p in primes}))
+    stats = {"moves": 0, "sib": 0, "own": 0, "lam_flat": 0,
+             "sighted": set()}
+
+    def sighted_reads():
+        """The zero-test of every counter, keyed by the counter and the
+        squarefree bit."""
+        sqf = all(e == 1 for e in st.m.values())
+        for i, l in enumerate(primes):
+            stats["sighted"].add((i, sqf, st.transparent(l)))
+
+    def inc(i):
+        l = primes[i]
+        sibs = [p for p in primes if p != l]
+        before = [st.counter(p) for p in primes]
+        lam0 = dict(st.lam)
+        q, f = find_import(st, l, sibs)
+        st.push_prime(q, f)
+        note(before, i, +1, lam0)
+
+    def dec(i):
+        l = primes[i]
+        before = [st.counter(p) for p in primes]
+        lam0 = dict(st.lam)
+        if autonomous:
+            q, f = find_import(st, l, [p for p in primes if p != l],
+                               pad=True)
+            st.push_prime(q, f)
+        st.push_prime(l)
+        note(before, i, -1, lam0)
+
+    def note(before, i, d, lam0):
+        stats["moves"] += 1
+        after = [st.counter(p) for p in primes]
+        stats["own"] += after[i] != before[i] + d
+        stats["sib"] += any(after[j] != before[j]
+                            for j in range(len(primes)) if j != i)
+        stats["lam_flat"] += st.lam == lam0
+
+    assert all(st.counter(p) == 0 for p in primes)
+    for _ in range(x0):
+        inc(0)
+    ref = [x0] + [0] * (len(primes) - 1)
+    q, ok = 0, True
+    for _ in range(cap):
+        ins = prog[q]
+        if ins[0] in ("HALT", "LOOP"):
+            break
+        c = ins[1]
+        if ins[0] == "INC":
+            inc(c)
+            ref[c] += 1
+            q = ins[2]
+        else:
+            sighted_reads()
+            zero = not st.transparent(primes[c])
+            if zero != (ref[c] == 0):
+                ok = False
+            if zero:
+                q = ins[2]
+            else:
+                dec(c)
+                ref[c] -= 1
+                q = ins[3]
+        if [st.counter(p) for p in primes] != ref:
+            ok = False
+    verdict = prog[q][0] if prog[q][0] in ("HALT", "LOOP") else "OPEN"
+    rv, _ = run_direct(prog, (x0,) + (0,) * (len(primes) - 1), cap)
+    return verdict, rv, ok, stats
+
+
+def section_minsky():
+    section("MINSKY -- three programs on pushes, from the seed 15")
+    all_ok, sib, own, moves = True, 0, 0, 0
+    for name, prog in PROGRAMS:
+        row = []
+        for x0 in range(7):
+            v, rv, ok, s = run_pushes(prog, x0, (3, 5))
+            all_ok &= ok and v == rv
+            sib += s["sib"]
+            own += s["own"]
+            moves += s["moves"]
+            row.append(v[0])
+        print(f"  {name:15s} x0 = 0..6: {' '.join(row)}")
+    check("P4 every run matches the reference, counter read at every "
+          "step", all_ok)
+    many = 0
+    for k in (2, 3, 4, 5):
+        primes = (3, 5, 7, 11, 13)[:k]
+        st = State(value({p: 1 for p in primes}))
+        for rnd in range(3):
+            for i, l in enumerate(primes):
+                sibs = [p for p in primes if p != l]
+                before = [st.counter(p) for p in primes]
+                q, f = find_import(st, l, sibs)
+                st.push_prime(q, f)
+                after = [st.counter(p) for p in primes]
+                moves += 1
+                many += 1
+                sib += any(after[j] != before[j]
+                           for j in range(k) if j != i)
+                own += after[i] != before[i] + 1
+        for i, l in enumerate(primes):
+            before = [st.counter(p) for p in primes]
+            st.push_prime(l)
+            after = [st.counter(p) for p in primes]
+            moves += 1
+            many += 1
+            sib += any(after[j] != before[j] for j in range(k) if j != i)
+            own += after[i] != before[i] - 1
+    print(f"  2 to 5 counters (3, 5, 7, 11, 13): {many} moves")
+    check("P4 every move shifts its own counter by exactly one",
+          own == 0, f"{moves} moves in all, {own} off")
+    check("P4 no move shifts a sibling counter", sib == 0,
+          f"{moves} moves in all, {sib} off")
+
+
+# ----------------------------------------------------------------------
+# section_square: which read pays
+
+def independence(M, m):
+    return gcd(M, m) == 1
+
+
+def new_idempotents(M, m):
+    return any(M % p for p in factor(m))
+
+
+def semisimple(M, m):
+    return all(e == 1 for e in factor(M * m).values())
+
+
+def dynamics(M, m):
+    return lam_int(M * m) != lam_int(M)
+
+
+def section_square():
+    section("SQUARE -- the blind reads, the sighted read, autonomy")
+    a, b = 855, 2565
+    ca = val(wall(lam_int(a)) // a, 3)
+    cb = val(wall(lam_int(b)) // b, 3)
+    print(f"  {a} = {factor(a)}, {b} = {factor(b)}: counters at 3 read "
+          f"{ca} and {cb}")
+    check("P5 855 and 2565 read 1 and 0 at the counter prime 3",
+          (ca, cb) == (1, 0))
+    blind = {"independence": independence,
+             "new idempotents": new_idempotents,
+             "semisimplicity": semisimple}
+    for name, f in blind.items():
+        diff = sum(f(a, m) != f(b, m) for m in range(2, 401))
+        check(f"P5 {name} answers alike on both at every 2 <= m <= 400",
+              diff == 0, f"{diff} differences")
+    check("P5 dynamics answers the push 3 differently",
+          dynamics(a, 3) != dynamics(b, 3),
+          f"{dynamics(a, 3)} and {dynamics(b, 3)}")
+    all_ok, flat, moves = True, 0, 0
+    sighted = set()
+    for name, prog in PROGRAMS:
+        row = []
+        for x0 in range(7):
+            v, rv, ok, s = run_pushes(prog, x0, (3, 5), autonomous=True)
+            all_ok &= ok and v == rv
+            flat += s["lam_flat"]
+            sighted |= s["sighted"]
+            moves += s["moves"]
+            row.append(v[0])
+        print(f"  {name:15s} autonomous, x0 = 0..6: {' '.join(row)}")
+    check("P5 the autonomous runs match the reference", all_ok)
+    check("P5 every move made raises lambda", flat == 0,
+          f"{moves} moves, {flat} leave lambda fixed")
+    both = {(i, b) for i, b, t in sighted if (i, b, not t) in sighted}
+    keys = {(i, b) for i, b, _ in sighted}
+    print(f"  the zero-test takes both values at {len(both)} of {len(keys)} "
+          f"(counter, squarefree bit) keys")
+    check("P6 the sighted zero-test varies at a (counter, bit) key",
+          len(both) > 0)
+
+
+def main():
+    section_control()
+    section_decide()
+    section_counters()
+    section_minsky()
+    section_square()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

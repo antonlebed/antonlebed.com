@@ -1,0 +1,761 @@
+"""
+torsion.py -- which torsion a plane curve over F_p holds, counted by its
+monomials and by its degree.
+
+QUESTION. Over F_p take a unit pair P = (a, b) whose torsion ORDER is
+m = lcm(ord a, ord b), and its Galois ORBIT, the pairs (a^u, b^u) for u
+a unit mod m (the orbits a reader of words cannot split, gates.py). A
+curve f(x, y) = 0 holds the orbit STABLY when every pair of the orbit
+lies on it. Which orders m can a curve hold stably, given s monomials,
+or given degree D?
+
+THE ARGUMENT (written before this script).
+  (1) THE FIBER CRITERION. Fix theta of order m and write
+      P = (theta^A, theta^B), gcd(A, B, m) = 1. The monomial x^i y^j
+      takes the value theta^(A*i + B*j), so f(a^t, b^t) = F(theta^t)
+      where the COLLECTED FIBER F(T) = sum_e c_e T^e in
+      F_p[T]/(T^m - 1) sums f's coefficients over each exponent class
+      e = A*i + B*j mod m. As u runs over the units, theta^u runs over
+      the primitive m-th roots, the roots of Phi_m, distinct in F_p.
+      So the orbit is held iff Phi_m divides F: either F = 0, when f
+      vanishes on the whole group <P> (the GROUP species), or F is a
+      nonzero codeword of the cyclic code (Phi_m) (the CODEWORD
+      species).
+  (2) THE MENU LAW. The minimum distance d of (Phi_m), m > 1, is
+      q_min(m), its least prime factor, in every field of
+      characteristic prime to m holding a primitive m-th root of
+      unity. Lower (the BCH bound): the units mod m hold
+      q_min - 1 consecutive integers (take t0 = 1 mod every prime of
+      m; t0 + k, k <= q_min - 2, is 1 + k mod each prime l | m, and
+      1 + k < l), and a nonzero sum of w <= q_min - 1 terms c_e*zeta^(e*t)
+      cannot vanish at w consecutive t (a Vandermonde determinant in
+      the distinct nodes zeta^e). Upper: the q-GON
+      (T^m - 1)/(T^(m/q) - 1) = sum_(h<q) T^(h*m/q), q = q_min(m),
+      vanishes at every primitive root. Weight 2 exists iff m is even
+      (the ANTIPODAL word T^e (1 + T^(m/2))); weight 1 never. So some
+      curve with at most s monomials holds codeword torsion of order m
+      iff q_min(m) <= s, the one-variable q-gon realizing it.
+  (3) THE PENTAGON. The conic y^2 + x*y + x + y + 1 has five monomials,
+      exponents {0, A, B, A + B, 2B}. At order 5, (Phi_5) is spanned by
+      1 + T + ... + T^4, so the orbit is held iff the five exponents are
+      all of Z/5 (coefficients all 1, sums of up to five 1s being
+      nonzero at p > 5). Scaling B to 1 leaves {0, A, 1, A + 1, 2}, which
+      is Z/5 only at A = 3: one orbit, (theta^u, theta^(2u)) in the
+      scaling (1, 2). So the conic holds exactly one order-5 orbit at
+      every p = 1 mod 5, an order no line holds (a line's codeword
+      orders are the even m and 3, by (6)).
+  (4) THE EXPONENT REDUCTION. A curve of degree <= D holds a
+      codeword-species orbit of order m iff some (A, B) with
+      gcd(A, B, m) = 1 has a nonzero (Phi_m)-codeword supported in the
+      TRIANGLE EXPONENT SET E(A, B, D) = {A*i + B*j mod m : i + j <= D}:
+      one monomial per exponent class carries any coefficient vector.
+      Joint scaling (A, B) -> (u*A, u*B) and the swap preserve the
+      question. D_min(m) is the least such D.
+  (5) THE PRIME ROW. At odd prime m = q, (Phi_q) is the line of the
+      all-ones word, so the triangle must COVER Z/q, and by scaling
+      A = 1. D_min(q) = kappa(q), THE TRIANGLE COVER NUMBER: the least D
+      with {i + B*j : i + j <= D} = Z/q for some B. It is the least
+      diameter of a directed double-loop network on Z/q with steps
+      1, B. Bracket: (D + 1)(D + 2)/2 >= q below; B = ceil(sqrt q) and
+      D = 2B - 1 above, whose rows [j*B, j*B + D - j], j <= B, chain
+      from 0 to B^2 + B - 1. The network literature's floor
+      ceil(sqrt(3q)) - 2 bounds kappa(q) below, and is not always met.
+  (6) THE REALIZABILITY LAW. D_min(m) = 1 at even m (the antipodal word,
+      A = m/2, B = 1); kappa(q) at odd prime m = q; and q_min(m) - 1 at
+      every other odd m. Upper: the q-gon at A = m/q, B = 1. Lower, at
+      D <= q - 2 (q = q_min(m)), by three mechanisms, all using THE
+      CLASS CAPACITY: for m'' | m, m'' > 1, a class mod m'' holds at
+      most D + 1 points of the triangle (each j <= D fixes i mod m'' when
+      A is a unit mod m''; otherwise a prime f | gcd(A, m'') makes B a
+      unit mod f, which pins j, and i then runs over one progression of
+      step 1 or of step > D).
+      (a) THE SQUARED-PRIME KILL, q^2 | m. Write m = Q*m', Q the q-part,
+          and slice c by the class x mod Q into words gamma_x on Z/m'.
+          For each unit k' of Z/m' the vector (gamma_x^(k'))_x is a
+          (Phi_Q)-codeword, and at Q = q^k, k >= 2, (Phi_Q) is the words
+          invariant under x -> x + Q/q. So gamma_x - gamma_(x+Q/q) lies in
+          (Phi_m'). Both slices sit in the class x mod q (Q/q is a
+          multiple of q), which holds at most D + 1 <= q - 1 exponents,
+          below q_min(m') (every prime of m' exceeds q): the difference
+          is 0. Then c is invariant under translation by m/q, its
+          support a union of cosets of the order-q subgroup, each coset
+          inside one class mod q: q points against a capacity of q - 1.
+          So c = 0. At m' = 1 and odd q this is the prime power
+          m = q^k, one of the other odd m of (6).
+      (b) THE TWO-PRIME MAJORITY, m = q*q'. By the CRT
+          c(e1, e2) = alpha(e1) + gamma(e2), e1 = e mod q, e2 = e mod q':
+          (Phi_m) is the words whose transform lives on the non-units,
+          the multiples of q or of q'. If A = 0, B = 0 or B = A mod q',
+          the triangle misses a class e2 = sigma mod q', so alpha =
+          -gamma(sigma) is constant and c is a function of e2 alone; an e2
+          with c != 0 fills its whole class mod q' (q cells) against
+          capacity q - 1, so c = 0. Otherwise the COVERAGE CAP
+          (coverage_cap.py) gives each class mod q' at most
+          floor((q - 2)/2) + 1 = (q - 1)/2 exponents, so for every e2
+          the value -gamma(e2) is taken by alpha at >= (q + 1)/2 of the
+          q residues: a strict majority, hence the same value nu at
+          every e2. Then c(e1, e2) = alpha(e1) - nu, and an e1 with
+          alpha(e1) != nu fills its whole class mod q (q' cells) against
+          capacity q - 1. So c = 0.
+      (c) THE GON THEOREM AND THE COSET COLLAPSE, Omega(m) >= 3 with
+          q^2 not dividing m. THE GON THEOREM: for odd M, every nonzero
+          word of (Phi_M) of weight below 2*q_min(M) is a SCALAR GON, one
+          constant on one coset of the order-t subgroup for a prime
+          t | M. Induction on the number of distinct primes of M. At a
+          prime power M = r^a a word's transform lives on the multiples
+          of r, so it is invariant under x -> x + M/r and weighs r times
+          the order-r cosets it meets: below 2r, one r-gon. Otherwise r
+          is M's largest prime, M = M' * r^a with M' > 1 prime to r, and
+          the r^a-slices are congruent mod (Phi_M') within each coset of
+          the order-r subgroup of Z/r^a. A coset whose slices are equal
+          and nonzero costs r >= q_min; one holding two differing slices
+          costs q_min(M') = q_min(M); so below 2*q_min exactly one coset
+          is nonzero. Equal slices: c is invariant under the order-r
+          translation, one r-gon. Differing, one zero: every nonzero
+          slice is in (Phi_M') and costs >= q_min, so exactly one
+          survives, a gon of M' by induction and so of M. Differing,
+          none zero: r slices weigh >= (r - 2) + q_min >= 2*q_min, M'
+          having a prime below r, so r >= q_min + 2. THE COSET COLLAPSE: slice
+          c by x mod q, M = m/q. Slice differences are (Phi_M)-words of
+          weight <= 2(D + 1) < 2*q_min(M), so gons or 0, and all
+          multiples of ONE gon G (two different gons sum to weight
+          >= 2*q_min(M) - 2 > 2q - 2). Off supp(G) the slices agree, and a
+          nonzero common value fills a class mod M (q cells) against
+          capacity q - 1; so supp(c) lies in one coset of the order-t*q
+          subgroup, one class mod m/(t*q) > 1, with capacity q - 1
+          below the minimum distance q. So c = 0.
+
+DESIGN. Sections of checks printing PASS or FAIL, a control first.
+Codewords are found by a KERNEL: a nonzero vector on a support E with
+sum_e c_e zeta^(u*e) = 0 at every unit u, by row reduction over F_p at
+the least prime p = 1 mod m; a found vector is re-checked as a codeword.
+  F  the fiber criterion at p = 7, 11, 13, 31: every unit pair against
+     a battery (every line x + y = eta, the pentagon conic, x^2*y - 1,
+     x*y + 1, x^8 + x^4 + 1, and 24 seeded random curves of degree
+     <= 4), the brute-force orbit test against the collected fiber's
+     remainder mod Phi_m, and the species against a brute-force test on
+     the whole group. CONTROL: the lines reproduce the skeleton of
+     gates.py.
+  M  the menu law: the longest run of units mod m is q_min(m) - 1 for
+     m = 2 .. 3000; the q-gon is a multiple of Phi_m for m = 2 .. 60;
+     no codeword of weight below q_min(m) at m = 9, 15, 21, 25, 35, 45
+     by exhaustion over supports through 0; weight 2 exactly at even m
+     <= 30.
+  P  the pentagon at p = 11, 31, 41, 61: the order-5 pairs it holds
+     are one orbit, (theta^u, theta^(2u)), all codeword species.
+  R  the exponent reduction by brute force over every line and every
+     pair of order m at (m, p) = (3, 7) and (9, 19), at degree 1, the
+     scaling classes of the event pairs (their logs to a generator of
+     order m) against the kernel's live classes.
+  K  the prime row: kappa(q) for the odd primes q <= 149, the bracket,
+     kappa(q) <= q - 2, the network floor, and the kernel against the
+     cover at q = 5, 7, 11, 13 on both sides of kappa(q).
+  L  the law: exclusion at D = q_min - 2 over every scaling class and a
+     realization at D = q_min - 1 rebuilt as an actual curve on an
+     actual orbit, at the prime powers 9, 25, 27, 49, 81, 121 and the
+     composites 15, 21, 33, 35, 45, 55, 63, 75, 77, 99, 105, 143, 221;
+     the even row at m = 20; the conics row and the degree menu.
+  T  the two-prime majority at m = 143 and 221: every scaling class
+     either misses a class mod q' or has every class mod q' at
+     <= (q - 1)/2 exponents.
+  G  the gon theorem at M = 143, 169 and 1859 (a full coset carries
+     exactly a scalar gon, the coset less a point nothing, and 30 random
+     gon-free supports of size 2*q_min - 1 nothing), and the coset
+     collapse's census: every scaling class at m = 385 (D = 3) and
+     1001 (D = 5), and 60 seeded draws (A, B) each at
+     2431 = 11*13*17 and 1859 = 11*13^2 (D = 9).
+
+PREDICTIONS (fixed before the run). Every check passes, and the
+numbers the old records printed return: kappa(q) for q = 3 .. 149 reads
+1, 2, 3, 4, 5, 6, 6, 7, 8, 8, 9, 10, 10, 10, 12, 12, 12, 14, 13, 14, 14,
+14, 16, 16, 16, 17, 16, 17, 17, 18, 18, 20, 19, 20, with 28 of the 34 on
+the network floor and the other six one above; the conics row is
+the even orders, 5 and the multiples of 3.
+
+RESULTS (the run below; 42 of 42 checks pass, 7.6 s, peak commit
+144 MB, the census of every class at m = 1001 being the peak).
+  F  the lines give the skeleton exactly at p = 7, 11, 13, 31, the
+     control, which stops the run on a failure; 64,164 curve-pair tests,
+     the criterion agreeing with brute force at every one (109 group
+     and 447 codeword events).
+  M  the unit run is q_min(m) - 1 at every m <= 3000; the q-gon divides
+     at every m <= 60; no light codeword at the six moduli; weight 2 at
+     exactly the even m <= 30.
+  P  one order-5 orbit at each of p = 11, 31, 41, 61, codeword species.
+  R  m = 3: 12 events, the lines c(1 + x + y) on (2, 4) and (4, 2), 36
+     of the group species, the events' one class (1, 2) the kernel's one
+     live class; m = 9: none over 72 pairs and every line.
+  K  kappa as predicted; off the network floor, one above it, at
+     q = 53, 67, 73, 89, 103, 137.
+  L  the law at all nineteen odd moduli (the largest census 128
+     classes at m = 221, p = 443) and the even row; the law's D_min for
+     odd m <= 61, the formula read with kappa, reads 3:1 5:2 7:3 9:2
+     11:4 13:5 15:2 17:6 19:6 21:2 23:7 25:4 27:2 29:8 31:8 33:2 35:4
+     37:9 39:2 41:10 43:10 45:2 47:10 49:6 51:2 53:12 55:4 57:2 59:12
+     61:12. The conics row is read off the law at every m from 2 to
+     121, even m entering at degree 1.
+  T  m = 143: 19 classes miss a class mod 13 and 67 are capped at 5;
+     m = 221: 22 miss one mod 17 and 106 are capped at 6.
+  G  the gon theorem at the three moduli; no codeword at D = q_min - 2
+     over all 292 classes at 385 and all 676 at 1001, nor over the 60
+     seeded draws (A, B) at each of 2431 and 1859.
+
+"""
+
+import random
+from math import ceil, gcd, isqrt
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" +
+          (f"  [{detail}]" if detail else ""))
+
+
+def is_prime(n):
+    return n >= 2 and all(n % k for k in range(2, isqrt(n) + 1))
+
+
+def factor(n):
+    fs, k = {}, 2
+    while k * k <= n:
+        while n % k == 0:
+            fs[k] = fs.get(k, 0) + 1
+            n //= k
+        k += 1
+    if n > 1:
+        fs[n] = fs.get(n, 0) + 1
+    return fs
+
+
+def qmin(n):
+    return min(factor(n))
+
+
+def units(n):
+    return [u for u in range(n) if gcd(u, n) == 1]
+
+
+def prime_1mod(m, start=2):
+    p = m + 1
+    while not (p >= start and is_prime(p)):
+        p += m
+    return p
+
+
+def element_of_order(m, p):
+    g = next(g for g in range(2, p)
+             if all(pow(g, (p - 1) // f, p) != 1 for f in factor(p - 1)))
+    return pow(g, (p - 1) // m, p)
+
+
+def order(x, p):
+    o, y = 1, x
+    while y != 1:
+        y, o = y * x % p, o + 1
+    return o
+
+
+_PHI = {}
+
+
+def phi_poly(m):
+    """Integer coefficients of Phi_m, lowest degree first."""
+    if m not in _PHI:
+        num = [-1] + [0] * (m - 1) + [1]
+        for e in range(1, m):
+            if m % e == 0:
+                num = divide(num, phi_poly(e))
+        _PHI[m] = num
+    return _PHI[m]
+
+
+def divide(a, b):
+    a, q = list(a), [0] * (len(a) - len(b) + 1)
+    for k in range(len(q) - 1, -1, -1):
+        q[k] = a[k + len(b) - 1] // b[-1]
+        for i, bi in enumerate(b):
+            a[k + i] -= q[k] * bi
+    assert not any(a), "inexact division"
+    return q
+
+
+def rem_mod_p(a, b, p):
+    a = [x % p for x in a]
+    inv = pow(b[-1] % p, p - 2, p)
+    for k in range(len(a) - len(b), -1, -1):
+        f = a[k + len(b) - 1] * inv % p
+        if f:
+            for i, bi in enumerate(b):
+                a[k + i] = (a[k + i] - f * bi) % p
+    return a[:len(b) - 1]
+
+
+class Code:
+    """The cyclic code (Phi_m) over F_p, p = 1 mod m."""
+
+    def __init__(self, m, p=None):
+        self.m, self.p = m, p or prime_1mod(m)
+        z = element_of_order(m, self.p)
+        self.z = [pow(z, t, self.p) for t in range(m)]
+        self.u = units(m)
+
+    def is_word(self, vec):
+        m, p = self.m, self.p
+        return all(sum(c * self.z[u * e % m] for e, c in vec.items()) % p == 0
+                   for u in self.u)
+
+    def kernel(self, E):
+        """A nonzero codeword supported in E, or None."""
+        m, p, E = self.m, self.p, list(E)
+        n, piv = len(E), {}
+        for u in self.u:
+            row = [self.z[u * e % m] for e in E]
+            for c, pr in piv.items():
+                if row[c]:
+                    f = row[c]
+                    row = [(x - f * y) % p for x, y in zip(row, pr)]
+            lead = next((c for c in range(n) if row[c]), None)
+            if lead is None:
+                continue
+            inv = pow(row[lead], p - 2, p)
+            row = [x * inv % p for x in row]
+            for c in piv:
+                f = piv[c][lead]
+                if f:
+                    piv[c] = [(x - f * y) % p for x, y in zip(piv[c], row)]
+            piv[lead] = row
+            if len(piv) == n:
+                return None
+        free = next(c for c in range(n) if c not in piv)
+        vec = {E[free]: 1}
+        for c, pr in piv.items():
+            if pr[free]:
+                vec[E[c]] = -pr[free] % p
+        assert self.is_word(vec)
+        return vec
+
+
+def tri(A, B, D, m):
+    return sorted({(A * i + B * j) % m for i in range(D + 1)
+                   for j in range(D + 1 - i)})
+
+
+def canon(A, B, m):
+    """The least pair in the class of (A, B) under scaling and swap."""
+    return min(min((u * A % m, u * B % m), (u * B % m, u * A % m))
+               for u in units(m))
+
+
+def classes(m):
+    """(A, B) with gcd(A, B, m) = 1, one per joint scaling and swap."""
+    seen, reps, us = set(), [], units(m)
+    for A in range(m):
+        for B in range(m):
+            if (A, B) in seen or gcd(gcd(A, B), m) != 1:
+                continue
+            for u in us:
+                seen.add((u * A % m, u * B % m))
+                seen.add((u * B % m, u * A % m))
+            reps.append((A, B))
+    return reps
+
+
+# ---------------------------------------------------------------- F
+
+
+def fiber_verdicts(f, a, b, p):
+    """(held, species) by brute force, and by the collected fiber."""
+    m_a, m_b = order(a, p), order(b, p)
+    m = m_a * m_b // gcd(m_a, m_b)
+    val = lambda t: sum(c * pow(a, i * t, p) * pow(b, j * t, p)
+                        for i, j, c in f) % p
+    held = all(val(u) == 0 for u in units(m))
+    group = all(val(t) == 0 for t in range(m))
+    th = element_of_order(m, p)
+    tab = {pow(th, e, p): e for e in range(m)}
+    A, B = tab[a], tab[b]
+    F = [0] * m
+    for i, j, c in f:
+        F[(A * i + B * j) % m] += c
+    F = [x % p for x in F]
+    zero = not any(F)
+    crit = zero or not any(rem_mod_p(F, phi_poly(m), p))
+    return (held, held and group), (crit, crit and zero), m
+
+
+def battery(p, rng):
+    out = [[(0, 0, -c % p), (1, 0, 1), (0, 1, 1)] for c in range(p)]
+    out += [[(0, 2, 1), (1, 1, 1), (1, 0, 1), (0, 1, 1), (0, 0, 1)],
+            [(2, 1, 1), (0, 0, -1)], [(1, 1, 1), (0, 0, 1)],
+            [(8, 0, 1), (4, 0, 1), (0, 0, 1)]]
+    for _ in range(24):
+        mons = rng.sample([(i, j) for i in range(5) for j in range(5 - i)],
+                          rng.randint(2, 6))
+        out.append([(i, j, rng.randrange(1, p)) for i, j in mons])
+    return out
+
+
+def skeleton(p):
+    """Stable points of x + y = c, c != 0, predicted by gates.py."""
+    pred = {}
+    for c in range(1, p):
+        pts = set()
+        if c == 2:
+            pts.add((1, 1))
+        if c == p - 2:
+            pts.add((p - 1, p - 1))
+        for z in range(1, p):
+            if order(z, p) in ((3,) if c == p - 1 else
+                               (6,) if c == 1 else ()):
+                pts.add((z, pow(z, p - 2, p)))
+        pred[c] = pts
+    return pred
+
+
+def section_f():
+    print("F  the fiber criterion")
+    rng = random.Random(82)
+    tests = bad = 0
+    skel = []
+    seen = {"group": 0, "codeword": 0}
+    for p in (7, 11, 13, 31):
+        pred, got = skeleton(p), {c: set() for c in range(1, p)}
+        for k, f in enumerate(battery(p, rng)):
+            for a in range(1, p):
+                for b in range(1, p):
+                    brute, crit, _ = fiber_verdicts(f, a, b, p)
+                    tests += 1
+                    bad += brute != crit
+                    if brute[0]:
+                        seen["group" if brute[1] else "codeword"] += 1
+                        if 1 <= k < p:
+                            got[k].add((a, b))
+        skel.append(got == pred)
+    check("F0 CONTROL: the lines' stable points are the skeleton",
+          all(skel), "p = 7, 11, 13, 31")
+    if not all(skel):
+        raise SystemExit("a control failed: no verdict is read")
+    check("F1 brute orbit test = collected-fiber criterion, species too",
+          bad == 0, f"{tests} curve-pair tests, {seen['group']} group and "
+          f"{seen['codeword']} codeword events")
+
+
+# ---------------------------------------------------------------- M
+
+
+def longest_unit_run(m):
+    best = run = 0
+    for t in range(1, 2 * m + 1):
+        run = run + 1 if gcd(t, m) == 1 else 0
+        best = max(best, run)
+    return best
+
+
+def section_m():
+    print("M  the menu law")
+    bad = [m for m in range(2, 3001) if longest_unit_run(m) != qmin(m) - 1]
+    check("M1 the longest run of units mod m is q_min(m) - 1",
+          not bad, "m = 2 .. 3000")
+    ok = True
+    for m in range(2, 61):
+        q = qmin(m)
+        gon = [1 if e % (m // q) == 0 else 0 for e in range(m)]
+        try:
+            divide(gon, phi_poly(m))
+        except AssertionError:
+            ok = False
+    check("M2 the q-gon is a multiple of Phi_m", ok, "m = 2 .. 60")
+    found = []
+    for m in (9, 15, 21, 25, 35, 45):
+        code, q = Code(m), qmin(m)
+        for w in range(1, q):
+            for rest in combos(range(1, m), w - 1):
+                if code.kernel((0,) + rest) is not None:
+                    found.append((m, w))
+    check("M3 no codeword below weight q_min(m), by exhaustion",
+          not found, "m = 9, 15, 21, 25, 35, 45")
+    w2 = [m for m in range(2, 31)
+          if any(Code(m).kernel((0, e)) is not None for e in range(1, m))]
+    check("M4 weight 2 exists exactly at even m",
+          w2 == list(range(2, 31, 2)), "m <= 30")
+
+
+def combos(pool, k):
+    pool = list(pool)
+    if k == 0:
+        yield ()
+        return
+    for i in range(len(pool)):
+        for rest in combos(pool[i + 1:], k - 1):
+            yield (pool[i],) + rest
+
+
+# ---------------------------------------------------------------- P
+
+
+def section_p():
+    print("P  the pentagon")
+    conic = [(0, 2, 1), (1, 1, 1), (1, 0, 1), (0, 1, 1), (0, 0, 1)]
+    ok = True
+    for p in (11, 31, 41, 61):
+        held = set()
+        for a in range(1, p):
+            for b in range(1, p):
+                (h, grp), _, m = fiber_verdicts(conic, a, b, p)
+                if h and m == 5:
+                    held.add((a, b))
+                    ok &= not grp
+        th = element_of_order(5, p)
+        orb = {(pow(th, u, p), pow(th, 2 * u, p)) for u in range(1, 5)}
+        ok &= held == orb
+    check("P1 one order-5 orbit (theta^u, theta^2u), codeword species",
+          ok, "p = 11, 31, 41, 61")
+
+
+# ---------------------------------------------------------------- R
+
+
+def line_events(m, p):
+    pairs = [(a, b) for a in range(1, p) for b in range(1, p)
+             if order(a, p) * order(b, p) // gcd(order(a, p), order(b, p))
+             == m]
+    us = units(m)
+    events, group = set(), set()
+    for c0 in range(p):
+        for c1 in range(p):
+            for c2 in range(p):
+                if c0 == c1 == c2 == 0:
+                    continue
+                for a, b in pairs:
+                    val = lambda t: (c0 + c1 * pow(a, t, p)
+                                     + c2 * pow(b, t, p)) % p
+                    if all(val(u) == 0 for u in us):
+                        whole = all(val(t) == 0 for t in range(m))
+                        (group if whole else events).add((c0, c1, c2, a, b))
+    return pairs, events, group
+
+
+def section_r():
+    print("R  the exponent reduction")
+    pairs, ev, grp = line_events(3, 7)
+    want = {(c, c, c, a, b) for c in range(1, 7) for a, b in ((2, 4), (4, 2))}
+    code = Code(3, 7)
+    live = [AB for AB in classes(3)
+            if code.kernel(tri(*AB, 1, 3)) is not None]
+    th = next(z for z in range(2, 7) if order(z, 7) == 3)
+    log = {pow(th, k, 7): k for k in range(3)}
+    held = {canon(log[a], log[b], 3) for *_, a, b in ev}
+    check("R1 m = 3, p = 7, degree 1: the lines c(1 + x + y) on "
+          "(2, 4), (4, 2), their one class the kernel's one live class",
+          ev == want and held == {canon(*AB, 3) for AB in live}
+          and len(live) == 1,
+          f"{len(ev)} events, {len(grp)} of the group species, "
+          f"live class {live}")
+    pairs, ev, grp = line_events(9, 19)
+    code = Code(9, 19)
+    live = [AB for AB in classes(9)
+            if code.kernel(tri(*AB, 1, 9)) is not None]
+    check("R2 m = 9, p = 19, degree 1: no codeword event, no live class",
+          not ev and not live, f"{len(pairs)} pairs, every line")
+
+
+# ---------------------------------------------------------------- K
+
+
+def covers(q, B, D):
+    return len({(i + B * j) % q for i in range(D + 1)
+                for j in range(D + 1 - i)}) == q
+
+
+def kappa(q):
+    D = 1
+    while not any(covers(q, B, D) for B in range(q)):
+        D += 1
+    return D
+
+
+KAPPA = [1, 2, 3, 4, 5, 6, 6, 7, 8, 8, 9, 10, 10, 10, 12, 12, 12, 14, 13,
+         14, 14, 14, 16, 16, 16, 17, 16, 17, 17, 18, 18, 20, 19, 20]
+
+
+def section_k():
+    print("K  the prime row")
+    qs = [q for q in range(3, 150) if is_prime(q)]
+    kap = {q: kappa(q) for q in qs}
+    print("       kappa: " + " ".join(f"{q}:{kap[q]}" for q in qs))
+    check("K1 kappa(q) for the 34 odd primes <= 149",
+          [kap[q] for q in qs] == KAPPA)
+    ok = True
+    for q in qs:
+        lo = next(D for D in range(q) if (D + 1) * (D + 2) // 2 >= q)
+        B = ceil(q ** 0.5)
+        ok &= lo <= kap[q] <= 2 * B - 1 and covers(q, B, 2 * B - 1)
+    check("K2 the bracket, count floor <= kappa(q) <= 2 ceil(sqrt q) - 1",
+          ok)
+    check("K3 kappa(q) <= q - 2, with equality only at q = 3",
+          [q for q in qs if kap[q] >= q - 2] == [3]
+          and all(kap[q] <= q - 2 for q in qs))
+    floor = {q: ceil((3 * q) ** 0.5) - 2 for q in qs}
+    on = [q for q in qs if kap[q] == floor[q]]
+    above = sorted({kap[q] - floor[q] for q in qs if q not in on})
+    check("K4 the network floor ceil(sqrt(3q)) - 2 holds, met at 28 of 34",
+          all(kap[q] >= floor[q] for q in qs) and len(on) == 28
+          and above == [1], f"off the floor: "
+          f"{[q for q in qs if q not in on]}")
+    ok = True
+    for q in (5, 7, 11, 13):
+        code = Code(q)
+        live = lambda D: any(code.kernel(tri(A, B, D, q)) is not None
+                             for A, B in classes(q))
+        ok &= live(kap[q]) and not live(kap[q] - 1)
+    check("K5 the kernel agrees with the cover on both sides of kappa",
+          ok, "q = 5, 7, 11, 13")
+
+
+# ---------------------------------------------------------------- L
+
+
+def curve_holds(code, D, A, B, vec):
+    """Rebuild the curve from the codeword; test it on the orbit."""
+    m, p = code.m, code.p
+    mons, used = [], set()
+    for i in range(D + 1):
+        for j in range(D + 1 - i):
+            e = (A * i + B * j) % m
+            if e in vec and e not in used:
+                mons.append((i, j, vec[e]))
+                used.add(e)
+    a, b = code.z[A % m], code.z[B % m]
+    if order(a, code.p) * order(b, code.p) // gcd(order(a, code.p),
+                                                  order(b, code.p)) != m:
+        return False
+    return used == set(vec) and all(
+        sum(c * pow(a, i * u, p) * pow(b, j * u, p) for i, j, c in mons)
+        % p == 0 for u in code.u)
+
+
+def law(m, kap):
+    if m % 2 == 0:
+        return 1
+    return kap[m] if is_prime(m) else qmin(m) - 1
+
+
+def section_l():
+    print("L  the realizability law")
+    for m in (9, 25, 27, 49, 81, 121, 15, 21, 33, 35, 45, 55, 63, 75, 77,
+              99, 105, 143, 221):
+        q, code, reps = qmin(m), Code(m), classes(m)
+        dead = all(code.kernel(tri(A, B, q - 2, m)) is None for A, B in reps)
+        A, B = m // q, 1
+        vec = code.kernel(tri(A, B, q - 1, m))
+        check(f"L m = {m}: no codeword at D = {q - 2}, a curve at "
+              f"D = {q - 1}",
+              dead and vec is not None and curve_holds(code, q - 1, A, B, vec),
+              f"{len(reps)} classes, p = {code.p}")
+    code = Code(20)
+    vec = code.kernel(tri(10, 1, 1, 20))
+    check("L even row: the antipodal curve at D = 1, nothing at D = 0",
+          vec is not None and curve_holds(code, 1, 10, 1, vec)
+          and all(code.kernel(tri(A, B, 0, 20)) is None
+                  for A, B in classes(20)), "m = 20")
+    kap = {q: kappa(q) for q in range(3, 122) if is_prime(q)}
+    conics = [m for m in range(2, 122) if law(m, kap) <= 2]
+    check("L conics, read off the law with kappa: the even orders, 5 and "
+          "the multiples of 3",
+          conics == [m for m in range(2, 122)
+                     if m % 2 == 0 or m % 3 == 0 or m == 5])
+    print("       the law's D_min, odd m <= 61: " + " ".join(
+        f"{m}:{law(m, kap)}" for m in range(3, 62, 2)))
+
+
+# ---------------------------------------------------------------- T
+
+
+def section_t():
+    print("T  the two-prime majority")
+    for m, q, q2 in ((143, 11, 13), (221, 13, 17)):
+        missed = capped = other = 0
+        for A, B in classes(m):
+            cnt = [0] * q2
+            for i in range(q - 1):
+                for j in range(q - 1 - i):
+                    cnt[(A * i + B * j) % q2] += 1
+            if min(cnt) == 0:
+                missed += 1
+            elif max(cnt) <= (q - 1) // 2:
+                capped += 1
+            else:
+                other += 1
+        check(f"T m = {m}: every class misses a class mod {q2} or is "
+              f"capped at {(q - 1) // 2}", other == 0,
+              f"{missed} missing, {capped} capped")
+
+
+# ---------------------------------------------------------------- G
+
+
+def gon_cosets(M):
+    out = []
+    for t in factor(M):
+        step = M // t
+        for r in range(step):
+            out.append(frozenset(r + k * step for k in range(t)))
+    return out
+
+
+def section_g():
+    print("G  the gon theorem and the coset collapse")
+    rng = random.Random(1859)
+    ok = True
+    for M in (143, 169, 1859):
+        code, qm = Code(M), qmin(M)
+        cos = gon_cosets(M)
+        for C in rng.sample(cos, 4):
+            vec = code.kernel(sorted(C))
+            ok &= vec is not None and set(vec) == set(C) \
+                and len(set(vec.values())) == 1
+            ok &= code.kernel(sorted(C)[1:]) is None
+        tried = 0
+        while tried < 30:
+            S = set(rng.sample(range(M), 2 * qm - 1))
+            if any(C <= S for C in cos):
+                continue
+            tried += 1
+            ok &= code.kernel(sorted(S)) is None
+    check("G1 below 2 q_min every word is a scalar gon", ok,
+          "M = 143, 169, 1859")
+    for m, sample in ((385, None), (1001, None), (2431, 60), (1859, 60)):
+        q, code = qmin(m), Code(m)
+        if sample is None:
+            reps = classes(m)
+        else:
+            rr = random.Random(m)
+            reps = []
+            while len(reps) < sample:
+                A, B = rr.randrange(m), rr.randrange(m)
+                if gcd(gcd(A, B), m) == 1:
+                    reps.append((A, B))
+        live = [AB for AB in reps if code.kernel(tri(*AB, q - 2, m))]
+        check(f"G m = {m}: no codeword at D = {q - 2}", not live,
+              f"{len(reps)} " + ("seeded draws (A, B)" if sample else
+                                 "classes"))
+
+
+def main():
+    section_f()
+    section_m()
+    section_p()
+    section_r()
+    section_k()
+    section_l()
+    section_t()
+    section_g()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

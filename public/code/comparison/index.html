@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>comparison.py | Numbers read one place at a time</title>
+<meta name="description" content="comparison.py">
+<link rel="alternate" type="text/x-python" href="/code/comparison.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>comparison.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/machine/#one-form-decides-and-two-can-run-minsky">MACHINE: One form decides and two can run Minsky</a> (theorem); <a href="/machine/#two-places-at-the-ratios-1-and-αβ-run-fractran">MACHINE: Two places at the ratios 1 and α/β run FRACTRAN</a> (theorem).</p><p>Cited on: <a href="/machine/">MACHINE</a>.</p><p>To run it: no other script; standard library only.</p></div>
+<pre>"""comparison.py -- what a multiply-only machine buys when its tests
+compare depths: one linear form decides, two forms can run Minsky
+(differences at three places), and at exactly two places the ratios 1:1
+and alpha:beta run FRACTRAN.
+
+QUESTION. machine.py decides every program over pushes and presence
+reads, since a depth v_p(M) only rises and a presence bit flips once.
+Keep the moves (every move multiplies M by a prime, no depth ever
+falls) and let the tests COMPARE depths: the three-way sign of
+alpha*v_p - beta*v_q - gamma at fixed integers alpha, beta &gt;= 1 and
+finitely many offsets gamma. A comparison can flip back and forth as
+the two depths leapfrog, so machine.py's argument dies. What is
+decided now, and what is universal?
+
+THE OBJECT. States M = 2^a 3^b 5^c. A PROGRAM is a list of
+instructions: PUSH p (M -&gt; Mp, then a fixed next instruction), CMP
+gamma (the sign of f - gamma, f a linear form of the depths, three
+targets), HAS p (does p divide M, two targets), HALT. A FORM is
+f = alpha*v_p - beta*v_q.
+
+THE ARGUMENT (written before the engine).
+  (1) ONE FORM DECIDES. Let every CMP read one form f = alpha*a - beta*b,
+      any offsets, beside any HAS reads. The state that matters is
+      (instruction, presence bits, f): a push moves f by alpha, -beta
+      or 0 and sets one bit, the bits only rise, and every test reads
+      the triple. Let lo, hi be the least and largest offset and S =
+      max(alpha, beta). While f &gt; hi every CMP answers "greater", so
+      the instruction and the bits move by a map that reads nothing
+      but themselves: from the current pair they trace a path that
+      halts or enters a cycle within |Q| 2^3 steps, and the cycle
+      moves f by a fixed drift C. If C &gt;= 0 the run never comes back
+      below hi (a halt on the prefix aside); if C &lt; 0 it comes back at
+      a point computed exactly, whole cycles skipped. Below lo the
+      same with the sides swapped. Every return lands f in
+      [lo - S, hi + S], so after the first excursion the triples the
+      run can occupy at a return or inside [lo, hi] are finitely many:
+      the run halts or repeats one, and halting decides. One class
+      per value of f survives in the coarsest equivalence, since
+      pushes move f both ways and the offsets separate every value by
+      how many pushes it takes to cross one: infinitely many classes,
+      and a decision all the same.
+  (2) TWO FORMS RUN MINSKY. Read X = v_2 - v_3 and Y = v_3 - v_5 by
+      equality. PUSH 2 raises X; PUSH 3 then PUSH 5 lowers X and
+      leaves Y; PUSH 3 then PUSH 2 raises Y and leaves X; PUSH 5
+      lowers Y. So a two-counter machine (Minsky 1967, cited) runs on
+      X and Y with every move a multiplication: the depths are
+      monotone and a DIFFERENCE of monotone depths is a counter that
+      a push lowers. Both (1) and (2) keep one class per value, so the
+      class count does not grade them; the number of independent
+      forms read does.
+  (3) THE CONE. At exactly two places, (c, d) = (v_p, v_q), the two
+      moves add (1, 0) and (0, 1), so under any two independent
+      linear forms the displacements a program can make lie in the
+      cone of two vectors, at most a half-plane, which cannot hold
+      both signs of two coordinates. The counters of (2) have no
+      linear encoding there. (Proof only.)
+  (4) A CYCLE READS A RESIDUE. Two places, forms G = c - d and
+      F = alpha*c - beta*d, gcd(alpha, beta) = 1, alpha &gt; beta. At
+      HOME c = d = u, F = (alpha - beta)*u. Walk a word of c-steps
+      (F + alpha) and d-steps (F - beta) cyclically until F reads a
+      chosen offset, then take c-steps until G reads 0: the new home
+      is d. A cycle with a c-steps and b d-steps drops F by D = b*beta
+      - a*alpha. At step K*L + j (L the word's length) F reads F0 -
+      K*D + off_j, so the first hit of the offset sits at the least
+      such time, and the landing is rho*u + s_j with rho = 1 +
+      b*(alpha - beta)/D and s_j fixed by the substep j that fired.
+      THE READ WORD (c^(beta-1) d^(alpha-1))^k has D = k*(alpha - beta)
+      and rho = alpha, and its d-steps visit alpha - 1 consecutive
+      multiples of alpha mod alpha - beta, coprime to alpha, so the
+      offsets of one cycle cover every residue mod D: it fires for
+      every u, and the substep that fires reads u mod k.
+  (5) A BLOCK MULTIPLIES. The word c^a d^b with a = p*beta - q*alpha,
+      b = alpha*(p - q) has rho = p/q and D = alpha*q*(alpha - beta);
+      its d-steps visit b consecutive multiples of beta mod D, so with
+      q coprime to beta it fires for every u once b &gt;= D, that is
+      p/q &gt;= alpha - beta + 1. On q | u the landing is (p/q)*u + s_j.
+  (6) THE OFFSET IS ZEROED BY A TABLE. Fire at the offset X*D for X
+      large enough that every s_j (at that offset) is &lt;= 0; the
+      control, knowing j, walks w_j more whole cycles (each adds b)
+      and y_j more d-steps, w_j*b + y_j = -s_j, counting both in its
+      finite control, and goes home. The landing is exact.
+  (7) FRACTRAN RUNS. A FRACTRAN program (Conway 1987, cited) over
+      primes coprime to alpha*beta, each fraction padded by a power of
+      a prime J dividing alpha up to alpha - beta + 1, runs on the home
+      value: for each fraction in order READ u mod q_i (u -&gt; alpha*u,
+      J absorbing the alpha), and on q_i | u MULTIPLY by the padded
+      fraction; halt when none applies. Stripping J from u gives the
+      FRACTRAN state at every step. So two places read at 1:1 and
+      alpha:beta are universal.
+
+THE PREDICTIONS (fixed before the engine ran).
+  P1 section_one: at (alpha, beta) = (1, 1) and (3, 2), over every
+     program of two instructions (PUSH at 2, 3, 5; CMP at gamma in
+     {-1, 0, 1}; HAS at 2, 3, 5; HALT at index 2) and six starts
+     including two far outside the band, the decider of (1) returns
+     HALT at the exact step a direct run halts, and LOOP only where a
+     direct run of 200 steps does not halt. Zero disagreements.
+  P2 section_one (the positive control): the quotient of machine.py,
+     (instruction, bits, the sign vector of every CMP), read as if it
+     were finite, disagrees on at least one case with the decider of
+     (1), which P1 holds to the direct run.
+  P3 section_minsky: halts-iff-even from x = 0..6, a transfer and a
+     round trip, compiled by (2), match a reference two-counter
+     interpreter step for step, with (X, Y) equal to the counters at
+     every step.
+  P4 section_read: at (2, 1), (3, 2), (5, 2), (5, 3), (7, 3), every k
+     in 1..12 and u in 1..300, the read word fires, the fast walker
+     (whole cycles skipped) agrees with a literal step-by-step walk,
+     the landing minus alpha*u takes one value per class of u mod k,
+     and the firing substep determines u mod k.
+  P5 section_block: at 3:2 the blocks for p/q in {2, 4, 11/5, 21/5,
+     17/5, 33/7, 25/7, 23/11}, with their tables, land at exactly
+     (p/q)*u on 40 consecutive multiples of q, literal and fast
+     agreeing on the first 8. Below the threshold x11/7 fails to fire
+     exactly on the class u = 14 mod 21 among the multiples of 7 below
+     420 (the positive control on (5)).
+  P6 section_fractran: at 3:2 with J = 3, the adder 7/5 from 5^3 7^2
+     and Conway's multiplier relabelled onto 5, 7, 11, 13, 17, 19
+     from 5^2 7^3 and 5^3 7^2 run step for step with the reference
+     interpreter, J stripped, halting with it at 7^5, 11^6 and 11^6.
+
+THE KILLS (observables, fixed before the engine ran).
+  K1 any disagreement printed by P1 kills (1).
+  K2 P2 printing zero disagreements kills the positive control, and no
+     verdict of P1 is read.
+  K3 any step of P3 at which (X, Y) differs from the counters kills (2).
+  K4 a miss, a second offset on one class, or a fast/literal mismatch
+     in P4 kills (4); an off landing in P5 kills (5)-(6); a departure
+     in P6 kills (7).
+
+THE DESIGN. Pure Python. The first engine holds depths (a, b, c) and
+runs programs directly. The two-place engine holds (c, d) and a word;
+its literal walker moves one step at a time and reads only the sign of
+F against one offset and of G against 0, its control counting cycles
+and steps in finite memory; its fast walker solves for the first hit
+in closed form, which the literal one checks at small u and which runs
+the FRACTRAN programs, whose home values reach tens of digits.
+
+FINDINGS (entered after the run, from its printed output).
+  1. P1 hit: 164268 (program, ratio, start) cases, 73259 halting (70
+     after more than 40 steps), 1452 cycle skips taken by the decider,
+     0 disagreements with a direct run.
+  2. P2 hit: the finite quotient disagrees on 98 cases, so the check
+     in P1 can see a wrong decider.
+  3. P3 hit: 421 trace states over 21 runs, the looping ones cut at
+     80 steps, equal the reference; halts-iff-even halts at x = 0, 2,
+     4, 6 alone.
+  4. P4 hit: 18000 walks at five ratios, 0 faults.
+  5. P5 hit: 320 exact landings over eight blocks, 64 walked
+     literally; x11/7 misses 20 multiples of 7 below 420, exactly
+     those 14 mod 21.
+  6. P6 hit: the adder in 3 steps, the multiplier in 25 and 26,
+     step-exact, the final home values 8, 63 and 64 digits; padded
+     fractions 21/5 and 2717/119, 51/19, 81/17, 63/13, 17/5, 27/7.
+  Tiers: (1) is a theorem, proved above; (2) and (7) are theorems
+  given Minsky's and Conway's; (3) is a proof; the engine checks
+  instances.
+
+RUN RECORD. 10 checks, 7.5 s, peak 16 MB.
+"""
+
+import sys
+from fractions import Fraction
+
+CHECKS = []
+JUMPS = [0]
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" +
+          (f"  ({detail})" if detail else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+# ----------------------------------------------------------------------
+# one form: programs over the depths (a, b, c) at 2, 3, 5
+
+<span id="shift"></span>def shift(i, al, be):
+    return (al, -be, 0)[i]
+
+
+<span id="run_direct"></span>def run_direct(prog, v, al, be, steps):
+    """Step at which the run halts, or None within `steps`."""
+    q, v = 0, list(v)
+    for t in range(steps + 1):
+        ins = prog[q]
+        if ins[0] == "HALT":
+            return t
+        if ins[0] == "PUSH":
+            v[ins[1]] += 1
+            q = ins[2]
+        elif ins[0] == "HAS":
+            q = ins[2] if v[ins[1]] &gt;= 1 else ins[3]
+        else:
+            f = al * v[0] - be * v[1]
+            s = (f &gt; ins[1]) - (f &lt; ins[1])
+            q = ins[2 + s + 1]
+    return None
+
+
+<span id="ctrl"></span>def ctrl(prog, q, bits, sgn, al, be):
+    """One step of control; sgn(g) gives CMP g's sign. Returns
+    (next, drift, bits)."""
+    ins = prog[q]
+    if ins[0] == "PUSH":
+        b = list(bits)
+        b[ins[1]] = True
+        return ins[2], shift(ins[1], al, be), tuple(b)
+    if ins[0] == "HAS":
+        return (ins[2] if bits[ins[1]] else ins[3]), 0, bits
+    return ins[2 + sgn(ins[1]) + 1], 0, bits
+
+
+<span id="decide_one"></span>def decide_one(prog, v, al, be):
+    """The decider of (1). Returns ('HALT', step) or ('LOOP', None)."""
+    gs = [ins[1] for ins in prog if ins[0] == "CMP"] or [0]
+    lo, hi = min(gs), max(gs)
+    q, f, t = 0, al * v[0] - be * v[1], 0
+    bits = tuple(x &gt;= 1 for x in v)
+    seen = set()
+    while True:
+        if prog[q][0] == "HALT":
+            return "HALT", t
+        key = (q, bits, f)
+        if key in seen:
+            return "LOOP", None
+        seen.add(key)
+        if lo &lt;= f &lt;= hi:
+            q, d, bits = ctrl(prog, q, bits,
+                              lambda g: (f &gt; g) - (f &lt; g), al, be)
+            f, t = f + d, t + 1
+            continue
+        side = 1 if f &gt; hi else -1
+
+        def on(x):
+            return x &gt; hi if side == 1 else x &lt; lo
+
+        nodes, index, node, D = [], {}, (q, bits), 0
+        while node not in index and prog[node[0]][0] != "HALT":
+            index[node] = len(nodes)
+            nodes.append((node, D))
+            nq, d, nb = ctrl(prog, node[0], node[1], lambda g: side,
+                             al, be)
+            D += d
+            node = (nq, nb)
+        hit = next(((i, nd, Di) for i, (nd, Di) in enumerate(nodes)
+                    if not on(f + Di)), None)
+        if hit is None and node not in index:
+            if on(f + D):
+                return "HALT", t + len(nodes)
+            hit = (len(nodes), node, D)
+        if hit is None:
+            c0 = index[node]
+            L, C = len(nodes) - c0, D - nodes[c0][1]
+            if C * side &gt;= 0:
+                return "LOOP", None
+            JUMPS[0] += 1
+            best = None
+            for j in range(c0, len(nodes)):
+                Dj = nodes[j][1]
+                if side == 1:
+                    m = -(-(f + Dj - hi) // -C)
+                else:
+                    m = -(-(lo - f - Dj) // C)
+                cand = (j + m * L, nodes[j][0], Dj + m * C)
+                if best is None or cand[0] &lt; best[0]:
+                    best = cand
+            hit = best
+        i, (q, bits), Di = hit
+        f, t = f + Di, t + i
+
+
+<span id="decide_naive"></span>def decide_naive(prog, v, al, be):
+    """machine.py's quotient read as if finite: (q, bits, sign vector)."""
+    gs = sorted({ins[1] for ins in prog if ins[0] == "CMP"})
+    q, v, seen, t = 0, list(v), set(), 0
+    while True:
+        if prog[q][0] == "HALT":
+            return "HALT", t
+        f = al * v[0] - be * v[1]
+        key = (q, tuple(x &gt;= 1 for x in v),
+               tuple((f &gt; g) - (f &lt; g) for g in gs))
+        if key in seen:
+            return "LOOP", None
+        seen.add(key)
+        ins = prog[q]
+        if ins[0] == "PUSH":
+            v[ins[1]] += 1
+            q = ins[2]
+        elif ins[0] == "HAS":
+            q = ins[2] if v[ins[1]] &gt;= 1 else ins[3]
+        else:
+            q = ins[2 + ((f &gt; ins[1]) - (f &lt; ins[1])) + 1]
+        t += 1
+
+
+<span id="programs2"></span>def programs2():
+    n, tg = 2, range(3)
+    opts = [("PUSH", i, x) for i in range(3) for x in tg]
+    opts += [("CMP", g, x, y, z) for g in (-1, 0, 1)
+             for x in tg for y in tg for z in tg]
+    opts += [("HAS", i, x, y) for i in range(3) for x in tg for y in tg]
+    for a in opts:
+        for b in opts:
+            yield [a, b, ("HALT",)]
+
+
+<span id="section_one"></span>def section_one():
+    section("(1) one form decides; the finite quotient does not")
+    starts = [(0, 0, 0), (1, 0, 0), (0, 1, 1), (2, 3, 0), (25, 0, 0),
+              (0, 25, 1)]
+    cases = bad = naive_bad = halts = far = 0
+    for al, be in ((1, 1), (3, 2)):
+        for prog in programs2():
+            for v in starts:
+                verdict, T = decide_one(prog, v, al, be)
+                if verdict == "HALT":
+                    ok = run_direct(prog, v, al, be, T + 1) == T
+                    halts += 1
+                    far += T &gt; 40
+                else:
+                    ok = run_direct(prog, v, al, be, 200) is None
+                bad += not ok
+                cases += 1
+                nv = decide_naive(prog, v, al, be)
+                naive_bad += nv[0] != verdict
+    check("P1 the one-form decider matches a direct run", bad == 0,
+          f"{cases} cases, {halts} halting, {far} of them after more "
+          f"than 40 steps, {JUMPS[0]} cycle skips, {bad} "
+          f"disagreements")
+    check("P2 the finite quotient is wrong somewhere (positive control)",
+          naive_bad &gt; 0, f"{naive_bad} disagreements")
+
+
+# ----------------------------------------------------------------------
+# two forms: a two-counter machine on X = v2 - v3, Y = v3 - v5
+
+<span id="minsky_ref"></span>def minsky_ref(prog, x, steps):
+    """Reference two-counter run; trace of (q, x, y)."""
+    q, c, trace = 0, [x, 0], []
+    for _ in range(steps):
+        trace.append((q, c[0], c[1]))
+        ins = prog[q]
+        if ins[0] == "HALT":
+            break
+        if ins[0] == "INC":
+            c[ins[1]] += 1
+            q = ins[2]
+        elif c[ins[1]] == 0:
+            q = ins[3]
+        else:
+            c[ins[1]] -= 1
+            q = ins[2]
+    return trace
+
+
+<span id="minsky_depths"></span>def minsky_depths(prog, x, steps):
+    """The same program run by pushes and two equality reads."""
+    v, q, trace = [x, 0, 0], 0, []
+    for _ in range(steps):
+        trace.append((q, v[0] - v[1], v[1] - v[2]))
+        ins = prog[q]
+        if ins[0] == "HALT":
+            break
+        if ins[0] == "INC":
+            pushes = [0] if ins[1] == 0 else [1, 0]
+            q = ins[2]
+        elif (v[0] == v[1]) if ins[1] == 0 else (v[1] == v[2]):
+            pushes, q = [], ins[3]
+        else:
+            pushes = [1, 2] if ins[1] == 0 else [2]
+            q = ins[2]
+        for i in pushes:
+            v[i] += 1
+    return trace
+
+
+<span id="section_minsky"></span>def section_minsky():
+    section("(2) two forms run a two-counter machine")
+    even = [("DEC", 0, 1, 3), ("DEC", 0, 0, 2), ("INC", 1, 2),
+            ("HALT",)]
+    transfer = [("DEC", 0, 1, 2), ("INC", 1, 0), ("HALT",)]
+    trip = [("DEC", 0, 1, 2), ("INC", 1, 0), ("DEC", 1, 3, 4),
+            ("INC", 0, 2), ("HALT",)]
+    ok, n = True, 0
+    for name, prog in (("even", even), ("transfer", transfer),
+                       ("trip", trip)):
+        for x in range(7):
+            ref = minsky_ref(prog, x, 80)
+            got = minsky_depths(prog, x, 80)
+            ok &amp;= ref == got
+            n += len(ref)
+    halted = [minsky_ref(even, x, 80)[-1][0] == 3 for x in range(7)]
+    check("P3 the depth run equals the reference at every step",
+          ok, f"{n} trace states over 21 runs")
+    check("P3 halts-iff-even halts exactly at even x",
+          halted == [x % 2 == 0 for x in range(7)], str(halted))
+
+
+# ----------------------------------------------------------------------
+# two places: (c, d), forms G = c - d and F = al*c - be*d
+
+<span id="Word"></span>class Word:
+    def __init__(self, al, be, word):
+        self.al, self.be, self.w = al, be, word
+        self.L = len(word)
+        off, ca, cb, f, x, y = [0], [0], [0], 0, 0, 0
+        for s in word:
+            if s == "c":
+                f, x = f + al, x + 1
+            else:
+                f, y = f - be, y + 1
+            off.append(f)
+            ca.append(x)
+            cb.append(y)
+        self.off, self.ca, self.cb = off, ca, cb
+        self.D = -off[-1]
+        self.b = cb[-1]
+
+    def fire_fast(self, u, gamma):
+        """First t &gt;= 1 with F = gamma from home u: (t, c, d, j)."""
+        F0 = (self.al - self.be) * u
+        best = None
+        for j in range(1, self.L + 1):
+            num = F0 - gamma + self.off[j]
+            if num % self.D == 0 and num &gt;= 0:
+                K = num // self.D
+                t = K * self.L + j
+                if best is None or t &lt; best[0]:
+                    best = (t, K, j)
+        if best is None:
+            return None
+        t, K, j = best
+        return (t, u + K * self.ca[-1] + self.ca[j],
+                u + K * self.cb[-1] + self.cb[j], j)
+
+    def fire_literal(self, u, gamma, cap=10 ** 6):
+        """The same by single steps, reading only sign(F - gamma)."""
+        c = d = u
+        for t in range(1, cap):
+            if self.w[(t - 1) % self.L] == "c":
+                c += 1
+            else:
+                d += 1
+            F = self.al * c - self.be * d - gamma
+            if F == 0:
+                j = (t - 1) % self.L + 1
+                return t, c, d, j
+        return None
+
+
+<span id="Op"></span>class Op:
+    """A word with its table: fire at X*D, then w_j cycles and y_j
+    d-steps, then home. tag_j is what the class tells the control."""
+
+    def __init__(self, word, rho, samples, tagf):
+        self.W, self.rho = word, rho
+        s0 = {}
+        for u in samples:
+            r = word.fire_fast(u, 0)
+            if r is None:
+                raise ValueError("no fire")
+            s0.setdefault(r[3], set()).add(r[2] - rho * u)
+        self.single = all(len(s) == 1 for s in s0.values())
+        b, D = word.b, word.D
+        X = max(0, max(-(-max(s) // b) for s in s0.values()))
+        self.X, self.table = X, {}
+        for u in samples:
+            t, c, d, j = word.fire_fast(u, X * D)
+            s = int(d - rho * u)
+            w = (-s) // b
+            self.table.setdefault(j, set()).add((w, -s - w * b,
+                                                 tagf(u)))
+        self.consistent = all(len(v) == 1 for v in self.table.values())
+        self.table = {j: min(v) for j, v in self.table.items()}
+
+    def apply(self, u, literal=False):
+        W = self.W
+        r = (W.fire_literal if literal else W.fire_fast)(
+            u, self.X * W.D)
+        if r is None or r[3] not in self.table:
+            return None, None
+        t, c, d, j = r
+        w, y, tag = self.table[j]
+        if literal:
+            for _ in range(w * W.L):
+                pos = t % W.L
+                if W.w[pos] == "c":
+                    c += 1
+                else:
+                    d += 1
+                t += 1
+            d += y
+            assert c &lt;= d, "the c-steps cannot reach G = 0"
+            while c != d:
+                c += 1
+            return d, tag
+        return d + w * W.b + y, tag
+
+
+<span id="read_word"></span>def read_word(al, be, k):
+    return Word(al, be, ("c" * (be - 1) + "d" * (al - 1)) * k)
+
+
+<span id="block_word"></span>def block_word(al, be, p, q):
+    return Word(al, be, "c" * (p * be - q * al) + "d" * (al * (p - q)))
+
+
+<span id="section_read"></span>def section_read():
+    section("(4) the read word fires for every u and reads u mod k")
+    bad, n = 0, 0
+    for al, be in ((2, 1), (3, 2), (5, 2), (5, 3), (7, 3)):
+        for k in range(1, 13):
+            W = read_word(al, be, k)
+            byj, byr = {}, {}
+            for u in range(1, 301):
+                f = W.fire_fast(u, 0)
+                g = W.fire_literal(u, 0)
+                n += 1
+                if f is None or f != g:
+                    bad += 1
+                    continue
+                byj.setdefault(f[3], set()).add(u % k)
+                byr.setdefault(u % k, set()).add(f[2] - al * u)
+            bad += sum(len(s) &gt; 1 for s in byj.values())
+            bad += sum(len(s) &gt; 1 for s in byr.values())
+    check("P4 every read fires, fast = literal, one offset per class,"
+          " the substep reads u mod k", bad == 0,
+          f"{n} walks at five ratios, {bad} faults")
+
+
+BLOCKS = [(2, 1), (4, 1), (11, 5), (21, 5), (17, 5), (33, 7), (25, 7),
+          (23, 11)]
+
+
+<span id="make_block"></span>def make_block(al, be, p, q):
+    W = block_word(al, be, p, q)
+    base = 50 * W.D
+    samples = [q * w for w in range(base, base + 3 * W.D)]
+    return Op(W, Fraction(p, q), samples, lambda u: 0)
+
+
+<span id="make_read"></span>def make_read(al, be, k):
+    W = read_word(al, be, k)
+    base = 50 * W.D
+    samples = list(range(base, base + 3 * W.D * k))
+    return Op(W, al, samples, lambda u: u % k)
+
+
+<span id="section_block"></span>def section_block():
+    section("(5)-(6) the block multiplies exactly, the table zeroing it")
+    al, be = 3, 2
+    bad, n, lit = 0, 0, 0
+    for p, q in BLOCKS:
+        op = make_block(al, be, p, q)
+        bad += not (op.single and op.consistent)
+        u0 = q * (60 * op.W.D)
+        for i in range(40):
+            u = u0 + q * i
+            got, _ = op.apply(u)
+            n += 1
+            bad += got != Fraction(p, q) * u
+            if i &lt; 8:
+                lg, _ = op.apply(u, literal=True)
+                lit += 1
+                bad += lg != got
+    check("P5 eight blocks land at (p/q)u exactly", bad == 0,
+          f"{n} landings, {lit} of them walked literally, {bad} faults")
+    W = block_word(al, be, 11, 7)
+    miss = [u for u in range(7, 7 * 60, 7) if W.fire_fast(u, 0) is None]
+    check("P5 x11/7, below the threshold, misses exactly the class "
+          "14 mod 21", miss == [u for u in range(7, 7 * 60, 7)
+                                if u % 21 == 14],
+          f"{len(miss)} misses, first {miss[:3]}")
+
+
+<span id="fractran_ref"></span>def fractran_ref(prog, n, steps=200):
+    trace = [n]
+    for _ in range(steps):
+        for fr in prog:
+            if (n * fr).denominator == 1:
+                n = int(n * fr)
+                break
+        else:
+            return trace
+        trace.append(n)
+    return trace
+
+
+<span id="strip"></span>def strip(u, J):
+    while u % J == 0:
+        u //= J
+    return u
+
+
+<span id="fractran_two"></span>def fractran_two(prog, n, al, be, J, steps=200):
+    """Run on the home value: reads and padded blocks only."""
+    pads = []
+    for fr in prog:
+        e = 0
+        while fr * J ** e &lt; al - be + 1:
+            e += 1
+        pads.append(fr * J ** e)
+    ops = [(make_read(al, be, fr.denominator),
+            make_block(al, be, pd.numerator, pd.denominator))
+           for fr, pd in zip(prog, pads)]
+    assert all(rd.single and rd.consistent for rd, _ in ops)
+    u, trace = n, [n]
+    for _ in range(steps):
+        for rd, blk in ops:
+            u, r = rd.apply(u)
+            if r == 0:
+                u, _ = blk.apply(u)
+                break
+        else:
+            return trace, pads, u
+        trace.append(strip(u, J))
+    return trace, pads, u
+
+
+<span id="section_fractran"></span>def section_fractran():
+    section("(7) FRACTRAN on two places at 3:2")
+    F = Fraction
+    adder = [F(7, 5)]
+    conway = [F(11 * 13 * 19, 7 * 17), F(17, 19), F(1, 17), F(7, 13),
+              F(17, 5), F(1, 7)]
+    runs = [("adder", adder, 5 ** 3 * 7 ** 2, 7 ** 5),
+            ("multiplier", conway, 5 ** 2 * 7 ** 3, 11 ** 6),
+            ("multiplier", conway, 5 ** 3 * 7 ** 2, 11 ** 6)]
+    for name, prog, n, want in runs:
+        ref = fractran_ref(prog, n)
+        got, pads, u = fractran_two(prog, n, 3, 2, 3)
+        check(f"P6 {name} from {n}: {len(ref) - 1} steps, step-exact",
+              got == ref and ref[-1] == want,
+              f"final home value {len(str(u))} digits; padded "
+              f"{[str(p) for p in pads]}")
+
+
+<span id="main"></span>def main():
+    section_one()
+    section_minsky()
+    section_read()
+    section_block()
+    section_fractran()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/comparison.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

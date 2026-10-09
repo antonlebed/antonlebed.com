@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>chains.py | Numbers read one place at a time</title>
+<meta name="description" content="chains.py">
+<link rel="alternate" type="text/x-python" href="/code/chains.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>chains.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/redundant/#the-relative-gradient-law">REDUNDANT: The relative-gradient law</a> (property; rule); <a href="/redundant/#the-chained-delay">REDUNDANT: The chained delay</a> (rule); <a href="/redundant/#the-threshold-miss-law">REDUNDANT: The threshold-miss law</a> (rule); <a href="/redundant/#the-matching-law">REDUNDANT: The matching law</a> (rule).</p><p>Cited on: <a href="/redundant/">REDUNDANT</a>.</p><p>To run it: <a href="/code/manystream.py">manystream.py</a>, <a href="/code/poles.py">poles.py</a>, <a href="/code/redundant.py">redundant.py</a> beside it; standard library only.</p></div>
+<pre>"""
+chains.py -- what a chain of on-line units pays: the escape law, the
+threshold-miss law, the matching law, and the led stream spent in one
+hop.
+
+QUESTION. manystream.py prices ONE reader of signed-digit streams:
+a map f is read at the least L with b^L rho &gt;= Lam |I|. A datapath
+wires readers in series, the first unit's output digits being the
+next unit's input stream. The literature prices a series by adding the
+units' on-line delays (Usman, Ercegovac and Lee, Low-Latency Online
+Multiplier with Reduced Activities and Minimized Interconnect for
+Inner Product Arrays, J. Signal Processing Systems 95, 2023, section
+4.2.2: "for a series of online operations, the overall latency is the
+sum of online delays of the corresponding operation"). Four
+questions. Can the first unit's choice among legal digits buy the
+second a lower delay, or is the sum a floor? Where the sum is beaten,
+by what law? What does a chain of many units pay? And when the first
+unit runs AHEAD (poles.py: the reciprocal emits before it reads),
+does the lead pass down the chain?
+
+THE SETTING. Radix b, digits D = {-a-, ..., a+}, a+- &gt;= 1, slack
+rho = a- + a+ + 1 - b &gt;= 1, M+- = a+-/(b - 1), w = M- + M+,
+w - 1 = rho/(b - 1), Mh = max(M-, M+). Every stream is a D-stream of
+value in [-M-, M+]; after n digits it is confined to a BOX of width
+w/b^n. The PRODUCER is x y read at lead 0. Its range is
+[-M- M+, max(M-^2, M+^2)], which the root tile at lead 0 holds iff M-^2 &lt;= M+,
+that is a-^2 &lt;= a+ (b - 1): the REPRESENTABLE cells. Its floor L1* is the
+least L with b^L (w - 1) &gt;= 2 Mh w (manystream: Lam = 2 Mh). The
+CONSUMER reads the producer's stream U and a fresh stream z. Units
+in series are ALIGNED: the consumer reads digit n of U and of z
+together, and a chain at (L1, L2) pays L1 + L2 in the inputs.
+
+THE ARGUMENT (written before the engine).
+  (1) THE HULL. The consumer sees a prefix of U. What it knows of
+      x y is the FIBRE: every value the producer's selector sends to that
+      prefix. Its output tiles are intervals, so a tile holds the
+      fibre plus a z box iff it holds the fibre's HULL plus that box.
+      The hull is an interval inside U's own box, INSET by alpha from
+      the box's bottom and beta from its top (in units of the box's
+      level). So the producer's selector reaches the consumer only through
+      its insets. The step uses that a tile is an interval and
+      nothing else; it is the floor's whole scope.
+  (2) THE INSET CLAUSE. By manystream's tile lemma the sum consumer
+      U + z at delay L2 is dead iff some image strictly contains a
+      zone. With U's hull shortened by (alpha, beta) the k = 2 clause
+      becomes: dead iff an integer lies in
+          ((b^L2 - 2) M+ + beta,  b^L2 - (b^L2 - 2) M- - alpha).
+      Its ESCAPE COST E(L2) is the least alpha + beta that empties
+      the interval: 0 when it is empty, and otherwise, with the
+      integers j_1 &lt; ... &lt; j_r inside, the least over splits of
+      (j_i - lo) + (hi - j_(i+1)).
+  (3) THE BUDGET. At level n + L1 the product images of the (x, y)
+      prefixes have widths up to, and dense below, 2 Mh w / b^L1 in
+      level-n units, at every position, and each must sit inside the
+      hull its prefix is sent to. Hulls sit at unit spacing, so
+      consecutive hulls overlap by at least the widest image:
+          alpha + beta &lt;= S(L1) = (w - 1) - 2 Mh w / b^L1,
+      nonnegative exactly from L1* on.
+  (4) THE ESCAPE LAW. The chain is dead at (L1, L2) when
+      E(L2) &gt; S(L1). The deaths are certified exactly by a COVERING
+      SEARCH: no assignment of the level-(n + L1) product images to
+      level-n hulls, each hull its box inset by an option that empties
+      the clause, puts every image inside its hull. A survival needs
+      no search where E = 0: both units at their own floors.
+  (5) THE NARROWED READER (sufficiency, by the tile lemma). A reader
+      into tiles [q - M- + alpha, q + M+ - beta] is a reader on the
+      tiles narrowed by alpha below and beta above, with the same integer digits,
+      whose children still cover their parent since
+      a+- &gt;= (b - 1)(M+- - inset). Its zones have length
+      w - 1 - alpha - beta, so it reads f wherever
+          b^L (w - 1 - alpha - beta) &gt;= Lam w,
+      the input boxes unchanged. A producer so narrowed hands its
+      consumer a hull inset by (alpha, beta).
+  (6) A PRODUCT CONSUMER z U, U of TOP tau = sup |U| (tau = Mh^2
+      behind a product, 2 Mh/b behind a sum read at lead 1), reading
+      U through a hull
+      inset by eta in total: its image of a z box times a hull is at
+      most (tau w + Mh (w - eta))/b^n wide, so by (5) it reads at L2
+      wherever tau w + Mh (w - eta) &lt;= b^L2 (w - 1), and keeps for the
+      next unit the LEFTOVER
+          S2(L2, eta) = (w - 1) - (Lam2 w - Mh eta)/b^L2, Lam2 = tau + Mh.
+      Its escape cost is its own threshold's miss read in the
+      producer's coordinate: E2(L2) = max(0, Lam2 w - b^L2 (w - 1))/Mh.
+  (7) THE THRESHOLD-MISS LAW. At slack 1, w - 1 = w/b, so the
+      consumer's floor is 1 when Lam2 &lt;= 1 and 2 when Lam2 &gt; 1, and
+      the only pair that can beat the sum is (L1*, L2* - 1). The chain
+      reads one below the sum iff
+          0 &lt; Lam2 - 1 &lt;= (Mh / w) min(S(L1*), room),
+      the threshold missed by at most the producer's budget, bounded
+      by its range's room (the audit note below; corrected after
+      the run). The
+      survival side is (5) and (6), a proof. The death side is (3):
+      argued, and certified by (4)'s search where it runs. The root
+      Lam2(Mh) = 1 is 1/phi behind a product (Lam2 = Mh + Mh^2) and
+      the rational b/(b + 2) behind a sum (Lam2 = Mh (1 + 2/b)); the
+      sum head's budget is (w - 1) - (2w - 1)/b^L1, its images on a
+      lattice of pitch 1/b^L1.
+  (8) THE MATCHING LAW. A chain of units, a head reading fresh streams
+      alone, then product consumers numbered from 2, each consumer j
+      of top tau_(j-1) = tau_1 Mh^(j-2) and Lam_j = Mh + tau_(j-1),
+      priced by (6) link by link: a consumer
+      below its floor spends its producer's leftover, and one at its
+      floor passes on its own. The least total over every assignment
+      is an UPPER bound on the chain's floor, proved by (5); its lower
+      half is (3) applied link by link, argued and not certified past
+      two units. The hand-attack at slack 1: Lam_j never rises along
+      the chain; a unit below its floor sits at L = 1 and keeps less
+      than (Mh (w - 1) - w (Lam_j - 1))/b, so two adjacent units both
+      below their floors need the second's miss under about Mh^2/b^2
+      (the ADJACENT range); and an inset crossing two links changes a
+      verdict only inside a range O(1/b^3) wide (the CROSSED range). Outside
+      those ranges the least total is the naive sum less a MAXIMUM
+      MATCHING of the path's pairwise gains: gains on links sharing no
+      unit add, gains sharing a unit do not.
+  (9) A LED STREAM IS SPENT IN ONE HOP. Let a unit multiply a fresh
+      stream z by a stream r &gt;= 0 (corrected after the run) whose
+      range has top tau &gt; 0 (so the map's range is [-M- tau, M+ tau]
+      and its scale K = tau). The least lead o has b^(o - 1) &lt; tau,
+      so a level-1 cell, of length w b^(o - 1), is shorter than the
+      range's w tau. At a negative lookahead the first digit is
+      committed before any digit of z,
+      and must hold the whole range: dead. So such a unit reads at
+      c &gt;= 0 whatever r's producer did, and its own output is an
+      ordinary stream. The reciprocal's lead is not lost, though: a
+      consumer reading r as deep as the reciprocal runs ahead, d =
+      -c1* digits past z, sees r's box b^d times narrower, and by (5)
+      reads wherever (tau + Mh b^-d) w &lt;= b^L (w - 1), against
+      (tau + Mh) w for the aligned consumer.
+
+THE DESIGN, frozen before the engine.
+  CA THE CONTROLS. (i) The inset clause at zero insets equals
+     manystream.clause_dead at k = 2 at the 20 cells of radices 2..5
+     (manystream.census) and L2 = 0..3. (ii) The inset clause against
+     an exact zone scan: U's hulls nested (a prefix's hull its own
+     inset box cut to its parent's), every (U, z) prefix pair to
+     depth 4 at radices 2..4, L2 in {1, 2}, insets on a grid of
+     sixths and tenths of the slack w - 1; the scan's death verdict
+     equals the clause's at every triple. (iii) The narrowed reader
+     (5) at zero insets reproduces manystream's product floor at the
+     representable cells.
+  CB THE ESCAPE LAW at the 20 cells. Per cell: L1*, L2* (the k = 2
+     clause), the naive sum, the escape law's least L1 + L2 over
+     L1 in [L1*, L1* + 5], L2 in [0, 5], and the FUSED floor of
+     x y + z (manystream's law, Lam = 2 Mh + 1, at its own lead). The
+     covering search at every pair with L1 &gt;= L1* and L1 + L2 below
+     the naive sum, radices 2..4, n = 1..3.
+  CC THE THRESHOLD-MISS LAW at every slack-1 cell of radices 2..40,
+     both consumers, each at its representable cells (the product
+     consumer where Mh^2 fits the root tile at lead 0; the sum-fed where 2 Mh^2
+     &lt;= b M+ and its mirror): the least L1 + L2 by (6) over
+     L1 in [L1*, L1* + 5], L2 in [0, 5], against the criterion (7).
+     And every cell of slack 2 or more to radix 40 read the same way.
+  CD THE MATCHING LAW. A dynamic programme over a chain's units,
+     keeping the largest leftover at each (total, below-floor run)
+     state (every verdict is monotone in the inset), at slack 1,
+     radices 3..40, n = 3..12, both heads; and at radices 3..24 along
+     each finite run of floor-2 consumers. Printed: the cells
+     where the programme's least total differs from naive - nu, and
+     whether each lies in the adjacent or the crossed range.
+  CE THE LED STREAM at every reciprocal pair of poles.py (the 20
+     cells, h = j/(b - 1), j in 1, 2, 4, 8, 32, 128) with c1* &lt; 0:
+     tau = b^-o1 / h; the consumer's lead from its range; its aligned
+     and eager L by (9); c2 = L - o2; and the fused divider z/(s + x)
+     from poles.Divider, in the consumer's output scale.
+
+PREDICTIONS.
+  PA (i), (ii), (iii) agree everywhere.
+  PB the escape law's floor equals the naive sum at all 20 cells;
+     the covering search finds no assignment at n = 1 at every pair it
+     runs (22 aligned pairs, a TRANSPLANT from an earlier count);
+     representable at 13 of 20; the fused floor below the chain at 9
+     of those 13 and equal at the 4 with L1* = 1.
+  PC the search equals the criterion at every slack-1 cell of both
+     consumers; the product-fed gains at 17 cells, all at (2, 1):
+     (4,2,2), (9,4,5), (12,5,7), (17,7,10), (22,9,13), (25,10,15),
+     (30,12,18), (33,13,20), (38,15,23) and the mirrors of all but
+     the symmetric first; the sum-fed gains at (b, 2, b - 2) and its
+     mirror at every radix 5..40 and nowhere else; no cell of slack 2
+     or more gains to radix 40.
+  PD outside both ranges the programme reads naive - nu at every
+     cell; the five-unit sum-fed chain at (9, 2, 7) reads 7 against
+     the matching's 8, an adjacent pair; the sum-fed four-unit chain
+     at (b, 2, b - 2) reads naive - 2 at every radix 8..40.
+  PE c2 &gt;= 0 at every pair; the eager L below the aligned at 25 of
+     the 40 pairs; the fused divider at or below the chain at all 40.
+
+KILLS, as what the script prints.
+  K1 a CA line off: the clause or the scan is wrong; nothing below is
+     read.
+  K2 the escape law's floor below the naive sum at some cell, or the
+     covering search finding an assignment at n = 3 at a pair the law
+     calls dead: the sum is not the aligned chain's floor there.
+  K3 a slack-1 cell where the search and the criterion disagree: (7)
+     is wrong.
+  K4 a cell outside both ranges where the programme is not
+     naive - nu: (8) is wrong.
+  K5 c2 &lt; 0 at a pair: (9) is wrong.
+
+POSITIVE CONTROL: CA, read before any verdict line.
+
+FINDINGS (entered after the run; every number is a print).
+  - PA holds: the inset clause at zero insets is the k = 2 clause at
+    80 of 80 (cell, L); the zone scan agrees with the clause at 500 of
+    500 (cell, L2, insets); the narrowed reader at zero insets is the
+    product's floor at every representable cell. K1 did not fire.
+  - PB holds but for one count. The escape law's floor equals the
+    naive sum at 20 of 20 cells. The law-dead pairs below the sum at
+    radices 2..4 number 6, not the transplanted 22: with L1 &gt;= L1*
+    and L2 &gt;= 1 (the sum's lead) only the cells whose naive sum is 4
+    carry one, (L1*, 1). The covering search finds no assignment at
+    n = 1 at all six. Representable at 13; the fused x y + z (lead 1)
+    reads below the chain at 9 of the 13 and level at 4, the cells
+    with L1* = 1; at the 7 cells where U needs a lead, below at 6 and
+    level at 1. K2 did not fire.
+  - PC holds: the search equals the criterion at every slack-1 cell
+    of both consumers. The product-fed consumer gains at the 17
+    predicted cells, 9 radices; the sum-fed at 72 cells, (b, 2, b - 2)
+    and its mirror at all 36 radices 5..40; no cell of slack 2 or
+    more gains. K3 did not fire.
+  - PD holds: 12242 chains read; the programme differs from naive - nu
+    at 49, every one carrying an adjacent-range pair and every one by 1, and
+    at none outside the ranges. The five-unit sum-fed chain at
+    (9, 2, 7) reads 7 against naive 10 and the matching's 8; the
+    four-unit sum-fed chain reads naive - 2 at every radix 8..40.
+    K4 did not fire.
+  - PE holds: 40 pairs; the eager consumer's L below the aligned at
+    25; the fused divider at or below the eager chain at 40, equal at
+    33. c2 &gt;= 0 held by construction (the L of (9) is the sufficiency
+    law's, which puts b^L above the range's scale), so K5 could never
+    fire; it is now argued, not checked: a multiplied stream's first
+    digit must hold its whole range.
+  - Two changes after the first run, no verdict touched. The whole-run
+    read first built each chain to 400 units, which at Mh = 1 (where
+    every consumer's Lam exceeds 1 and the run never ends) read
+    400-unit chains and cost 350 s; the run is now read only at
+    Mh &lt; 1, and the 76 (cell, head) with Mh = 1 are read at n &lt;= 12,
+    where every consumer's miss is the same and nothing bunches. And
+    the programme now prices every length of a chain in one pass.
+
+  - Settled at the audit, after the record run: (5) holds only while
+    the narrowed root tile still holds the unit's range at lead 0, so
+    every budget and leftover is now bounded by that ROOM, (M- + lo) +
+    (M+ - hi) for a range [lo, hi]. The room binds at the head's floor
+    at 3539 (cell, head) of the product head and 1 of the sum head,
+    and moves no verdict: every PC and PD line reprints unchanged.
+    CB's escape law keeps the raw budget, its least total the naive
+    sum at every cell either way.
+  - As run, against the frozen design: CA(i) reads L = 1..4, CA(ii)'s
+    scan reaches depth 3, CB's L2 runs 1..5 (the sum's lead is 1), and
+    CD keys its states by total alone. PC's "all at (2, 1)" is not
+    read out: the 17 cells are. CA(iii) is a cross-engine control,
+    chains.narrowed_L against manystream.law_of.
+
+RUN RECORD: 15/15 checks, 12.1 s, peak commit 12.8 MB under a memory guard;
+after an audit (CE's c2 check, which held by construction, cut), 14/14,
+12.5 s, 14.5 MB.
+"""
+
+import math
+import time
+from fractions import Fraction as Fr
+
+import manystream as ms
+import poles
+
+CHECKS = []
+IMG_CAP = 400_000
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tail = f"  ({detail})" if detail else ""
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}{tail}")
+
+
+<span id="cells"></span>def cells(bmin, bmax, slack=None):
+    for b in range(bmin, bmax + 1):
+        for am in range(1, b):
+            for ap in range(1, b):
+                rho = am + ap + 1 - b
+                if rho &gt;= 1 and (slack is None or rho == slack):
+                    yield ms.Cell(b, am, ap)
+
+
+<span id="representable"></span>def representable(cell):
+    return cell.am ** 2 &lt;= cell.ap * (cell.b - 1)
+
+
+# ---- (2) the inset clause and its escape cost ----
+
+<span id="clause_ends"></span>def clause_ends(cell, L2):
+    B = Fr(cell.b) ** L2
+    return (B - 2) * cell.Mp, B - (B - 2) * cell.Mm
+
+
+<span id="clause_dead"></span>def clause_dead(cell, L2, alpha, beta):
+    lo, hi = clause_ends(cell, L2)
+    lo, hi = lo + beta, hi - alpha
+    return math.floor(lo) + 1 &lt; hi
+
+
+<span id="escape_options"></span>def escape_options(cell, L2):
+    """The minimal (alpha, beta) emptying the clause; [(0, 0)] when it
+    is already empty."""
+    lo, hi = clause_ends(cell, L2)
+    ints = [j for j in range(math.floor(lo) + 1, math.ceil(hi))
+            if lo &lt; j &lt; hi]
+    if not ints:
+        return [(Fr(0), Fr(0))]
+    opts = []
+    for i in range(len(ints) + 1):
+        beta = ints[i - 1] - lo if i &gt; 0 else Fr(0)
+        alpha = hi - ints[i] if i &lt; len(ints) else Fr(0)
+        opts.append((alpha, beta))
+    return opts
+
+
+<span id="escape_cost"></span>def escape_cost(cell, L2):
+    return min(a + c for a, c in escape_options(cell, L2))
+
+
+<span id="sum_floor"></span>def sum_floor(cell):
+    L = 1
+    while clause_dead(cell, L, 0, 0):
+        L += 1
+    return L
+
+
+# ---- (3) the budgets, (5) the narrowed reader ----
+
+<span id="budget_xy"></span>def budget_xy(cell, L1):
+    return cell.w - 1 - 2 * cell.Mh * cell.w / Fr(cell.b) ** L1
+
+
+<span id="budget_sum"></span>def budget_sum(cell, L1):
+    return cell.w - 1 - (2 * cell.w - 1) / Fr(cell.b) ** L1
+
+
+<span id="floor_xy"></span>def floor_xy(cell):
+    L = 0
+    while budget_xy(cell, L) &lt; 0:
+        L += 1
+    return L
+
+
+<span id="narrowed_L"></span>def narrowed_L(cell, lam, inset):
+    """(5): least L with b^L (w - 1 - inset) &gt;= lam w, or None."""
+    z = cell.w - 1 - inset
+    if z &lt;= 0:
+        return None
+    L = -40
+    while Fr(cell.b) ** L * z &lt; lam * cell.w:
+        L += 1
+    return L
+
+
+# ---- the zone scan of the inset clause ----
+
+<span id="zone_scan_dead"></span>def zone_scan_dead(cell, L2, alpha, beta, nmax=3):
+    """Every nested hull of U to depth nmax plus every z box over a
+    period of prefix values: does an image strictly contain a zone?"""
+    b, Mm, Mp = cell.b, cell.Mm, cell.Mp
+    D = range(-cell.am, cell.ap + 1)
+    level = {(0, (-Mm + alpha, Mp - beta))}
+    period = b ** L2
+    for n in range(1, nmax + 1):
+        s = Fr(1, b ** n)
+        new = set()
+        for p, (plo, phi) in level:
+            for e in D:
+                q = b * p + e
+                lo = max((q - Mm + alpha) * s, plo)
+                hi = min((q + Mp - beta) * s, phi)
+                if lo &lt; hi:
+                    new.add((q, (lo, hi)))
+        level = new
+        if n &lt; L2:
+            continue
+        hulls = {h for _, h in level}
+        umin = -cell.am * poles_repunit(b, n)
+        for (hlo, hhi) in hulls:
+            for u in range(umin, umin + period + 1):
+                img = (hlo + (u - Mm) * s, hhi + (u + Mp) * s)
+                if cell.kills(img, n, L2):
+                    return True
+    return False
+
+
+<span id="poles_repunit"></span>def poles_repunit(b, n):
+    return (b ** n - 1) // (b - 1)
+
+
+# ---- (4) the covering search ----
+
+<span id="product_images"></span>def product_images(cell, m):
+    s = Fr(1, cell.b ** m)
+    R = poles_repunit(cell.b, m)
+    boxes = [((u - cell.Mm) * s, (u + cell.Mp) * s)
+             for u in range(-cell.am * R, cell.ap * R + 1)]
+    out = set()
+    for x0, x1 in boxes:
+        for y0, y1 in boxes:
+            c = (x0 * y0, x0 * y1, x1 * y0, x1 * y1)
+            out.add((min(c), max(c)))
+    return sorted(out)
+
+
+<span id="covering_exists"></span>def covering_exists(cell, L1, L2, n):
+    """True, False, or None past the cap: can the level-(n + L1)
+    product images be assigned to level-n hulls, each its box inset
+    by an escape option, every image inside its hull?"""
+    m = n + L1
+    if (cell.am + cell.ap + 1) ** (2 * m) &gt; IMG_CAP:
+        return None
+    imgs = product_images(cell, m)
+    opts = sorted(set(escape_options(cell, L2)))
+    s = Fr(1, cell.b ** n)
+    qs = list(range(math.floor(imgs[0][0] / s - cell.Mp) - 1,
+                    math.ceil(imgs[-1][1] / s + cell.Mm) + 2))
+
+    def walk(i, rest):
+        if not rest:
+            return True
+        if i == len(qs):
+            return False
+        q = qs[i]
+        if rest[0][0] &lt; (q - cell.Mm) * s:
+            return False
+        for a, c in opts:
+            hl, hr = (q - cell.Mm + a) * s, (q + cell.Mp - c) * s
+            left = [iv for iv in rest if not (hl &lt;= iv[0] and iv[1] &lt;= hr)]
+            if len(left) &lt; len(rest) and walk(i + 1, left):
+                return True
+        return walk(i + 1, rest)
+
+    return walk(0, sorted(imgs))
+
+
+# ---- (6), (7) a product consumer ----
+
+<span id="consumer_escape"></span>def consumer_escape(cell, A, L2):
+    lam2 = A + cell.Mh
+    miss = lam2 * cell.w - Fr(cell.b) ** L2 * (cell.w - 1)
+    return max(Fr(0), miss) / cell.Mh
+
+
+<span id="xy_head"></span>def xy_head(cell):
+    """(the largest magnitude tau_1, the head's floor, its budget
+    bounded by its room, its range) behind a product."""
+    rng = (-cell.Mm * cell.Mp, max(cell.Mm, cell.Mp) ** 2)
+    r = room(cell, rng)
+    return (cell.Mh ** 2, floor_xy(cell),
+            lambda L: min(budget_xy(cell, L), r), rng)
+
+
+<span id="sum_head"></span>def sum_head(cell):
+    rng = (-2 * cell.Mm / cell.b, 2 * cell.Mp / cell.b)
+    r = room(cell, rng)
+    return (2 * cell.Mh / cell.b, sum_floor(cell),
+            lambda L: min(budget_sum(cell, L), r), rng)
+
+
+<span id="room"></span>def room(cell, rng):
+    """The most a narrowed reader may inset in total and still hold
+    the range [lo, hi] in its root tile at lead 0."""
+    return (cell.Mm + rng[0]) + (cell.Mp - rng[1])
+
+
+<span id="times_z"></span>def times_z(cell, rng):
+    c = [z * p for z in (-cell.Mm, cell.Mp) for p in rng]
+    return (min(c), max(c))
+
+
+<span id="sum_fed_ok"></span>def sum_fed_ok(cell):
+    return 2 * cell.Mh ** 2 &lt;= cell.b * cell.Mp
+
+
+<span id="two_unit"></span>def two_unit(cell, head):
+    """(naive, least, the consumer's Lam2, the head's floor budget)."""
+    A, L1s, S, _ = head(cell)
+    lam2 = A + cell.Mh
+    L2s = 0
+    while consumer_escape(cell, A, L2s) &gt; 0:
+        L2s += 1
+    least = L1s + L2s
+    for L1 in range(L1s, L1s + 6):
+        for L2 in range(0, 6):
+            if consumer_escape(cell, A, L2) &lt;= S(L1):
+                least = min(least, L1 + L2)
+    return L1s + L2s, least, lam2, S(L1s)
+
+
+# ---- (8) the chain programme ----
+
+<span id="chain_units"></span>def chain_units(cell, head, n):
+    A1, L1s, S, rng = head(cell)
+    lams = [cell.Mh + A1 * cell.Mh ** (j - 2) for j in range(2, n + 1)]
+    rooms = []
+    for _ in lams:
+        rng = times_z(cell, rng)
+        rooms.append(room(cell, rng))
+    return L1s, S, lams, rooms
+
+
+<span id="leftover"></span>def leftover(cell, lam, L, inset):
+    scale = Fr(cell.b) ** L
+    return cell.w - 1 - (lam * cell.w - cell.Mh * inset) / scale
+
+
+<span id="unit_floor"></span>def unit_floor(cell, lam):
+    L = 0
+    while leftover(cell, lam, L, 0) &lt; 0:
+        L += 1
+    return L
+
+
+<span id="pareto"></span>def pareto(states):
+    """Drop every (total, leftover) another beats on both."""
+    out, best = {}, Fr(-1)
+    for t in sorted(states):
+        if states[t] &gt; best:
+            out[t] = best = states[t]
+    return out
+
+
+<span id="programme_all"></span>def programme_all(cell, head, nmax):
+    """For every chain length n = 3..nmax, the prefix of one chain:
+    {n: (naive, matching, least total, floors, Lams)}. A chain of n
+    units is the first n units of the chain of nmax, so one pass
+    prices every length."""
+    L1s, S, lams, rooms = chain_units(cell, head, nmax)
+    floors = [unit_floor(cell, lam) for lam in lams]
+    states = {}
+    for L1 in range(L1s, L1s + 3):
+        if S(L1) &gt;= 0:
+            states[L1] = max(S(L1), states.get(L1, Fr(-1)))
+    states = pareto(states)
+    naive, up = L1s, S(L1s)
+    take, skip = -1, 0
+    out = {}
+    for j, (lam, Ls) in enumerate(zip(lams, floors)):
+        new = {}
+        for t, v in states.items():
+            for L in range(max(0, Ls - 1), Ls + 3):
+                r = leftover(cell, lam, L, min(v, cell.w - 1))
+                if r &gt;= 0:
+                    r = min(r, rooms[j])
+                if r &gt;= 0 and r &gt; new.get(t + L, Fr(-1)):
+                    new[t + L] = r
+        states = pareto(new)
+        g = Ls &gt;= 1 and leftover(cell, lam, Ls - 1, up) &gt;= 0
+        up = min(leftover(cell, lam, Ls, 0), rooms[j])
+        take, skip = (skip + 1 if g else -1), max(take, skip)
+        naive += Ls
+        n = j + 2
+        if n &gt;= 3:
+            out[n] = (naive, naive - max(take, skip), min(states),
+                      floors[:j + 1], lams[:j + 1])
+    return out
+
+
+<span id="programme"></span>def programme(cell, head, n):
+    return programme_all(cell, head, n)[n]
+
+
+<span id="in_ranges"></span>def in_ranges(cell, lams, floors):
+    """Does the chain carry an adjacent-range pair or a crossed link?"""
+    w, Mh, b = cell.w, cell.Mh, cell.b
+    for j in range(len(lams) - 1):
+        l1, l2 = lams[j], lams[j + 1]
+        keep = Mh * (Mh * (w - 1) - w * (l1 - 1)) / b
+        if l1 &gt; 1 and l2 &gt; 1 and w * (l2 - 1) &lt; keep:
+            return "adjacent"
+    for j in range(1, len(lams)):
+        lo = leftover(cell, lams[j - 1], floors[j - 1], 0)
+        hi = leftover(cell, lams[j - 1], floors[j - 1], w - 1)
+        if Mh * lo &lt; w * (lams[j] - 1) &lt; Mh * hi:
+            return "crossed"
+    return None
+
+
+# ---- the sections ----
+
+<span id="section_ca"></span>def section_ca():
+    print("CA  the controls")
+    off = 0
+    for cell in cells(2, 5):
+        for L in range(1, 5):
+            off += clause_dead(cell, L, 0, 0) != ms.clause_dead(
+                cell.b, cell.am, cell.ap, 2, L)
+    check("CA(i) the inset clause at zero insets is the k = 2 clause",
+          off == 0, f"80 (cell, L), {off} off")
+    fr = [Fr(0), Fr(1, 10), Fr(1, 6), Fr(1, 3), Fr(1, 2)]
+    tot, off, where = 0, 0, []
+    for cell in cells(2, 4):
+        for L2 in (1, 2):
+            for fa in fr:
+                for fb in fr:
+                    a, c = fa * (cell.w - 1), fb * (cell.w - 1)
+                    tot += 1
+                    if zone_scan_dead(cell, L2, a, c) != clause_dead(
+                            cell, L2, a, c):
+                        off += 1
+                        where.append((cell.b, cell.am, cell.ap, L2,
+                                      str(fa), str(fb)))
+    check("CA(ii) the zone scan equals the inset clause", off == 0,
+          f"{tot} triples, {off} off {where[:4]}")
+    off = 0
+    for cell in cells(2, 5):
+        if representable(cell):
+            lam, o, Ls = ms.law_of(cell, ms.MAPS[2])
+            off += narrowed_L(cell, 2 * cell.Mh, 0) != Ls - o
+    check("CA(iii) the narrowed reader at zero insets is the product's "
+          "floor", off == 0, f"{off} off")
+
+
+<span id="section_cb"></span>def section_cb():
+    print("CB  the escape law at the 20 cells")
+    below, fused_cmp, rep, capped, found = [], {}, 0, [], []
+    pairs = 0
+    for cell in cells(2, 5):
+        L1s, L2s = floor_xy(cell), sum_floor(cell)
+        naive = L1s + L2s
+        least = naive
+        for L1 in range(L1s, L1s + 6):
+            for L2 in range(1, 6):
+                if escape_cost(cell, L2) &lt;= budget_xy(cell, L1):
+                    least = min(least, L1 + L2)
+        if least &lt; naive:
+            below.append((cell.b, cell.am, cell.ap))
+        lam, o, Lf = ms.law_of(cell, ms.MAPS[4])
+        tag = "rep" if representable(cell) else "led"
+        rep += tag == "rep"
+        rel = "below" if Lf &lt; naive else (
+            "equal" if Lf == naive else "above")
+        fused_cmp.setdefault(tag, {}).setdefault(rel, 0)
+        fused_cmp[tag][rel] += 1
+        print(f"    ({cell.b},{cell.am},{cell.ap}) {tag}: L1* {L1s}, "
+              f"L2* {L2s}, naive {naive}, escape law {least}, fused "
+              f"{Lf} (lead {o})")
+        if cell.b &gt; 4:
+            continue
+        for L1 in range(L1s, naive):
+            for L2 in range(1, naive - L1):
+                if escape_cost(cell, L2) &lt;= budget_xy(cell, L1):
+                    continue
+                pairs += 1
+                verdict = None
+                for n in (1, 2, 3):
+                    verdict = covering_exists(cell, L1, L2, n)
+                    if verdict is not True:
+                        break
+                if verdict is None:
+                    capped.append((cell.b, cell.am, cell.ap, L1, L2, n))
+                elif verdict:
+                    found.append((cell.b, cell.am, cell.ap, L1, L2))
+                elif n &gt; 1:
+                    print(f"      ({cell.b},{cell.am},{cell.ap}) at "
+                          f"({L1}, {L2}): no covering at n = {n}")
+    print(f"    fused against the chain: {fused_cmp}; representable "
+          f"{rep}; law-dead pairs searched {pairs}, capped {capped}")
+    check("CB the escape law never below the naive sum", not below,
+          f"below at {below}")
+    check("CB no covering at any law-dead pair",
+          not found and not capped,
+          f"found {found}, capped {capped}")
+
+
+<span id="section_cc"></span>def section_cc():
+    print("CC  the threshold-miss law, radices 2..40")
+    off, gains, deep = [], {"xy": [], "sum": []}, []
+    bound = {"xy": 0, "sum": 0}
+    unfunded = 0
+    for cell in cells(2, 40):
+        for name, head, ok in (("xy", xy_head, representable),
+                               ("sum", sum_head, sum_fed_ok)):
+            if not ok(cell):
+                continue
+            naive, least, lam2, S0 = two_unit(cell, head)
+            if S0 &lt; 0:
+                unfunded += 1
+                continue
+            _, L1s, _, rng = head(cell)
+            raw = (budget_xy if name == "xy" else budget_sum)(cell, L1s)
+            if room(cell, rng) &lt; raw:
+                bound[name] += 1
+            if cell.rho &gt;= 2:
+                if least &lt; naive:
+                    deep.append((name, cell.b, cell.am, cell.ap))
+                continue
+            law = 0 &lt; lam2 - 1 &lt;= cell.Mh / cell.w * S0
+            if law != (least &lt; naive):
+                off.append((name, cell.b, cell.am, cell.ap))
+            if least &lt; naive:
+                gains[name].append((cell.b, cell.am, cell.ap))
+    for name, g in gains.items():
+        more = " ..." if len(g) &gt; 12 else ""
+        print(f"    {name}-fed: {len(g)} gaining cells at "
+              f"{len({c[0] for c in g})} radices: {g[:12]}{more}")
+    print(f"    the range's room below the budget at the head's floor: "
+          f"{bound}; heads with no budget at their floor, skipped: "
+          f"{unfunded}")
+    check("CC the search equals the criterion at every slack-1 cell",
+          not off, f"off at {off[:6]}")
+    want = [(4, 2, 2)]
+    for b, am, ap in ((9, 4, 5), (12, 5, 7), (17, 7, 10), (22, 9, 13),
+                      (25, 10, 15), (30, 12, 18), (33, 13, 20),
+                      (38, 15, 23)):
+        want += [(b, am, ap), (b, ap, am)]
+    check("CC the product-fed gains are the 17 predicted cells",
+          sorted(gains["xy"]) == sorted(want),
+          f"read {len(gains['xy'])}")
+    want = sorted([(b, 2, b - 2) for b in range(5, 41)]
+                  + [(b, b - 2, 2) for b in range(5, 41)])
+    check("CC the sum-fed gains are (b, 2, b - 2) and mirrors, 5..40",
+          sorted(gains["sum"]) == want, f"read {len(gains['sum'])}")
+    check("CC no cell of slack &gt;= 2 gains", not deep, f"at {deep[:6]}")
+
+
+<span id="section_cd"></span>def section_cd():
+    print("CD  the matching law")
+    t0 = time.time()
+    outside, inside, reads, unending = [], {}, 0, 0
+    for cell in cells(3, 40, slack=1):
+        for name, head, ok in (("xy", xy_head, representable),
+                               ("sum", sum_head, sum_fed_ok)):
+            if not ok(cell):
+                continue
+            A1, L1s, S, _ = head(cell)
+            if S(L1s) &lt; 0:
+                continue
+            ns = set(range(3, 13))
+            if cell.Mh == 1:
+                unending += 1
+            elif cell.b &lt;= 24:
+                run, top = 0, A1
+                while cell.Mh + top &gt; 1:
+                    run, top = run + 1, top * cell.Mh
+                ns.add(max(3, run + 2))
+            every = programme_all(cell, head, max(ns))
+            for n in sorted(ns):
+                naive, match, least, floors, lams = every[n]
+                reads += 1
+                if least != match:
+                    win = in_ranges(cell, lams, floors)
+                    key = (name, cell.b, cell.am, cell.ap, n)
+                    if win is None:
+                        outside.append(key + (naive, match, least))
+                    else:
+                        inside[key] = (win, match - least)
+    print(f"    {reads} chains read, {time.time() - t0:.1f} s; whole run "
+          f"unread at {unending} (cell, head) with Mh = 1; off the "
+          f"matching inside the ranges at {len(inside)}: "
+          f"{sorted(set(inside.values()))}")
+    check("CD naive - nu outside both ranges", not outside,
+          f"off at {outside[:4]}")
+    naive, match, least, *_ = programme(ms.Cell(9, 2, 7), sum_head, 5)
+    print(f"    (9, 2, 7) sum-fed, five units: naive {naive}, matching "
+          f"{match}, least {least}")
+    check("CD the witness reads 7 against the matching's 8",
+          (match, least) == (8, 7))
+    off = []
+    for b in range(8, 41):
+        for cell in (ms.Cell(b, 2, b - 2), ms.Cell(b, b - 2, 2)):
+            naive, match, least, *_ = programme(cell, sum_head, 4)
+            if least != naive - 2:
+                off.append((b, cell.am, cell.ap, naive, least))
+    check("CD the sum-fed four-unit chain reads naive - 2, radices 8..40",
+          not off, f"off at {off[:4]}")
+
+
+<span id="section_ce"></span>def section_ce():
+    print("CE  the led stream")
+    rows = []
+    for cell, h in poles.pairs():
+        u = poles.Recip(cell, h)
+        c1 = u.law_L() - u.lead()
+        if c1 &gt;= 0:
+            continue
+        R = Fr(1) / (Fr(cell.b) ** u.lead() * h)
+        o2 = poles.least_pow(cell.b, R)
+        La = narrowed_L(cell, R + cell.Mh, 0)
+        Le = narrowed_L(cell, R + cell.Mh / Fr(cell.b) ** (-c1), 0)
+        dv = poles.Divider(cell, h)
+        cd = dv.law_L() - dv.lead()
+        rows.append((La - o2, Le - o2, cd))
+    eb = sum(1 for a, e, _ in rows if e &lt; a)
+    fz = sum(1 for _, e, c in rows if c &lt;= e)
+    fe = sum(1 for _, e, c in rows if c == e)
+    print(f"    {len(rows)} pairs; eager below aligned at {eb}; the fused "
+          f"divider at or below the eager chain at {fz}, equal at {fe}")
+    check("CE 40 pairs, eager below aligned at 25",
+          len(rows) == 40 and eb == 25, f"read {len(rows)}, {eb}")
+    check("CE the fused divider at or below at every pair",
+          fz == len(rows))
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_ca()
+    if not all(CHECKS):
+        print("\nCONTROL FAILED: nothing below is read.")
+        raise SystemExit(1)
+    section_cb()
+    section_cc()
+    section_cd()
+    section_ce()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/chains.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

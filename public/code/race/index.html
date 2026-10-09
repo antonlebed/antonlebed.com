@@ -1,0 +1,974 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>race.py | Numbers read one place at a time</title>
+<meta name="description" content="race.py">
+<link rel="alternate" type="text/x-python" href="/code/race.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>race.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/clock/#which-place-a-rings-block-runs">CLOCK: Which place a ring's block runs</a> (theorem); <a href="/clock/#the-void-tie-crosses-kinds-and-the-tie-break-chooses-the-place-that-runs">CLOCK: The void tie crosses kinds and the tie-break chooses the place that runs</a> (rule); <a href="/image/#a-quadratic-rings-ideal-image-is-2t">IMAGE: A quadratic ring's ideal image is 2^t</a> (rule).</p><p>Cited on: <a href="/clock/">CLOCK</a>, <a href="/image/">IMAGE</a>.</p><p>To run it: <a href="/code/dial.py">dial.py</a>, <a href="/code/door.py">door.py</a>, <a href="/code/limit.py">limit.py</a>, <a href="/code/stop.py">stop.py</a> beside it; standard library only.</p></div>
+<pre>"""race.py -- which place of a number ring's block runs: the race inside
+a block, the unit its places share, and the void ties a ring's menu
+stages.
+
+QUESTION. door.py proves that a number ring's places over one rational
+prime p share one notch, kept as the COUNT V = v_p(L) and read by each
+place through its own ladder, and that a block clocked forever keeps
+ONE runaway. It does not say WHICH. Past the bends a place's recurrent
+price is N^e = p^(ef), a power of p whose exponent is the local degree
+ef, so the cheapest candidate is the place of least local degree. Is
+the runaway that place, or does the race to the clock seat it, and
+where does a tie-break decide? And the two void ties a cubic ring
+stages -- 2 = PQ with residue degrees 1 and 2, and 5 = PQ^2 at one
+norm across the unramified/ramified seam -- are they this race read at
+the void?
+
+THE OBJECTS. door.py's: a place over p with residue field of N = p^f
+elements, ramification e, width w, ladder x_1 = 1 &lt; x_2 &lt; ...; m(0) = 1
+and m(j) = x_j + 1; a seated place at exponent a has COLUMN c with
+m(c) = a after any clock move. Its door is m(V + 1) - a when it is
+seated or N - 1 already divides L, and 1 otherwise; a move costs
+N^door. The HOLDER of a clock move is the place it moves. A place's
+TAIL INDEX is the least j with every gap x_(i+1) - x_i, i &gt;= j, equal
+to the tail gap e. The DEBT of a place behind the count is V + 1 - c.
+A block walked ALONE has only its own places on the menu: nothing
+else opens, so its count never jumps and no other place's unit reaches
+its L.
+
+THE ARGUMENT (written before the engine).
+  (1) THE SHARED UNIT. An opening at exponent 1 needs N - 1 not to
+      divide L. Seating a place of residue degree f puts p^f - 1 into
+      L, and p^g - 1 divides p^f - 1 whenever g divides f, so from then
+      on every place of the block whose residue degree divides f opens,
+      if ever, at door m(V + 1) &gt;= 2. A place of norm 2 has N - 1 = 1
+      and never opens at exponent 1. So a void tie between two places
+      of one norm over one prime is decided once: the loser's later
+      door is m(V + 1) and the tie cannot recur.
+  (2) THE RACE PAST THE TAILS. Let R make a clock move to count V_R,
+      with V_R at or past every block place's tail index, and let the
+      block's next clock move be Y's, Y != R, at count V = V_R + J (J
+      the count's rise by jumps in between). R pends x_(V+1) - x_(V_R)
+      = (1 + J) e_R, every gap in range being R's tail. Y's count is at
+      most V_R - 1 (last landed by a clock move, only opened, unseated,
+      or a seed deeper in its count), so its depth is at most x_(V_R)
+      and its door covers the J + 1 gaps from V_R on, all e_Y, and at
+      least one more depth: door_Y &gt;= (1 + J) e_Y + 1. Greed taking Y
+      means f_Y door_Y &lt;= (1 + J) e_R f_R, so
+          e_Y f_Y &lt; e_R f_R:
+      every change of holder past the tails strictly LOWERS the local
+      degree, jumps or not. With no jump and Y at m_Y(c), the least
+      depth of its column count c, past its own tail index, the debt is
+      at least 2 and the condition reads
+      debt * e_Y f_Y &lt;= e_R f_R, equality a tie. Two consequences:
+      (a) ABSORPTION: a holder of least local degree, once it holds
+          past the tails, keeps the clock forever;
+      (b) NOT THE LEAST: nothing else forces the least. A holder of
+          larger local degree keeps the clock whenever every smaller
+          place's debt exceeds the ratio of the two local degrees,
+          and each move it makes deepens every other place's debt.
+          So the runaway is whoever holds as the count passes the
+          tails, lowered only by places within that ratio, and a tie
+          at equality decides between them.
+  (3) WHAT THE TREE IS. At a void tie greed must break, and each branch
+      is then walked by (1) and (2). The branches differ in the deep
+      place, the place that runs, so the greedy limit of one ring is
+      multivalued at its void, the break choosing.
+
+HAND-ATTACK.
+  (a) THE 59 CELL, alone. The ring of x^3 + 2x + 1 (discriminant -59,
+      squarefree, so Z[alpha] is the maximal order) has 59 = P Q^2: P
+      unramified, ladder 1, 2, 3, ...; Q tame with e = 2, ladder 1, 3,
+      5, ...; both of norm 59, local degrees 1 and 2, tail index 1.
+      Seat both at exponent 1: L = 58, V = 0, both at door 1, a tie at
+      59.
+        P first: P lands at 2, V = 1; P pends 1, Q pends m_Q(2) - 1 =
+          3. P runs; Q stranded at 1. Paid 59 forever.
+        Q first: Q lands at 2, V = 1; P pends m_P(2) - 1 = 2, Q pends
+          m_Q(2) - 2 = 2: a second tie, at 59^2, the debt-2 halving
+          tie (2 * 1 = 2).
+          P: P lands at 3, V = 2; Q pends m_Q(3) - 2 = 4. P runs, Q
+            stranded at 2. Paid 59, 59^2, then 59 forever.
+          Q: Q lands at 4, V = 2; P pends m_P(3) - 1 = 3 against Q's
+            2. Q runs, P stranded at 1. Paid 59, then 59^2 forever.
+      Exactly three ends, no merge (the states differ), the deep place
+      P, P, Q: the place of local degree 2 runs on one branch.
+  (b) NOT THE LEAST, WITHOUT A TIE. A block over 7 of a tame place A,
+      e = 3, f = 1 (ladder 1, 4, 7, ...), and an unramified B, f = 2
+      (ladder 1, 2, 3, ...), alone from the void. A opens at 7 (L = 6),
+      clocks at door 1 for 7 (V = 1, A at 2), then pends m_A(2) - 2 =
+      3, 343; B opens at exponent 1 for 49 (48 does not divide 42),
+      V stays 1; B pends m_B(2) - 1 = 2, 2401, against A's 343; A
+      clocks (V = 2, A at 5) and pends 3 again while B pends 3, 49^3.
+      Paid 7, 7, 49, 343, 343, ...: A runs at 7^3 with B seated beside
+      it, whose own recurrent price 7^2 is cheaper and never paid. No
+      tie anywhere (7 &lt; 49 &lt; 343 &lt; 2401).
+  (c) THE CROSS-KIND VOID. A cubic ring with 2 = PQ, f(P) = 1 and f(Q)
+      = 2, and no place of norm 3 (x^3 + 2x + 1 is one: 3, 5 and 7 are
+      inert). P is Z_2's, ladder 1, 3, 4, 5, ..., N - 1 = 1, so by (1)
+      it opens at door m_P(V + 1); Q's ladder is 1, 2, 3, .... Void: P
+      at door m_P(1) = 2 for 4, Q at exponent 1 for 4: a tie.
+        P: V = 1. P pends m_P(2) - 2 = 2, 4; Q opens at 4: a second
+          tie. P again: V = 2, P at 4, door 1 for 2 forever, Q never
+          seated; paid 4 4 2 2 .... Q: L = 6, P pends 2 for 4, Q pends
+          m_Q(2) - 1 = 2 for 16; P pays 4 and then 2 forever, Q
+          stranded at 1; paid 4 4 4 2 2 ....
+        Q: V = 0. P pends m_P(1) = 2 for 4, Q pends m_Q(1) - 1 = 1 for
+          4: a second tie. Q again: V = 1, Q at 2, P pends m_P(2) = 4
+          for 16 and every later count widens it, Q pays 4 forever;
+          paid 4 4 4 4 .... P: the state {P: 2, Q: 1}, the mixed
+          branch's.
+      Three ends and one merge; the deep place is P, P and Q, and Q's
+      local degree is 2 against P's 1.
+  (d) THE ONE-NORM VOID. A cubic ring with 5 = PQ^2 (P unramified, Q
+      tame, both of norm 5 and N - 1 = 4) and 2 and 3 inert. Void: P
+      and Q at exponent 1 for 5, a tie; the loser's N - 1 is then in L,
+      so by (1) it opens later at door m(V + 1) &gt;= 2 and the tie never
+      recurs. P: door 1 for 5 forever, the constant row. Q: Q clocks at
+      door 1 for 5 (V = 1), then pends m_Q(2) - 2 = 2, 25, and every
+      other block opens under it: a place of norm 7 at exponent 1 for 7
+      when 7 has a root (6 does not divide L = 20), paid 5 5 7 7 ...;
+      else the inert place over 2 at 8 (7 does not divide L), then a
+      place of norm 13 at exponent 1 when 13 has a root (12 does not
+      divide 140), paid 5 5 8 13 13 ...; and where no degree-1 place of
+      norm 7 to 23 exists, Q holds at 25 after the detour, paid 5 5 8
+      25 25 .... The race inside the block is settled at the first
+      move; which BLOCK runs is the crossing prices' (dial.py).
+
+PREDICTIONS, frozen before the engine, each naming what the run PRINTS.
+Rings are walked by door.py's ring walker with EVERY tie branched and
+equal states merged, 60 moves; blocks alone by the same walker with
+the menu cut to the block, 40 moves.
+  PR1 THE SHARED UNIT. Over every ring walk: openings at exponent 1 of
+      a place whose residue degree divides that of a place already
+      seated over the same prime. KILL: one. Printed: openings at door
+      2 or more of such places.
+  PR2 THE RACE. Blocks alone: every multiset of two and of three local
+      types over one prime from the type list below, local degrees
+      summing to at most 8, walked from the void and from every seed
+      with each place seated at exponent 1, 2 or 3 (pairs) or all at
+      one common exponent (triples), every tie branched. At every change
+      of holder whose previous holder's column is at or past both
+      places' tail indices: KILL: the local degree does not fall.
+      KILL: a least-local-degree holder displaced. Printed: those
+      changes, how many at equality of price (residue degree times
+      debt), and the changes before the tails that do not fall (no
+      prediction). In the rings: the same two kills over every change
+      past the tails, and the changes with a jump between the two moves
+      printed.
+  PR3 NOT THE LEAST. Printed: block walks whose runaway (the one holder
+      over the last quarter) has local degree above the least among
+      the block's seated places, and how many of those have no tie on
+      their path. KILL: none without a tie (the answer would be the
+      tie-break's alone). Cell (b): paid 7 7 49 343 343, runaway A, B
+      seated at exponent 1 and never clocked. KILL: any of those off.
+  PR4 THE 59 CELL. Cell (a) prints exactly three ends with paid
+      prefixes (59, 59, 59), (59, 3481, 59) and (59, 3481, 3481), deep
+      places P, P, Q, and ties exactly at the seed and after Q's first
+      move. KILL: any of those off.
+  PR5 THE CROSS-KIND VOID. At x^3 + 2x + 1, x^3 + x^2 + x + 2
+      (discriminant -83) and x^3 + x^2 + 3x + 2 (-107): the void
+      minimum is 4 at exactly {P, Q}, and the tree prints three ends,
+      paid prefixes (4, 4, 2, 2), (4, 4, 4, 2), (4, 4, 4, 4), deep
+      places of norm 2, 2, 4, the middle end with Q seated at exponent
+      1. KILL: any of those off.
+  PR6 THE ONE-NORM VOID. At x^3 - 6x^2 - x + 1 (discriminant 985),
+      x^3 - 4x^2 - x - 1 (-335) and x^3 + 12x^2 + 41x - 25 (-99095): the
+      void minimum is 5 at exactly {P, Q}; every end on P's side paid 5
+      forever with Q never seated; every end on Q's side paid 5 5 7 7,
+      5 5 8 13 13 and 5 5 8 25 25 respectively, deep places of norm 7,
+      13 and Q, P never opened at exponent 1. KILL: any of those off.
+
+THE TYPE LIST (p, f, e, w), each realized by a local field whose width
+clock.py measures or whose head criterion gives w = 0, written (f, e,
+w): over 2, Z_2 (1, 1, 1), unramified (2, 1, 0) and (3, 1, 0),
+Q_2(sqrt 2) (1, 2, 1), Q_2(sqrt -5) (1, 2, 2), Q_2(i) (1, 2, 3),
+Q_2(2^(1/3)) (1, 3, 0), Q_2(2^(1/4)) (1, 4, 2); over 3, Z_3 (1, 1, 0),
+(2, 1, 0), Q_3(sqrt -3) (1, 2, 1), Q_3(sqrt 3) (1, 2, 0), Q_3(3^(1/3))
+(1, 3, 0), Q_3(3^(1/4)) (1, 4, 0); over 5 and 7, the unramified (1, 1,
+0), (2, 1, 0), (3, 1, 0), the tame (1, 2, 0), (1, 3, 0), (2, 2, 0), and
+the headed Q_5((-5)^(1/4)) (1, 4, 1) and Q_7((-7)^(1/6)) (1, 6, 1).
+
+CONTROLS, run first: the branching walker's lowest-first path equals
+door.py's rwalk move for move on the ring of x^3 + 2x + 1; the general
+cubic's place list equals door.py's cubic() at that ring; lambda(P^b)
+at a tame e = 2 place over 5 matches brute (Z[x]/(5^k, x^2 - 5u))^x for
+both square classes u = 1, 2 to depth 6; the change checker fires on a
+planted change raising the local degree past the tails.
+
+FINDINGS (entered after the run, from its printed output).
+  F0 CONTROLS. The general cubic's 556 places at x^3 + 2x + 1 match
+     door.py's cubic(); the lowest-first path matches rwalk over 60
+     moves; the tame column over 5 reads 4, 20, 20, 100, 100, 500 by
+     brute for pi^2 = 5 and pi^2 = 10 alike; the planted change fires.
+  F1 THE SHARED UNIT (PR1 hit). Over every ring tree: 0 openings at
+     exponent 1 of a place whose residue degree divides a seated
+     place's over its prime; 3 openings there at door 2 or more.
+  F2 THE RACE (PR2 hit). 338 blocks alone, 2006 trees, 3748 leaves,
+     377,861 doors read with 0 lcm-count mismatches. 689 changes of
+     holder: 167 past the tails, 0 not lowering the local degree, 0
+     displacing a least-degree holder, and 131 of the 167 at a tie; 522
+     before the tails, 257 of them not lowering, so the hypothesis
+     bites. No jumps, as a block alone must have. The ring trees made 0
+     changes of holder, so the ring half of PR2 is vacuous there.
+  F3 NOT THE LEAST (PR3 hit). 695 leaves run a place above the least
+     local degree seated in their block, 168 of them with no tie on the
+     path. Cell (b): paid 7, 7, 49, 343, 343, 343, runaway the e = 3
+     place at exponent 113, the f = 2 place seated at 1 and never
+     clocked, no tie.
+  F4 THE 59 CELL (PR4 hit). Three ends: paid 59, 59, 59, P running to
+     41, Q at 1, a tie at the seed only; paid 59, 3481, 59, P to 41, Q
+     at 2, ties at moves 0 and 1; paid 59, 3481, 3481, Q running to 80,
+     P at 1, ties at 0 and 1.
+  F5 THE CROSS-KIND VOID (PR5 hit). At discriminants -59, -83 and -107
+     the void minimum is 4 at exactly Z_2's place and the f = 2 place,
+     and the tree has three ends: (4, 4, 2, 2) deep norm 2 with Q
+     unseated, (4, 4, 4, 2) deep norm 2 with Q at 1, (4, 4, 4, 4) deep
+     Q; 3 merges over all ring trees.
+  F6 THE ONE-NORM VOID (PR6 hit). At discriminants 985, -335 and
+     -99095 the void minimum is 5 at exactly P and Q over 5; P's side
+     is one end, paid 5 forever, Q never seated; Q's side is one, three
+     and one ends (the three: ties among places of norm 13), each paid
+     5 5 7 7, 5 5 8 13 13 and 5 5 8 25 25 as derived, P never opened
+     at exponent 1. Hand-attack (d) also needs no other prime below 29
+     in the discriminant (a tame place of norm 7 would pay 49 at its
+     second move); the three discriminants are 5 times 197, 67 and
+     19819.
+
+RUN RECORD. One process, CPython, no numpy: 81,792 checks, 9.2 s,
+peak working set 16.6 MB.
+
+THE SECOND QUESTION: IS A CHANGE FROM THE VOID ALWAYS A TIE?
+A second slate, frozen before its engine (section_entry below). Read
+off S1's trees after the run, not printed by it: every change of holder
+past the tails in a walk from the void sat at a tie, where the seeded
+walks made strict ones. Is that a theorem about the race from the void,
+or is it the type list's, which carries no headless (w = 0) tame place
+of e &gt;= 4 over 5 or 7?
+
+HAND-ATTACK.
+  (e) THE ENTRY LEMMA. In a block with no jump, let R's clock move take
+      the count from V - 1 to V, with V at or past both R's and Y's
+      tail index, and let the block's next clock move be Y's, Y seated
+      at one exponent a through both. Y's door rose by one gap, x_(V+1)
+      - x_V = e_Y. Greed chose R at the first move, paying door r:
+      f_R r &lt;= f_Y (door_Y - e_Y); and Y at the second: f_Y door_Y &lt;=
+      f_R e_R. So f_R r &lt;= f_R e_R - f_Y e_Y, and r &lt; e_R. A change
+      past the tails therefore needs one of two EXITS: R's own move
+      paid a door below its tail gap, or Y was not seated when R moved.
+      From the void every exponent is a landing m(c), so r is at least
+      R's gap x_V - x_(V-1), which is e_R once V - 1 is past R's tail
+      index; the first exit then needs V to be R's tail index exactly,
+      the move that leaves the ladder's last short gap. Consequence:
+      once the holder pays one move at its tail door past both tails,
+      no place seated at that move ever takes the tick, and the
+      holder's next move is again at its tail door; only a place opened
+      later can displace it.
+  (f) A STRICT CHANGE FROM THE VOID. R tame over 7 with e = 5, f = 1
+      (Q_7(7^(1/5)); the bend 5/6 lies below 1, so the ladder is 1, 6,
+      11, ..., tail index 1), beside Y unramified of f = 2 (ladder 1,
+      2, 3, ...). Void: R opens at 7 (L = 6); R clocks at door 1 for 7
+      (V = 1, R at 2) and pends m_R(2) - 2 = 5, 7^5; Y opens at 49 (48
+      does not divide 42); Y pends m_Y(2) - 1 = 2, 49^2 = 7^4 &lt; 7^5.
+      Y takes the tick past both tails, the local degree falling 5 to
+      2 strictly, 2 * 2 &lt; 5 * 1, through the second exit. Y lands at 3
+      with V = 2, then pends 1, 49, against R's m_R(3) - 2 = 10. Paid 7,
+      7, 49, 2401, 49, 49, ...: Y runs, and there is no tie anywhere.
+      At e = 4 the same walk ties, 2 * 2 = 4 * 1; at e = 3 it is cell
+      (b), Y never clocked. The ties S1 read from the void are the
+      type list's: its headless tame places over 7 stop at e = 3.
+
+PREDICTIONS, frozen before the engine.
+  PR7 THE ENTRY LEMMA. Over every tree S1 walks, and over the widened
+      list of PR9, every change of holder past the tails with no jump
+      takes one of the two exits. KILL: one change taking neither.
+      Printed: the changes by exit (door below the tail gap, Y
+      opened after R's move, both).
+  PR8 CELL (f) prints one leaf, paid 7, 7, 49, 2401, 49, 49, no tie,
+      one change of holder, past the tails, from the e = 5 place to the
+      f = 2 place, not at a tie. KILL: any of those off.
+  PR9 THE WIDENED LIST. S1's pairs and triples over 7 walked from the
+      void only, with the tame (7, 1, 4, 0) and (7, 1, 5, 0) added to
+      the list, local degrees summing to at most 8. Printed: changes
+      past the tails, how many at a tie, how many strict; and the same
+      split over S1's own list from the void. KILL: no strict change
+      over the widened list.
+
+FINDINGS (entered after the run, from its printed output).
+  F7 THE ENTRY LEMMA (PR7 hit). Over S1's trees, 167 changes past the
+     tails with no jump: 139 through a door below the tail gap alone,
+     28 through both exits, none through a late opening alone, none
+     through neither. The 28 are exactly S1's changes from the void,
+     and over the widened list from the void all 35 took both exits:
+     from the void, every change past the tails read went to a place
+     opened after the holder's short move. That is an observation over
+     these blocks, not a proof. The first engine seated no place from
+     the seed, so every seeded change read as a late opening; the
+     printed 139 is the corrected run's.
+  F8 CELL (f) (PR8 hit). One leaf, paid 7, 7, 49, 2401, 49, 49, no
+     tie; one change, the f = 2 place taking the clock from the e = 5
+     place, past the tails and not at a tie; the f = 2 place runs to
+     exponent 39, the e = 5 place left at 2.
+  F9 THE WIDENED LIST (PR9 hit). S1's list from the void: 28 changes
+     past the tails, 28 at a tie, 0 strict. With (7, 1, 4, 0) and (7,
+     1, 5, 0) added, 87 blocks over 7 from the void: 35 changes, 20 at
+     a tie, 15 strict. The void ties were the type list's, and a
+     change from the void is not a tie phenomenon.
+
+RUN RECORD, second question. 179,076 checks over all four sections and
+this one, 19.8 s, peak working set 17.0 MB.
+
+THE THIRD QUESTION: IS A TIE EVER AS WIDE AS THE FIELD'S DEGREE?
+A third slate, frozen before its engine (section_width below). Every
+tie lies over one rational prime, which carries at most n places in a
+field of degree n, so a tie is at most n wide; every tie the sections
+above read has width 2. Is the bound reached in a cubic ring, and what
+does the image count read there?
+
+HAND-ATTACK.
+  (g) A SPLIT-COMPLETELY VOID. x^3 - x + 3 has discriminant 4 - 243 =
+      -239, a prime prime to 6, so Z[alpha] is maximal and p factors as
+      the cubic does mod p. Mod 3 it is x^3 - x = x(x - 1)(x + 1): 3
+      splits completely into three places of norm 3, e = f = 1, whose
+      bend 1/2 is no power of 3, so each ladder is 1, 2, 3, ... and
+      m(j) = j + 1. Mod 2 it is x^3 + x + 1, irreducible: one place of
+      norm 8. Mod 5 it has no root: norm 125. Mod 7 the one root 4:
+      places of norm 7 and 49. Void, L = 1: each place over 3 has N - 1
+      = 2 not dividing L and opens at exponent 1 for 3; nothing else
+      costs below 7 but the norm-8 opening. A tie of width 3. Say P
+      wins: L = 2, V = v_3(L) = 0, so P's door is m(1) - 1 = 1, price
+      3, and each other place over 3 now has N - 1 | L and door m(1) =
+      2, price 9. P lands at 2 (L = 6, V = 1) and pends m(2) - 2 = 1,
+      price 3 again, while its partners pend m(2) = 3, price 27. Only P
+      is ever seated, so at P's exponent a, L = 2 * 3^(a - 1), V = a - 1
+      and P's door is m(a) - a = 1: at every later state P pends 3 and
+      the partners at least 9, so P runs and the partners are never seated. Three ends, each paying
+      3 forever with one place over 3 running; the colour count reads
+      one shape, the colour of the three places at sigma = 3 with one
+      at a positive exponent and two at 0: 3!/(1! 2!) = 3 limits, the
+      bound attained.
+
+PREDICTIONS, frozen before the engine.
+  PR10 THE WIDTH-3 VOID. At x^3 - x + 3 the void minimum is 3 at
+      exactly the three places over 3, sig (3, 1, 1, 0) each. The tree
+      over 60 moves has exactly three ends, no merge among them, each
+      paying 3 at every move, each with one place over 3 seated and
+      the other two unseated, the three seated places distinct. KILL:
+      the void minimum off 3, a tie width off 3, an end count off 3,
+      any end paying a price other than 3, or two ends seating the
+      same place over 3.
+
+FINDINGS (entered after the run, from its printed output).
+  F10 THE WIDTH-3 VOID (PR10 hit). Discriminant -239; three places over
+      3, sig (3, 1, 1, 0) each, and the void minimum 3 at exactly those
+      three. Three ends and 0 merges over 60 moves, each paying 3 at
+      every move with one place over 3 seated, at exponent 60, and the
+      other two never seated, the three ends seating the three places.
+
+RUN RECORD, third question. 179,321 checks over all five sections,
+20.0 s.
+"""
+
+import os
+import sys
+import time
+from collections import Counter
+from itertools import combinations_with_replacement
+from math import gcd
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import door as DR  # noqa: E402
+
+CHECKS = [0]
+
+
+<span id="check"></span>def check(cond, msg):
+    CHECKS[0] += 1
+    if not cond:
+        raise SystemExit("FAIL: " + msg)
+
+
+# ---------------------------------------------------------------------------
+# rings: the general monic cubic with squarefree discriminant prime to 6
+
+<span id="disc3"></span>def disc3(a, b, c):
+    return (a * a * b * b - 4 * b ** 3 - 4 * a ** 3 * c - 27 * c * c
+            + 18 * a * b * c)
+
+
+<span id="squarefree"></span>def squarefree(n):
+    n = abs(n)
+    d = 2
+    while d * d &lt;= n:
+        if n % (d * d) == 0:
+            return False
+        d += 1
+    return True
+
+
+<span id="cubic"></span>def cubic(a, b, c, nmax):
+    """The places of Q(alpha), alpha^3 + a alpha^2 + b alpha + c = 0, of
+    norm up to nmax. The discriminant is squarefree, so Z[alpha] is the
+    maximal order and p factors as the cubic does mod p; a ramified p
+    divides it once, so p = P Q^2, both of degree 1, Q tame (p &gt;= 5)."""
+    D = disc3(a, b, c)
+    check(squarefree(D) and gcd(D, 6) == 1,
+          f"x^3 + {a}x^2 + {b}x + {c}: discriminant {D}")
+    out = []
+    for p in DR.primes_to(nmax):
+        roots = [x for x in range(p) if (x ** 3 + a * x * x + b * x + c)
+                 % p == 0]
+        if D % p == 0:
+            check(len(roots) == 2, f"a ramified prime {p} off type P Q^2")
+            out += [DR.Place(p, 1, 1, 0), DR.Place(p, 1, 2, 0)]
+        elif len(roots) == 3:
+            out += [DR.unram(p, 1) for _ in range(3)]
+        elif len(roots) == 1:
+            out.append(DR.unram(p, 1))
+            if p * p &lt;= nmax:
+                out.append(DR.unram(p, 2))
+        elif p ** 3 &lt;= nmax:
+            out.append(DR.unram(p, 3))
+    return out
+
+
+<span id="sig"></span>def sig(q):
+    return (q.p, q.f, q.e, q.w)
+
+
+<span id="ef"></span>def ef(q):
+    return q.e * q.f
+
+
+# ---------------------------------------------------------------------------
+# the walker: door.py's move, every tie branched, equal states merged
+
+<span id="menu"></span>def menu(pls, st, tally, supply):
+    """(best price, [move types]), door.py's rmenu with the supply check
+    optional: a block walked alone has no supply beyond its places."""
+    ms = []
+    for i, a in st.a.items():
+        q = pls[i]
+        r = DR.door_lcm(q, a, st.L)
+        tally["read"] += 1
+        tally["mismatch"] += r != DR.door_count(q, a, st.L)
+        ms.append((q.N ** r, ("c", i, a, r)))
+    best = min(p for p, _ in ms) if ms else None
+    for q in pls:
+        if best is not None and q.N &gt; best:
+            break
+        if q.idx in st.a:
+            continue
+        r = DR.door_lcm(q, 0, st.L)
+        tally["read"] += 1
+        tally["mismatch"] += r != DR.door_count(q, 0, st.L)
+        pr = q.N ** r
+        ms.append((pr, ("o" if r == 1 and st.L % (q.N - 1) else "u",
+                        q.idx, 0, r)))
+        if best is None or pr &lt; best:
+            best = pr
+    if supply:
+        check(best &lt; pls[-1].N, "the supply ran out")
+    return best, [t for p, t in ms if p == best]
+
+
+<span id="Path"></span>class Path:
+    __slots__ = ("st", "log", "ext", "ties", "paid")
+
+    def __init__(self, st):
+        self.st, self.log, self.ext, self.ties, self.paid = st, [], [], [], []
+
+
+<span id="shared_unit"></span>def shared_unit(pls, st, t, tally):
+    """PR1 at one move: an opening of a place whose residue degree divides
+    that of a place already seated over its prime."""
+    kind, i, a, r = t
+    if a:
+        return
+    q = pls[i]
+    if any(pls[j].p == q.p and pls[j].f % q.f == 0 for j in st.a):
+        tally["unit_bad" if kind == "o" else "unit_door2"] += 1
+
+
+<span id="tree"></span>def tree(pls, st0, n, tally, supply=True, cap=20000):
+    """Every tie branched, equal states merged (the first path kept):
+    the leaves after n moves."""
+    front = {st0.key(): Path(st0)}
+    for step in range(n):
+        nxt = {}
+        for path in front.values():
+            best, types = menu(pls, path.st, tally, supply)
+            for t in types:
+                shared_unit(pls, path.st, t, tally)
+                n2 = Path(None)
+                n2.log, n2.ext = list(path.log), list(path.ext)
+                n2.st = DR.rstep(pls, path.st, t, best, n2.log, n2.ext,
+                                 tally)
+                n2.ties = path.ties + [step] if len(types) &gt; 1 else path.ties
+                n2.paid = path.paid + [best]
+                k = n2.st.key()
+                if k in nxt:
+                    tally["merges"] += 1
+                else:
+                    nxt[k] = n2
+        front = nxt
+        check(len(front) &lt;= cap, "the branch cap")
+    return list(front.values())
+
+
+<span id="lowest_path"></span>def lowest_path(pls, st, n, tally):
+    """The walk that always takes door.py's lowest-first member."""
+    log, ext = [], []
+    for _ in range(n):
+        best, types = menu(pls, st, tally, True)
+        st = DR.rstep(pls, st, DR.r_low(types), best, log, ext, tally)
+    return log
+
+
+# ---------------------------------------------------------------------------
+# the race read off a path
+
+<span id="changes"></span>def changes(pls, ext):
+    """Every change of holder inside a block: (Y, R, count before Y's move,
+    R's count after its move, Y's door)."""
+    last, out = {}, []
+    for b, i, f, a, v0, v1, r in ext:
+        if b in last and last[b][0] != i:
+            z, vz = last[b]
+            out.append((i, z, v0, vz, r))
+        last[b] = (i, v1)
+    return out
+
+
+<span id="race_reading"></span>def race_reading(pls, ext, tot):
+    """PR2 over one path's changes of holder."""
+    least = {}
+    for q in pls:
+        least[q.p] = min(least.get(q.p, ef(q)), ef(q))
+    for y, z, v, vz, r in changes(pls, ext):
+        qy, qz = pls[y], pls[z]
+        jy, jz = DR.tail_index(qy.lad)[0], DR.tail_index(qz.lad)[0]
+        pend = DR.mdepth(qz.lad, v + 1) - DR.mdepth(qz.lad, vz)
+        tot["changes"] += 1
+        tot["jump"] += v &gt; vz
+        if vz &gt;= max(jy, jz):
+            tot["past"] += 1
+            tot["past_bad"] += not ef(qy) &lt; ef(qz)
+            tot["least_bad"] += ef(qz) == least[qz.p]
+            tot["past_tie"] += qy.f * r == qz.f * pend
+            tot["past_jump"] += v &gt; vz
+        else:
+            tot["before"] += 1
+            tot["before_rise"] += ef(qy) &gt;= ef(qz)
+
+
+<span id="runaway"></span>def runaway(pls, log):
+    """block -&gt; the set of holders over the last quarter's clock moves."""
+    return DR.late_blocks(log)
+
+
+<span id="lam_brute_tame5"></span>def lam_brute_tame5(u, b):
+    """The exponent of (O/Q^b)^x for O = Z_5[pi], pi^2 = 5u, brute: an
+    element c0 + c1 pi, c0 mod 5^ceil(b/2), c1 mod 5^floor(b/2)."""
+    m0, m1 = 5 ** ((b + 1) // 2), 5 ** (b // 2)
+
+    def mul(x, y):
+        return ((x[0] * y[0] + 5 * u * x[1] * y[1]) % m0,
+                (x[0] * y[1] + x[1] * y[0]) % m1)
+
+    def power(x, k):
+        r = (1 % m0, 0)
+        while k:
+            if k &amp; 1:
+                r = mul(r, x)
+            x = mul(x, x)
+            k &gt;&gt;= 1
+        return r
+
+    units = [(c0, c1) for c0 in range(m0) if c0 % 5 for c1 in range(m1)]
+    one = (1 % m0, 0)
+    E = 4 * 5 ** b
+    for ell in (2, 5):
+        while E % ell == 0 and all(power(x, E // ell) == one for x in units):
+            E //= ell
+    return E
+
+
+# ---------------------------------------------------------------------------
+# the sections
+
+TYPES = [
+    (2, 1, 1, 1), (2, 2, 1, 0), (2, 3, 1, 0), (2, 1, 2, 1), (2, 1, 2, 2),
+    (2, 1, 2, 3), (2, 1, 3, 0), (2, 1, 4, 2),
+    (3, 1, 1, 0), (3, 2, 1, 0), (3, 1, 2, 1), (3, 1, 2, 0), (3, 1, 3, 0),
+    (3, 1, 4, 0),
+]
+for _p in (5, 7):
+    TYPES += [(_p, 1, 1, 0), (_p, 2, 1, 0), (_p, 3, 1, 0), (_p, 1, 2, 0),
+              (_p, 1, 3, 0), (_p, 2, 2, 0)]
+TYPES += [(5, 1, 4, 1), (7, 1, 6, 1)]
+
+N_B, N_R = 40, 60
+
+
+<span id="block"></span>def block(types):
+    pls = sorted((DR.Place(p, f, e, w) for p, f, e, w in types),
+                 key=lambda q: (q.N, q.p, q.e))
+    for i, q in enumerate(pls):
+        q.idx = i
+        q.name = f"{q.N}:{q.p},{q.e},{q.f}#{i}"
+    return pls
+
+
+<span id="seed"></span>def seed(pls, exps):
+    st = DR.RSt()
+    for q, a in zip(pls, exps):
+        if a:
+            st.a[q.idx] = a
+            st.L = st.L * q.lam(a) // gcd(st.L, q.lam(a))
+    return st
+
+
+RINGS_X = [("x^3+2x+1", (0, 2, 1)), ("x^3+x^2+x+2", (1, 1, 2)),
+           ("x^3+x^2+3x+2", (1, 3, 2))]
+RINGS_5 = [("x^3-6x^2-x+1", (-6, -1, 1), 7),
+           ("x^3-4x^2-x-1", (-4, -1, -1), 13),
+           ("x^3+12x^2+41x-25", (12, 41, -25), 25)]
+
+
+<span id="section_control"></span>def section_control():
+    print("S0  CONTROLS")
+    mine = DR.build(lambda: cubic(0, 2, 1, DR.NMAX))
+    ref = DR.build(lambda: DR.cubic(2, 1, 59, DR.NMAX))
+    check([sig(q) for q in mine] == [sig(q) for q in ref],
+          "the general cubic against door.py's at x^3 + 2x + 1")
+    tally = Counter()
+    lg = lowest_path(mine, DR.RSt(), N_R, tally)
+    log, ext = [], []
+    DR.rwalk(ref, DR.RSt(), N_R, DR.r_low, log, ext, Counter())
+    check(lg == log, "the lowest-first path against door.py's rwalk")
+    print(f"  x^3 + 2x + 1: the general cubic's {len(mine)} places match "
+          f"door.py's; the lowest-first path matches rwalk over {N_R} moves")
+    for u in (1, 2):
+        got = [lam_brute_tame5(u, b) for b in range(1, 7)]
+        want = [DR.Place(5, 1, 2, 0).lam(b) for b in range(1, 7)]
+        check(got == want, f"the tame column over 5, u = {u}")
+        print(f"  tame e = 2 over 5, pi^2 = {5 * u}: brute {got}")
+    pls = block([(5, 1, 1, 0), (5, 1, 2, 0)])
+    planted = [(5, 0, 1, 1, 3, 4, 1), (5, 1, 1, 3, 4, 5, 3)]
+    tot = Counter()
+    race_reading(pls, planted, tot)
+    check(tot["past_bad"] == 1, "the change checker did not fire")
+    print("  the change checker fires on a planted change raising the local "
+          "degree past the tails")
+
+
+<span id="section_blocks"></span>def section_blocks():
+    print("S1  BLOCKS ALONE: THE RACE")
+    tot, tally = Counter(), Counter()
+    nblocks = walks = leaves = 0
+    notleast = notleast_notie = 0
+    for size in (2, 3):
+        for p in (2, 3, 5, 7):
+            tp = [t for t in TYPES if t[0] == p]
+            for combo in combinations_with_replacement(tp, size):
+                if sum(f * e for _, f, e, _ in combo) &gt; 8:
+                    continue
+                pls = block(combo)
+                nblocks += 1
+                seeds = [(0,) * size]
+                if size == 2:
+                    seeds += [(a1, a2) for a1 in (1, 2, 3)
+                              for a2 in (1, 2, 3)]
+                else:
+                    seeds += [(a,) * 3 for a in (1, 2, 3)]
+                for sd in seeds:
+                    for path in tree(pls, seed(pls, sd), N_B, tally, False):
+                        leaves += 1
+                        race_reading(pls, path.ext, tot)
+                        late = runaway(pls, path.log).get(p, set())
+                        if len(late) == 1:
+                            (x,) = late
+                            mn = min(ef(pls[j]) for j in path.st.a)
+                            if ef(pls[x]) &gt; mn:
+                                notleast += 1
+                                notleast_notie += not path.ties
+                    walks += 1
+    print(f"  {nblocks} blocks, {walks} trees, {leaves} leaves; doors read "
+          f"{tally['read']}, lcm against count mismatches "
+          f"{tally['mismatch']}; merges {tally['merges']}")
+    print(f"  changes of holder {tot['changes']}: past the tails "
+          f"{tot['past']} (at a tie {tot['past_tie']}), not lowering the "
+          f"local degree {tot['past_bad']}, displacing a least-degree "
+          f"holder {tot['least_bad']}; before the tails {tot['before']}, "
+          f"not lowering {tot['before_rise']}; jumps {tot['jump']}")
+    print(f"  runaways above the least seated local degree: {notleast}, "
+          f"with no tie on the path {notleast_notie}")
+    check(tally["mismatch"] == 0, "the door identity in a block")
+    check(tot["past_bad"] == 0, "PR2: a change past the tails")
+    check(tot["least_bad"] == 0, "PR2: a least-degree holder displaced")
+    check(notleast_notie &gt; 0, "PR3: no runaway above the least without "
+          "a tie")
+
+
+<span id="describe"></span>def describe(pls, path):
+    lb = runaway(pls, path.log)
+    deep = [pls[i] for v in lb.values() for i in v]
+    return deep, {pls[i].name: a for i, a in sorted(path.st.a.items())}
+
+
+<span id="section_cells"></span>def section_cells():
+    print("S2  THE TWO CELLS")
+    tally = Counter()
+    pls = block([(7, 1, 3, 0), (7, 2, 1, 0)])
+    leaves = tree(pls, DR.RSt(), N_B, tally, False)
+    check(len(leaves) == 1, "PR3: cell (b) branched")
+    path = leaves[0]
+    deep, seats = describe(pls, path)
+    print(f"  (b) over 7, e = 3 beside f = 2, from the void: paid "
+          f"{path.paid[:6]}, runaway {[q.name for q in deep]}, seated "
+          f"{seats}, ties {path.ties}")
+    check(path.paid[:5] == [7, 7, 49, 343, 343], "PR3: cell (b)'s paid")
+    check([sig(q) for q in deep] == [(7, 1, 3, 0)], "PR3: cell (b)'s runaway")
+    b = next(q for q in pls if q.f == 2)
+    check(path.st.a.get(b.idx) == 1, "PR3: cell (b)'s f = 2 place")
+    check(not any(i == b.idx for _, i, *_ in path.ext),
+          "PR3: cell (b)'s f = 2 place clocked")
+    pls = block([(59, 1, 1, 0), (59, 1, 2, 0)])
+    leaves = tree(pls, seed(pls, (1, 1)), N_B, tally, False)
+    ends = []
+    for path in leaves:
+        deep, seats = describe(pls, path)
+        ends.append((tuple(path.paid[:3]), sig(deep[0]), tuple(path.ties)))
+        print(f"  (a) the 59 cell: paid {path.paid[:4]}, runaway "
+              f"{[q.name for q in deep]}, seated {seats}, ties {path.ties}")
+    want = {((59, 59, 59), (59, 1, 1, 0), (0,)),
+            ((59, 3481, 59), (59, 1, 1, 0), (0, 1)),
+            ((59, 3481, 3481), (59, 1, 2, 0), (0, 1))}
+    check(len(leaves) == 3 and set(ends) == want, "PR4: the 59 cell")
+
+
+<span id="ring_trees"></span>def ring_trees(pls, n, tally):
+    return tree(pls, DR.RSt(), n, tally, True)
+
+
+<span id="section_rings"></span>def section_rings():
+    print("S3  THE RINGS")
+    tot, tally = Counter(), Counter()
+    for name, (a, b, c) in RINGS_X:
+        pls = DR.build(lambda: cubic(a, b, c, DR.NMAX))
+        best, types = menu(pls, DR.RSt(), Counter(), True)
+        tie = sorted(sig(pls[t[1]]) for t in types)
+        leaves = ring_trees(pls, N_R, tally)
+        ends = set()
+        for path in leaves:
+            race_reading(pls, path.ext, tot)
+            deep, seats = describe(pls, path)
+            q2 = next(q for q in pls if q.p == 2 and q.f == 2)
+            ends.add((tuple(path.paid[:4]), deep[0].N,
+                      path.st.a.get(q2.idx) if deep[0].N == 2 else None))
+        print(f"  {name} (discriminant {disc3(a, b, c)}): void minimum "
+              f"{best} at {tie}; {len(leaves)} ends {sorted(ends)}")
+        check(best == 4 and tie == [(2, 1, 1, 1), (2, 2, 1, 0)],
+              f"PR5: the void tie at {name}")
+        check(len(leaves) == 3 and ends == {
+            ((4, 4, 2, 2), 2, None), ((4, 4, 4, 2), 2, 1),
+            ((4, 4, 4, 4), 4, None)}, f"PR5: the tree at {name}")
+    for name, (a, b, c), under in RINGS_5:
+        pls = DR.build(lambda: cubic(a, b, c, DR.NMAX))
+        best, types = menu(pls, DR.RSt(), Counter(), True)
+        tie = sorted(sig(pls[t[1]]) for t in types)
+        leaves = ring_trees(pls, N_R, tally)
+        P = next(q for q in pls if sig(q) == (5, 1, 1, 0))
+        Q = next(q for q in pls if sig(q) == (5, 1, 2, 0))
+        sides = Counter()
+        for path in leaves:
+            race_reading(pls, path.ext, tot)
+            deep, seats = describe(pls, path)
+            if path.log[0][1] == P.idx:
+                ok = (set(path.paid) == {5} and Q.idx not in path.st.a)
+                sides["P", ok] += 1
+            else:
+                want = {7: [5, 5, 7, 7], 13: [5, 5, 8, 13, 13],
+                        25: [5, 5, 8, 25, 25]}[under]
+                dq = (deep[0] is Q if under == 25
+                      else (deep[0].N, deep[0].f) == (under, 1))
+                ok = (path.paid[:len(want)] == want and dq
+                      and not any(x[0] == "o" and x[1] == P.idx
+                                  for x in path.log))
+                sides["Q", ok] += 1
+        print(f"  {name} (discriminant {disc3(a, b, c)}): void minimum "
+              f"{best} at {tie}; ends by side and verdict {dict(sides)}")
+        check(best == 5 and tie == [(5, 1, 1, 0), (5, 1, 2, 0)],
+              f"PR6: the void tie at {name}")
+        check(set(sides) == {("P", True), ("Q", True)},
+              f"PR6: the tree at {name}")
+    print(f"  doors read {tally['read']}, mismatches {tally['mismatch']}; "
+          f"merges {tally['merges']}")
+    print(f"  openings at exponent 1 under a shared unit "
+          f"{tally['unit_bad']}; openings at door 2 or more there "
+          f"{tally['unit_door2']}")
+    print(f"  changes of holder {tot['changes']}: past the tails "
+          f"{tot['past']}, not lowering {tot['past_bad']}, least displaced "
+          f"{tot['least_bad']}; with a jump between {tot['jump']}")
+    check(tally["mismatch"] == 0, "the door identity in a ring")
+    check(tally["unit_bad"] == 0, "PR1: the shared unit")
+    check(tot["past_bad"] == 0 and tot["least_bad"] == 0,
+          "PR2: a change in a ring")
+
+
+<span id="entry_reading"></span>def entry_reading(pls, log, ext, tot, seeded=()):
+    """PR7 over one path: every change of holder past the tails with no
+    jump, sorted by the exit it takes; seeded, the places seated before
+    the path's first move."""
+    seated, moves, k = set(seeded), [], 0
+    for kind, i, r, price, b in log:
+        if kind != "o":
+            moves.append((ext[k], frozenset(seated), r))
+            k += 1
+        seated.add(i)
+    last = {}
+    for (b, i, f, a, v0, v1, r), before, _ in moves:
+        if b in last and last[b][0] != i:
+            z, vz, rz, zbefore = last[b]
+            qy, qz = pls[i], pls[z]
+            jy, jz = DR.tail_index(qy.lad)[0], DR.tail_index(qz.lad)[0]
+            if vz &gt;= max(jy, jz) and v0 == vz:
+                low = rz &lt; DR.tail_index(qz.lad)[1]
+                late = i not in zbefore
+                tot["entry"] += 1
+                tot["entry_low"] += low and not late
+                tot["entry_late"] += late and not low
+                tot["entry_both"] += low and late
+                tot["entry_bad"] += not (low or late)
+        last[b] = (i, v1, r, before)
+
+
+<span id="void_split"></span>def void_split(pls, tot, tally):
+    """The void tree's changes past the tails, at a tie and strict."""
+    t = Counter()
+    for path in tree(pls, DR.RSt(), N_B, tally, False):
+        race_reading(pls, path.ext, t)
+        entry_reading(pls, path.log, path.ext, tot)
+    tot["past"] += t["past"]
+    tot["tie"] += t["past_tie"]
+    tot["strict"] += t["past"] - t["past_tie"]
+
+
+<span id="section_entry"></span>def section_entry():
+    print("S4  THE SECOND QUESTION: A CHANGE FROM THE VOID")
+    tally = Counter()
+    pls = block([(7, 1, 5, 0), (7, 2, 1, 0)])
+    leaves = tree(pls, DR.RSt(), N_B, tally, False)
+    path = leaves[0]
+    deep, seats = describe(pls, path)
+    ch = changes(pls, path.ext)
+    t = Counter()
+    race_reading(pls, path.ext, t)
+    print(f"  (f) over 7, e = 5 beside f = 2, from the void: {len(leaves)} "
+          f"leaf, paid {path.paid[:6]}, runaway {[q.name for q in deep]}, "
+          f"seated {seats}, ties {path.ties}; changes "
+          f"{[(pls[y].name, pls[z].name) for y, z, *_ in ch]}, past the "
+          f"tails {t['past']}, at a tie {t['past_tie']}")
+    check(len(leaves) == 1 and path.paid[:6] == [7, 7, 49, 2401, 49, 49]
+          and not path.ties, "PR8: cell (f)'s walk")
+    check(len(ch) == 1 and (pls[ch[0][1]].e, pls[ch[0][0]].f) == (5, 2)
+          and t["past"] == 1 and t["past_tie"] == 0, "PR8: cell (f)'s change")
+    tot = Counter()
+    for size in (2, 3):
+        for p in (2, 3, 5, 7):
+            tp = [x for x in TYPES if x[0] == p]
+            for combo in combinations_with_replacement(tp, size):
+                if sum(f * e for _, f, e, _ in combo) &gt; 8:
+                    continue
+                pls = block(combo)
+                seeds = [(0,) * size]
+                if size == 2:
+                    seeds += [(a1, a2) for a1 in (1, 2, 3)
+                              for a2 in (1, 2, 3)]
+                else:
+                    seeds += [(a,) * 3 for a in (1, 2, 3)]
+                for sd in seeds:
+                    st0 = seed(pls, sd)
+                    for path in tree(pls, st0, N_B, tally, False):
+                        entry_reading(pls, path.log, path.ext, tot, st0.a)
+    old = Counter()
+    for size in (2, 3):
+        for p in (2, 3, 5, 7):
+            tp = [x for x in TYPES if x[0] == p]
+            for combo in combinations_with_replacement(tp, size):
+                if sum(f * e for _, f, e, _ in combo) &lt;= 8:
+                    void_split(block(combo), old, tally)
+    wide, nwide = Counter(), 0
+    tp = [x for x in TYPES if x[0] == 7] + [(7, 1, 4, 0), (7, 1, 5, 0)]
+    for size in (2, 3):
+        for combo in combinations_with_replacement(tp, size):
+            if sum(f * e for _, f, e, _ in combo) &lt;= 8:
+                nwide += 1
+                void_split(block(combo), wide, tally)
+    for name, c in (("S1's trees", tot), ("S1's list from the void", old),
+                    ("the widened list over 7", wide)):
+        print(f"  {name}: changes past the tails with no jump "
+              f"{c['entry']}: door below the tail gap only "
+              f"{c['entry_low']}, opened after only {c['entry_late']}, "
+              f"both {c['entry_both']}, neither {c['entry_bad']}")
+    for name, c in (("S1's list", old), (f"the widened list ({nwide} "
+                                         f"blocks)", wide)):
+        print(f"  {name} from the void: past the tails {c['past']}, at a "
+              f"tie {c['tie']}, strict {c['strict']}")
+    check(tot["entry_bad"] + old["entry_bad"] + wide["entry_bad"] == 0,
+          "PR7: a change taking neither exit")
+    check(wide["strict"] &gt; 0, "PR9: no strict change over the widened list")
+
+
+<span id="section_width"></span>def section_width():
+    print("S5  THE WIDTH-3 VOID")
+    a, b, c = 0, -1, 3
+    pls = DR.build(lambda: cubic(a, b, c, DR.NMAX))
+    over3 = [q for q in pls if q.p == 3]
+    print(f"  x^3 - x + 3 (discriminant {disc3(a, b, c)}): places over 3 "
+          f"{[sig(q) for q in over3]}")
+    best, types = menu(pls, DR.RSt(), Counter(), True)
+    tie = sorted(sig(pls[t[1]]) for t in types)
+    print(f"  void minimum {best} at {tie}")
+    check(best == 3 and tie == [(3, 1, 1, 0)] * 3,
+          "PR10: the void tie at x^3 - x + 3")
+    tally = Counter()
+    leaves = ring_trees(pls, N_R, tally)
+    seated = []
+    for path in leaves:
+        on3 = sorted(i for i in path.st.a if pls[i].p == 3)
+        seated.append(tuple(on3))
+        print(f"  end: prices {sorted(set(path.paid))}, places over 3 "
+              f"seated {[(pls[i].name, path.st.a[i]) for i in on3]}")
+    print(f"  {len(leaves)} ends, merges {tally['merges']}")
+    check(len(leaves) == 3 and tally["merges"] == 0,
+          "PR10: three ends, no merge")
+    check(all(set(p.paid) == {3} for p in leaves), "PR10: 3 at every move")
+    check(all(len(s) == 1 for s in seated) and len(set(seated)) == 3,
+          "PR10: one distinct place over 3 per end")
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_control()
+    section_blocks()
+    section_cells()
+    section_rings()
+    section_entry()
+    section_width()
+    print(f"\n{CHECKS[0]} checks, {time.time() - t0:.1f} s")
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/race.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

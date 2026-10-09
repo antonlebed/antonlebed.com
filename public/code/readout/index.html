@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>readout.py | Numbers read one place at a time</title>
+<meta name="description" content="readout.py">
+<link rel="alternate" type="text/x-python" href="/code/readout.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>readout.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/learner/#exact-readout-reads-the-subdominant">LEARNER: Exact readout reads the subdominant</a> (criterion); <a href="/learner/#the-grown-depth-is-the-readable-depth">LEARNER: The grown depth is the readable depth</a> (theorem).</p><p>Cited on: <a href="/learner/">LEARNER</a>.</p><p>To run it: <a href="/code/collision.py">collision.py</a> beside it; standard library only.</p></div>
+<pre>"""readout.py -- what a similarity lets a reader read exactly, and why the
+prime a collision grower takes is the tower's agreement plus one.
+
+QUESTION. A WORLD X is a finite set, a GRADING s a symmetric map from
+pairs of X into a totally ordered set, and a LABEL a map on X. A reader
+holding a query q of X and a STORE P, a set of other members of X, reads
+q's label off a member of P with the greatest s(q, .), the MOST SIMILAR
+member. At a threshold t the store is ADMISSIBLE when its most similar
+member has s(q, .) &gt;= t, and the readout is EXACT when every most
+similar member carries q's label, so no tie-break is ever needed. A
+label is READABLE at t when the readout is exact for every query and
+every admissible store. Which labels are readable, and does the answer
+depend on the world the grading lives on -- the tower's AGREEMENT (the
+count of leading primes two inputs agree at), the count of primes at
+which two residues agree, the distance on the line? And collision.py
+grows a substrate of primes that takes, per difference d of two
+differently labelled inputs, the least prime not dividing d: is that
+prime the tower's agreement in another name, so that the grown depth is
+the depth at which the labelled set's labels become readable?
+
+THE ARGUMENT (written before the engine).
+  (A) THE COMPONENT CRITERION. Let G_t be the graph on X with an edge
+      x ~ y when s(x, y) &gt;= t. A label is readable at t iff it is
+      constant on the components of G_t. If constant: a most similar
+      member of an admissible store has s &gt;= t with q, so it is q's
+      neighbour, in q's component, and carries q's label, and so does
+      every tied one. If not constant: it differs across some edge
+      x ~ y; the query x with the store {y} is admissible and its one
+      member is wrong. Nothing about s is used but its
+      values' order: the criterion holds on every world.
+  (B) THE SUBDOMINANT. G_(t+1) has fewer edges than G_t, so its
+      components refine G_t's: the components nest across thresholds even where
+      the fixed-t neighbourhoods {y : s(x, y) &gt;= t} do not. Define
+      u(x, y) as the largest t with x and y in one component of G_t,
+      equivalently the largest over paths from x to y of the least s
+      along an edge. Then u &gt;= s, u satisfies the strong triangle
+      u(x, z) &gt;= min(u(x, y), u(y, z)) (join the paths), and every
+      grading v &gt;= s satisfying it has v &gt;= u (along a best path,
+      v(x, y) &gt;= the least v along an edge &gt;= the least s = u(x, y)).
+      So u is the least ultrametric grading above s, and by (A) a
+      label is readable at t iff it is constant on the balls
+      {y : u(x, y) &gt;= t}. The readout reads u, never s: a pair with
+      s(x, y) &lt; t &lt;= u(x, y) is merged whatever its label. This u is
+      the subdominant ultrametric of cluster analysis, the one single
+      linkage builds, in its dual form: the field states it as the
+      largest ultrametric below a dissimilarity. When s already
+      satisfies the strong triangle, u = s.
+  (C) THE LINE. On a finite set of integers with s(x, y) = -|x - y|,
+      the distance the tower deleted, (A) and (B) hold verbatim. The
+      points 0, 1, 2 at t = -1 are an OPEN TRIANGLE, 0 ~ 1 ~ 2 with
+      0 and 2 not adjacent, and a label splitting 0 from 2 is
+      unreadable: the query 1 with the store {0, 2} ties them at
+      distance 1. So the line's distance reads no finer than its
+      subdominant by this readout, and a reading finer than a
+      subdominant is bought by a different readout, never by a
+      different world.
+  (D) AGREEMENT. Order the pool primes p_1 &lt; p_2 &lt; ... &lt; p_K and
+      let a(x, y) be the largest t with p_t# dividing x - y (p_0# = 1),
+      the number of leading pool primes dividing x - y. The balls
+      {y : a(x, y) &gt;= t} are the classes mod p_t#, and a satisfies the
+      strong triangle since congruences compose, so a is its own
+      subdominant.
+      When a(x, y) &lt; K, the least pool prime not dividing x - y is
+      p_(a(x, y) + 1): the LEAST NON-DIVISOR of collision.py is the
+      successor of the agreement, by definition.
+  (E) THE WELD. Take a labelled set X, its values below p_K#, and
+      a = the agreement. By (D), collision.py's grower takes the
+      primes p_(a(x, y) + 1) over differently labelled pairs, and its
+      DEPTH, the index of the largest prime taken (0 when none is), is
+      1 + the largest such a(x, y). By (A) and (D), the labelled set's label
+      is readable at t iff no differently labelled pair has
+      a(x, y) &gt;= t, so the least threshold at which it is readable is
+      that same 1 + max. The grown depth IS the readable depth, and a
+      prime is taken iff some ball of X at its level holds two labels
+      that the next level splits.
+
+THE WORLDS.
+  RANDOM GRADING: six points, s drawn uniformly from 0 .. 3 per pair
+    by random.Random(seed); twelve seeds.
+  TOWER: six integers drawn below 2310 = 2 * 3 * 5 * 7 * 11, s = a
+    along the pool 2, 3, 5, 7, 11; twelve seeds.
+  LINE: the integers 0, 1, 2, 4, 7, 8 with s = -|x - y|.
+  LABELLED SETS: seven integers drawn below 2310 with labels drawn from
+    two, three or four classes; 600 seeds.
+
+PREDICTIONS (fixed before the engine ran).
+  P0 [controls, read first] (i) On Z/30 the pool 2, 3, 5 gives
+     a(0, 6) = 2, a(6, 16) = 1, a(0, 16) = 1, and the least
+     non-divisors 5 of 6 and 3 of 10. (ii) Over all 27,000 triples of
+     Z/30, a satisfies the strong triangle, and no triple has
+     a(x, y) &gt;= 1, a(y, z) &gt;= 1, a(x, z) = 0. (iii) The count of
+     the primes 2, 3, 5 at which two residues agree gives 0, 6, 16 the
+     values 2, 2, 1, an open triangle at t = 2, so the strong triangle
+     does fail in some world. (iv) The
+     brute readout calls the constant label readable at every
+     threshold and, on the line, the label splitting 0 from 2
+     unreadable at t = -1.
+  P1 [(A)] On every RANDOM GRADING, TOWER and the LINE world, for
+     every label map with at most three labels and every threshold
+     over the grading's values, brute readability over all queries
+     and all stores equals constancy on G_t's components: no
+     exception either way, and both answers occur.
+  P2 [(B)] u by components equals u by best paths on every world;
+     u satisfies the strong triangle and u &gt;= s; over the two-label
+     maps, a map is constant on G_t's components under s iff it is
+     under u (P1 having equated readability with the former, by
+     brute readout over up to three labels); on TOWER, u = a.
+     On some RANDOM GRADING, u &gt; s at a pair.
+  P3 [(C)] On the LINE, the open triangle 0 ~ 1 ~ 2 at t = -1 is printed and
+     the query 1 with the store {0, 2} ties two labels.
+  P4 [(D), (E)] Over all pairs of all LABELLED SETS, the least non-divisor
+     equals p_(a + 1); collision.py's grower's depth equals the least
+     threshold at which brute readout is exact; its grown set equals
+     {p_(a(x, y) + 1)} over differently labelled pairs.
+
+KILLS (observables).
+  K0 any P0 control misses: nothing below is read.
+  K1 a label map where brute readability and component constancy
+     differ: (A) is wrong.
+  K2 a world where the two computations of u differ, or u breaks the
+     strong triangle: (B) is wrong.
+  K3 a labelled set where the grown depth and the readable depth differ, or
+     a pair where the least non-divisor is not p_(a + 1): (D) or (E)
+     is wrong.
+
+FINDINGS (entered after the run; 17 of 17 checks pass, no kill).
+  F0 The controls pass: a(0, 6), a(6, 16), a(0, 16) = 2, 1, 1; the
+     least non-divisors of 6 and 10 are 5 and 3; a keeps the strong
+     triangle on all 27,000 triples of Z/30 with 0 open triangles; the count
+     of agreeing primes gives the open triangle 2, 2, 1; the brute readout
+     reads the constant label and refuses the line's split open triangle.
+  F1 Brute readability equals component constancy in every case:
+     43,740 on the random gradings (9,030 readable), 38,637 on the
+     tower worlds (11,745 readable), 6,561 on the line (783
+     readable).
+  F2 The two computations of u agree on all 25 worlds, u keeps the
+     strong triangle, lies above s, and its components at every
+     threshold carry the same two-label maps as s's;
+     u = a on every tower world, and u &gt; s at some pair on all 12
+     random gradings.
+  F3 On the line s(0, 1) = s(1, 2) = -1, s(0, 2) = -2 and u(0, 2) =
+     -1: the open triangle is merged, and the query 1 ties 0 and 2.
+  F4 The least non-divisor is p_(a + 1) on all 12,600 pairs; on all
+     600 labelled sets the grown depth equals the least readable threshold,
+     depths 0 through 5 all occurring, and the grown set equals the
+     successors of the separated pairs' depths.
+
+RUN RECORD. One run, 17 checks, 2.3 s, peak 13.6 MB. Exact integers
+throughout.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import random
+import sys
+from itertools import combinations, product
+from math import prod
+
+from collision import grow, first_primes
+
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" +
+          (f"  ({detail})" if detail else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+POOL = first_primes(5)
+TOP = prod(POOL)
+
+
+# the gradings
+
+<span id="agreement"></span>def agreement(x, y, pool=POOL):
+    t, d = 0, x - y
+    for p in pool:
+        if d % p:
+            break
+        t += 1
+    return t
+
+
+<span id="least_non_divisor"></span>def least_non_divisor(d, pool=POOL):
+    for p in pool:
+        if d % p:
+            return p
+    return None
+
+
+<span id="count_agree"></span>def count_agree(x, y, pool=POOL):
+    return sum(1 for p in pool if (x - y) % p == 0)
+
+
+<span id="grading_of"></span>def grading_of(W, f):
+    return {(x, y): f(x, y) for x in W for y in W if x != y}
+
+
+# the readout
+
+<span id="readable_brute"></span>def readable_brute(W, s, lab, t):
+    """Every query, every store of other members, every most similar member."""
+    for q in W:
+        others = [x for x in W if x != q]
+        for r in range(1, len(others) + 1):
+            for P in combinations(others, r):
+                top = max(s[q, x] for x in P)
+                if top &lt; t:
+                    continue
+                if any(lab[x] != lab[q] for x in P if s[q, x] == top):
+                    return False
+    return True
+
+
+<span id="components"></span>def components(W, s, t):
+    comp = {x: x for x in W}
+
+    def find(x):
+        while comp[x] != x:
+            comp[x] = comp[comp[x]]
+            x = comp[x]
+        return x
+    for x, y in combinations(W, 2):
+        if s[x, y] &gt;= t:
+            comp[find(x)] = find(y)
+    return {x: find(x) for x in W}
+
+
+<span id="component_constant"></span>def component_constant(W, s, lab, t):
+    c = components(W, s, t)
+    return all(lab[x] == lab[y] for x, y in combinations(W, 2)
+               if c[x] == c[y])
+
+
+# the subdominant
+
+<span id="sub_components"></span>def sub_components(W, s):
+    vals = sorted(set(s.values()))
+    u = {}
+    for x, y in s:
+        u[x, y] = max(t for t in vals if components(W, s, t)[x]
+                      == components(W, s, t)[y])
+    return u
+
+
+<span id="sub_paths"></span>def sub_paths(W, s):
+    """Widest paths: the largest least-edge value over paths."""
+    u = dict(s)
+    for k in W:
+        for i in W:
+            for j in W:
+                if len({i, j, k}) == 3:
+                    u[i, j] = max(u[i, j], min(u[i, k], u[k, j]))
+    return u
+
+
+<span id="strong_triangle"></span>def strong_triangle(W, s):
+    return all(s[x, z] &gt;= min(s[x, y], s[y, z])
+               for x, y, z in product(W, repeat=3)
+               if len({x, y, z}) == 3)
+
+
+<span id="labellings"></span>def labellings(W, n_labels=3):
+    for lab in product(range(n_labels), repeat=len(W)):
+        yield dict(zip(W, lab))
+
+
+<span id="thresholds"></span>def thresholds(s):
+    vals = sorted(set(s.values()))
+    return vals + [vals[-1] + 1]
+
+
+# the worlds
+
+<span id="random_world"></span>def random_world(seed):
+    rng = random.Random(seed)
+    W = list(range(6))
+    s = {}
+    for x, y in combinations(W, 2):
+        s[x, y] = s[y, x] = rng.randrange(4)
+    return W, s
+
+
+<span id="tower_world"></span>def tower_world(seed):
+    rng = random.Random(1000 + seed)
+    W = rng.sample(range(TOP), 6)
+    return W, grading_of(W, agreement)
+
+
+<span id="line_world"></span>def line_world():
+    W = [0, 1, 2, 4, 7, 8]
+    return W, grading_of(W, lambda x, y: -abs(x - y))
+
+
+<span id="worlds"></span>def worlds():
+    out = [("random", seed, *random_world(seed)) for seed in range(12)]
+    out += [("tower", seed, *tower_world(seed)) for seed in range(12)]
+    out.append(("line", 0, *line_world()))
+    return out
+
+
+# the sections
+
+<span id="section_controls"></span>def section_controls():
+    section("CONTROLS")
+    got = (agreement(0, 6, POOL[:3]), agreement(6, 16, POOL[:3]),
+           agreement(0, 16, POOL[:3]))
+    check("a(0, 6), a(6, 16), a(0, 16) = 2, 1, 1 on the pool 2, 3, 5",
+          got == (2, 1, 1), str(got))
+    got = (least_non_divisor(6, POOL[:3]),
+           least_non_divisor(10, POOL[:3]))
+    check("least non-divisors of 6 and 10 are 5 and 3", got == (5, 3),
+          str(got))
+    Z = list(range(30))
+    viol = opens = 0
+    for x, y, z in product(Z, repeat=3):
+        axy, ayz, axz = (agreement(x, y, POOL[:3]), agreement(y, z, POOL[:3]),
+                         agreement(x, z, POOL[:3]))
+        viol += axz &lt; min(axy, ayz)
+        opens += axy &gt;= 1 and ayz &gt;= 1 and axz == 0
+    check("a keeps the strong triangle on all 27,000 triples of Z/30",
+          viol == 0 and opens == 0,
+          f"{viol} violations, {opens} open triangles")
+    got = (count_agree(0, 6, POOL[:3]), count_agree(6, 16, POOL[:3]),
+           count_agree(0, 16, POOL[:3]))
+    check("the count of agreeing primes opens a triangle: 2, 2, 1",
+          got == (2, 2, 1), str(got))
+    W, s = line_world()
+    check("the constant label is readable at every threshold",
+          all(readable_brute(W, s, {x: 0 for x in W}, t)
+              for t in thresholds(s)))
+    lab = {x: 0 for x in W}
+    lab[2] = 1
+    check("on the line, splitting 0 from 2 is unreadable at t = -1",
+          not readable_brute(W, s, lab, -1))
+
+
+<span id="section_criterion"></span>def section_criterion(ws):
+    section("THE COMPONENT CRITERION")
+    for kind in ("random", "tower", "line"):
+        n = bad = yes = 0
+        for k, seed, W, s in ws:
+            if k != kind:
+                continue
+            for lab in labellings(W):
+                for t in thresholds(s):
+                    b = readable_brute(W, s, lab, t)
+                    c = component_constant(W, s, lab, t)
+                    n += 1
+                    bad += b != c
+                    yes += b
+        check(f"{kind}: brute readability = component constancy",
+              bad == 0 and 0 &lt; yes &lt; n,
+              f"{n} cases, {bad} differ, {yes} readable")
+
+
+<span id="section_subdominant"></span>def section_subdominant(ws):
+    section("THE SUBDOMINANT")
+    for k, seed, W, s in ws:
+        u1, u2 = sub_components(W, s), sub_paths(W, s)
+        ok = (u1 == u2 and strong_triangle(W, u1)
+              and all(u1[p] &gt;= s[p] for p in s))
+        ok &amp;= all(component_constant(W, s, lab, t)
+                  == component_constant(W, u1, lab, t)
+                  for lab in labellings(W, 2) for t in thresholds(s))
+        if not ok:
+            check(f"{k} {seed}: the subdominant", False)
+            return
+    check("u two ways agree, keep the strong triangle, lie above s, "
+          "and read the same labels, on every world", True,
+          f"{len(ws)} worlds")
+    towers = [(W, s) for k, _, W, s in ws if k == "tower"]
+    check("on every tower world u = a",
+          all(sub_paths(W, s) == s for W, s in towers))
+    gaps = sum(1 for k, _, W, s in ws if k == "random"
+               and any(sub_paths(W, s)[p] &gt; s[p] for p in s))
+    check("some random grading has u &gt; s at a pair", gaps &gt; 0,
+          f"{gaps} of 12")
+
+
+<span id="section_line"></span>def section_line():
+    section("THE LINE")
+    W, s = line_world()
+    print(f"  s(0, 1) = {s[0, 1]}, s(1, 2) = {s[1, 2]}, "
+          f"s(0, 2) = {s[0, 2]}")
+    u = sub_paths(W, s)
+    print(f"  u(0, 2) = {u[0, 2]}")
+    check("0 ~ 1 ~ 2 is an open triangle at t = -1 and u merges 0 and 2",
+          s[0, 1] &gt;= -1 and s[1, 2] &gt;= -1 and s[0, 2] &lt; -1
+          and u[0, 2] &gt;= -1)
+    check("query 1, store {0, 2}: both most similar, at distance 1",
+          s[1, 0] == s[1, 2] == -1)
+
+
+<span id="streams"></span>def streams(n, seed0=0):
+    for seed in range(seed0, seed0 + n):
+        rng = random.Random(seed)
+        W = rng.sample(range(TOP), 7)
+        c = 2 + seed % 3
+        yield W, {x: rng.randrange(c) for x in W}
+
+
+<span id="section_weld"></span>def section_weld():
+    section("THE WELD")
+    pairs = bad_l = 0
+    bad_depth = bad_set = 0
+    depths = set()
+    for W, lab in streams(600):
+        for x, y in combinations(W, 2):
+            pairs += 1
+            a = agreement(x, y)
+            bad_l += least_non_divisor(x - y) != POOL[a]
+        sep = [(x, y) for x, y in combinations(W, 2) if lab[x] != lab[y]]
+        D = {abs(x - y) for x, y in sep}
+        g = grow(D, POOL)
+        gdepth = POOL.index(max(g)) + 1 if g else 0
+        s = grading_of(W, agreement)
+        rdepth = min(t for t in range(len(POOL) + 2)
+                     if readable_brute(W, s, lab, t))
+        depths.add(gdepth)
+        bad_depth += gdepth != rdepth
+        bad_set += sorted(g) != sorted({POOL[agreement(x, y)]
+                                        for x, y in sep})
+    check("the least non-divisor of x - y is p_(a + 1) on every pair",
+          bad_l == 0, f"{pairs} pairs, {bad_l} differ")
+    check("the grown depth = the least readable threshold",
+          bad_depth == 0, f"600 labelled sets, {bad_depth} differ, "
+          f"depths seen {sorted(depths)}")
+    check("the grown set = the successors of the separated depths",
+          bad_set == 0, f"{bad_set} differ")
+
+
+<span id="main"></span>def main():
+    section_controls()
+    ws = worlds()
+    section_criterion(ws)
+    section_subdominant(ws)
+    section_line()
+    section_weld()
+    print()
+    n, ok = len(CHECKS), sum(CHECKS)
+    print(f"{ok} of {n} checks pass")
+    return 0 if ok == n else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/readout.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

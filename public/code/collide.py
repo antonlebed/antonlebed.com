@@ -1,0 +1,943 @@
+"""collide.py -- when two pairs of menus weigh every temperature alike,
+and what a menu must carry for the product to factor two ways.
+
+QUESTION. A MENU is a finite set of integers >= 2. Its normalizer
+E_A = sum over m in A of m^-beta becomes, after x_p = p^-beta, a
+polynomial in one variable per prime whose coefficients are 0 or 1.
+Two routes of a dated fiber in a grown world (quarantine.py) tie at
+every beta exactly when the products of the normalizers they pass
+agree as polynomials; the tie is WITNESS-FREE when the multisets of
+menus differ. What must a pair of routes carry for a witness-free tie?
+Which menus can make a product factor two ways over N, and does that
+set have a closed description at the first sizes? How far do the
+known classifications, which sort factorizations over N by the number
+of terms, reach when read through menu sizes, and what observable reads
+the two factorizations of a product jointly?
+
+THE ARGUMENT (written before the engine).
+  (A) THE FRAME. The integer polynomials in the variables x_p are a
+      UFD and a menu polynomial has content 1, so every factor of a
+      product of menu polynomials with integer coefficients is, up to
+      sign, a sub-product of its
+      Z-irreducible multiset, each factor normed to a positive leading
+      coefficient. A factorization over N is a partition of that
+      multiset into blocks whose products are nonnegative; it is
+      ATOMIC when no block splits into two nonnegative sub-products.
+      Monomial factors split off alone, so everything is read on the
+      CORE, the polynomial divided by its monomial gcd. A core's
+      factorization depends only on its exponent vectors up to an
+      affine unimodular map: such a map is an automorphism of the
+      Laurent ring, and a polynomial with no monomial factor is
+      irreducible there iff it is irreducible as a polynomial (its
+      factors are divisible by no variable, and a product of two
+      polynomials divisible by no variable is divisible by none, each
+      variable being prime). (As written before the run; prime there
+      means a prime element of the polynomial ring.)
+  (B) THE SEED CRITERION. If every Z-irreducible factor of a product
+      is nonnegative, the all-singleton partition is its only atomic
+      factorization, so non-uniqueness needs a Z-irreducible with a
+      negative coefficient. The Z-factors of E_A E_B are those of E_A
+      with those of E_B, so the negative factor sits in ONE menu, a
+      SEED: a menu whose core has a Z-irreducible factor with a
+      negative coefficient.
+  (C) WITNESS-FREE TIES. Let two routes tie with distinct menu
+      multisets. Split each menu polynomial into atoms (its variables
+      and its core's atoms). If no menu on either route is a seed, the
+      product has one atomic factorization, so both multisets group
+      one atom multiset: the tie is a REGROUPING, and at least one menu
+      is not itself an atom. Otherwise it passes a seed. One
+      regrouping moves a monomial: E_A E_{cB} = E_{cA} E_B for every
+      scale c, the SCALING family. A tie of four singletons at age 3
+      never realizes: the two routes' moves after the first multiply
+      to one number, so the first moves agree, the routes share their
+      first state and its menu, and the multisets agree.
+  (D) THE TERM-COUNT LAW. If a 0/1 polynomial P with T terms is f g,
+      f and g nonnegative, then T = P(1) = f(1) g(1) >= #f #g >= T, so
+      term counts multiply and both factors are 0/1. At a prime menu
+      size the core then has no nonnegative factorization, and a menu
+      of prime size is a seed iff its core is reducible over Z. At
+      size 4 a reducible core that is not a seed is a product of two
+      0/1 binomials, the one split 4 admits.
+  (E) SIZE 2. A two-element core is x^u + x^v with disjoint supports;
+      the unimodular map of (A) sends v - u to d e_1, d the gcd of all
+      entries, so the core is 1 + X^d, reducible iff d has an odd
+      prime factor. In elements: g = gcd(m, n), and d is the largest
+      integer with m/g and n/g both perfect d-th powers.
+  (F) SIZE 3. If the three exponent vectors are not collinear, (A)
+      writes the core 1 + X^rho + X^sigma Y^eta with rho, eta >= 1 (the
+      differences in Hermite form over a basis of their plane's
+      saturated lattice, extended to one of Z^N), which is Eisenstein in Y
+      at any prime factor of 1 + X^rho in Q[X, 1/X], squarefree there,
+      so the core is irreducible: THE TRINOMIAL LEMMA. If they are collinear
+      the core is 1 + X^a + X^b, 0 < a < b. By Ljunggren's theorem
+      (Math. Scand. 8 (1960) 65-70, Theorem 1 and its corollary for
+      trinomials x^n + e x^m + e') a trinomial with no root of unity
+      among its zeros is irreducible, and otherwise splits into those
+      zeros' factor times an irreducible. At a root of unity where
+      1 + X^a + X^b vanishes, {X^a, X^b} are the two primitive cube
+      roots; the image of t -> (a t, b t) in (Q/Z)^2 is the set of
+      (s, s') with (b/g) s = (a/g) s', g = gcd(a, b), so such a root
+      exists iff a/g + b/g = 0 mod 3. The trinomial is then reducible
+      unless it IS a cyclotomic polynomial Phi_n, which needs
+      Phi_n(1) = 3, so n = 3^(j+1) and the trinomial is
+      1 + X^(3^j) + X^(2 3^j).
+      So a size-3 menu is a seed iff its exponent vectors are
+      collinear with a/g + b/g = 0 mod 3, (a, b) not (3^j, 2 3^j).
+  (G) THE SIZE PAIR. A product of menus of sizes s1 and s2 has
+      s1 s2 terms counted with multiplicity, as the classification
+      counts them, so van de Woestijne's classification of
+      factorization over N by the number of terms (arXiv 1103.0709:
+      Lemma 3.10 reduces several variables to one coordinate by
+      coordinate on one term bijection; Theorems 3.16, 3.18, 3.19 give
+      uniqueness at 4, 8 and 9 terms; 3.17 the one non-unique shape at
+      6, X^a (1 + X^b + ... + X^(5b)); 3.20 three sporadic shapes and two
+      two-parameter families at 10) is a classification by SIZE PAIR:
+      (2,2), (2,4) and (3,3) factor uniquely at any element bound, and
+      at (2,3) every coordinate carries the 6-term shape on one term
+      bijection, so the exponent vectors of the product are an
+      arithmetic progression and its Newton polytope is a segment. The
+      first family at 10 terms has two free exponents, and read as
+      vectors they need not be parallel: at size pair (2,5) a product
+      can factor two ways with a two-dimensional polygon, the family
+      at a = (0,1), b = (1,0): {2,16} x {2,4,6,12,24} against
+      {2,4} x {2,6,16,24,96}.
+  (H) THE DESCENT DIMENSION. Initial forms are multiplicative, so a
+      collision restricts to every face of the product's Newton
+      polytope: on a face F, each atom's initial form divided by its
+      own monomial gcd, forms equal to 1 dropped, gives a multiset
+      per factorization. The DESCENT DIMENSION delta of two
+      factorizations is the least dimension of a face on which the two
+      multisets differ; the whole polytope always separates them. In
+      the menu frame (the product 0/1) every initial form at a vertex
+      is a monomial of coefficient 1, so delta >= 1. Off the frame the
+      coefficients survive: of (x^2 - x + 2)(1+x)(1+x+x^2)(2+x), the
+      grouping {(x^2 - x + 2)(1+x), 1+x+x^2, 2+x} against
+      {(x^2 - x + 2)(2+x), 1+x, 1+x+x^2} reads at the vertex 0 as
+      (2, 2) against (4), delta = 0. The support alone carries
+      strictly less (Ostrowski: Newt(fg) = Newt f + Newt g):
+      {0,1} + {0,1,3} and {0,1,2} + {0,2} share a sumset with
+      different convolutions.
+
+DESIGN. Menus are exponent-vector polynomials over sympy; factor lists
+are cached per menu, and a product's Z-irreducible multiset is the
+union of its menus'. Atomic factorizations are enumerated as set
+partitions of that multiset. Sections:
+  FRAME: the counter on (1+x+x^2)(1+x^3) and on x y (1+x).
+  TIES: the census, every menu of size 1 to 3 in {2..16} u {32}, every
+     unordered pair, grouped by product; the product of each colliding
+     class graded by its atomic count; the pairs of pairs inside the
+     non-unique products split by whether they group one factorization,
+     each that does tested for the scaling family; the seeds of the
+     census; the age-3 realization scan of every colliding pair of
+     pairs (minimal worlds, seed moves t u and t v with t <= 8, fiber
+     closure over a junk menu, flatness at beta = 1, 2, 3 and the
+     formal product), in a free world and a coprime one.
+  SEEDS: the term-count law on every size-4 menu of {2..20}; the size-2
+     criterion against factorization on every size-2 menu of {2..64};
+     the size-3 criterion against factorization on every size-3 menu
+     of {2..32} and on every one-prime menu {2, 2^(a+1), 2^(b+1)},
+     1 <= a < b <= 40, against the factors of 1 + x^a + x^b.
+  PAIRS: every product of a seed of size s1 and a menu of size s2, sizes 2 and
+     3 in {2..32} and size 4 in {2..20}, (s1, s2) over the orders of (2,2),
+     (2,4), (3,3) and (2,3), graded by atomic count, with each non-unique
+     product's Newton dimension; the (2,5) escape.
+  DESCENT: an exact face engine for products of Newton dimension at
+     most 2; delta at the escape, at the census's non-unique products
+     and at the off-frame example; the support pair.
+
+PREDICTIONS (fixed before the engine).
+  P1 FRAME: 2 atomic factorizations and 1.
+  P2 TIES: 696 menus, 242556 pairs, 4487 colliding classes holding
+     4849 colliding pairs of pairs; 6 products factor two ways, the
+     other 4481 once, so 4839 of the 4849 are regroupings; the census
+     seeds are exactly {2,16}, {4,32}, {2,8,32}.
+  P3 TIES: 4805 pairs of pairs realize in a free world, none in a
+     coprime one, and the 44 that do not are the all-singleton ones.
+  P4 SEEDS: the term-count law holds at every size-4 menu; the size-2
+     criterion and the size-3 criterion never disagree with
+     factorization; {2..64} holds 12 size-2 seeds, and {2,8,32} is
+     the one size-3 seed of {2..32}.
+  P5 PAIRS: no non-unique product at (2,2), (2,4) or (3,3); at (2,3)
+     some, every one of Newton dimension 1.
+  P6 DESCENT: the escape factors two ways with a polygon of dimension
+     2 and delta = 1; the six census products have delta = 1; the
+     off-frame example has delta = 0; the support pair shares its
+     sumset and not its convolution.
+
+KILLS. A disagreement in SEEDS kills the criterion it tests. A
+non-unique product at (2,2), (2,4) or (3,3) kills the reading of (G)
+(the source's theorems are not in doubt; the reading through menus
+is). A coprime realization in TIES contradicts the quarantine theorem.
+A delta = 0 in the frame kills (H)'s vertex argument. P1 and the
+census counts of P2 are positive controls: if one misses, nothing
+after it is read. [Ruled on audit: P1 alone is a control and stops the
+run; 696 and 242556 are the box's own size and 4487, 4849 an earlier
+count of it, a prediction, not a control.]
+
+FINDINGS. Every prediction held as a count and no kill fired; P2's
+reading of its 4839 as every regrouping did not, as below.
+  P1 the counter reads 2 on (1+x+x^2)(1+x^3) and 1 on x y (1+x).
+  P2 the census is 696 menus, 242556 pairs, 4487 colliding classes and
+     4849 colliding pairs of pairs; 6 products factor two ways, none
+     three, holding 10 of the pairs of pairs, so the 4839 in unique
+     products are regroupings; of the 10, 2 group one factorization two
+     ways and 8 group the two, so 4841 are regroupings in all, the two
+     inside both scaling-family instances at c = 2, the seed {2,16}
+     scaled to the seed {4,32}; the seeds are {2,16}, {4,32}, {2,8,32},
+     and each of the 6 products carries one, as (B) requires.
+  P3 4805 pairs of pairs realize at age 3 in a free world and 0 in a
+     coprime one; the 44 unrealized are exactly the 44 all-singleton.
+  P4 no size-4 menu of {2..20} (3876) breaks the term-count law; the
+     size-2 criterion agrees with factorization at all 1953 menus of
+     {2..64}, 12 seeds, (2,16), (2,54), (2,64), (3,24), (4,32), (5,40),
+     (6,48), (7,56), (8,27), (8,64), (16,54), (27,64); the size-3
+     criterion agrees at all 4495 menus of {2..32}, whose one seed is
+     {2,8,32}, and at all 780 one-prime menus.
+  P5 with sizes 2 and 3 in {2..32} and size 4 in {2..20} (4, 1 and 6
+     seeds), 3704 ordered pairs at (2,2), a menu with itself included,
+     18270 at (2,4) and 8989 at (3,3) carry a seed and none factors
+     two ways; at (2,3) 39 of 18441 do, every one with Newton
+     dimension 1. {8,27} x {4,6,9} =
+     {2,3} x {16,36,81} factors two ways through x^2 - x y + y^2.
+  P6 the escape factors two ways, (1+x)(1 + x^3 + x^2 y + y + x^4 y)
+     against (1+x^3)(1 + x + y + x y + x^2 y) with x the prime 2 and y
+     the prime 3, its polygon of dimension 2, delta 1, and its one
+     negative factor 1 - x + x^2; 8 products of
+     a census seed and a census menu factor two ways, all segments at
+     delta 1, and the 6 colliding classes among them are P2's; off the
+     frame the three factorizations of (x^2-x+2)(1+x)(1+x+x^2)(2+x)
+     read delta 0, 1 and 0 pairwise; the support pair shares the sumset
+     {0..4} with convolutions differing at x and x^2.
+
+RUN RECORD. python collide.py: 17 of 17 checks, 29.5 s, peak commit
+250.1 MB, the six seed checks of the non-unique products now one print,
+since (B) proves them. Run 1 failed one check: the delta population was every
+seed against every census menu, which holds 8 products factoring two ways,
+where P6 names the census's 6 colliding classes; the check was
+restricted to the classes and both counts printed. The same run's
+PAIRS box, {2..20} at every size, held no size-3 seed, so (3,3) was
+tested vacuously; sizes 2 and 3 moved to {2..32} and the check now
+demands seeds at each pair. Products inside the partition enumeration
+moved from sympy to a sparse dictionary, 287 s to 29 s, every count
+unchanged. An audit then found two claims resting on prints this file
+did not make, the homogenized specimen and the escape's negative
+factor; both were added as checks and hold. A later reading found two
+of the ten pairs of pairs inside the non-unique products regrouping one
+factorization, against P2's reading; the split and the scaling test of
+those two were added as checks and hold.
+"""
+
+import os
+import sys
+import time
+from collections import Counter, defaultdict
+from fractions import Fraction
+from itertools import combinations, combinations_with_replacement
+from math import gcd
+
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import sympy  # noqa: E402
+from sympy import Poly, symbols  # noqa: E402
+
+CHECKS = []
+BETAS = (1, 2, 3)
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f"  ({detail})" if detail else ""))
+
+
+def control(name, ok, detail=""):
+    check(name, ok, detail)
+    if not ok:
+        print("  control failed: run stopped")
+        raise SystemExit(1)
+
+
+def section(title):
+    print()
+    print(title)
+
+
+# ------------------------------------------------------------ arithmetic
+
+PRIMES = [p for p in range(2, 65) if all(p % q for q in range(2, p))]
+GENS = symbols(f"x0:{len(PRIMES)}")
+
+
+def vec(m):
+    """Exponent vector of m over PRIMES, as a tuple."""
+    out = []
+    for p in PRIMES:
+        e = 0
+        while m % p == 0:
+            m //= p
+            e += 1
+        out.append(e)
+    assert m == 1
+    return tuple(out)
+
+
+def poly_of(vectors, coeffs=None):
+    coeffs = coeffs or [1] * len(vectors)
+    terms = defaultdict(int)
+    for v, c in zip(vectors, coeffs):
+        terms[v] += c
+    return Poly.from_dict(dict(terms), *GENS)
+
+
+def menu_poly(menu):
+    return poly_of([vec(m) for m in menu])
+
+
+class Dp:
+    """A sparse integer polynomial: {exponent tuple: coefficient}.
+    Products inside the partition enumeration run here, not in sympy."""
+
+    __slots__ = ("d",)
+
+    def __init__(self, d):
+        self.d = {e: c for e, c in d.items() if c}
+
+    def terms(self):
+        return sorted(self.d.items(), reverse=True)
+
+    def coeffs(self):
+        return list(self.d.values())
+
+    def __mul__(self, other):
+        out = defaultdict(int)
+        for e, c in self.d.items():
+            for f, k in other.d.items():
+                out[tuple(a + b for a, b in zip(e, f))] += c * k
+        return Dp(out)
+
+    def __eq__(self, other):
+        return self.d == other.d
+
+    def __hash__(self):
+        return hash(frozenset(self.d.items()))
+
+    def as_expr(self):
+        def mono(e):
+            return "*".join(f"x{i}^{k}" if k > 1 else f"x{i}"
+                            for i, k in enumerate(e) if k) or "1"
+        return " + ".join(f"{c}*{mono(e)}" if c != 1 else mono(e)
+                          for e, c in self.terms())
+
+    def poly(self):
+        return Poly.from_dict(self.d, *GENS)
+
+
+ONE = Dp({tuple([0] * len(GENS)): 1})
+
+
+def zfactors(p):
+    """Non-monomial Z-irreducible factors of p, with multiplicity, each
+    normed to a positive leading coefficient, as Dp."""
+    if isinstance(p, Dp):
+        p = p.poly()
+    _, fl = p.factor_list()
+    out = []
+    for f, e in fl:
+        if len(f.terms()) == 1:
+            continue
+        if f.LC() < 0:
+            f = -f
+        out += [Dp(dict(f.terms()))] * e
+    return out
+
+
+def negative(f):
+    return any(c < 0 for c in f.coeffs())
+
+
+def nonneg(f):
+    return all(c >= 0 for c in f.coeffs())
+
+
+def prod(fs):
+    out = ONE
+    for f in fs:
+        out = out * (f if isinstance(f, Dp) else Dp(dict(f.terms())))
+    return out
+
+
+def set_partitions(items):
+    if not items:
+        yield []
+        return
+    first, rest = items[0], items[1:]
+    for part in set_partitions(rest):
+        for i in range(len(part)):
+            yield part[:i] + [[first] + part[i]] + part[i + 1:]
+        yield [[first]] + part
+
+
+def splits(block):
+    """True if the block's product splits into two nonnegative
+    sub-products."""
+    n = len(block)
+    for r in range(1, n):
+        for sub in combinations(range(n), r):
+            if 0 not in sub:
+                continue
+            a = prod([block[i] for i in sub])
+            b = prod([block[i] for i in range(n) if i not in sub])
+            if nonneg(a) and nonneg(b):
+                return True
+    return False
+
+
+def atomic(factors):
+    """The distinct atomic factorizations over N of the product of a
+    multiset of Z-irreducibles: a set of sorted tuples of blocks."""
+    out = set()
+    for part in set_partitions(list(range(len(factors)))):
+        blocks = [prod([factors[i] for i in b]) for b in part]
+        if not all(nonneg(b) for b in blocks):
+            continue
+        if any(splits([factors[i] for i in b]) for b in part):
+            continue
+        out.add(tuple(sorted(str(b.as_expr()) for b in blocks)))
+    return out
+
+
+def all_atomic_lists(factors):
+    """Every atomic factorization, as lists of Dp, one per class."""
+    seen, out = set(), []
+    for part in set_partitions(list(range(len(factors)))):
+        blocks = [prod([factors[i] for i in b]) for b in part]
+        if not all(nonneg(b) for b in blocks):
+            continue
+        if any(splits([factors[i] for i in b]) for b in part):
+            continue
+        key = tuple(sorted(str(b.as_expr()) for b in blocks))
+        if key not in seen:
+            seen.add(key)
+            out.append(blocks)
+    return out
+
+
+FCACHE = {}
+
+
+def menu_factors(menu):
+    if menu not in FCACHE:
+        FCACHE[menu] = zfactors(menu_poly(menu))
+    return FCACHE[menu]
+
+
+def is_seed(menu):
+    return any(negative(f) for f in menu_factors(menu))
+
+
+def rank(points):
+    """Affine dimension of a set of integer vectors."""
+    pts = list(points)
+    if len(pts) < 2:
+        return 0
+    base = pts[0]
+    rows = [[a - b for a, b in zip(p, base)] for p in pts[1:]]
+    return sympy.Matrix(rows).rank()
+
+
+# ------------------------------------------------------------ Dirichlet
+
+def dmul(a, b):
+    out = defaultdict(int)
+    for n, c in a.items():
+        for m, d in b.items():
+            out[n * m] += c * d
+    return dict(out)
+
+
+def dkey(a):
+    return tuple(sorted(a.items()))
+
+
+def zdir(menu):
+    return {m: 1 for m in menu}
+
+
+# ------------------------------------------------------------ worlds
+
+def fiber(menus, n, age):
+    """Every route of the given age from seed 1 to n; a state with no
+    named menu carries the junk menu {n + 1}, which overshoots."""
+    out = []
+
+    def walk(state, word):
+        if len(word) == age:
+            if state == n:
+                out.append(tuple(word))
+            return
+        for m in menus.get(state, (n + 1,)):
+            if state * m <= n:
+                walk(state * m, word + [m])
+
+    walk(1, [])
+    return out
+
+
+def passed(menus, route, n):
+    state, out = 1, []
+    for m in route:
+        out.append(tuple(sorted(menus.get(state, (n + 1,)))))
+        state *= m
+    return out
+
+
+def posterior(menus, routes, beta, n):
+    ws = []
+    for r in routes:
+        w = Fraction(1)
+        for menu in passed(menus, r, n):
+            w /= sum(Fraction(1, m ** beta) for m in menu)
+        ws.append(w)
+    total = sum(ws)
+    return [w / total for w in ws]
+
+
+def realize(pp, qq, coprime, t_max=8):
+    """A minimal world whose dated fiber of age 3 holds exactly two
+    routes passing the menus of pp and of qq after a common seed, tied
+    at every beta; None if the scan finds none."""
+    for m1menu, m2menu in (pp, pp[::-1]):
+        for m3menu, m4menu in (qq, qq[::-1]):
+            for a2 in m1menu:
+                for a3 in m2menu:
+                    for b2 in m3menu:
+                        for b3 in m4menu:
+                            num, den = b2 * b3, a2 * a3
+                            g = gcd(num, den)
+                            u, v = num // g, den // g
+                            for t in range(1, t_max + 1):
+                                a1, b1 = u * t, v * t
+                                if a1 < 2 or b1 < 2:
+                                    continue
+                                w = build(a1, a2, a3, b1, b2, b3, m1menu,
+                                          m2menu, m3menu, m4menu, coprime)
+                                if w:
+                                    return w
+    return None
+
+
+def build(a1, a2, a3, b1, b2, b3, m1, m2, m3, m4, coprime):
+    menus = {}
+    for state, menu in ((1, tuple(sorted({a1, b1}))), (a1, m1),
+                        (a1 * a2, m2), (b1, m3), (b1 * b2, m4)):
+        if menus.get(state, menu) != menu:
+            return None
+        menus[state] = menu
+    if coprime and any(gcd(m, s) != 1 for s, menu in menus.items()
+                       for m in menu):
+        return None
+    n = a1 * a2 * a3
+    r, s = (a1, a2, a3), (b1, b2, b3)
+    if r == s or sorted(fiber(menus, n, 3)) != sorted([r, s]):
+        return None
+    if any(posterior(menus, [r, s], b, n) != [Fraction(1, 2)] * 2
+           for b in BETAS):
+        return None
+    pr, ps = passed(menus, r, n), passed(menus, s, n)
+    prod_r, prod_s = {1: 1}, {1: 1}
+    for menu in pr:
+        prod_r = dmul(prod_r, zdir(menu))
+    for menu in ps:
+        prod_s = dmul(prod_s, zdir(menu))
+    if prod_r != prod_s or sorted(pr) == sorted(ps):
+        return None
+    return menus, n, r, s
+
+
+# ------------------------------------------------------------ faces
+
+def face_multisets(atoms, w):
+    """The multiset of initial forms of the atoms under the weight w
+    (minimizing w . exponent), each divided by its monomial gcd,
+    forms equal to 1 dropped."""
+    out = []
+    for f in atoms:
+        terms = f.terms()
+        vals = [sum(wi * ei for wi, ei in zip(w, e)) for e, _ in terms]
+        lo = min(vals)
+        init = [(e, c) for (e, c), v in zip(terms, vals) if v == lo]
+        base = [min(e[i] for e, _ in init) for i in range(len(GENS))]
+        form = tuple(sorted((tuple(a - b for a, b in zip(e, base)), c)
+                            for e, c in init))
+        if form == ((tuple([0] * len(GENS)), 1),):
+            continue
+        out.append(form)
+    return Counter(out)
+
+
+def hull2(pts):
+    """Convex hull of 2D integer points, counterclockwise."""
+    pts = sorted(set(pts))
+    if len(pts) <= 2:
+        return pts
+
+    def cross(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+    lower, upper = [], []
+    for p in pts:
+        while len(lower) >= 2 and cross(lower[-2], lower[-1], p) <= 0:
+            lower.pop()
+        lower.append(p)
+    for p in reversed(pts):
+        while len(upper) >= 2 and cross(upper[-2], upper[-1], p) <= 0:
+            upper.pop()
+        upper.append(p)
+    return lower[:-1] + upper[:-1]
+
+
+def face_weights(points):
+    """(dimension, weight) for every proper face of the Newton polytope
+    of points, exactly, for polytopes of dimension 1 or 2; a weight
+    lives in the full exponent space and its minimizing set on the
+    polytope is the face."""
+    base = points[0]
+    diffs = [tuple(a - b for a, b in zip(p, base)) for p in points]
+    dim = rank(points)
+    r = len(base)
+    if dim == 1:
+        d = next(x for x in diffs if any(x))
+        g = 0
+        for x in d:
+            g = gcd(g, x)
+        d = tuple(x // g for x in d)
+        return 1, [(0, d), (0, tuple(-x for x in d))]
+    assert dim == 2, dim
+    for i, j in combinations(range(r), 2):
+        if sympy.Matrix([[x[i], x[j]] for x in diffs]).rank() == 2:
+            break
+    proj = [(p[i], p[j]) for p in points]
+    h = hull2(proj)
+    out, normals = [], []
+    for k in range(len(h)):
+        a, b = h[k], h[(k + 1) % len(h)]
+        # inward normal of a counterclockwise edge
+        nx, ny = -(b[1] - a[1]), b[0] - a[0]
+        normals.append((nx, ny))
+    for k, (nx, ny) in enumerate(normals):
+        w = [0] * r
+        w[i], w[j] = nx, ny
+        out.append((1, tuple(w)))
+        px, py = normals[k - 1]
+        w = [0] * r
+        w[i], w[j] = nx + px, ny + py
+        out.append((0, tuple(w)))
+    return 2, out
+
+
+def descent(fact_a, fact_b):
+    """The descent dimension of two factorizations (lists of Dp) of
+    one product of Newton dimension at most 2."""
+    product = prod(fact_a)
+    points = [e for e, _ in product.terms()]
+    dim, faces = face_weights(points)
+    best = dim
+    for fdim, w in faces:
+        if face_multisets(fact_a, w) != face_multisets(fact_b, w):
+            best = min(best, fdim)
+    return best, dim
+
+
+# ------------------------------------------------------------ sections
+
+def section_frame():
+    section("FRAME: the counter in both directions")
+    x, y = GENS[0], GENS[1]
+    p = Poly((1 + x + x ** 2) * (1 + x ** 3), *GENS)
+    n1 = len(atomic(zfactors(p)))
+    q = Poly(x * y * (1 + x), *GENS)
+    n2 = len(atomic(zfactors(q)))
+    print(f"    (1+x+x^2)(1+x^3): {n1};  x y (1+x): {n2}")
+    control("P1 the counter reads 2 and 1", (n1, n2) == (2, 1))
+
+
+NONUNIQUE = set()
+
+
+def section_ties():
+    section("TIES: the census, menus of size 1..3 in {2..16} u {32}")
+    universe = tuple(range(2, 17)) + (32,)
+    menus = [m for s in (1, 2, 3) for m in combinations(universe, s)]
+    products = defaultdict(list)
+    for a, b in combinations_with_replacement(menus, 2):
+        products[dkey(dmul(zdir(a), zdir(b)))].append((a, b))
+    npairs = sum(len(v) for v in products.values())
+    classes = {k: v for k, v in products.items() if len(v) >= 2}
+    colliding = [(k, p, q) for k, v in classes.items()
+                 for p, q in combinations(v, 2)]
+    print(f"    menus {len(menus)}, pairs {npairs}, colliding classes "
+          f"{len(classes)}, colliding pairs of pairs {len(colliding)}")
+    check("P2 the census counts",
+          (len(menus), npairs, len(classes), len(colliding))
+          == (696, 242556, 4487, 4849))
+    counts = {}
+    for k, v in classes.items():
+        a, b = v[0]
+        counts[k] = len(atomic(menu_factors(a) + menu_factors(b)))
+    nonunique = [k for k, c in counts.items() if c > 1]
+    NONUNIQUE.update(nonunique)
+    inside = sum(1 for k, _, _ in colliding if counts[k] > 1)
+    print(f"    products factoring two ways or more: {len(nonunique)}, "
+          f"atomic counts seen {sorted(set(counts.values()))}, "
+          f"colliding pairs of pairs inside them {inside}, "
+          f"in unique products {len(colliding) - inside}")
+    check("P2 six products factor two ways, 4839 in unique products",
+          len(nonunique) == 6 and max(counts.values()) == 2
+          and len(colliding) - inside == 4839)
+
+    def refined(pair):
+        a, b = pair
+        return {tuple(sorted(fa + fb)) for fa in atomic(menu_factors(a))
+                for fb in atomic(menu_factors(b))}
+    def scaled(p, q):
+        # E_A E_{cB} = E_{cA} E_B: one side's menus are the other's, one
+        # scaled up by c and the other down by it
+        for a, b in (p, p[::-1]):
+            for c_, d in (q, q[::-1]):
+                c = Fraction(c_[0], a[0])
+                if (sorted(c * m for m in a) == list(c_)
+                        and sorted(c * m for m in d) == list(b)):
+                    return c
+        return None
+    same = [(p, q) for k, p, q in colliding
+            if counts[k] > 1 and refined(p) & refined(q)]
+    print(f"    of the {inside} inside them, {len(same)} group one atomic "
+          f"factorization two ways, {inside - len(same)} group the two")
+    check("P2 the ten inside split 2 regroupings and 8 across",
+          (inside, len(same)) == (10, 2))
+    for p, q in same:
+        print(f"      {p} = {q}: scale {scaled(p, q)}")
+    check("P2 the two inside are scaling-family instances",
+          all(scaled(p, q) is not None for p, q in same))
+    seeds = [m for m in menus if is_seed(m)]
+    print(f"    census seeds {seeds}")
+    check("P2 the census seeds", seeds == [(2, 16), (4, 32), (2, 8, 32)])
+    carry = sum(is_seed(a) or is_seed(b)
+                for a, b in (classes[k][0] for k in nonunique))
+    print(f"    non-unique products carrying a seed: {carry} of "
+          f"{len(nonunique)} (by (B))")
+    t0 = time.time()
+    free, cop, missed = 0, 0, []
+    for _, p, q in colliding:
+        if realize(p, q, coprime=True):
+            cop += 1
+        if realize(p, q, coprime=False):
+            free += 1
+        else:
+            missed.append((p, q))
+    singletons = [(p, q) for _, p, q in colliding
+                  if all(len(m) == 1 for m in p + q)]
+    print(f"    age-3 realizations: free {free}, coprime {cop}, "
+          f"unrealized {len(missed)}, all-singleton "
+          f"{len(singletons)}  [{time.time() - t0:.1f} s]")
+    check("P3 realization is generic, coprime never, singletons never",
+          free == 4805 and cop == 0 and set(missed) == set(singletons))
+    return seeds
+
+
+def size3_criterion(menu):
+    vs = [vec(m) for m in menu]
+    if rank(vs) == 2:
+        return False
+    base = vs[0]
+    diffs = [tuple(a - b for a, b in zip(v, base)) for v in vs]
+    lead = next(d for d in diffs if any(d))
+    g = 0
+    for x in lead:
+        g = gcd(g, x)
+    k = next(i for i, x in enumerate(lead) if x)
+    step = lead[k] // g
+    ts = sorted(d[k] // step for d in diffs)
+    a, b = ts[1] - ts[0], ts[2] - ts[0]
+    h = gcd(a, b)
+    if (a // h + b // h) % 3:
+        return False
+    j = h
+    while j % 3 == 0:
+        j //= 3
+    return not (j == 1 and (a // h, b // h) == (1, 2))
+
+
+def size2_criterion(menu):
+    m, n = menu
+    g = gcd(m, n)
+    d = 0
+    for e in vec(m // g) + vec(n // g):
+        d = gcd(d, e)
+    while d % 2 == 0:
+        d //= 2
+    return d > 1
+
+
+def section_seeds():
+    section("SEEDS: the term-count law and the criteria at sizes 2 and 3")
+    t0 = time.time()
+    bad = 0
+    four = list(combinations(range(2, 21), 4))
+    for menu in four:
+        fs = menu_factors(menu)
+        if len(fs) > 1 and not is_seed(menu):
+            if len(fs) != 2 or any(len(f.terms()) != 2 for f in fs):
+                bad += 1
+    print(f"    size-4 menus of {{2..20}}: {len(four)}, reducible non-seeds "
+          f"off the two-binomial shape {bad}  [{time.time() - t0:.1f} s]")
+    check("P4 the term-count law at size 4", bad == 0)
+    t0 = time.time()
+    two = list(combinations(range(2, 65), 2))
+    dis = [m for m in two if size2_criterion(m) != is_seed(m)]
+    seeds2 = [m for m in two if is_seed(m)]
+    print(f"    size-2 menus of {{2..64}}: {len(two)}, disagreements "
+          f"{len(dis)}, seeds {len(seeds2)}: {seeds2}  "
+          f"[{time.time() - t0:.1f} s]")
+    check("P4 the size-2 criterion", not dis and len(seeds2) == 12)
+    t0 = time.time()
+    three = list(combinations(range(2, 33), 3))
+    dis = [m for m in three if size3_criterion(m) != is_seed(m)]
+    seeds3 = [m for m in three if is_seed(m)]
+    line = [(1, 2 ** a, 2 ** b) for a in range(1, 41)
+            for b in range(a + 1, 41)]
+    x = GENS[0]
+    dis_line = 0
+    for _, p, q in line:
+        a, b = p.bit_length() - 1, q.bit_length() - 1
+        f = Poly(1 + x ** a + x ** b, *GENS)
+        seed = any(negative(g) for g in zfactors(f))
+        if seed != size3_criterion((2, 2 * p, 2 * q)):
+            dis_line += 1
+    print(f"    size-3 menus of {{2..32}}: {len(three)}, disagreements "
+          f"{len(dis)}, seeds {seeds3}; one-prime menus {len(line)}, "
+          f"disagreements {dis_line}  [{time.time() - t0:.1f} s]")
+    check("P4 the size-3 criterion",
+          not dis and not dis_line and seeds3 == [(2, 8, 32)])
+
+
+def section_pairs():
+    section("PAIRS: the size pairs of the classification, sizes 2 and 3 "
+            "in {2..32}, size 4 in {2..20}")
+    t0 = time.time()
+    by = {s: list(combinations(range(2, 33 if s < 4 else 21), s))
+          for s in (2, 3, 4)}
+    seeds = {s: [m for m in by[s] if is_seed(m)] for s in (2, 3, 4)}
+    print(f"    seeds: size 2 {len(seeds[2])}, size 3 {len(seeds[3])}, "
+          f"size 4 {len(seeds[4])}")
+    result = {}
+    for s1, s2 in ((2, 2), (2, 4), (3, 3), (2, 3)):
+        pairs = set()
+        for a in seeds[s1]:
+            for b in by[s2]:
+                pairs.add((a, b))
+        for a in by[s1]:
+            for b in seeds[s2]:
+                pairs.add((a, b))
+        non, dims = 0, set()
+        for a, b in pairs:
+            fs = menu_factors(a) + menu_factors(b)
+            if len(atomic(fs)) > 1:
+                non += 1
+                pts = [e for e, _ in prod(fs).terms()]
+                dims.add(rank(pts))
+        result[(s1, s2)] = (len(pairs), non, dims)
+        print(f"    ({s1},{s2}): pairs with a seed {len(pairs)}, "
+              f"non-unique {non}, Newton dimensions {sorted(dims)}")
+    print(f"    [{time.time() - t0:.1f} s]")
+    check("P5 (2,2), (2,4), (3,3) factor uniquely, each with seeds",
+          all(result[k][1] == 0 and result[k][0] > 0
+              for k in ((2, 2), (2, 4), (3, 3))))
+    check("P5 (2,3) collides, every product on a segment",
+          result[(2, 3)][1] > 0 and result[(2, 3)][2] == {1})
+    a, b, c, d = (8, 27), (4, 6, 9), (2, 3), (16, 36, 81)
+    same = dmul(zdir(a), zdir(b)) == dmul(zdir(c), zdir(d))
+    fs = menu_factors(a) + menu_factors(b)
+    neg = [f.as_expr() for f in fs if negative(f)]
+    n = len(atomic(fs))
+    print(f"    {a} x {b} = {c} x {d}: {same}; atomic factorizations {n}, "
+          f"negative factors {neg}")
+    check("the homogenized specimen: two ways through x^2 - x y + y^2",
+          same and n == 2 and neg == ["x0^2 + -1*x0*x1 + x1^2"])
+
+
+def section_descent():
+    section("DESCENT: the escape at (2,5) and the descent dimension")
+    a, b = (2, 16), (2, 4, 6, 12, 24)
+    c, d = (2, 4), (2, 6, 16, 24, 96)
+    same = dmul(zdir(a), zdir(b)) == dmul(zdir(c), zdir(d))
+    fs = menu_factors(a) + menu_factors(b)
+    facts = all_atomic_lists(fs)
+    pts = [e for e, _ in prod(fs).terms()]
+    delta, dim = descent(facts[0], facts[1]) if len(facts) == 2 else (-1, -1)
+    print(f"    {a} x {b} = {c} x {d}: {same}; atomic factorizations "
+          f"{len(facts)}, Newton dimension {rank(pts)}, delta {delta}")
+    for f in facts:
+        print(f"      {[str(g.as_expr()) for g in f]}")
+    neg = [f.as_expr() for f in fs if negative(f)]
+    print(f"      negative factors {neg}")
+    check("P6 the escape: two ways, a polygon, delta 1, through 1-x+x^2",
+          same and len(facts) == 2 and rank(pts) == 2 and delta == 1
+          and neg == ["x0^2 + -1*x0 + 1"])
+    universe = tuple(range(2, 17)) + (32,)
+    menus = [m for s in (1, 2, 3) for m in combinations(universe, s)]
+    seeds = [m for m in menus if is_seed(m)]
+    products = defaultdict(list)
+    for a, b in combinations_with_replacement(menus, 2):
+        products[dkey(dmul(zdir(a), zdir(b)))].append((a, b))
+    deltas = {}
+    for s in seeds:
+        for m in menus:
+            key = dkey(dmul(zdir(s), zdir(m)))
+            if key in deltas:
+                continue
+            facts = all_atomic_lists(menu_factors(s) + menu_factors(m))
+            if len(facts) > 1:
+                deltas[key] = descent(facts[0], facts[1])
+    classes = [k for k in deltas if len(products[k]) > 1]
+    print(f"    products of a seed and a census menu factoring two ways: "
+          f"{len(deltas)}, (delta, dimension) "
+          f"{sorted(set(deltas.values()))}; colliding classes among "
+          f"them {len(classes)}")
+    check("P6 the six census products read delta 1, P2's six",
+          set(classes) == NONUNIQUE and len(classes) == 6
+          and {deltas[k][0] for k in classes} == {1})
+    x = GENS[0]
+    pa = [Poly(x ** 2 - x + 2, *GENS), Poly(1 + x, *GENS),
+          Poly(1 + x + x ** 2, *GENS), Poly(2 + x, *GENS)]
+    whole = prod(pa)
+    fl = zfactors(whole)
+    facts = all_atomic_lists(fl)
+    dl = [descent(f, g)[0] for f, g in combinations(facts, 2)]
+    print(f"    off the frame: {whole.as_expr()} has {len(facts)} atomic "
+          f"factorizations over N, pairwise delta {dl}")
+    check("P6 off the frame delta 0 occurs", 0 in dl)
+    s1 = {i + j for i in (0, 1) for j in (0, 1, 3)}
+    s2 = {i + j for i in (0, 1, 2) for j in (0, 2)}
+    c1 = Poly((1 + x) * (1 + x + x ** 3), *GENS)
+    c2 = Poly((1 + x + x ** 2) * (1 + x ** 2), *GENS)
+    print(f"    support pair: sumsets {sorted(s1)} and {sorted(s2)}; "
+          f"convolutions {c1.as_expr()} and {c2.as_expr()}")
+    check("P6 one sumset, two convolutions", s1 == s2 and c1 != c2)
+
+
+def main():
+    t0 = time.time()
+    section_frame()
+    section_ties()
+    section_seeds()
+    section_pairs()
+    section_descent()
+    print()
+    n, ok = len(CHECKS), sum(CHECKS)
+    print(f"{ok} of {n} checks pass  [{time.time() - t0:.1f} s]")
+    return 0 if ok == n else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

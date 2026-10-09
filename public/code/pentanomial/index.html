@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pentanomial.py | Numbers read one place at a time</title>
+<meta name="description" content="pentanomial.py">
+<link rel="alternate" type="text/x-python" href="/code/pentanomial.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>pentanomial.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/collide/#the-row-lemma">COLLIDE: The row lemma</a> (theorem); <a href="/collide/#the-least-free-size-off-a-line">COLLIDE: The least free size off a line</a> (theorem); <a href="/collide/#manns-bound">COLLIDE: Mann's bound</a> (known); <a href="/collide/#the-size-5-reduction">COLLIDE: The size-5 reduction</a> (theorem).</p><p>Cited on: <a href="/collide/">COLLIDE</a>.</p><p>To run it: no other script; needs sympy.</p></div>
+<pre>"""pentanomial.py -- five terms: a seed with a factor cyclotomic in a
+monomial carries it negative, a free seed can be mixed, and a seed free
+of every negative torsion zero is a question about one variable.
+
+QUESTION. The torsion split (rooted.py) calls a seed FREE when some
+negative factor of its core vanishes at no point of roots of unity,
+MIXED when a free seed's core also carries a torsion-rooted factor, and
+FREE OUTRIGHT when no factor of its core is torsion-rooted. Sizes 3 and
+4 are never free outright (rooted.py, quadrinomial.py), so size 5 is the
+first place it can occur. Off a line, can a size-5 seed be free at all,
+what shape must it have, and is its freedom outright a new question or
+the line's?
+
+THE ARGUMENT (written before the engine). P is a 0/1 core with five
+terms. By the half-size law (halfsize.py) a factorization needs Newton
+dimension at most 2, so P lies on a line or in a plane.
+  (1) FIVE IS PRIME. P(1, 1) = 5 is the product of its factors' values,
+      so one factor has value +-5 and every other +-1. A non-monomial
+      factor with no negative coefficient has value at least 2, so at
+      most ONE factor is nonnegative, and a reducible core is a seed.
+  (2) THE ROW LEMMA. Let P, off a line, have a factor Phi_n(w) with w a
+      primitive monomial. In coordinates with w = x (a unimodular map)
+      Phi_n(x) divides P exactly when it divides every row P_j(x), the
+      terms of P with y-exponent j. A one-term row never vanishes at a
+      root of unity and P has at least two rows, so the rows have sizes
+      2 and 3. A binomial row x^a (1 + x^s) vanishing at a primitive n-th
+      root zeta makes zeta^s = -1, so n is even. A trinomial row makes
+      three unit numbers sum to 0, which forces an equilateral triangle
+      (|1 + z| = 1 with |z| = 1 puts z at a primitive cube root), so the
+      two ratios are the primitive cube roots and 3 | n. So 6 | n, n is
+      no prime power, Phi_n(1) = 1, and Phi_n, with constant and leading
+      coefficient 1, has a negative coefficient. EVERY FACTOR OF A
+      NON-COLLINEAR FIVE-TERM CORE THAT IS CYCLOTOMIC IN A MONOMIAL IS
+      NEGATIVE AND TORSION-ROOTED, of order divisible by 6, and the
+      rows in its direction have sizes 2 and 3.
+  (3) SIZE 5 CAN BE MIXED. P = 1 + x^3 + y (1 + x^4 + x^8), rows 1 + x^3
+      = Phi_2 Phi_6 and 1 + x^4 + x^8 = Phi_3 Phi_6 Phi_12, is Phi_6(x)
+      times R = (1 + x) + y Phi_3(x) Phi_12(x), which is linear in y with
+      coprime coefficients, so irreducible, and negative. At a torus
+      point |y| = 1 needs |1 + x| = |Phi_3(x) Phi_12(x)| with x = e^(i theta);
+      with t = 2 + 2 cos theta, |1 + x|^2 = t, |Phi_3|^2 = (t - 1)^2 and
+      |Phi_12|^2 = (t^2 - 4t + 1)^2, so t is a root of S = (t - 1)^2 (t^2
+      - 4t + 1)^2 - t. At a root of unity x, t is a totally real
+      algebraic integer, and an irreducible S with a non-real root has
+      no totally real root. So R has no torsion zero and the menu {2,
+      16, 6, 96, 1536}, core P, is a free seed, mixed beside Phi_6.
+  (4) MANN'S BOUND. In a minimal vanishing sum of t roots of unity
+      (no proper subsum vanishes) every ratio is a root of unity of
+      squarefree order with every prime factor at most t (H. B. Mann,
+      Mathematika 12 (1965) 107-117). The argument, for the record: put
+      the roots in mu_N with one of them 1 and p | N. If p^2 | N, the
+      powers 1..rho^(p-1) of a primitive N-th root rho are a basis of
+      Q(rho) over Q(rho^p), so each coset of mu_(N/p) sums to 0 and
+      minimality leaves one coset: N drops to N/p. If p || N, the only
+      relation among a primitive p-th root's powers over Q(zeta_(N/p))
+      is their sum, so the p coset sums are equal; zero forces one coset
+      as before, and nonzero needs all p cosets filled, p &lt;= t. At t = 5
+      every ratio in a minimal part is a 30th root of unity, and a
+      vanishing five-term sum is minimal or a pair beside a triple.
+  (5) THE DETERMINANT BOUND. At a zero (zeta, zeta^K) of P, zeta a root
+      of unity, write A_u = u . (1, K) for a difference u of two
+      exponent vectors of P. Within a minimal part zeta^(30 A_u) = 1
+      for each of its differences. If two of the constrained differences
+      u, u' are not parallel, zeta^(30 g) = 1 with g = gcd(A_u, A_u'),
+      and g divides u'_2 A_u - u_2 A_u' = det(u, u'): so zeta is one of
+      at most 30 |det(u, u')| roots, however large K is. Otherwise every
+      constrained difference lies along one primitive w: the pair and
+      the triple each sit on a line parallel to w, the rows of (2) in
+      that direction, and omega = zeta^(w . (1, K)) is a common root of
+      the binomial row B(W) and the trinomial row T(W). Then gcd(B, T)
+      is a non-constant product of cyclotomic polynomials and gcd(B,
+      T)(w) divides P. So IF P HAS NO FACTOR CYCLOTOMIC IN A MONOMIAL,
+      THE ROOTS OF UNITY zeta WITH P(zeta, zeta^K) = 0 NUMBER AT MOST
+      30 SUM |det(u, u')| OVER NON-PARALLEL PAIRS, FOR EVERY K.
+  (6) THE SIZE-5 REDUCTION. Let P be a size-5 seed off a line none of
+      whose NEGATIVE factors has a torsion zero. By (2) P has no factor
+      cyclotomic in a monomial. Choose coordinates in which no factor's
+      support lies on a horizontal line; for K past the x-width of P, y
+      -&gt; x^K is injective on P's support and on each factor's, so P_K =
+      P(x, x^K) is a 0/1 pentanomial and every factor stays
+      non-monomial. A negative factor's image has no cyclotomic factor,
+      at any K. With two negative factors the non-cyclotomic part of
+      P_K is reducible. Otherwise P = G H with G nonnegative by (1). G_K
+      has G's t terms and degree span at least K minus a constant, and
+      a nonzero root of a t-term polynomial has multiplicity at most t -
+      1 (quadrinomial.py, Hajos's bound), so if G_K had only roots of
+      unity for roots it would have at least (K - c)/(t - 1) distinct
+      ones, each a zero of P at (zeta, zeta^K), against (5). So for all
+      large K, G_K has a non-cyclotomic factor beside H_K, and P_K's
+      non-cyclotomic part is reducible. A FREE-OUTRIGHT size-5 seed
+      needs none of this: it has no torsion zero at all, so P_K has no
+      cyclotomic factor and is reducible. Conversely a reducible 0/1
+      pentanomial with no cyclotomic factor is itself a free-outright
+      seed on a line, by (1). SO A FREE-OUTRIGHT SEED OF SIZE 5 EXISTS
+      IN SOME NUMBER OF VARIABLES EXACTLY WHEN SOME 0/1 PENTANOMIAL IN
+      ONE VARIABLE IS REDUCIBLE WITH NO CYCLOTOMIC FACTOR, and a seed
+      off a line free of every negative torsion zero exists only when
+      some 0/1 pentanomial's non-cyclotomic part is reducible, a NO to
+      the question Filaseta and Solan left open (Math. Scand. 84 (1999)
+      5-10, read at source); on a line 1 + x + x^3 + x^4 + x^7 = Phi_5
+      (1 - x^2 + x^3) is such a seed with no NO in it. Their Theorem 1, that such a pentanomial with its
+      irreducible RECIPROCAL factors removed is 1 or irreducible, puts a
+      non-cyclotomic reciprocal factor in any such example.
+
+DESIGN. Polynomials are sympy's; a factor is cyclotomic by sympy's own
+test.
+  CONTROL: P of (3) factors as Phi_6(x) times R; 1 + x + x^2 + y is
+     irreducible; 1 + x + x^3 + x^4 + x^7 = Phi_5(x) (1 - x^2 + x^3), a
+     mixed seed on the line. The rotated exhibit (x -&gt; x y) has a factor
+     cyclotomic in x y, and its zeros (zeta, zeta^K) number 2(K + 1),
+     growing with K: the positive control for (5)'s count.
+  MANN: every multiset of five N-th roots of unity with one of them 1,
+     N = 60 and 84, summing to 0: the minimal ones have every ratio a
+     30th root of unity; every pair part is antipodal and every triple
+     part equilateral.
+  EXHIBIT: S irreducible over Z with a non-real root; R irreducible and
+     negative; no zero of R at a pair of N-th roots, N &lt;= 60.
+  BOX: every 5-subset of [0, 8]^2 with least coordinates 0, not
+     collinear, through the Gao-Lauder polygon filter (a lattice
+     polygon is a Minkowski sum of two polygons, neither a point
+     (S. Gao and A. G. B. Lauder, Decomposition of polytopes and
+     polynomials, Discrete Comput. Geom. 26 (2001) 89-104),
+     exactly when some 0 &lt;= l'_i &lt;= l_i, neither all 0 nor all l_i,
+     has sum l'_i v_i = 0 over its primitive edge directions v_i of
+     lattice length l_i), one per orbit of the square's eight
+     symmetries, factored. Per seed: a factor cyclotomic in a
+     primitive monomial, the rows in its direction, its order and
+     sign; the other factors' torsion zeros decided (below);
+     the split rooted / mixed / free outright.
+     THE TORSION TEST for a factor R = A(x) + v B(x), v a monomial
+     with positive y-exponent in coordinates where the cyclotomic
+     factor is Phi_n(x): R has a torsion zero exactly when some root
+     of unity omega has B(omega) != 0 and -A(omega)/B(omega) a root of
+     unity, since v then takes that value at a torsion point. Such an
+     omega is a root of A(x) A(1/x) - B(x) B(1/x), and in Q(omega) of
+     order m the ratio is a root of unity only if its 2m-th power is 1:
+     the candidates exact, the power read numerically at each, within
+     10^-7. Where A(x) A(1/x) - B(x) B(1/x) vanishes identically every
+     omega is a candidate and the bracket is left unresolved.
+  BOUND: for every orbit representative that is irreducible, take
+     every 997th, the zeros (zeta, zeta^K) with zeta of order at most
+     400, at K = 20, 40, 60, against 30 sum |det(u, u')|.
+  LINE: every 1 + x^a + x^b + x^c + x^n, n &lt;= 30: the non-cyclotomic
+     part 1 or irreducible; the non-reciprocal part 1 or irreducible
+     (Filaseta-Solan Theorem 1); seeds rooted / mixed / free outright.
+  SPECIALIZE: every seed of the box at K = 9..12, each a 0/1
+     pentanomial, its non-cyclotomic part 1 or irreducible.
+
+PREDICTIONS (fixed before the engine).
+  P1 CONTROL: as named; the rotated exhibit's count 2(K + 1) at each K.
+  P2 MANN: every minimal part's ratios in mu_30; pairs antipodal,
+     triples equilateral.
+  P3 EXHIBIT: S irreducible with a non-real root; R irreducible,
+     negative, no torsion zero at N &lt;= 60.
+  P4 BOX: every seed has a factor cyclotomic in a primitive monomial,
+     of order divisible by 6 and negative, with rows of sizes 2 and 3
+     in its direction; free outright 0; the split carried from the
+     legacy census of the same box, 130 seeds, 33 mixed and 97 rooted,
+     a TRANSPLANT of a print made with a different instrument.
+  P5 BOUND: no count above its bound, and no representative's count
+     rising from K = 20 to K = 60.
+  P6 LINE: every non-cyclotomic part 1 or irreducible; every
+     non-reciprocal part 1 or irreducible; free outright 0.
+  P7 SPECIALIZE: every image five terms with coefficients 1; every
+     non-cyclotomic part 1 or irreducible.
+
+KILLS. P1 is the positive control: if it misses, nothing after it is
+read. A minimal five-term sum with a ratio outside mu_30 contradicts (4)
+and is first read as an instrument error. A seed whose factor
+cyclotomic in a monomial is positive, or whose rows in its direction are
+not 2 and 3, kills (2). A count above its bound kills (5). A reducible
+non-cyclotomic part at P6 or P7 is a Filaseta-Solan example: a finding,
+named with its factorization. A seed with no factor cyclotomic in a
+monomial is not a kill; it is where a free-outright seed would sit, and
+it is printed with its factors [ruled on audit: it fails P4's check
+that every seed carries one, a prediction missed, not a kill].
+
+RESOURCE. The box's 25.6 million subsets are cut to its cores by the
+first point's column; the filter and the factoring are the cost,
+estimated 5 to 8 minutes, under 300 MB. --rehearse runs the box [0, 5]^2
+and the line to n = 16.
+
+FINDINGS. Every kill held; one clause of P5 missed and is reported.
+  P1 The exhibit factors as x^2 - x + 1 times x^6 y + x^5 y - x^3 y + x
+     y + x + y + 1; 1 + x + x^2 + y is irreducible; 1 + x + x^3 + x^4 +
+     x^7 is x^3 - x^2 + 1 times Phi_5. The rotated exhibit's zeros at K
+     = 20, 40, 60 number 42, 82, 122, which is 2(K + 1).
+  P2 N = 60: 50 vanishing sums, 1 minimal (the pentagon), 49 a pair
+     beside a triple; N = 84: 69, none minimal, 69 split. No ratio of a
+     minimal sum outside mu_30; every pair antipodal, every triple
+     equilateral.
+  P3 S = t^6 - 10t^5 + 35t^4 - 52t^3 + 35t^2 - 11t + 1 is irreducible
+     with 4 real roots of 6; R is irreducible and negative, no torsion
+     zero at N &lt;= 60. The exhibit is free, and mixed.
+  P4 5,263,020 cores, 5,262,736 non-collinear, 1,228,232 through the
+     filter, 154,643 orbit representatives, 130 reducible, every one a
+     seed. Every seed has a factor cyclotomic in a primitive monomial,
+     of order divisible by 6, negative, with rows of sizes 2 and 3 in
+     its direction. Seeds: 97 rooted, 33 mixed, as the transplant
+     said, and none free outright, none lacking a factor cyclotomic in
+     a monomial.
+  P5 155 representatives; the most zeros at K = 20, 40, 60 are 8, 8,
+     8, none above its bound. The frozen clause "no count rising" MISSED
+     at 6 representatives: the count is bounded, not monotone, since
+     which roots satisfy zeta^(30 A_u) = 1 turns on K's residues (one
+     representative reads 0, 0, 2). The theorem claims the bound only,
+     and the reading was narrowed to it after the miss; the least bound
+     over the sample is 4500 against a most of 8.
+  P6 27,405 pentanomials to n = 30, 3,007 reducible; non-cyclotomic part
+     reducible at 0, non-reciprocal part reducible at 0; seeds 169
+     rooted, 2,838 mixed, 0 free outright.
+  P7 520 (seed, K) pairs, every image a 0/1 pentanomial of degree at
+     most 104; non-cyclotomic part 1 at 2, irreducible at the other 518,
+     reducible at 0.
+Tiers: the row lemma and the size-5 reduction are theorems, proved
+above with Mann's bound's argument written out and Filaseta and Solan
+cited only for the question they left open; size 5 being mixed is a
+theorem by exhibit; the box and line counts are observation, and the
+line's is a toy-scale reading of an open question, YES wherever it
+reached.
+
+RUN RECORD. 13 of 13 checks, 229.3 s, peak commit 120 MB under a
+memory guard; every negative bracket the test read decided free. The
+rehearsal first read 9 of 12. The engine took the first nonzero
+difference, not its primitive part, as the monomial w, so x^2 - x + 1
+was read in x^2 and matched to Phi_2: fixed, 14 of 14 box seeds then
+read the row lemma. The Mann check demanded a minimal sum at N = 84,
+which has no fifth roots: the check's own algebra, fixed to demand one
+exactly when 5 | N. The third was the P5 miss above.
+"""
+
+import cmath
+import os
+import sys
+import time
+from fractions import Fraction
+from itertools import combinations, combinations_with_replacement
+from math import gcd
+
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+from sympy import Poly, cyclotomic_poly, real_roots, symbols  # noqa: E402
+
+CHECKS = []
+X, Y, T = symbols("x y t")
+REHEARSE = "--rehearse" in sys.argv
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f"  ({detail})" if detail else ""))
+
+
+<span id="control"></span>def control(name, ok, detail=""):
+    check(name, ok, detail)
+    if not ok:
+        print("  control failed: run stopped")
+        raise SystemExit(1)
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+<span id="poly"></span>def poly(points):
+    return Poly.from_dict({p: 1 for p in points}, X, Y)
+
+
+<span id="factors"></span>def factors(p):
+    """Non-monomial Z-irreducible factors with multiplicity, leading
+    coefficient made positive."""
+    _, fl = p.factor_list()
+    out = []
+    for q, e in fl:
+        if len(q.terms()) &lt; 2:
+            continue
+        if q.LC() &lt; 0:
+            q = -q
+        out += [q] * e
+    return out
+
+
+<span id="negative"></span>def negative(q):
+    return any(c &lt; 0 for c in q.coeffs())
+
+
+<span id="cross"></span>def cross(u, v):
+    return u[0] * v[1] - u[1] * v[0]
+
+
+<span id="collinear"></span>def collinear(pts):
+    p0 = pts[0]
+    u = (pts[1][0] - p0[0], pts[1][1] - p0[1])
+    return all(cross(u, (p[0] - p0[0], p[1] - p0[1])) == 0 for p in pts[2:])
+
+
+<span id="hull"></span>def hull(pts):
+    """Vertices of the convex hull, counterclockwise, no collinear ones."""
+    ps = sorted(set(pts))
+    lo, hi = [], []
+    for p in ps:
+        while len(lo) &gt;= 2 and cross((lo[-1][0] - lo[-2][0],
+                                      lo[-1][1] - lo[-2][1]),
+                                     (p[0] - lo[-2][0], p[1] - lo[-2][1])) &lt;= 0:
+            lo.pop()
+        lo.append(p)
+    for p in reversed(ps):
+        while len(hi) &gt;= 2 and cross((hi[-1][0] - hi[-2][0],
+                                      hi[-1][1] - hi[-2][1]),
+                                     (p[0] - hi[-2][0], p[1] - hi[-2][1])) &lt;= 0:
+            hi.pop()
+        hi.append(p)
+    return lo[:-1] + hi[:-1]
+
+
+<span id="decomposable"></span>def decomposable(pts):
+    """Gao-Lauder: the hull is a sum of two lattice polygons, neither a
+    point."""
+    h = hull(pts)
+    edges = []
+    for i in range(len(h)):
+        a, b = h[i], h[(i + 1) % len(h)]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        g = gcd(abs(dx), abs(dy))
+        edges.append((dx // g, dy // g, g))
+    states = {(0, 0, False, False)}
+    for vx, vy, g in edges:
+        states = {(sx + j * vx, sy + j * vy, u or j &gt; 0, left or j &lt; g)
+                  for sx, sy, u, left in states for j in range(g + 1)}
+    return (0, 0, True, True) in states
+
+
+SYMS = [lambda a, b: (a, b), lambda a, b: (b, a), lambda a, b: (-a, b),
+        lambda a, b: (a, -b), lambda a, b: (-a, -b), lambda a, b: (-b, a),
+        lambda a, b: (b, -a), lambda a, b: (-b, -a)]
+
+
+<span id="canonical"></span>def canonical(pts):
+    best = None
+    for s in SYMS:
+        q = [s(a, b) for a, b in pts]
+        mx, my = min(a for a, _ in q), min(b for _, b in q)
+        key = tuple(sorted((a - mx, b - my) for a, b in q))
+        if best is None or key &lt; best:
+            best = key
+    return best
+
+
+<span id="adapt"></span>def adapt(w):
+    """A unimodular matrix sending the primitive vector w to (1, 0)."""
+    p, q = w
+    # extended gcd: a p + b q = 1
+    a0, a1, b0, b1, r0, r1 = 1, 0, 0, 1, p, q
+    while r1:
+        k = r0 // r1
+        a0, a1, b0, b1, r0, r1 = a1, a0 - k * a1, b1, b0 - k * b1, r1, r0 - k * r1
+    if r0 &lt; 0:
+        a0, b0 = -a0, -b0
+    return ((a0, b0), (-q, p))
+
+
+<span id="apply"></span>def apply(m, pts):
+    return [(m[0][0] * a + m[0][1] * b, m[1][0] * a + m[1][1] * b)
+            for a, b in pts]
+
+
+<span id="monomial_cyclotomic"></span>def monomial_cyclotomic(q):
+    """(w, n) when q is Phi_n(w) for a primitive monomial w, else None."""
+    pts = [e for e, _ in q.terms()]
+    if len(pts) &lt; 2 or not collinear(pts):
+        return None
+    p0 = min(pts)
+    u = [(a - p0[0], b - p0[1]) for a, b in pts]
+    a, b = next(d for d in u if d != (0, 0))
+    g = gcd(abs(a), abs(b))
+    w = (a // g, b // g)
+    if w[0] &lt; 0 or (w[0] == 0 and w[1] &lt; 0):
+        w = (-w[0], -w[1])
+    coeff = {}
+    for (e, c) in q.terms():
+        d = (e[0] - p0[0], e[1] - p0[1])
+        k = d[0] // w[0] if w[0] else d[1] // w[1]
+        coeff[(k,)] = int(c)
+    lo = min(k for (k,) in coeff)
+    uni = Poly.from_dict({(k - lo,): c for (k,), c in coeff.items()}, X)
+    if uni.LC() &lt; 0:
+        uni = -uni
+    if not uni.is_cyclotomic:
+        return None
+    for n in range(1, 400):
+        if Poly(cyclotomic_poly(n, X), X) == uni:
+            return w, n
+    return None
+
+
+<span id="rows_along"></span>def rows_along(pts, w):
+    m = adapt(w)
+    q = apply(m, pts)
+    rows = {}
+    for a, b in q:
+        rows.setdefault(b, []).append(a)
+    return m, rows
+
+
+<span id="torsion_free_bracket"></span>def torsion_free_bracket(pts, w):
+    """Test on R = F / (its part cyclotomic in w): with F's two rows
+    along w, A = row0 / G and B = row1 / G, G their gcd. Returns (free,
+    reason)."""
+    m, rows = rows_along(pts, w)
+    if len(rows) != 2:
+        return None, "rows"
+    (_, r0), (_, r1) = sorted(rows.items())
+    def row(r):
+        lo = min(r)
+        return Poly.from_dict({(a - lo,): 1 for a in r}, X)
+    a, b = row(r0), row(r1)
+    g = a.gcd(b)
+    a, b = a.quo(g), b.quo(g)
+    da, db = a.degree(), b.degree()
+    arev = Poly.from_dict({(da - k,): c for (k,), c in a.terms()}, X)
+    brev = Poly.from_dict({(db - k,): c for (k,), c in b.terms()}, X)
+    d = (a * arev * Poly(X ** db, X) - b * brev * Poly(X ** da, X))
+    if d.is_zero:
+        return None, "identical moduli"
+    for f, _ in d.factor_list()[1]:
+        if f.degree() &lt; 1 or not f.is_cyclotomic:
+            continue
+        n = next(k for k in range(1, 2000)
+                 if Poly(cyclotomic_poly(k, X), X) == (f if f.LC() &gt; 0 else -f))
+        for k in range(n):
+            if gcd(k, n) != 1:
+                continue
+            om = cmath.exp(2j * cmath.pi * k / n)
+            bv = b.eval(om)
+            if abs(bv) &lt; 1e-9:
+                continue
+            r = -a.eval(om) / bv
+            if abs(r ** (2 * n) - 1) &lt; 1e-7:
+                return False, f"zero at order {n}"
+    return True, "no omega"
+
+
+<span id="torsion_zero"></span>def torsion_zero(q, top):
+    terms = q.terms()
+    for n in range(1, top + 1):
+        roots = [cmath.exp(2j * cmath.pi * k / n) for k in range(n)]
+        for i in range(n):
+            for j in range(n):
+                v = sum(int(c) * roots[(i * e[0] + j * e[1]) % n]
+                        for e, c in terms)
+                if abs(v) &lt; 1e-9:
+                    return n
+    return None
+
+
+<span id="section_control"></span>def section_control():
+    section("CONTROL")
+    p = poly([(0, 0), (3, 0), (0, 1), (4, 1), (8, 1)])
+    fs = factors(p)
+    phi6 = Poly(X ** 2 - X + 1, X, Y)
+    r = Poly((1 + X) + Y * (1 + X + X ** 2) * (X ** 4 - X ** 2 + 1), X, Y)
+    ok_ex = sorted(fs, key=lambda q: q.total_degree()) == [phi6, r]
+    irr = len(factors(Poly(1 + X + X ** 2 + Y, X, Y))) == 1
+    line = Poly(1 + X + X ** 3 + X ** 4 + X ** 7, X)
+    lf = factors(line)
+    ok_line = (sorted(q.degree() for q in lf) == [3, 4]
+               and sum(q.is_cyclotomic for q in lf) == 1
+               and any(negative(q) and not q.is_cyclotomic for q in lf))
+    print(f"    exhibit: {[q.as_expr() for q in fs]}")
+    print(f"    1 + x + x^2 + y irreducible: {irr}; 1 + x + x^3 + x^4 + x^7:"
+          f" {[q.as_expr() for q in lf]}")
+    rot = [(a, a + b) for a, b in [(0, 0), (3, 0), (0, 1), (4, 1), (8, 1)]]
+    counts = [zeros_on(rot, K, 400) for K in (20, 40, 60)]
+    print(f"    rotated exhibit, zeros (zeta, zeta^K) at K = 20, 40, 60: "
+          f"{counts}")
+    control("P1 controls", ok_ex and irr and ok_line
+          and counts == [2 * (K + 1) for K in (20, 40, 60)])
+
+
+<span id="section_mann"></span>def section_mann():
+    section("MANN -- vanishing sums of five roots of unity")
+    ok = True
+    for n in (60, 84):
+        roots = [cmath.exp(2j * cmath.pi * k / n) for k in range(n)]
+        vanish = minimal = bad = split = badsplit = 0
+        for rest in combinations_with_replacement(range(n), 4):
+            ks = (0,) + rest
+            if abs(sum(roots[k] for k in ks)) &gt; 1e-9:
+                continue
+            vanish += 1
+            parts = [c for r in (2, 3) for c in combinations(range(5), r)
+                     if abs(sum(roots[ks[i]] for i in c)) &lt; 1e-9]
+            if not parts:
+                minimal += 1
+                if any((ks[i] - ks[j]) * 30 % n for i in range(5)
+                       for j in range(5)):
+                    bad += 1
+                continue
+            split += 1
+            for c in parts:
+                if len(c) == 2:
+                    badsplit += (ks[c[0]] - ks[c[1]]) % n != n // 2
+                else:
+                    d = sorted((ks[i] - ks[c[0]]) % n for i in c)
+                    badsplit += d != [0, n // 3, 2 * n // 3]
+        print(f"    N = {n}: {vanish} vanishing, {minimal} minimal ({bad} "
+              f"with a ratio outside mu_30), {split} split ({badsplit} "
+              f"parts neither antipodal nor equilateral)")
+        ok &amp;= (vanish &gt; 0 and (minimal &gt; 0) == (n % 5 == 0)
+               and bad == 0 and badsplit == 0)
+    check("P2 Mann's bound at five terms", ok)
+
+
+<span id="section_exhibit"></span>def section_exhibit():
+    section("EXHIBIT -- the mixed seed {2, 16, 6, 96, 1536}")
+    s = Poly((T - 1) ** 2 * (T ** 2 - 4 * T + 1) ** 2 - T, T)
+    sf = s.factor_list()[1]
+    nreal = len(real_roots(s))
+    r = Poly((1 + X) + Y * (1 + X + X ** 2) * (X ** 4 - X ** 2 + 1), X, Y)
+    rirr = len(factors(r)) == 1
+    z = torsion_zero(r, 60)
+    print(f"    S = {s.as_expr()}; factors {len(sf)}, real roots {nreal} of "
+          f"{s.degree()}; R irreducible {rirr}, negative {negative(r)}, "
+          f"torsion zero at N &lt;= 60: {z}")
+    check("P3 the exhibit is free", len(sf) == 1 and sf[0][1] == 1
+          and nreal &lt; s.degree() and rirr and negative(r) and z is None)
+
+
+<span id="enumerate_box"></span>def enumerate_box(box):
+    grid = [(a, b) for a in range(box + 1) for b in range(box + 1)]
+    col0 = [i for i, p in enumerate(grid) if p[0] == 0]
+    cores = noncol = passed = 0
+    reps = set()
+    for i0 in col0:
+        p0 = grid[i0]
+        for rest in combinations(range(i0 + 1, len(grid)), 4):
+            pts = [p0] + [grid[i] for i in rest]
+            if min(b for _, b in pts):
+                continue
+            cores += 1
+            if collinear(pts):
+                continue
+            noncol += 1
+            if not decomposable(pts):
+                continue
+            passed += 1
+            reps.add(canonical(pts))
+    return cores, noncol, passed, sorted(reps)
+
+
+BOX = {}
+
+
+<span id="section_box"></span>def section_box():
+    box = 5 if REHEARSE else 8
+    section(f"BOX -- every non-collinear five-term core in [0, {box}]^2")
+    t0 = time.time()
+    cores, noncol, passed, reps = enumerate_box(box)
+    t1 = time.time()
+    print(f"    {cores} cores, {noncol} non-collinear, {passed} through the"
+          f" filter, {len(reps)} orbit representatives [{t1 - t0:.1f} s]")
+    seeds, irred = [], []
+    nonseed = 0
+    for pts in reps:
+        fs = factors(poly(pts))
+        if len(fs) &lt; 2:
+            irred.append(pts)
+            continue
+        if not any(negative(q) for q in fs):
+            nonseed += 1
+        seeds.append((pts, fs))
+    print(f"    {len(seeds)} reducible, {nonseed} with no negative factor "
+          f"[{time.time() - t1:.1f} s]")
+    split = {"rooted": 0, "mixed": 0, "outright": 0}
+    noshape = badfactor = unresolved = 0
+    reasons = {}
+    for pts, fs in seeds:
+        cyc = [(q, monomial_cyclotomic(q)) for q in fs]
+        cyc = [(q, wn) for q, wn in cyc if wn]
+        if not cyc:
+            noshape += 1
+            print(f"    NO FACTOR CYCLOTOMIC IN A MONOMIAL: {pts} "
+                  f"{[q.as_expr() for q in fs]}")
+            continue
+        for q, (w, n) in cyc:
+            _, rows = rows_along(list(pts), w)
+            sizes = sorted(len(r) for r in rows.values())
+            if sizes != [2, 3] or n % 6 or not negative(q):
+                badfactor += 1
+                print(f"    ROW LEMMA FAILS: {pts} {q.as_expr()} n={n} "
+                      f"rows {sizes}")
+        others = [q for q in fs if not monomial_cyclotomic(q)]
+        negs = [q for q in others if negative(q)]
+        if not negs:
+            split["rooted"] += 1
+            continue
+        free, why = torsion_free_bracket(list(pts), cyc[0][1][0])
+        why = why if free is None else ("free" if free else "zero found")
+        reasons[why] = reasons.get(why, 0) + 1
+        if free is None or len(others) &gt; 1:
+            unresolved += 1
+            print(f"    UNRESOLVED: {pts} {[q.as_expr() for q in fs]}")
+            continue
+        split["mixed" if free else "rooted"] += 1
+    BOX.update(box=box, seeds=seeds, irred=irred)
+    print(f"    seeds: rooted {split['rooted']}, mixed {split['mixed']}, "
+          f"free outright {split['outright']}; without a factor cyclotomic"
+          f" in a monomial {noshape}; row lemma failures {badfactor}; "
+          f"unresolved {unresolved}; torsion test outcomes {reasons}")
+    check("P4 every reducible core is a seed", seeds and nonseed == 0)
+    check("P4 every seed has a factor cyclotomic in a monomial, so none is "
+          "free outright", noshape == 0)
+    check("P4 the row lemma: rows 2 and 3, order divisible by 6, negative",
+          badfactor == 0)
+    check("P4 every negative bracket decided", unresolved == 0)
+    if box == 8:
+        check("P4 the split (transplant: 130 / 33 mixed / 97 rooted)",
+              (len(seeds), split["mixed"], split["rooted"])
+              == (130, 33, 97))
+
+
+FRACS = {}
+
+
+<span id="zeros_on"></span>def zeros_on(pts, K, top):
+    """Roots of unity zeta of order &lt;= top with sum zeta^(a + K b) = 0."""
+    if top not in FRACS:
+        FRACS[top] = [(k, n) for n in range(1, top + 1) for k in range(n)
+                      if gcd(k, n) == 1]
+    count = 0
+    exps = [a + K * b for a, b in pts]
+    for k, n in FRACS[top]:
+        v = sum(cmath.exp(2j * cmath.pi * ((k * e) % n) / n) for e in exps)
+        if abs(v) &lt; 1e-9:
+            count += 1
+    return count
+
+
+<span id="det_bound"></span>def det_bound(pts):
+    diffs = [(p[0] - q[0], p[1] - q[1]) for p, q in combinations(pts, 2)]
+    return 30 * sum(abs(cross(u, v)) for u, v in combinations(diffs, 2)
+                    if cross(u, v))
+
+
+<span id="section_bound"></span>def section_bound():
+    section("BOUND -- zeros (zeta, zeta^K) of irreducible pentanomials")
+    sample = BOX["irred"][::997]
+    over = rising = 0
+    worst = [0, 0, 0]
+    for pts in sample:
+        c = [zeros_on(list(pts), K, 400) for K in (20, 40, 60)]
+        b = det_bound(pts)
+        over += any(x &gt; b for x in c)
+        rising += c[2] &gt; c[0]
+        worst = [max(w, x) for w, x in zip(worst, c)]
+    print(f"    {len(sample)} representatives; most zeros at K = 20, 40, 60: "
+          f"{worst}; above the bound {over}; rising {rising}")
+    least = min(det_bound(pts) for pts in sample)
+    print(f"    the least bound over the sample: {least}")
+    check("P5 no count above its bound (the frozen kill of (5))",
+          sample and over == 0)
+
+
+<span id="section_line"></span>def section_line():
+    top = 16 if REHEARSE else 30
+    section(f"LINE -- 1 + x^a + x^b + x^c + x^n, n &lt;= {top}")
+    total = red = badcyc = badrec = 0
+    split = {"rooted": 0, "mixed": 0, "outright": 0}
+    for n in range(4, top + 1):
+        for a, b, c in combinations(range(1, n), 3):
+            total += 1
+            fs = factors(Poly(1 + X ** a + X ** b + X ** c + X ** n, X))
+            if len(fs) &lt; 2:
+                continue
+            red += 1
+            noncyc = [q for q in fs if not q.is_cyclotomic]
+            if len(noncyc) &gt; 1:
+                badcyc += 1
+                print(f"    FILASETA-SOLAN WITNESS: {(a, b, c, n)} "
+                      f"{[q.as_expr() for q in fs]}")
+            nonrec = [q for q in fs if Poly(list(reversed(q.all_coeffs())),
+                                            X) not in (q, -q)]
+            badrec += len(nonrec) &gt; 1
+            negs = [q for q in fs if negative(q)]
+            if all(q.is_cyclotomic for q in negs):
+                split["rooted"] += 1
+            elif any(q.is_cyclotomic for q in fs):
+                split["mixed"] += 1
+            else:
+                split["outright"] += 1
+    print(f"    {total} pentanomials, {red} reducible; non-cyclotomic part "
+          f"reducible {badcyc}; non-reciprocal part reducible {badrec}; "
+          f"seeds rooted {split['rooted']}, mixed {split['mixed']}, free "
+          f"outright {split['outright']}")
+    check("P6 the non-cyclotomic part is 1 or irreducible", red and badcyc == 0)
+    check("P6 Filaseta-Solan Theorem 1 holds", badrec == 0)
+    check("P6 free outright 0", split["outright"] == 0)
+
+
+<span id="section_specialize"></span>def section_specialize():
+    box = BOX["box"]
+    section(f"SPECIALIZE -- every seed of the box at K = {box + 1}..{box + 4}")
+    pairs = shape = bad = one = 0
+    top = 0
+    for pts, _ in BOX["seeds"]:
+        for K in range(box + 1, box + 5):
+            pairs += 1
+            terms = {}
+            for a, b in pts:
+                terms[(a + K * b,)] = terms.get((a + K * b,), 0) + 1
+            p = Poly.from_dict(terms, X)
+            top = max(top, p.degree())
+            shape += len(terms) == 5 and set(terms.values()) == {1}
+            noncyc = [q for q in factors(p) if not q.is_cyclotomic]
+            one += not noncyc
+            if len(noncyc) &gt; 1:
+                bad += 1
+                print(f"    FILASETA-SOLAN WITNESS: {pts} K={K}")
+    print(f"    {pairs} (seed, K) pairs, {shape} five-term 0/1 images, "
+          f"degree at most {top}; non-cyclotomic part 1 at {one}, "
+          f"reducible at {bad}")
+    check("P7 every non-cyclotomic part 1 or irreducible", bad == 0)
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_control()
+    section_mann()
+    section_exhibit()
+    section_box()
+    section_bound()
+    section_line()
+    section_specialize()
+    print()
+    n, ok = len(CHECKS), sum(CHECKS)
+    print(f"{ok} of {n} checks pass  [{time.time() - t0:.1f} s]")
+    return 0 if ok == n else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/pentanomial.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>storey.py | Numbers read one place at a time</title>
+<meta name="description" content="storey.py">
+<link rel="alternate" type="text/x-python" href="/code/storey.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>storey.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/observatory/#the-last-point-gives-the-break-of-the-next-storey">OBSERVATORY: The last point gives the break of the next storey</a> (theorem); <a href="/observatory/#a-radical-storey-adds-e-to-the-first-defect-and-passes-the-rest-down">OBSERVATORY: A radical storey adds e to the first defect and passes the rest down</a> (theorem).</p><p>Cited on: <a href="/observatory/">OBSERVATORY</a>.</p><p>To run it: <a href="/code/clock.py">clock.py</a>, <a href="/code/module_law.py">module_law.py</a>, <a href="/code/rung.py">rung.py</a>, <a href="/code/staircase.py">staircase.py</a>, <a href="/code/tame.py">tame.py</a>, <a href="/code/triangle.py">triangle.py</a>, <a href="/code/weld.py">weld.py</a>, <a href="/code/wild.py">wild.py</a> beside it; standard library only.</p></div>
+<pre>"""storey.py -- the next storey of the cyclotomic tower over a ramified
+field, read off the last point of its jump set, and what one radical
+storey does to the p^m-power defects of zeta_p.
+
+QUESTION. Let K/Q_p be totally ramified of degree e, cut out by F =
+x^e + sum_{i=1}^{e-1} p b_i x^i - p d with root pi (triangle.py), let
+the bend s = e/(p - 1) be an integer and e* = p s, and let zeta, of
+order p^N, generate the p-power roots of unity in K. Two questions.
+  (A) THE NEXT STOREY. How does K(zeta_(p^(N+1)))/K ramify, and can
+      the answer be read off Pagano's jump set (Jump sets in local
+      fields, arXiv:1810.09975), or off one coefficient level?
+  (B) THE DESCENT. With zeta_p in K, the p^m-POWER DEFECT is kappa_m =
+      the largest v(y^(p^m) - zeta_p) over principal units y, infinite
+      exactly when zeta_p is a p^m-th power. For a radical storey K =
+      C(pi_C^(1/p)) over a field C holding zeta_p, how is kappa_m(K)
+      made from the defects of C?
+
+THE DERIVATION (on paper, before the engine).
+  (1) THE LAST POINT IS THE DEFECT OF THE NEXT STOREY. The weight of
+      zeta modulo p-th powers, the largest v(zeta h - 1) over h in
+      U_1^p, is the i of the jump set's last point (i_N, N): Pagano's
+      Proposition 3.39 at n = 1, since his g breaks at n = beta - N and
+      the point with beta = N gives g(1) = rho^0(i_N) = i_N. Kummer
+      theory: K(zeta_(p^(N+1))) = K(a^(1/p)) with a = zeta h, h a p-th
+      power, and a best such a has level i_N. Put alpha = 1 + (zeta_p -
+      1) Y; since (zeta_p - 1)^(p-1) = -p times a principal unit, alpha^p
+      = a becomes Y^p - Y = (a - 1)/(zeta_p - 1)^p up to terms of higher
+      valuation, whose right side has valuation i_N - e*. Fesenko and
+      Vostokov (Local Fields and Their Extensions, 2nd ed., ch. III,
+      (2.5)): a unit right side whose residue is not in the image of
+      x^p - x on F_p gives an unramified extension, and on F_p that
+      image is {0}; a right side of valuation -t with p not dividing t
+      gives a totally ramified one whose break is t. Below e* the i of
+      a point is prime to p, so:
+          K(zeta_(p^(N+1)))/K is unramified iff i_N = e*, and otherwise
+          totally ramified with its one break t = e* - i_N.
+      The unramified half is Pagano's Proposition 5.5 (e* is in I_K iff
+      the extension is unramified).
+  (2) THE RIGID READING. At N = 1 with p | s, zeta_p's weight i_1 is
+      kappa_1 = G(1) of the class maxima (staircase.py), above s, so the
+      point (i_1, 1) has weight i_1 + e = H(1), the highest landing of
+      the class (s/p, 1). When that class is rigid, H(1) = e* + dep, so
+      i_1 = s + dep and
+          t = e - dep,
+      dep being the class's departure: l = v(u + 1) at an odd prime
+      (rigid iff l &lt; p) and over 2 at e &gt;= 4 (rigid iff l = 1), and the
+      wild departure lam at e = 2 (rigid iff lam &lt; 3).
+  (3) THE COLLAPSE. Let K/C be totally ramified of degree p with zeta_p
+      in C and O_K = O_C[pi_K], and let L &lt;= e_K be the level (in v_K),
+      capped at e_K, to which pi_K^p agrees with an element of C. Every y
+      in O_K is sum_{iota&lt;p} chi_iota pi_K^iota with chi_iota in O_C,
+      and y^p = sum_iota chi_iota^p pi_K^(p iota) mod p, so
+      y^p agrees with an element of C to level min(L, e_K); conversely
+      every chi in O_C is reached mod pi_K^L, since at f = 1 the map
+      sends the digits a_(iota,k) of the chi_iota to the level
+      p k + iota, one to one. A radical storey, pi_K^p = pi_C, has
+      L = e_K.
+  (4) THE LIFT. If y^p = chi + r with v(r) &gt;= L and (p - 1) L &gt;= e_K,
+      then y^(p^m) = chi^(p^(m-1)) mod pi_K^((m-1) e_K + L): the ell-th
+      binomial term has valuation at least
+      (m - 1 - v_p(ell)) e_K + ell L, and (ell - 1) L &gt;= v_p(ell) e_K.
+  (5) THE DESCENT. For m &gt;= 2, with A = p kappa_(m-1)(C):
+          kappa_m(K) = p kappa_(m-1)(C)   when A &lt; (m - 1) e_K + L,
+          kappa_m(K) &gt;= (m - 1) e_K + L    otherwise.
+      Every y has its chi, and v_K(chi^(p^(m-1)) - zeta_p) &lt;= A below the
+      congruence level; the C-witness chi, lifted by (3), attains A. At a
+      radical storey the condition reads kappa_(m-1)(C) &lt; m e_C. A
+      finite kappa_j is at most e* + (j - 1) e in any field, since past
+      that level every principal unit is a p^j-th power (above the bend
+      the p-th power carries U_i onto U_(i+e)). So at an odd prime the
+      condition holds at every finite kappa_(m-1)(C), since
+      p/(p - 1) &lt; 2; over 2 it fails only at the boundary
+      kappa_(m-1)(C) = m e_C, the largest value allowed.
+  (6) THE FIRST DEFECT (Herbrand). Let N = 1 in C and in K. The
+      compositum E = K(zeta_(p^2)) over C is bicyclic, its degree-p
+      subfields C(zeta_(p^2)) with break t_C = e*_C - kappa_1(C) and K
+      with break e*_C (a p-th root of a uniformizer). Upper numbering
+      passes to quotients, so the first lower break of E/C is the
+      smaller upper break, t_C, and on (t_C, e*_C] the ramification
+      group is Gal(E/C(zeta_(p^2))), not Gal(E/K). Lower numbering
+      passes to subgroups, so Gal(E/K) has break t_C, and by (1) kappa_1(K) = e*_K - t_C:
+          kappa_1(K) = kappa_1(C) + e_K,
+      the break of the next storey unchanged up the storey. (A storey
+      whose own break t_(K/C) sits below t_C, a unit-root storey,
+      gives p kappa_1(C) + (p - 1) t_(K/C) by the same argument at the
+      second lower break, agreeing with the radical case at
+      t_(K/C) = t_C; no such storey is built here.)
+
+THE ENGINE. kappa_m is staircase.py's G(m), the filtered echelon of
+U_1^(p^m) modulo the level e* + (M + 1) e + 3, with zeta_p lifted from
+1 + pi^s; that level exceeds every finite value up to m = M + 2, so a
+value there is infinite. The jump set is Pagano's reading off a root of
+order p^N found by staircase.py's pruned search. THE BREAK, read with no
+defect: in a top field Z = Q_p(zeta_top), zeta_top a root of unity of
+p-power order, cut out by Phi(1 + x) with pi_Z = zeta_top - 1,
+sigma: zeta_top -&gt; zeta_top^k has i(sigma) = v_Z(zeta_top^(k-1) - 1), and
+the break of Z over the fixed field of sigma is i(sigma) - 1. THE
+LABELS at the ramified quadratics of Q_2, read with no orbit: K(i)/K is
+trivial iff -1 is a square in K and unramified iff -5 is (K(sqrt 5) is
+the unramified quadratic), a square found by a search of y mod pi^6
+with v(y^2 - n) &gt; e* (past e* every principal unit is a square).
+
+POPULATIONS. (A) the cyclotomic fields Q_2(zeta_8) over Q_2(sqrt 2),
+Q_2(sqrt -2) and Q_2(i), Q_2(zeta_16) over Q_2(zeta_8), Q_3(zeta_9) over
+Q_3(zeta_3); the six ramified quadratics of Q_2; x^6 + 3, x^12 + 3 and
+the sextic x^6 + 6x^5 + 6x^4 + 3x^3 + 12; for (2), fields designed to a
+departure (tame.py, wild.py) at p = 3, e = 6 and 18, l from 1 to 4, and
+at p = 2, e = 4 and 8, l = 1 and 2, and e = 2, lam = 1, 2, 3.
+(B) the tower x^(2 3^n) + 3 over Q_3(sqrt -3) to e = 54 and x^36 + 3
+over x^12 + 3, x^(2^n) - 2 over Q_2 to e = 32, x^(3 e_C) - 6,
+x^(3 e_C) + 3x^(2 e_C) + 3 at e_C = 6, x^(2 e_C) + 2 and x^(2 e_C) - 10
+at e_C = 2; F(x^p) for random F at p = 2, e_C = 2, 4, 8 and p = 3,
+e_C = 2, 6, with N = 1 in C; and the boundary specimen x^4 - 2x^2 + 6
+over x^2 - 2x + 6 (Q_2(sqrt -5), where kappa_1 = 4 = 2 e_C).
+
+PREDICTIONS, fixed before the run. The defects of the pure towers
+x^(2 p^n) + 3 and x^(2^n) - 2 were printed by a trial of the engine
+before this slate (they are the verifier's own values, 7, 25, 79 up
+the first tower, 50 at x^36 + 3, and 3, 7, 15, 31, 63 for kappa_1);
+every other value below is fresh.
+  C  CONTROL, run first. The sigma breaks: Q_2(zeta_8) over Q_2(sqrt 2)
+     and Q_2(sqrt -2) 1, over Q_2(i) 3; Q_2(zeta_16) over Q_2(zeta_8) 7;
+     Q_3(zeta_9) over Q_3(zeta_3) 2. The fixed fields' last points: (3,
+     1), (3, 1), (1, 2), (1, 3), (1, 1), so e* - i_N equals each break.
+  Q  THE QUADRATICS. Labels ramified at sqrt(2), sqrt(-2), sqrt(10),
+     sqrt(-10), unramified at sqrt(-5), trivial at i; N = 1 and i_1 = 3
+     &lt; e* = 4 at the four ramified, N = 1 and i_1 = 4 = e* at sqrt(-5),
+     N = 2 at i.
+  N  THE NEXT STOREY. x^6 + 3 reads i_1 = 7 (t = 2), x^12 + 3 reads 14
+     (t = 4), the sextic reads 9 = e* (unramified, at an odd prime with
+     f = 1).
+  R  THE RIGID READING. At every designed field with N = 1 whose class
+     (s/p, 1) is rigid, i_1 = s + dep; the others print.
+  D  THE DESCENT. At every storey with N = 1 in C: kappa_m(K) = p
+     kappa_(m-1)(C) at 2 &lt;= m &lt;= M_K + 2 wherever p kappa_(m-1)(C) &lt;
+     m e_K, and kappa_m(K) &gt;= m e_K wherever not (over 2, the boundary
+     only); and kappa_1(K) = kappa_1(C) + e_K wherever N = 1 in K.
+  B  THE BOUNDARY SPECIMEN. kappa_1 = 8 = e*_K (the next storey stays
+     unramified), and kappa_2 &gt;= 8, where the law's value would be 8.
+KILLS, as printed observables: a C line off (nothing below is read); a
+quadratic whose label disagrees with its N and i_1; an N line off; a
+rigid field with i_1 != s + dep; a storey row off D; B off.
+
+FINDINGS. Every prediction landed: 12/12 checks PASS, no kill fired.
+  C  The sigma breaks print 1, 1, 3, 7, 2, and the fixed fields' last
+     points (3, 1), (3, 1), (1, 2), (1, 3), (1, 1) give e* - i_N equal
+     to each.
+  Q  sqrt(+-2) and sqrt(+-10) ramified by squares, last point (3, 1),
+     t = 1; sqrt(-5) unramified, (4, 1) = (e*, 1); i trivial, N = 2 and
+     jump set (1, 2).
+  N  x^6 + 3 reads (7, 1), t = 2; x^12 + 3 reads (14, 1), t = 4; the
+     sextic reads (9, 1) with e* = 9, so K(zeta_9)/K is unramified.
+  R  All 8 rigid fields read i_1 = s + dep: t = 5, 4 at p = 3, e = 6,
+     17, 16 at e = 18, 3 and 7 at p = 2, e = 4 and 8, 1 and 0 at e = 2.
+     The non-rigid ones spread (l = 3, 4 at e = 18 both read t = 14).
+  D  81 defects m &gt;= 2 and 24 first defects over 24 storeys, none off;
+     three storeys skipped for N = 2 in C. Over 2 the boundary was met
+     at 3 defects, each at m = 2 over a C with kappa_1 = 2 e_C = e*_C,
+     whose next storey is unramified, and there kappa_2(K) =
+     2 kappa_1(C) after all (8, 16, 32): the bound is attained at every
+     boundary met, an observation. Longest ladder: x^32 - 2 reads 63,
+     62, 60, 56, 48, 32, 32, kappa_1 = 31 + 32 by the first-defect
+     law and each later one twice the defect below one storey down.
+  B  C: kappa 4, 2, 2; K: kappa 8, 8, 4, 4. The unramified next storey
+     stays unramified up the storey, and kappa_2 = 8 is the law's value
+     at the boundary too.
+  Tiers: (1) a theorem given Pagano's Propositions 3.39 and 5.5 and
+  Fesenko-Vostokov ch. III (2.5); (2) a theorem given (1) and
+  the class maxima; (3)-(5) a theorem with no outside result;
+  (6) a theorem given the Herbrand compatibilities, its second branch
+  (a storey breaking below t_C) proved and not exercised.
+
+RUN RECORD. 12/12, 87.5 s wall, peak working set 15.4 MB under
+a memory guard; x^54 + 3 is about 60 s of it. A first run died in D at Q_2
+itself taken as C (e = 1, which the local-ring engine does not carry),
+before any D line was read; Q_2 was dropped, x^2 - 2 over it standing
+in only as a C.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import random
+
+from module_law import check, section, CHECKS
+from weld import Units
+from staircase import read_deep, root_search, pagano_reading, cyclo
+from tame import departure, designed
+import wild
+
+SEED = 20260927
+
+
+# ------------------------------------------------------------ the field
+
+<span id="last_point"></span>def last_point(p, e, b, d):
+    """(N, i_N, the jump set, s, e*) of the field of (b, d)."""
+    rec = read_deep(p, e, b, d)
+    N = rec["N"]
+    root = root_search(p, e, b, d, N, rec["L"] + N * e + 1)
+    pts, gz = pagano_reading(p, e, rec, root)
+    last = [i for i, bt in pts if bt == N]
+    assert len(last) == 1 and last[0] == gz[1]
+    return N, last[0], pts, rec["s"], rec["es"]
+
+
+<span id="sigma_break"></span>def sigma_break(p, n, k):
+    """The break of Q_p(zeta_(p^(n+1))) over the fixed field of
+    zeta -&gt; zeta^k, from i(sigma) = v_L(zeta^(k-1) - 1)."""
+    e, b, d = cyclo(p, n + 1, 1, [])
+    U = Units(p, e, b, d, 4 * e)
+    zeta = U.gen(1)
+    return U.lead(U.pw(zeta, k - 1))[0] - 1
+
+
+<span id="is_square"></span>def is_square(p, e, b, d, n):
+    """Some y mod pi^6 with v(y^2 - n) &gt; e*: n a square in K."""
+    U = Units(p, e, b, d, 12)
+    es = p * e // (p - 1)
+    pis = [U.loc.pi_pow(j, U.mod) for j in range(6)]
+    for idx in range(1, 2 ** 6):
+        y = [0] * e
+        for j in range(6):
+            if idx &gt;&gt; j &amp; 1:
+                y = [(a + x) % U.mod for a, x in zip(y, pis[j])]
+        z = U.mul(y, y)
+        z[0] = (z[0] - n) % U.mod
+        if U.loc.val(z, U.N) &gt; es:
+            return True
+    return False
+
+
+# ------------------------------------------------------------ populations
+
+QUADS = [("Q_2(sqrt 2)", [0, 0], 1, "ramified"),
+         ("Q_2(sqrt -2)", [0, 0], -1, "ramified"),
+         ("Q_2(sqrt 10)", [0, 0], 5, "ramified"),
+         ("Q_2(sqrt -10)", [0, 0], -5, "ramified"),
+         ("Q_2(sqrt -5)", [0, -1], -3, "unramified"),
+         ("Q_2(i)", [0, 1], -1, "trivial")]
+SIGMA = [("Q_2(zeta_8) / Q_2(sqrt 2)", 2, 2, 7, 1, (2, [0, 0], 1)),
+         ("Q_2(zeta_8) / Q_2(sqrt -2)", 2, 2, 3, 1, (2, [0, 0], -1)),
+         ("Q_2(zeta_8) / Q_2(i)", 2, 2, 5, 3, cyclo(2, 2, 1, [])),
+         ("Q_2(zeta_16) / Q_2(zeta_8)", 2, 3, 9, 7, cyclo(2, 3, 1, [])),
+         ("Q_3(zeta_9) / Q_3(zeta_3)", 3, 1, 4, 2, cyclo(3, 1, 1, []))]
+
+
+<span id="radical"></span>def radical(p, b, d):
+    """F(x^p): the storey C(pi_C^(1/p)) over the field of F."""
+    e = len(b)
+    bk = [0] * (p * e)
+    for i in range(1, e):
+        bk[p * i] = b[i]
+    return bk, d
+
+
+<span id="towers"></span>def towers(rng):
+    """(name, p, b_C, d_C) with N = 1 in C; K is radical over it."""
+    out = [("x^2 + 3", 3, [0, 0], -1), ("x^6 + 3", 3, [0] * 6, -1),
+           ("x^18 + 3", 3, [0] * 18, -1), ("x^12 + 3", 3, [0] * 12, -1),
+           ("x^2 - 2", 2, [0, 0], 1),
+           ("x^4 - 2", 2, [0] * 4, 1), ("x^8 - 2", 2, [0] * 8, 1),
+           ("x^16 - 2", 2, [0] * 16, 1),
+           ("x^6 - 6", 3, [0] * 6, 2),
+           ("x^6 + 3x^4 + 3", 3, [0, 0, 0, 0, 1, 0], -1),
+           ("x^2 + 2", 2, [0, 0], -1), ("x^2 - 10", 2, [0, 0], 5)]
+    for e in (2, 4, 8):
+        for _ in range(3):
+            b, d = wild.designed(rng, e, rng.randrange(1, 3 * e // 2 + 1),
+                                 2 * e + 4)
+            out.append((f"F(2, {e}) b={b[1:]} d={d}", 2, b, d))
+    for e in (2, 6):
+        for _ in range(3):
+            b, d = designed(rng, 3, e, rng.randrange(1, e + 2), 2 * e + 2)
+            out.append((f"F(3, {e}) b={b[1:]} d={d}", 3, b, d))
+    return out
+
+
+<span id="rigid_fields"></span>def rigid_fields(rng):
+    """(name, p, e, b, d, dep, rigid) designed to a departure."""
+    out = []
+    for e in (6, 18):
+        for l in (1, 2, 3, 4):
+            b, d = designed(rng, 3, e, l, 2 * e + 2)
+            out.append((f"p=3 e={e} l={l}", 3, e, b, d, l, l &lt; 3))
+    for e in (4, 8):
+        for l in (1, 2):
+            b, d = wild.designed_l(rng, e, l, 2 * e + 2)
+            out.append((f"p=2 e={e} l={l}", 2, e, b, d, l, l == 1))
+    for lam in (1, 2, 3):
+        b, d = wild.designed(rng, 2, lam, 8)
+        out.append((f"p=2 e=2 lam={lam}", 2, 2, b, d, lam, lam &lt; 3))
+    return out
+
+
+# ------------------------------------------------------------ sections
+
+<span id="section_control"></span>def section_control():
+    section("C  CONTROL: the sigma breaks against e* - i_N")
+    for name, p, n, k, want, (e, b, d) in SIGMA:
+        t = sigma_break(p, n, k)
+        N, i, pts, s, es = last_point(p, e, b, d)
+        check(f"C {name}: break {want}", t == want and es - i == want,
+              f"sigma reads {t}; fixed field N = {N}, jump set {pts}, "
+              f"e* - i_N = {es} - {i} = {es - i}")
+
+
+<span id="section_quadratics"></span>def section_quadratics():
+    section("Q  THE SIX RAMIFIED QUADRATICS: K(i)/K against the last point")
+    bad = 0
+    for name, b, d, want in QUADS:
+        if is_square(2, 2, b, d, -1):
+            label = "trivial"
+        elif is_square(2, 2, b, d, -5):
+            label = "unramified"
+        else:
+            label = "ramified"
+        N, i, pts, s, es = last_point(2, 2, b, d)
+        read = ("trivial" if N &gt;= 2 else "unramified" if i == es
+                else "ramified")
+        bad += label != want or read != want or (N == 1 and label ==
+                                                 "ramified" and i != 3)
+        print(f"  {name:14s} squares: {label:10s} last point: N = {N}, "
+              f"i_N = {i}, t = {es - i if N == 1 else '-'}  {pts}")
+    check("Q the labels read by squares equal the last point's reading",
+          bad == 0, f"{len(QUADS)} fields, {bad} off")
+
+
+<span id="section_next"></span>def section_next():
+    section("N  THE NEXT STOREY: named fields")
+    for name, b, d, want in [("x^6 + 3", [0] * 6, -1, 7),
+                             ("x^12 + 3", [0] * 12, -1, 14),
+                             ("x^6 + 6x^5 + 6x^4 + 3x^3 + 12",
+                              [0, 0, 0, 1, 2, 2], -4, 9)]:
+        e = len(b)
+        N, i, pts, s, es = last_point(3, e, b, d)
+        check(f"N {name}: i_1 = {want}", N == 1 and i == want,
+              f"N = {N}, jump set {pts}, e* = {es}, t = {es - i}"
+              + (" (unramified)" if i == es else ""))
+
+
+<span id="section_rigid"></span>def section_rigid(rng):
+    section("R  THE RIGID READING: t = e - dep at a rigid class (s/p, 1)")
+    n = bad = 0
+    for name, p, e, b, d, dep, rigid in rigid_fields(rng):
+        read = wild.wild_departure(e, b, d) if e == 2 else departure(
+            p, e, b, d)
+        N, i, pts, s, es = last_point(p, e, b, d)
+        ok = read == dep and (N &gt;= 2 or not rigid or i == s + dep)
+        n += rigid and N == 1
+        bad += not ok
+        print(f"  {name:18s} dep {read}  N = {N}  i_N = {i}  "
+              f"t = {es - i if N == 1 else '-'}  "
+              f"{'rigid: e - dep = ' + str(e - dep) if rigid else ''}"
+              f"{'' if ok else '  OFF'}")
+    check("R i_1 = s + dep at every rigid field with N = 1", bad == 0,
+          f"{n} rigid, {bad} off")
+
+
+<span id="section_descent"></span>def section_descent(rng):
+    section("D  THE DESCENT: kappa_m(K) from kappa_(m-1)(C), one radical "
+            "storey")
+    rows = bad = boundary = odd_boundary = rungs = 0
+    for name, p, b, d in towers(rng):
+        eC = len(b)
+        C = read_deep(p, eC, b, d)
+        if C["N"] != 1:
+            print(f"  {name}: N = {C['N']} in C, skipped")
+            continue
+        bk, dk = radical(p, b, d)
+        eK = p * eC
+        K = read_deep(p, eK, bk, dk)
+        GC, GK, precC = C["G"], K["G"], C["L"]
+        line = []
+        for m in range(2, K["M"] + 3):
+            A = p * GC[m - 1]
+            rows += 1
+            if GC[m - 1] &lt; precC and A &lt; m * eK:  # kappa finite in C
+                ok = GK[m] == A
+                line.append(f"{GK[m]}={p}*{GC[m - 1]}")
+            else:
+                boundary += 1
+                odd_boundary += p != 2
+                ok = GK[m] &gt;= m * eK
+                line.append(f"{GK[m]}&gt;={m * eK} (boundary)")
+            bad += not ok
+            if not ok:
+                line[-1] += " OFF"
+        if K["N"] == 1:
+            rungs += 1
+            ok = GK[1] == GC[1] + eK
+            bad += not ok
+            first = (f"kappa_1 {GC[1]} -&gt; {GK[1]}"
+                     f"{'' if ok else ' OFF'}")
+        else:
+            first = f"N = {K['N']} in K"
+        print(f"  {name}: e_K = {eK}, {first}; kappa_2.. {', '.join(line)}")
+    check("D the descent and the first defect at every storey, the "
+          "boundary over 2 only", bad == 0 and odd_boundary == 0,
+          f"{rows} defects m &gt;= 2 ({boundary} at the boundary, "
+          f"{odd_boundary} at odd p), {rungs} first defects, {bad} off")
+
+
+<span id="section_boundary"></span>def section_boundary():
+    section("B  THE BOUNDARY SPECIMEN: x^4 - 2x^2 + 6 over Q_2(sqrt -5)")
+    C = read_deep(2, 2, [0, -1], -3)
+    K = read_deep(2, 4, [0, 0, -1, 0], -3)
+    ok = (C["G"][1] == 4 and K["N"] == 1 and K["G"][1] == 8
+          and K["G"][2] &gt;= 8)
+    check("B kappa_1 = 8 = e*_K, kappa_2 &gt;= 8", ok,
+          f"C: kappa {dict(list(C['G'].items())[1:])}; "
+          f"K: kappa {dict(list(K['G'].items())[1:])}")
+
+
+<span id="main"></span>def main():
+    rng = random.Random(SEED)
+    section_control()
+    if not all(CHECKS):
+        print("\ncontrol failed: nothing below is read")
+        raise SystemExit(1)
+    section_quadratics()
+    section_next()
+    section_rigid(rng)
+    section_descent(rng)
+    section_boundary()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks PASS")
+    if not all(CHECKS):
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/storey.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

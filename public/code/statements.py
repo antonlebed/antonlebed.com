@@ -1,0 +1,739 @@
+"""statements.py -- a stated uncertainty read as a law: the sign of what
+it omits, the two ratios its coverage is a function of, and what an
+auditor can see of the omission from inside.
+
+QUESTION. estimators.py found intervals that fail without warning: a
+resubstitution bar at a knife slice that never covers, a held-out bar
+whose coverage falls as data grows. Those are failures of particular
+estimators. This script reads the object they share, the UNCERTAINTY
+STATEMENT "estimate +- h", and asks three things of it. Which way can
+it fail? What decides whether more data cures it? And can the failure
+be seen by someone holding one sample and no truth?
+
+THE WORLDS. M = 15 equiprobable bins, bin r labelled 1 with rate
+eta_r, a Fraction; the target is the Bayes error R* = (1/M) sum_r
+min(eta_r, 1 - eta_r), exact. Drawing x uniform from a threshold slice
+of ceiling.py and reading (x mod M, [x >= t]) is such a draw
+(estimators.py, property A), so the ring's bins enter as their eta.
+  CLEAR  three groups of five, no rate nearer 1/2 than 1/10, every group
+         straddling 1/2: 1/10 3/10 2/5 3/5 4/5 | 1/5 1/4 7/10 3/4 9/10
+         | 1/10 2/5 3/5 7/10 9/10.   R* = 19/75.
+  KNIFE  every eta_r = 1/2: the ring slice N = 210, M = 15, t = 105.
+  MILD   per group four bins well off 1/2 and one just past it:
+         3/10 x4, 13/25 | 1/4 x4, 27/50 | 2/5 x4, 51/100.
+  SAME   every rate below 1/2, heterogeneous within each group:
+         1/10 1/5 3/10 2/5 9/20 | 1/20 3/20 1/4 7/20 9/20 | 1/10 3/20
+         1/5 3/10 2/5.
+  WIDE   105 bins at eta = 6/11: the ring slice N = 1155, M = 105,
+         t = 525, R* = 5/11.
+
+THE STATEMENTS. From per-bin counts (n_r0, n_r1) of n draws:
+  PER-BIN   Ehat = sum_r (n_r/n) min(etahat_r, 1 - etahat_r).
+  POOLED    the same with the bins merged into the three groups: a
+            model class that cannot hold CLEAR's or MILD's truth. Its
+            limit misses R* by the POOLING GAP, exact: 29/150 on CLEAR,
+            7/750 on MILD, 0 on SAME.
+  SHRUNK    every etahat_r pulled toward 1/2 with weight lam = n^(-1/4)
+            before the min.
+  HELD-OUT  the per-bin majority fitted on half the sample, its 0-1
+            error scored on the other half.
+Each FIT states the two-sided bar h = z sqrt(Ehat(1 - Ehat)/m), z =
+1.96, m the points the rate is read from. The BOUND is the held-out
+error with the one-sided upper bar at the same z, nominal 0.975.
+
+THE ARGUMENT (written before the engine).
+  (A) THE SIGN LAW (property). A rule fitted on one half is fixed
+      before the other half is read, so its test error is binomial
+      about the rule's own risk R(rule), and the bar is the right
+      width for that. Every rule has R(rule) >= R*. So the upper bound
+      err + h, which covers R(rule) at about 0.975 given the rule,
+      covers R* at least as often: the omitted term R(rule) - R* has a
+      KNOWN SIGN and can only add margin, whatever the world. A fit
+      has no such term: its omitted bias can have either sign and its
+      bar can be too wide or too narrow. The law is an asymmetry, not
+      a symmetry: nothing forces a fit to fail, and the bound is
+      forbidden to fail only on the side the sign favours. Nor is a
+      bound EMPTY for being conservative: on CLEAR it excludes the
+      no-evidence 1/2.
+  (B) THE PLANE. Write b for the estimate's mean deviation from R*
+      (the uncounted term), sd for its standard deviation, h for the
+      mean stated bar. If the estimate is near normal, a two-sided
+      fit covers at Phi((h - b)/sd) - Phi((-h - b)/sd) and the bound
+      at Phi((b + h)/sd): coverage is a function of (b/sd, h/sd)
+      alone, and every mechanism acts only by where it puts a
+      statement on that plane. Whether data cures a failure is the
+      trajectory of b/h: to 0 (cured), constant (sample size
+      irrelevant), to infinity (more data is worse).
+  (C) THE KNIFE ON THE PLANE. On KNIFE, etahat_r - 1/2 is about
+      N(0, tau^2), tau = 1/(2 sqrt(n_r)), so b = -sqrt(M/(2 pi n)),
+      h = z/(2 sqrt n): |b|/h = sqrt(2M/pi)/z = 1.5766, free of n.
+      The half-normal gives sd = sqrt((1 - 2/pi)/(4n)), so h/sd
+      = 3.25: the bar is too WIDE there, and the coverage, about
+      Phi(8.4) - Phi(1.88) = 0.03, is lost to b alone.
+  (D) THE THIRD REGIME. POOLED on MILD has b -> 7/750 while h falls as
+      1/sqrt n; with Ehat near 0.3586, h = 0.940/sqrt n, so |b|/h
+      runs 0.22, 0.44, 0.89, 1.78 over n = 500 .. 32000, and with
+      h/sd near 2 the coverage runs about 0.93 down to 0.07.
+  (E) THE CORNER. min(x, 1 - x) is linear on each side of 1/2 and a
+      pull toward 1/2 never crosses it, so SHRUNK = (1 - lam) PER-BIN
+      + lam/2 exactly, and b = (1 - lam) b_plug + lam (1/2 - R*). On
+      CLEAR, 1/2 - R* = 37/150, so b decays as n^(-1/4): b/h grows as
+      n^(1/4), divergent, while b still MOVES.
+  (F) TWO INSIDE INSTRUMENTS. The BOOTSTRAP term, the mean over
+      resamples of Ehat* - Ehat at the same n, estimates the
+      estimator's bias against ITS OWN ESTIMAND; the DRIFT term, Ehat
+      on the sample minus Ehat on an exact half of it run at n/2,
+      reads b(n) - b(n/2). At the knife both read the 1/sqrt n
+      curvature: a resampled bin rate carries twice the fitted one's
+      variance, E|N(0, 2 tau^2)| - E|N(0, tau^2)| = (sqrt 2 - 1)
+      tau sqrt(2/pi), so bhat/b = sqrt 2 - 1 = 0.4142, and b(n) -
+      b(n/2) gives the same factor; both /h land at 0.653.
+  (G) THE KERNEL (property). The bootstrap's estimand is the class's
+      own functional, so the gap between the class's limit and R* is
+      invisible to it by construction; the drift differences a
+      settled term away. A term that has stopped moving is in the
+      kernel of both. On SHRUNK the bootstrap is blind by identity:
+      the lam/2 parts cancel at equal n, so its term is exactly
+      (1 - lam) times PER-BIN's on the same resamples, while the
+      drift reads b(n) - b(n/2) = -(2^(1/4) - 1) lam (1/2 - R*) =
+      -0.189 |b|, hand |drift|/h about 0.24, 0.35, 0.50, 0.72.
+  (H) THE FREE COORDINATE. sd is estimable by resampling with no
+      truth, so h/sd is visible from inside; b/sd is the
+      coordinate that decides, and it is the one hidden.
+  (I) THE NESTED REPAIR. Where a richer class is at hand, read the two
+      fits' difference IN THE FUNCTIONAL: Dhat = POOLED - PER-BIN >=
+      0 (min is concave), mean the pooling gap, zero on SAME up to
+      bins crossing 1/2 by noise. A goodness-of-fit statistic reads
+      the MODEL instead, and on SAME, wrong about every bin and exact
+      about R*, it fires hardest. The repair counts only what a class
+      the auditor can nest expresses.
+
+DESIGN. n in {500, 2000, 8000, 32000}, 400 trials, 150 bootstrap
+resamples of the 2M (bin, label) categories, the half-sample exact
+(hypergeometric within categories); one fixed seed per (arm, n)
+setting.
+Arms: FIT-CLEAR, FIT-KNIFE, FIT-MILD, FIT-SAME (per-bin);
+POOL-CLEAR, POOL-MILD, POOL-SAME; SHRUNK-CLEAR; BOUND-CLEAR,
+BOUND-KNIFE; HELD-WIDE (two-sided). A setting is GOOD at coverage
+>= 0.90 and BAD below 0.80. A detector is a single-sample rule on a
+statistic whose threshold holds false alarms <= 0.10 over the GOOD
+fit settings' trials; |bhat|/h and |drift|/h are read over every fit arm,
+Dhat/h over the pooled arms. The Pearson statistic is the
+within-group chi-square of the per-bin rates against the pooled fit's
+group rate, standardized as (X2 - 12)/sqrt 24.
+
+PREDICTIONS (fixed before the engine).
+  S0 positive control, read first: FIT-CLEAR covers within 3
+     binomial standard errors of 0.95 at every n; FIT-KNIFE's |b|/h is
+     within 3 of its own standard errors of 1.5766 at every n (the band is the run's own
+     precision, never a carried number).
+  S1 (A) both BOUND arms cover >= 0.975 - 3 binomial standard
+     errors at every n; BOUND-CLEAR excludes 1/2 in >= 0.99 of trials
+     at every n; FIT-KNIFE's h/sd lies in [2.9, 3.6] at every n.
+  S2 (B) over every setting, |coverage - plane prediction| <= 0.05, the
+     prediction computed from the measured b, mean h and sd.
+  S3 (C, D) the regimes: FIT-CLEAR |b|/h falls from n = 500 to 32000;
+     FIT-KNIFE coverage <= 0.07 at every n; POOL-MILD coverage >= 0.80
+     at n = 500 and <= 0.12 at 32000, |b|/h strictly increasing, and
+     at the first n where |b|/h > 1 coverage < 0.5.
+  S4 (E) SHRUNK-CLEAR |b|/h strictly increasing, > 3.0 at n = 32000,
+     coverage <= 0.40 at n = 500 and <= 0.02 at the two largest n.
+  S5 held-out on WIDE sits on the plane (inside S2) and its coverage
+     at n = 8000 is at least 0.40 below its coverage at n = 500.
+  K1 (F) FIT-KNIFE bhat/b in [0.35, 0.48] at every n; mean |bhat|/h
+     and mean |drift|/h both in [0.50, 0.80].
+  K2 (G) the identity: on SHRUNK every trial's bootstrap term equals
+     (1 - lam) times the per-bin term on the same resamples to 1e-12;
+     |bhat/b| <= 0.10 at n >= 2000. SHRUNK's mean drift is negative
+     at every n, |drift|/h within 0.15 of the hand values.
+  K3 (G) at the converged settings (POOL-CLEAR at every n, POOL-MILD at
+     32000; every one with |b|/h > 1) mean |bhat|/h and mean
+     |drift|/h are below 0.25.
+  K4 (G) the bootstrap detector catches >= 0.90 of FIT-KNIFE's trials
+     at every n and <= 0.05 of POOL-CLEAR's at n = 32000, and its
+     rate on POOL-CLEAR does not rise with n; the drift detector's
+     rate on SHRUNK rises from n = 500 to 32000 by at least 0.15.
+  K5 (H) mean h/sdhat on POOL-MILD is within 0.30 of FIT-MILD's at
+     every n, while their coverages differ by > 0.5 at n = 32000.
+  K6 (I) the Dhat detector catches every POOL-CLEAR trial at every n
+     and >= 0.95 of POOL-MILD's at 32000, with false alarms <= 0.15
+     on POOL-SAME at every n; POOL-SAME covers within 3 binomial
+     standard errors of 0.95 at every n while its mean Pearson
+     statistic exceeds 3 at n = 500 and 50 at 32000.
+
+KILL. S0 off: the engine is broken and nothing else is read. S1's
+coverage clause off at any setting: the sign law is false. S2 off: the
+direction is not a two-ratio phenomenon. K3 off: the kernel is not
+the class's. K6's false-alarm clause off: the repair reads the model.
+Any other print off its prediction is reported as a miss.
+
+FINDINGS. No kill fired. One frozen statistic was wrong: K3 read the
+MEAN ABSOLUTE drift, whose floor is noise. The half-sample difference
+has a standard deviation close to sd(n) (var(half) - var(full) =
+2 sd^2 - sd^2), so with h/sd near 2 its mean absolute value sits at
+0.798 sd/h, about 0.40, whatever the mean. The first run printed 0.362 to 0.412
+at the converged settings and FAILED K3 as frozen; the noise floor
+printed 0.356 to 0.409 beside it. The check was rewritten to the
+signed mean, the quantity (F) and (G) argue about, and the frozen form
+is still printed as a record. The knife's |drift|/h (0.660 to 0.716
+against the hand 0.653) carries the same floor on top of its mean.
+One frozen sentence overreached: (A)'s "its omitted bias can have
+either sign" is false for PER-BIN, whose mean deviation is <= 0 in
+every world, min being concave; a fit's sign is its class's, never
+the world-free sign of the bound. On audit: S3's FIT-CLEAR clause,
+|b|/h falling, was decided by noise (a fall of 0.010 against a
+standard error near 0.025 a point), so its check now asks |b|/h
+within 3 standard errors of 0 at every n and prints the fall; K2's
+identity holds by est_shrunk's own algebra and is printed, not
+checked; the GOOD pooled settings include POOL-MILD at n = 500,
+whose alarms read a real gap, so the Dhat/h threshold holds alarms
+to 0.10 over trials not all false; SAME's pooled model is right
+about one bin of 15 (1/4, its group's mean); and the two control
+arms now run before S0 is read, every other arm after it.
+  controls   FIT-CLEAR 0.963, 0.968, 0.945, 0.938; FIT-KNIFE |b|/h
+             1.5812, 1.5716, 1.6011, 1.5652 against 1.5766, standard
+             errors 0.015 to 0.016.
+  sign       BOUND-CLEAR 0.988, 0.983, 0.975, 0.978 and BOUND-KNIFE
+             0.988, 0.975, 0.985, 0.970 against 0.975; BOUND-CLEAR
+             excludes 1/2 in 1.000 at every n. FIT-KNIFE h/sd 3.10,
+             3.24, 3.09, 3.26: its bar is too wide.
+  plane      44 settings, worst |coverage - prediction| 0.0337 (SHRUNK at
+             n = 500), mean 0.0058.
+  regimes    FIT-CLEAR |b|/h 0.048 -> 0.038, coverage nominal;
+             FIT-KNIFE 1.57 to 1.60, coverage 0.022 to 0.033; POOL-MILD
+             |b|/h 0.222, 0.416, 0.914, 1.813, coverage 0.943, 0.892,
+             0.580, 0.058, b on the gap 7/750 = 0.00933 throughout.
+  corner     SHRUNK |b|/h 1.239, 1.858, 2.664, 3.794, coverage 0.235,
+             0.007, 0, 0.
+  held-out   HELD-WIDE coverage 0.887, 0.507, 0.177, 0.237, each within
+             0.026 of the plane; the turn at 32000 is the transient's
+             recovery (estimators.py).
+  kernel     knife bhat/b 0.4141, 0.4189, 0.4021, 0.4197 against
+             sqrt 2 - 1; SHRUNK's identity to 1.9e-16, bhat/b -0.0150
+             to -0.0003 past n = 500, drift/h -0.149, -0.287, -0.511,
+             -0.714 against -0.189 |b|/h = -0.234, -0.351, -0.504,
+             -0.717. Converged settings, POOL-CLEAR at |b|/h 4.37 to
+             35.48 and POOL-MILD at 32000, 1.81: |mean bhat|/h 0.147,
+             0.029, 0.002, 0.002, 0.000, |mean drift|/h 0.119, 0.047,
+             0.003, 0.039, 0.047.
+  detectors  thresholds 0.208 (bootstrap), 0.830 (drift) over 17 GOOD
+             settings. Bootstrap on FIT-KNIFE 1.000 at every n and on
+             POOL-CLEAR 0.273, 0.013, 0, 0 as |b|/h grows; drift on
+             SHRUNK 0.020, 0.065, 0.263, 0.410, rising with the damage.
+  free axis  MILD h/sdhat POOL 2.033, 1.980, 1.960, 1.968 against FIT
+             2.230, 2.097, 2.045, 2.007 while coverage parts to 0.058
+             against 0.965. At the knife sdhat/sd is 1.18 to 1.24: the
+             resampled dispersion overstates where the functional is
+             not smooth, the flattering way.
+  repair     Dhat/h threshold 0.514: POOL-CLEAR alarms 1.000 at every
+             n, POOL-MILD 0.440, 0.540, 0.900, 0.998, POOL-SAME 0.060,
+             0, 0, 0 while SAME covers 0.953 to 0.963 and its Pearson
+             mean runs 8.3, 34.0, 137.2, 548.0. On POOL-MILD at n = 500
+             the alarm reads a real gap not yet fatal: Dhat measures
+             the term's size, h alone decides when it kills.
+Coverage over 400 trials reads to about 0.011 at nominal; the plane's
+fit and the directions are the finding, the rates their instance.
+
+RUN RECORD. python statements.py: run 1 FAILED K3 as frozen (above);
+run 2, 26 of 26 checks, 3.7 s, peak commit 20.5 MB; after an audit
+(S3's FIT-CLEAR clause rebanded, K2's identity a record, the controls'
+arms run first), 25 of 25, 3.7 s, 20.7 MB, every print unchanged.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import sys
+import time
+from fractions import Fraction as F
+from math import erf, sqrt, pi
+
+import numpy as np
+
+Z = 1.96
+TRIALS = 400
+BOOT = 150
+NS = (500, 2000, 8000, 32000)
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f"  ({detail})" if detail else ""))
+
+
+def section(title):
+    print()
+    print(title)
+
+
+def phi(x):
+    return 0.5 * (1.0 + erf(x / sqrt(2.0)))
+
+
+# -------------------------------------------------------------- worlds
+
+WORLDS = {
+    "CLEAR": [F(1, 10), F(3, 10), F(2, 5), F(3, 5), F(4, 5),
+              F(1, 5), F(1, 4), F(7, 10), F(3, 4), F(9, 10),
+              F(1, 10), F(2, 5), F(3, 5), F(7, 10), F(9, 10)],
+    "KNIFE": [F(1, 2)] * 15,
+    "MILD": [F(3, 10)] * 4 + [F(13, 25)] + [F(1, 4)] * 4 + [F(27, 50)]
+            + [F(2, 5)] * 4 + [F(51, 100)],
+    "SAME": [F(1, 10), F(1, 5), F(3, 10), F(2, 5), F(9, 20),
+             F(1, 20), F(3, 20), F(1, 4), F(7, 20), F(9, 20),
+             F(1, 10), F(3, 20), F(1, 5), F(3, 10), F(2, 5)],
+    "WIDE": [F(6, 11)] * 105,
+}
+GROUPS = 3
+
+
+def ring_etas(N, M, t):
+    """eta_r = P(x >= t | x mod M = r) on the ring Z/N, exact."""
+    c = N // M
+    return [F(sum(1 for j in range(c) if r + j * M >= t), c)
+            for r in range(M)]
+
+
+def bayes(etas):
+    return sum(min(e, 1 - e) for e in etas) / len(etas)
+
+
+def pooled_limit(etas):
+    size = len(etas) // GROUPS
+    tot = F(0)
+    for g in range(GROUPS):
+        mean = sum(etas[g * size:(g + 1) * size]) / size
+        tot += min(mean, 1 - mean) / GROUPS
+    return tot
+
+
+# ----------------------------------------------------------- estimators
+# A sample is two count vectors z (label 0) and o (label 1) over the
+# bins; every estimator accepts a leading batch axis.
+
+def est_cell(z, o, n):
+    return np.minimum(z, o).sum(axis=-1) / n
+
+
+def est_pool(z, o, n):
+    sh = z.shape[:-1] + (GROUPS, -1)
+    return np.minimum(z.reshape(sh).sum(-1),
+                      o.reshape(sh).sum(-1)).sum(axis=-1) / n
+
+
+def lam(n):
+    return n ** -0.25
+
+
+def est_shrunk(z, o, n):
+    nr = z + o
+    with np.errstate(invalid="ignore", divide="ignore"):
+        eta = np.where(nr > 0, o / np.maximum(nr, 1), 0.5)
+    es = (1 - lam(n)) * eta + lam(n) / 2
+    return (nr / n * np.minimum(es, 1 - es)).sum(axis=-1)
+
+
+def bar(p, m):
+    return Z * np.sqrt(np.maximum(p * (1 - p), 0.0) / m)
+
+
+def pearson(z, o):
+    """Within-group chi-square of the per-bin rates against the group
+    rate, standardized at 12 degrees of freedom."""
+    nr = z + o
+    size = z.shape[-1] // GROUPS
+    x2 = 0.0
+    for g in range(GROUPS):
+        sl = slice(g * size, (g + 1) * size)
+        eg = o[sl].sum() / nr[sl].sum()
+        with np.errstate(invalid="ignore", divide="ignore"):
+            er = np.where(nr[sl] > 0, o[sl] / np.maximum(nr[sl], 1), eg)
+        x2 += float((nr[sl] * (er - eg) ** 2).sum() / (eg * (1 - eg)))
+    return (x2 - 12) / sqrt(24)
+
+
+def draw(rng, eta, n):
+    counts = rng.multinomial(n, np.full(len(eta), 1 / len(eta)))
+    o = rng.binomial(counts, eta)
+    return counts - o, o
+
+
+# ----------------------------------------------------------------- arms
+
+FITS = {"FIT": est_cell, "POOL": est_pool, "SHRUNK": est_shrunk}
+
+
+def run_fit(kind, world, n, seed):
+    """One (arm, n) setting: every trial's deviation, bar, bootstrap term
+    and dispersion, drift, and for pooled arms Dhat/h and Pearson."""
+    etas = WORLDS[world]
+    truth = float(bayes(etas))
+    eta = np.array([float(e) for e in etas])
+    est = FITS[kind]
+    M = len(eta)
+    rng = np.random.default_rng(seed)
+    rows = {k: np.zeros(TRIALS) for k in
+            ("dev", "h", "boot", "sdhat", "drift", "dhat", "pear", "ident")}
+    for i in range(TRIALS):
+        z, o = draw(rng, eta, n)
+        e = float(est(z, o, n))
+        h = float(bar(e, n))
+        cat = np.concatenate([z, o])
+        rs = rng.multinomial(n, cat / n, size=BOOT)
+        bz, bo = rs[:, :M], rs[:, M:]
+        eb = est(bz, bo, n)
+        rows["dev"][i] = e - truth
+        rows["h"][i] = h
+        rows["boot"][i] = eb.mean() - e
+        rows["sdhat"][i] = eb.std(ddof=1)
+        if kind == "SHRUNK":
+            pc = est_cell(bz, bo, n).mean() - float(est_cell(z, o, n))
+            rows["ident"][i] = abs(rows["boot"][i] - (1 - lam(n)) * pc)
+        half = rng.multivariate_hypergeometric(cat, n // 2)
+        rows["drift"][i] = e - float(est(half[:M], half[M:], n // 2))
+        if kind == "POOL":
+            rows["dhat"][i] = (e - float(est_cell(z, o, n))) / h
+            rows["pear"][i] = pearson(z, o)
+    return summarize(rows, "two", truth)
+
+
+def split(rng, z, o):
+    cat = np.concatenate([z, o])
+    tr = rng.multivariate_hypergeometric(cat, int(cat.sum()) // 2)
+    te = cat - tr
+    M = len(z)
+    return tr[:M], tr[M:], te[:M], te[M:]
+
+
+def run_held(world, n, seed, sided):
+    """The per-bin majority fitted on half, scored on the other half;
+    an empty or tied bin guesses 1."""
+    etas = WORLDS[world]
+    truth = float(bayes(etas))
+    eta = np.array([float(e) for e in etas])
+    rng = np.random.default_rng(seed)
+    rows = {"dev": np.empty(TRIALS), "h": np.empty(TRIALS),
+            "half": np.empty(TRIALS)}
+    for i in range(TRIALS):
+        z, o = draw(rng, eta, n)
+        tz, to, sz, so = split(rng, z, o)
+        m = int(sz.sum() + so.sum())
+        err = float(np.where(to >= tz, sz, so).sum()) / m
+        rows["dev"][i] = err - truth
+        rows["h"][i] = float(bar(err, m))
+        rows["half"][i] = err + rows["h"][i] >= 0.5
+    return summarize(rows, sided, truth)
+
+
+def summarize(rows, sided, truth):
+    dev, h = rows["dev"], rows["h"]
+    b, hm, sd = float(dev.mean()), float(h.mean()), float(dev.std(ddof=1))
+    if sided == "two":
+        cov = float(np.mean(np.abs(dev) <= h))
+        pred = phi((hm - b) / sd) - phi((-hm - b) / sd)
+    else:
+        cov = float(np.mean(dev >= -h))
+        pred = phi((b + hm) / sd)
+    return dict(rows=rows, b=b, h=hm, sd=sd, cov=cov, pred=pred,
+                ratio=abs(b) / hm, truth=truth)
+
+
+def show(name, n, r):
+    print(f"  {name:12s} n = {n:5d}: coverage {r['cov']:.3f} (plane "
+          f"{r['pred']:.3f}), b {r['b']:+.5f}, h {r['h']:.5f}, sd "
+          f"{r['sd']:.5f}, |b|/h {r['ratio']:.3f}, h/sd "
+          f"{r['h'] / r['sd']:.2f}")
+
+
+def cov_sd(p):
+    return sqrt(p * (1 - p) / TRIALS)
+
+
+# ------------------------------------------------------------- sections
+
+ARMS = [("FIT", "CLEAR"), ("FIT", "KNIFE"), ("FIT", "MILD"),
+        ("FIT", "SAME"), ("POOL", "CLEAR"), ("POOL", "MILD"),
+        ("POOL", "SAME"), ("SHRUNK", "CLEAR")]
+R = {}
+
+
+def run_arms(arms):
+    for kind, world in arms:
+        a = ARMS.index((kind, world))
+        for j, n in enumerate(NS):
+            R[kind, world, n] = run_fit(kind, world, n, 1000 + 10 * a + j)
+
+
+def run_rest():
+    """Every arm past the controls' two, run once S0 is read."""
+    run_arms(ARMS[2:])
+    for j, n in enumerate(NS):
+        R["BOUND", "CLEAR", n] = run_held("CLEAR", n, 2000 + j, "one")
+        R["BOUND", "KNIFE", n] = run_held("KNIFE", n, 2100 + j, "one")
+        R["HELD", "WIDE", n] = run_held("WIDE", n, 2200 + j, "two")
+
+
+def section_controls():
+    section("CONTROLS")
+    check("KNIFE is the ring slice N = 210, M = 15, t = 105",
+          ring_etas(210, 15, 105) == WORLDS["KNIFE"])
+    check("WIDE is the ring slice N = 1155, M = 105, t = 525",
+          ring_etas(1155, 105, 525) == WORLDS["WIDE"])
+    gaps = {w: pooled_limit(WORLDS[w]) - bayes(WORLDS[w])
+            for w in ("CLEAR", "MILD", "SAME")}
+    print("  exact targets: " + ", ".join(
+        f"{w} {bayes(WORLDS[w])}" for w in WORLDS))
+    print("  pooling gaps: " + ", ".join(f"{w} {g}"
+                                         for w, g in gaps.items()))
+    check("pooling gaps 29/150, 7/750, 0",
+          list(gaps.values()) == [F(29, 150), F(7, 750), F(0)])
+    run_arms(ARMS[:2])
+    ok = True
+    for n in NS:
+        r = R["FIT", "CLEAR", n]
+        show("FIT-CLEAR", n, r)
+        ok &= abs(r["cov"] - 0.95) <= 3 * cov_sd(0.95)
+    check("S0 FIT-CLEAR covers within 3 binomial standard errors "
+          "of 0.95 at every n", ok)
+    hand = sqrt(2 * 15 / pi) / Z
+    ok = True
+    for n in NS:
+        r = R["FIT", "KNIFE", n]
+        se = r["sd"] / (sqrt(TRIALS) * r["h"])
+        print(f"  FIT-KNIFE    n = {n:5d}: |b|/h {r['ratio']:.4f} against "
+              f"{hand:.4f}, standard error {se:.4f}")
+        ok &= abs(r["ratio"] - hand) <= 3 * se
+    check("S0 FIT-KNIFE |b|/h within 3 standard errors of sqrt(2M/pi)/z",
+          ok)
+    return all(CHECKS)
+
+
+def section_sign():
+    section("THE SIGN LAW")
+    ok = excl = True
+    for w in ("CLEAR", "KNIFE"):
+        for n in NS:
+            r = R["BOUND", w, n]
+            nohalf = 1 - float(r["rows"]["half"].mean())
+            show(f"BOUND-{w}", n, r)
+            print(f"{'':28s}excludes 1/2 in {nohalf:.3f}")
+            ok &= r["cov"] >= 0.975 - 3 * cov_sd(0.975)
+            if w == "CLEAR":
+                excl &= nohalf >= 0.99
+    check("S1 both bounds cover >= 0.975 - 3 binomial standard "
+          "errors at every n", ok)
+    check("S1 BOUND-CLEAR excludes the no-evidence 1/2 in >= 0.99", excl)
+    ws = [R["FIT", "KNIFE", n]["h"] / R["FIT", "KNIFE", n]["sd"]
+          for n in NS]
+    check("S1 FIT-KNIFE's bar is too wide: h/sd in [2.9, 3.6]",
+          all(2.9 <= x <= 3.6 for x in ws),
+          ", ".join(f"{x:.2f}" for x in ws))
+
+
+def section_plane():
+    section("THE PLANE: coverage against (b/sd, h/sd)")
+    for (kind, world, n), r in R.items():
+        if kind in FITS and (kind, world) != ("FIT", "CLEAR") \
+                or kind == "HELD":
+            show(f"{kind}-{world}", n, r)
+    worst = max(R.items(), key=lambda kv: abs(kv[1]["cov"] - kv[1]["pred"]))
+    dev = abs(worst[1]["cov"] - worst[1]["pred"])
+    mean = sum(abs(r["cov"] - r["pred"]) for r in R.values()) / len(R)
+    check("S2 every setting within 0.05 of the plane", dev <= 0.05,
+          f"worst {dev:.4f} at {worst[0]}, mean {mean:.4f}, "
+          f"{len(R)} settings")
+    fc = [R["FIT", "CLEAR", n] for n in NS]
+    se = [r["sd"] / (sqrt(TRIALS) * r["h"]) for r in fc]
+    print("  FIT-CLEAR |b|/h " + ", ".join(
+        f"{r['ratio']:.4f} (se {s:.4f})" for r, s in zip(fc, se))
+        + f"; as frozen, falls: {fc[-1]['ratio'] < fc[0]['ratio']} "
+        "(record, not gated)")
+    check("S3 FIT-CLEAR |b|/h within 3 standard errors of 0 at every n",
+          all(r["ratio"] <= 3 * s for r, s in zip(fc, se)))
+    kc = [R["FIT", "KNIFE", n]["cov"] for n in NS]
+    check("S3 FIT-KNIFE coverage <= 0.07 at every n",
+          all(c <= 0.07 for c in kc), ", ".join(f"{c:.3f}" for c in kc))
+    pm = [R["POOL", "MILD", n] for n in NS]
+    rat = [r["ratio"] for r in pm]
+    first = next((r for r in pm if r["ratio"] > 1), None)
+    check("S3 POOL-MILD: coverage >= 0.80 -> <= 0.12, |b|/h increasing, "
+          "coverage < 0.5 where |b|/h first passes 1",
+          pm[0]["cov"] >= 0.80 and pm[-1]["cov"] <= 0.12
+          and all(x < y for x, y in zip(rat, rat[1:]))
+          and first is not None and first["cov"] < 0.5)
+    sc = [R["SHRUNK", "CLEAR", n] for n in NS]
+    rat = [r["ratio"] for r in sc]
+    check("S4 SHRUNK-CLEAR: |b|/h increasing past 3.0, coverage <= 0.40 "
+          "then <= 0.02",
+          all(x < y for x, y in zip(rat, rat[1:])) and rat[-1] > 3.0
+          and sc[0]["cov"] <= 0.40
+          and sc[2]["cov"] <= 0.02 and sc[3]["cov"] <= 0.02)
+    hw = [R["HELD", "WIDE", n]["cov"] for n in NS]
+    check("S5 HELD-WIDE falls by >= 0.40 from n = 500 to 8000",
+          hw[0] - hw[2] >= 0.40, ", ".join(f"{c:.3f}" for c in hw))
+
+
+def mean_abs(r, key):
+    return float(np.mean(np.abs(r["rows"][key]) / r["rows"]["h"]))
+
+
+def mean_signed(r, key):
+    return abs(float(np.mean(r["rows"][key] / r["rows"]["h"])))
+
+
+def threshold(values):
+    """The least threshold holding false alarms <= 0.10 over values."""
+    v = np.sort(np.concatenate(values))
+    return v[int(np.ceil(0.9 * len(v))) - 1]
+
+
+def section_kernel():
+    section("THE KERNEL: what a sample shows of its own uncounted term")
+    ok_ratio = ok_inside = True
+    for n in NS:
+        r = R["FIT", "KNIFE", n]
+        q = float(r["rows"]["boot"].mean()) / r["b"]
+        bo, dr = mean_abs(r, "boot"), mean_abs(r, "drift")
+        sdr = float(r["rows"]["sdhat"].mean()) / r["sd"]
+        print(f"  FIT-KNIFE    n = {n:5d}: bhat/b {q:.4f}, |bhat|/h "
+              f"{bo:.3f}, |drift|/h {dr:.3f}, sdhat/sd {sdr:.3f}")
+        ok_ratio &= 0.35 <= q <= 0.48
+        ok_inside &= 0.50 <= bo <= 0.80 and 0.50 <= dr <= 0.80
+    check("K1 the knife: bhat/b in [0.35, 0.48]", ok_ratio)
+    check("K1 the knife: |bhat|/h and |drift|/h in [0.50, 0.80]",
+          ok_inside)
+    ident = max(float(R["SHRUNK", "CLEAR", n]["rows"]["ident"].max())
+                for n in NS)
+    print(f"  K2 SHRUNK's bootstrap term is (1 - lam) times PER-BIN's by "
+          f"est_shrunk's algebra: largest gap {ident:.1e} (record)")
+    ok_blind = ok_drift = True
+    for n, hv in zip(NS, (0.24, 0.35, 0.50, 0.72)):
+        r = R["SHRUNK", "CLEAR", n]
+        q = float(r["rows"]["boot"].mean()) / r["b"]
+        d = float(np.mean(r["rows"]["drift"] / r["rows"]["h"]))
+        print(f"  SHRUNK-CLEAR n = {n:5d}: bhat/b {q:+.4f}, drift/h "
+              f"{d:+.3f} (frozen hand -{hv:.2f}; -0.189 |b|/h = "
+              f"{-0.189 * r['ratio']:+.3f})")
+        if n >= 2000:
+            ok_blind &= abs(q) <= 0.10
+        ok_drift &= d < 0 and abs(d + hv) <= 0.15
+    check("K2 SHRUNK: |bhat/b| <= 0.10 at n >= 2000", ok_blind)
+    check("K2 SHRUNK: drift negative, within 0.15 of the hand values",
+          ok_drift)
+    conv = [R["POOL", "CLEAR", n] for n in NS] + [R["POOL", "MILD", 32000]]
+    print("  converged: |b|/h " + ", ".join(f"{r['ratio']:.2f}"
+                                            for r in conv))
+    print("             |bhat|/h " + ", ".join(
+        f"{mean_abs(r, 'boot'):.3f}" for r in conv))
+    print("             |drift|/h " + ", ".join(
+        f"{mean_abs(r, 'drift'):.3f}" for r in conv))
+    print("             noise floor 0.798 sd(drift)/h " + ", ".join(
+        f"{0.798 * float(r['rows']['drift'].std()) / r['h']:.3f}"
+        for r in conv))
+    print("             |mean drift|/h " + ", ".join(
+        f"{mean_signed(r, 'drift'):.3f}" for r in conv))
+    print("             |mean bhat|/h " + ", ".join(
+        f"{mean_signed(r, 'boot'):.3f}" for r in conv))
+    ok = all(r["ratio"] > 1 for r in conv) and all(
+        mean_abs(r, "boot") < 0.25 and mean_abs(r, "drift") < 0.25
+        for r in conv)
+    print(f"  K3 as frozen, mean |bhat|/h and mean |drift|/h below 0.25: "
+          f"{'holds' if ok else 'misses'} (a record, not a check)")
+    ok = all(r["ratio"] > 1 for r in conv) and all(
+        mean_signed(r, "boot") < 0.25 and mean_signed(r, "drift") < 0.25
+        for r in conv)
+    check("K3 converged settings: |mean bhat|/h and |mean drift|/h below "
+          "0.25", ok)
+
+    fits = [key for key in R if key[0] in FITS]
+    good = [key for key in fits if R[key]["cov"] >= 0.90]
+    bad = [key for key in fits if R[key]["cov"] < 0.80]
+    print(f"  {len(good)} GOOD and {len(bad)} BAD fit settings of "
+          f"{len(fits)}")
+    rate = {}
+    for key in ("boot", "drift"):
+        thr = threshold([np.abs(R[g]["rows"][key]) / R[g]["rows"]["h"]
+                         for g in good])
+        for c in fits:
+            s = np.abs(R[c]["rows"][key]) / R[c]["rows"]["h"]
+            rate[key, c] = float(np.mean(s > thr))
+        allbad = float(np.mean(np.concatenate(
+            [np.abs(R[c]["rows"][key]) / R[c]["rows"]["h"] > thr
+             for c in bad])))
+        print(f"  {key:5s} threshold {thr:.3f}; over BAD trials "
+              f"{allbad:.3f}")
+    for arm in (("FIT", "KNIFE"), ("POOL", "CLEAR"), ("POOL", "MILD"),
+                ("SHRUNK", "CLEAR")):
+        print(f"  {arm[0] + '-' + arm[1]:12s} bootstrap " + ", ".join(
+            f"{rate['boot', arm + (n,)]:.3f}" for n in NS)
+            + "; drift " + ", ".join(
+            f"{rate['drift', arm + (n,)]:.3f}" for n in NS))
+    pc = [rate["boot", ("POOL", "CLEAR", n)] for n in NS]
+    check("K4 bootstrap detector: >= 0.90 on FIT-KNIFE, POOL-CLEAR "
+          "<= 0.05 at 32000 and not rising",
+          all(rate["boot", ("FIT", "KNIFE", n)] >= 0.90 for n in NS)
+          and pc[-1] <= 0.05 and all(y <= x for x, y in zip(pc, pc[1:])))
+    sd = [rate["drift", ("SHRUNK", "CLEAR", n)] for n in NS]
+    check("K4 drift detector on SHRUNK rises by >= 0.15",
+          sd[-1] - sd[0] >= 0.15)
+
+    ok = True
+    for n in NS:
+        a, b = R["POOL", "MILD", n], R["FIT", "MILD", n]
+        ha = float(np.mean(a["rows"]["h"] / a["rows"]["sdhat"]))
+        hb = float(np.mean(b["rows"]["h"] / b["rows"]["sdhat"]))
+        print(f"  MILD n = {n:5d}: h/sdhat POOL {ha:.3f}, FIT {hb:.3f}; "
+              f"coverage POOL {a['cov']:.3f}, FIT {b['cov']:.3f}")
+        ok &= abs(ha - hb) <= 0.30
+    ok &= R["FIT", "MILD", 32000]["cov"] \
+        - R["POOL", "MILD", 32000]["cov"] > 0.5
+    check("K5 the free coordinate cannot tell POOL-MILD from FIT-MILD", ok)
+
+
+def section_repair():
+    section("THE NESTED REPAIR: the two fits' difference in the functional")
+    pools = [k for k in R if k[0] == "POOL"]
+    good = [k for k in pools if R[k]["cov"] >= 0.90]
+    thr = threshold([R[g]["rows"]["dhat"] for g in good])
+    print(f"  Dhat/h threshold {thr:.3f} over {len(good)} GOOD pooled "
+          f"settings")
+    rate = {k: float(np.mean(R[k]["rows"]["dhat"] > thr)) for k in pools}
+    for w in ("CLEAR", "MILD", "SAME"):
+        print(f"  POOL-{w:5s} Dhat alarms " + ", ".join(
+            f"{rate['POOL', w, n]:.3f}" for n in NS) + "; coverage "
+            + ", ".join(f"{R['POOL', w, n]['cov']:.3f}" for n in NS)
+            + "; Pearson " + ", ".join(
+            f"{float(R['POOL', w, n]['rows']['pear'].mean()):.1f}"
+            for n in NS))
+    check("K6 Dhat catches every POOL-CLEAR trial and >= 0.95 of "
+          "POOL-MILD's at 32000",
+          all(rate["POOL", "CLEAR", n] == 1.0 for n in NS)
+          and rate["POOL", "MILD", 32000] >= 0.95)
+    check("K6 Dhat's false alarms on POOL-SAME <= 0.15 at every n",
+          all(rate["POOL", "SAME", n] <= 0.15 for n in NS))
+    pear = [float(R["POOL", "SAME", n]["rows"]["pear"].mean()) for n in NS]
+    check("K6 POOL-SAME covers at 0.95 while Pearson passes 3 and 50",
+          all(abs(R["POOL", "SAME", n]["cov"] - 0.95) <= 3 * cov_sd(0.95)
+              for n in NS) and pear[0] > 3 and pear[-1] > 50)
+
+
+def main():
+    t0 = time.time()
+    if not section_controls():
+        print("\nCONTROL FAILED: nothing below is read.")
+        sys.exit(1)
+    run_rest()
+    section_sign()
+    section_plane()
+    section_kernel()
+    section_repair()
+    print()
+    print(f"{sum(CHECKS)} of {len(CHECKS)} checks, "
+          f"{time.time() - t0:.1f} s")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

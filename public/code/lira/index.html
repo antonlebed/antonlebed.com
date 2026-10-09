@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lira.py | Numbers read one place at a time</title>
+<meta name="description" content="lira.py">
+<link rel="alternate" type="text/x-python" href="/code/lira.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>lira.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/ruler/#the-per-example-audit-states-its-gaussian-limit">RULER: The per-example audit states its Gaussian limit</a> (property).</p><p>Cited on: <a href="/ruler/">RULER</a>.</p><p>To run it: no other script; needs numpy.</p></div>
+<pre>"""lira.py -- a published per-example membership audit scored against
+the exact posterior: the probability it states converges to its
+Gaussian limit rather than to the truth, and whether its membership
+call survives is a side criterion read cell by cell.
+
+QUESTION. U-LiRA (Hayes, Shumailov, Triantafillou, Khalifa and
+Papernot, "Inexact Unlearning Needs More Careful Evaluations to Avoid
+a False Sense of Privacy", arXiv:2403.01218, Algorithm 1 and Sec. 4.3,
+read at source) audits one example: it collects the example's score
+under N shadow models that saw and then unlearned it (in) and N that
+never saw it (out), fits a Gaussian to each, and for the audited
+model's score o states
+    p_member = N(o; mu1, s1^2) / (N(o; mu1, s1^2) + N(o; mu0, s0^2)),
+calling a member iff p_member &gt; 1/2. Its stated outputs are the
+balanced accuracy of that call and the per-example p_member itself
+("an optimal unlearning algorithm would result in a predicted
+membership probability of 1/2"); it states no interval. The source
+names the Gaussian fit as a risk to the attack's ACCURACY on
+non-Gaussian shadow distributions (its Sec. 7, bimodal and skewed
+examples). Where the truth is known exactly, what do the call and the
+probability each converge to?
+
+THE WORLD. The depth cell (a, b) of audit.py: the audited datum is the
+first move of a uniform arrangement of a twos and b threes, member =
+first move 2, and the score is the number of 2-moves in the three
+positions after the first, so
+    P_in(c) = HG(T - 1, a - 1, 3),  P_out(c) = HG(T - 1, a, 3),  T = a + b.
+p_member is the posterior at prior 1/2 under the fits, so its estimand
+is the EQUAL-PRIOR posterior tau(c) = P_in(c)/(P_in(c) + P_out(c)), an exact
+Fraction; the balanced accuracy's ceiling is
+(1/2) sum_c max(P_in(c), P_out(c)). The audited mass of cell c is
+P_u(c) = (a/T) P_in(c) + (b/T) P_out(c). Cells W1 = (5, 5), W2 = (12, 3),
+W3 = (2, 8); S, ring-free: support points {0, 3}, member mass
+(9/10, 1/10), non-member mirrored; PC, a positive control where the
+fit is right: member N(0, 1), non-member N(3, 4).
+
+THE ARGUMENT (written before the engine).
+  (A) THE LIMIT (property). The fitted means and variances converge to
+      the class moments, so p_member(c) converges to the GAUSSIAN-LIMIT
+      posterior p_lim(c), the formula at the exact moments, and every
+      calibration error converges to its value at p_lim: the floor
+      ECE_lim = sum_c P_u(c) |p_lim(c) - tau(c)| is a property of the
+      model class, not of the shadow count. At W2, by hand,
+      tau = (1, 11/15, 5/9, 3/7) and p_lim = (0.982, 0.840, 0.554, 0.414):
+      over-confident at c = 1 and c = 3, under-confident at c = 0,
+      where the truth is certain. At S the fits share variance 81/100
+      and p_lim(0) = 1/(1 + e^{-40/9}) = 0.988 against tau = 9/10: a
+      Gaussian prices a far support point at the exponential of a
+      squared distance where the world holds linear mass. The share of
+      audited mass stated more extremely than tau converges to the mass
+      of the cells where p_lim is more extreme than tau on tau's side.
+  (B) THE SIDE CRITERION (property). The balanced accuracy is
+      (1/2) sum over cells of the class mass the call picks, maximized
+      exactly by picking the larger of P_in(c), P_out(c), i.e. by tau's side
+      of 1/2. So the limit call reaches the ceiling iff sign(p_lim(c) -
+      1/2) = sign(tau(c) - 1/2) at every cell with mass and tau != 1/2, and
+      each disagreeing cell costs |P_in(c) - P_out(c)|/2. Whether the call
+      survives is therefore a cell-by-cell fact, not a property of the
+      tool, and a census decides whether it ever fails on this world.
+  (C) DEGENERATE FITS. A class whose N shadow scores coincide fits a
+      zero variance, a point mass; the stated probability is then 0, 1
+      or 1/2 by where o sits. At W3 the member score takes two values
+      at masses (2/3, 1/3), so at N = 8 one class or the other
+      collapses with probability about 0.044.
+
+DESIGN. For S, W1, W2, W3 and N in {8, 32, 128, 512} (128 the source's
+own count), R = 400 replicates of N member and N non-member shadow
+scores; fits by mean and MLE variance; scored EXACTLY over the support:
+  ACC       the call's balanced accuracy, against the ceiling;
+  ECE       sum_c P_u(c) |p(c) - tau(c)|;
+  OVER      sum of P_u(c) where p(c) is more extreme than tau(c) on tau's
+            side of 1/2;
+  COLLAPSE  the share of replicates with a zero-variance fit.
+PC is scored by Monte Carlo, 2000 evaluation draws per class, against
+its closed-form posterior. The CENSUS: every depth cell with
+2 &lt;= a, b &lt;= 30 (both classes then have positive variance), exact tau in
+Fraction and p_lim in float, counting the cells whose limit call
+disagrees with tau's side at a cell of positive mass, and the largest
+limit loss; the disagreeing cell with the largest loss is then run
+like the others. One seed per (cell, N).
+
+PREDICTIONS (fixed before the engine).
+  Q0 CONTROL, read first: at PC, N = 128, balanced accuracy within 0.02
+     of the Gaussian ceiling and mean |p - posterior| below 0.05.
+  Q1 In Fraction, W2's tau = (1, 11/15, 5/9, 3/7) and ceiling 419/728;
+     W2's p_lim within 0.001 of (0.982, 0.840, 0.554, 0.414), and S's
+     p_lim(0) equal to 1/(1 + e^{-40/9}) to 1e-12.
+  Q2 (A) At N = 512, the mean stated p at every cell of audited mass
+     above 0.01 is within 0.02 of p_lim at S, W1, W2 and W3; ECE is
+     within 0.015 of ECE_lim; ECE_lim exceeds 0.01 at all four.
+  Q3 (A) At N = 512, OVER is within 0.05 of the limit's over-confident
+     mass at all four.
+  Q4 (B) At N = 512 the balanced accuracy is within 0.01 of the ceiling
+     wherever the census finds the sides agree. The census finds at
+     least one disagreeing cell; at the one with the largest limit
+     loss, N = 512's accuracy sits below the ceiling by that loss,
+     within 0.01.
+  Printed and weighed: COLLAPSE at W3, N = 8, against (C)'s 0.044.
+
+KILL. Q0 off: nothing is read. Q2 off: the stated probability does not
+converge to the Gaussian limit and (A) is false.
+
+FINDINGS. No kill fired. Three frozen clauses were wrong or empty, all
+the slate's. Q2's "ECE_lim above 0.01 at all four" was never computed
+at W1, whose limit is 0.0031: at (5, 5) the limit sits within 0.004 of
+tau at every score. Q3 read OVER, an indicator, as if it converged at
+N = 512 everywhere; where p_lim sits within the replicate noise of tau
+the indicator counts about half the replicates, and at W2's score 2
+(gap 0.0016, mass 0.435) OVER reads 0.697 against a limit of 0.563.
+Q3' was added after the second run and gates the cells whose every gap
+on scores of mass above 0.01 exceeds 0.02. Q4's second clause gave a
+0.01 band to a 0.0098 loss, so a zero loss would pass: it is printed
+and decides nothing. Q4's first clause is read at S, W1, W2 and W3,
+where the sides agree (S lies off the census).
+  controls  PC at N = 128: accuracy 0.8528 against ceiling 0.8539,
+            mean |p - posterior| 0.0177. W2: tau = (1, 11/15, 5/9, 3/7),
+            ceiling 419/728, p_lim = (0.9816, 0.8400, 0.5540, 0.4141).
+            S: p_lim(0) = 0.988393 = 1/(1 + e^{-40/9}).
+  limit     at N = 512 every mean stated p within 0.02 of p_lim; ECE
+            against its limit ECE_lim: S 0.0870/0.0884 (0.0897, 0.0803,
+            0.0852 at N = 8, 32, 128: flat from the start, and below
+            the limit at N = 32 and 128, so (A)'s "floor" is a limit
+            and not a lower bound), W1
+            0.0132/0.0031, W2 0.0214/0.0162, W3 0.0358/0.0348.
+            W2's certain score c = 0 is stated 0.9816 in the limit;
+            its score 1 at 0.8400 against 11/15.
+  over      OVER converges where the gaps are wide: S 0.881, 0.969,
+            1.000, 1.000 to its limit 1.000; W3 0.544, 0.672, 0.807,
+            0.925 to 0.933. Where they are not it is noise: W1 0.591
+            against 0.833, W2 0.697 against 0.563.
+  census    over 2 &lt;= a, b &lt;= 30, 90 of 841 cells have a score whose
+            limit call takes the side tau does not (28 exact ties set
+            aside); the largest limit loss is 11/1120 = 0.0098 at
+            (5, 12), score 1, where tau = 0.4898 and p_lim = 0.5019. A
+            disagreement needs tau near 1/2, where the two class masses
+            nearly tie, so in the depth column it is common and costs
+            little. Off the column that fails: a far support point
+            (member masses 0.45, 0.1, 0.45 at 0, 1, 10, non-member 0.2,
+            0.8 at 1, 5) puts tau(1) = 1/3 against p_lim(1) = 0.6483, an
+            exception costing 1/20 (Q4', added after run 3). At the four
+            named cells the call's accuracy at N = 512 equals the
+            ceiling to 0.0005. At (5, 12) it sits 0.0054 below:
+            p_lim is 0.0019 from 1/2 there, and N = 512 splits the call.
+  collapse  at W3, N = 8: 0.055 against (C)'s 0.044, R = 400.
+Rates over R = 400 read to about 0.025 at their largest.
+
+RUN RECORD. python lira.py: run 1 stopped on an index error in the
+control harness; run 2 3 of 5 (Q2's floor clause, Q3); run 3, the
+frozen clauses printed as records and Q3' added, 5 of 5, 0.1 s, peak
+commit 25.3 MB; run 4, with Q4', 6 of 6, 0.1 s; run 5, after an audit,
+6 of 6, 0.1 s, 25.9 MB.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import sys
+import time
+from fractions import Fraction as F
+from math import comb, exp, pi, sqrt
+
+import numpy as np
+
+NS = (8, 32, 128, 512)
+R = 400
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f"  ({detail})" if detail else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+# -------------------------------------------------------------- worlds
+
+<span id="hg"></span>def hg(M, K, w=3):
+    return [F(comb(K, c) * comb(M - K, w - c), comb(M, w))
+            for c in range(w + 1)]
+
+
+<span id="Cell"></span>class Cell:
+    """A two-class score world on a finite support, exact throughout."""
+
+    def __init__(self, name, xs, Pm, Pn, wm):
+        self.name, self.xs = name, np.array(xs, dtype=float)
+        self.Pm, self.Pn, self.wm = Pm, Pn, F(wm)
+        self.Pu = [self.wm * m + (1 - self.wm) * n for m, n in zip(Pm, Pn)]
+        self.tau = [m / (m + n) if m + n else None for m, n in zip(Pm, Pn)]
+        self.ceiling = sum(max(m, n) for m, n in zip(Pm, Pn)) / 2
+
+        def mom(P):
+            mu = sum(x * p for x, p in zip(xs, P))
+            return float(mu), float(sum((x - mu) ** 2 * p
+                                        for x, p in zip(xs, P)))
+        self.mom_m, self.mom_n = mom(Pm), mom(Pn)
+        self.plim = stated(*self.mom_m, *self.mom_n, self.xs)
+
+    def live(self):
+        """Support indices with audited mass."""
+        return [i for i, p in enumerate(self.Pu) if p &gt; 0]
+
+
+<span id="depth"></span>def depth(a, b):
+    T = a + b
+    return Cell(f"W({a},{b})", range(4), hg(T - 1, a - 1), hg(T - 1, a),
+                F(a, T))
+
+
+<span id="logpdf"></span>def logpdf(o, mu, var):
+    """Gaussian log density; a zero variance is the point mass."""
+    with np.errstate(divide="ignore", invalid="ignore"):
+        g = -(o - mu) ** 2 / (2 * var) - 0.5 * np.log(2 * pi * var)
+    at = np.isclose(o, mu)
+    return np.where(var &gt; 0, g, np.where(at, np.inf, -np.inf))
+
+
+<span id="stated"></span>def stated(mu1, v1, mu0, v0, o):
+    """U-LiRA's p_member at scores o (broadcast over leading axes)."""
+    mu1, v1, mu0, v0 = (np.asarray(t, dtype=float)[..., None]
+                        for t in (mu1, v1, mu0, v0))
+    l1, l0 = logpdf(o, mu1, v1), logpdf(o, mu0, v0)
+    tie = (l1 == l0) &amp; np.isinf(l1)
+    with np.errstate(invalid="ignore", over="ignore"):
+        p = 1.0 / (1.0 + np.exp(l0 - l1))
+    return np.where(tie, 0.5, p)
+
+
+<span id="score"></span>def score(cell, p):
+    """ACC, ECE and OVER of stated probabilities p over the support."""
+    acc, ece, over = 0.0, 0.0, 0.0
+    for i in cell.live():
+        pm, pn, pu, tau = (float(cell.Pm[i]), float(cell.Pn[i]),
+                         float(cell.Pu[i]), float(cell.tau[i]))
+        call = p[..., i] &gt; 0.5
+        acc = acc + np.where(call, pm, pn) / 2
+        ece = ece + pu * np.abs(p[..., i] - tau)
+        more = np.where(tau &gt; 0.5, p[..., i] &gt; tau,
+                        np.where(tau &lt; 0.5, p[..., i] &lt; tau, False))
+        over = over + pu * more
+    return acc, ece, over
+
+
+<span id="rng_for"></span>def rng_for(ci, N):
+    return np.random.default_rng([20260930, ci, N])
+
+
+# ------------------------------------------------------------ sections
+
+W1, W2, W3 = depth(5, 5), depth(12, 3), depth(2, 8)
+S = Cell("S", (0, 3), [F(9, 10), F(1, 10)], [F(1, 10), F(9, 10)], F(1, 2))
+
+
+<span id="section_controls"></span>def section_controls():
+    section("CONTROLS")
+    rng = np.random.default_rng([20260930, 0])
+    grid = np.linspace(-20, 25, 90001)
+    f1 = np.exp(-grid ** 2 / 2) / sqrt(2 * pi)
+    f0 = np.exp(-(grid - 3) ** 2 / 8) / sqrt(8 * pi)
+    ceil = float(np.sum(np.maximum(f1, f0)) * (grid[1] - grid[0]) / 2)
+    accs, maes = [], []
+    for _ in range(100):
+        s1, s0 = rng.normal(0, 1, 128), rng.normal(3, 2, 128)
+        e1, e0 = rng.normal(0, 1, 2000), rng.normal(3, 2, 2000)
+        o = np.concatenate([e1, e0])
+        p = stated(s1.mean(), s1.var(), s0.mean(), s0.var(), o)
+        true = 1 / (1 + (np.exp(-(o - 3) ** 2 / 8) / 2)
+                    / np.exp(-o ** 2 / 2))
+        accs.append(((p[:2000] &gt; 0.5).mean() + (p[2000:] &lt;= 0.5).mean()) / 2)
+        maes.append(np.abs(p - true).mean())
+    acc, mae = float(np.mean(accs)), float(np.mean(maes))
+    print(f"  PC, N = 128: accuracy {acc:.4f} against ceiling {ceil:.4f}, "
+          f"mean |p - posterior| {mae:.4f}")
+    check("Q0 the fit calibrates where the model is right",
+          abs(acc - ceil) &lt;= 0.02 and mae &lt; 0.05)
+
+    ok = W2.tau == [F(1), F(11, 15), F(5, 9), F(3, 7)] \
+        and W2.ceiling == F(419, 728)
+    gap = max(abs(float(x) - y) for x, y in
+              zip(W2.plim, (0.982, 0.840, 0.554, 0.414)))
+    s_gap = abs(float(S.plim[0]) - 1 / (1 + exp(-40 / 9)))
+    print(f"  W2: tau = {[str(x) for x in W2.tau]}, ceiling {W2.ceiling}, "
+          f"p_lim = {np.round(W2.plim, 4).tolist()}")
+    print(f"  S:  tau(0) = 9/10, p_lim(0) = {float(S.plim[0]):.6f}")
+    check("Q1 exact tau and ceiling at W2; p_lim at W2 and S",
+          ok and gap &lt;= 0.001 and s_gap &lt; 1e-12,
+          f"W2 gap {gap:.1e}, S gap {s_gap:.1e}")
+
+
+<span id="limits"></span>def limits(cell):
+    ece = sum(float(cell.Pu[i]) * abs(float(cell.plim[i]) - float(cell.tau[i]))
+              for i in cell.live())
+    over = float(score(cell, cell.plim)[2])
+    return ece, over
+
+
+<span id="section_census"></span>def section_census():
+    section("THE CENSUS: does the limit call keep tau's side? "
+            "2 &lt;= a, b &lt;= 30")
+    bad, ties, worst, margin = [], 0, None, 1.0
+    for a in range(2, 31):
+        for b in range(2, 31):
+            c = depth(a, b)
+            loss = F(0)
+            for i in c.live():
+                tau = c.tau[i]
+                if tau == F(1, 2):
+                    ties += 1
+                    continue
+                margin = min(margin, abs(float(c.plim[i]) - 0.5))
+                if (c.plim[i] &gt; 0.5) != (tau &gt; F(1, 2)):
+                    loss += abs(c.Pm[i] - c.Pn[i]) / 2
+            if loss:
+                bad.append((a, b, loss))
+                if worst is None or loss &gt; worst[2]:
+                    worst = (a, b, loss)
+    print(f"  {len(bad)} of 841 cells disagree at some score; "
+          f"{ties} exact ties tau = 1/2 set aside; "
+          f"least |p_lim - 1/2| {margin:.2e}")
+    if worst:
+        print(f"  the largest limit loss: W{worst[:2]}, loss {worst[2]} = "
+              f"{float(worst[2]):.4f}")
+        print("  disagreeing cells: " + ", ".join(
+            f"({a},{b})" for a, b, _ in bad[:40])
+            + (" ..." if len(bad) &gt; 40 else ""))
+    far = Cell("FAR", [0, 1, 5, 10], [F(45, 100), F(1, 10), F(0), F(45, 100)],
+               [F(0), F(2, 10), F(8, 10), F(0)], F(1, 2))
+    tau1, p1 = far.tau[1], float(far.plim[1])
+    cost = abs(far.Pm[1] - far.Pn[1]) / 2
+    print(f"  off the depth column, a far support point: tau(1) = {tau1}, "
+          f"p_lim(1) = {p1:.4f}, exception cost {cost}")
+    check("Q4' a far support point puts an exception at a score far from a tie",
+          tau1 == F(1, 3) and p1 &gt; 0.5)
+    return bad, worst
+
+
+<span id="run"></span>def run(cell, ci):
+    rows = {}
+    for N in NS:
+        rng = rng_for(ci, N)
+        pm = np.array([float(x) for x in cell.Pm])
+        pn = np.array([float(x) for x in cell.Pn])
+        sm = rng.choice(cell.xs, size=(R, N), p=pm / pm.sum())
+        sn = rng.choice(cell.xs, size=(R, N), p=pn / pn.sum())
+        p = stated(sm.mean(1), sm.var(1), sn.mean(1), sn.var(1), cell.xs)
+        acc, ece, over = score(cell, p)
+        collapse = float(((sm.var(1) == 0) | (sn.var(1) == 0)).mean())
+        rows[N] = (float(acc.mean()), float(ece.mean()), float(over.mean()),
+                   collapse, p.mean(0))
+    return rows
+
+
+<span id="section_tool"></span>def section_tool(worst):
+    section("THE TOOL: R = 400 replicates per shadow count, scored exactly")
+    cells = [S, W1, W2, W3]
+    if worst:
+        cells.append(depth(worst[0], worst[1]))
+    q2, q3, q4 = True, True, True
+    floor_ok, q3_frozen, q4_vacuous = True, True, None
+    for ci, c in enumerate(cells, start=1):
+        e_lim, o_lim = limits(c)
+        print(f"  == {c.name}: ceiling {c.ceiling} = {float(c.ceiling):.4f}, "
+              f"ECE_lim {e_lim:.4f}, over-confident mass {o_lim:.3f}")
+        print("       N      ACC      ECE   OVER  COLLAPSE")
+        rows = run(c, ci)
+        for N in NS:
+            acc, ece, over, col, _ = rows[N]
+            print(f"     {N:4d}   {acc:.4f}   {ece:.4f}  {over:.3f}   "
+                  f"{col:.3f}")
+        mean_p = rows[512][4]
+        print("     score  P_u     tau     p_lim   mean p at N = 512")
+        for i in c.live():
+            print(f"       {c.xs[i]:.0f}   {float(c.Pu[i]):.3f}  "
+                  f"{float(c.tau[i]):.4f}  {float(c.plim[i]):.4f}  "
+                  f"{mean_p[i]:.4f}")
+        acc, ece, over = rows[512][:3]
+        gap = min(abs(float(c.plim[i]) - float(c.tau[i]))
+                  for i in c.live() if c.Pu[i] &gt; F(1, 100))
+        if ci &lt;= 4:
+            q2 &amp;= all(abs(mean_p[i] - float(c.plim[i])) &lt;= 0.02
+                      for i in c.live() if c.Pu[i] &gt; F(1, 100))
+            q2 &amp;= abs(ece - e_lim) &lt;= 0.015
+            floor_ok &amp;= e_lim &gt; 0.01
+            q3_frozen &amp;= abs(over - o_lim) &lt;= 0.05
+            if gap &gt; 0.02:
+                q3 &amp;= abs(over - o_lim) &lt;= 0.05
+            q4 &amp;= abs(acc - float(c.ceiling)) &lt;= 0.01
+            print(f"     least |p_lim - tau| on scores of mass above 0.01: "
+                  f"{gap:.4f}")
+        else:
+            q4_vacuous = abs((float(c.ceiling) - acc)
+                             - float(worst[2])) &lt;= 0.01
+            print(f"     ceiling - ACC at N = 512: "
+                  f"{float(c.ceiling) - acc:.4f} against the limit loss "
+                  f"{float(worst[2]):.4f}")
+    check("Q2 at N = 512 the stated p sits at p_lim (0.02) and ECE at its "
+          "limit (0.015)", q2)
+    print(f"  Q2 as frozen also asked ECE_lim above 0.01 at all four: "
+          f"{'holds' if floor_ok else 'FAILS'} (record, not gated)")
+    print(f"  Q3 as frozen, OVER within 0.05 of its limit at all four: "
+          f"{'holds' if q3_frozen else 'FAILS'} (record, not gated)")
+    check("Q3' (after run 2) OVER within 0.05 of the limit's "
+          "over-confident mass where every gap on scores of mass above "
+          "0.01 exceeds 0.02", q3)
+    check("Q4 the call reaches the ceiling at the four cells, and the "
+          "census finds a disagreeing cell", q4 and worst is not None)
+    q4_word = {None: "not run", True: "holds", False: "FAILS"}[q4_vacuous]
+    print(f"  Q4 as frozen also asked the loss at the worst cell within "
+          f"0.01: {q4_word}, and the 0.01 band "
+          f"holds a zero loss too (record, not gated)")
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_controls()
+    if not all(CHECKS):
+        print("\nCONTROL FAILED: nothing below is read.")
+        sys.exit(1)
+    _, worst = section_census()
+    section_tool(worst)
+    print()
+    print(f"{sum(CHECKS)} of {len(CHECKS)} checks, "
+          f"{time.time() - t0:.1f} s")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/lira.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

@@ -1,0 +1,559 @@
+"""shortfall.py -- where the trivial class's shortfall at degree 3 lives:
+the principal degree-1 places of a complex cubic field read across cuts,
+across discriminants, and prime by prime.
+
+QUESTION. triple.py read the trivial class of complex cubic fields with
+h >= 2 and |d_K| <= 12000 at one cut, X = 1000, and found it short: its
+LEVEL (the class's count over the field's total over h, pooled over
+fields) is 0.9244 in degree-1 places and 0.9489 counted in prime-ideal
+powers, where over an imaginary quadratic field the powers flattened
+every class (principal.py). The deficit left in powers grows about as
+h - 1: per nontrivial class 0.0195, 0.021, 0.021, 0.023, 0.019, 0.029
+at h = 2 .. 7. For a FIXED field the level tends to 1 as X grows
+(Chebotarev in H/K), so every deficit closes; the question is in which
+VARIABLE it closes.
+  RANGE. At a cut below the field's conductor the family average of the
+      class of a place over a fixed small prime is not uniform. The
+      imaginary quadratic floor is its extreme: no principal prime below
+      |D|/4 (principal.py). Then the per-prime principal level is a
+      function of p / |d_K|^a for some a > 0, and the deficit closes
+      once X passes |d_K|^a.
+  TERM. The family average of each nontrivial character's prime-power
+      sum carries a negative piece of the size a zero near the centre
+      gives, li(sqrt X), whatever |d_K| is. Then the per-prime level is
+      a function of p alone, and D(X) = 1 - level falls as
+      li(sqrt X)/li(X).
+
+THE ARGUMENT (written before the engine).
+  (1) THE STATISTIC. As triple.py: per field and cut X, PI_C(X) sums
+      1/k over the prime-ideal powers P^k of K with N(P)^k < X in class
+      C; the degree-2 place over a partially split p has class -[P1],
+      an inert p's place is trivial, and ramified places are mapped. The
+      level of a set of classes is its mean PI_C over the field's total
+      over h. D(X) = 1 - level of the trivial class, pooled over fields
+      with its standard error.
+  (2) THE PER-PRIME LEVEL. For an unramified degree-1 place P over p in
+      a field of class number h, l(P) = h if P is principal, else 0.
+      Under uniformity l has mean 1 and variance h - 1. Pooled over the
+      places in a cell, a mean below 1 is a deficit there. The raw
+      level of the trivial class is the place-weighted mean of l up to
+      X, so the question of (1) is a question about where l runs below
+      1.
+  (3) THE COLLAPSE. Split the fields into bands of |d_K| and bin every
+      place by w_a = (ln p - a ln |d_K|) / 0.5, floored, for a in
+      {0, 0.25, 0.5, 0.75, 1}. At the right a the bands agree bin by
+      bin; at a wrong a they disagree wherever l has a slope. Per a, a
+      cell is (band, bin) with at least MIN_CELL places; each bin with
+      two or more cells adds sum (m - M)^2 / (V / n^2) over its cells (m
+      the cell's mean of l, M the bin's pooled mean, V the cell's summed
+      h - 1, n its places) and cells - 1 degrees of freedom. The reading
+      is chi2/dof per a. RANGE puts the least at a > 0, TERM at a = 0.
+      Places inside one field are not independent (a field rich in
+      principal primes is rich across bins), so chi2/dof is read
+      against the other a, never against 1 alone.
+  (4) WHAT THE DECAY CANNOT SAY. A deficit whose floor sits above X
+      holds as X grows and one whose floor sits below falls like
+      1/pi(X), so D(X) alone admits both readings at any rate: its
+      decay is printed and set against TERM's li(sqrt X)/li(X), and the
+      verdict is the collapse's. rho(X) is D(X)/D(1000) over
+      lambda(X)/lambda(1000), lambda(X) = li(sqrt X)/li(X).
+  (5) A HEURISTIC SCALE, not derived. The ideals of the trivial class
+      are the lattice O_K up to units, and O_K holds the rational line
+      Z of norms n^3, none of them a split prime. Carried along the
+      unit's torus orbit and normalized to covolume 1, the lattice
+      passes near the cusp that line makes when x^(1/3) is small
+      against the spacing of the other points; the crude scale is
+      X ~ |d_K|^(3/4). Its constants are unknown and it is not a
+      prediction's bar; it says why a in {0.5, 0.75, 1} is the RANGE
+      side of the scan.
+  (6) THE CONTROL. Over an imaginary quadratic field the floor at |D|/4
+      makes l = 0 below p = |D|/4 at every field, so the per-prime
+      level is a function of p / |D| exactly: the collapse must put
+      its least at a = 1 and read a = 0 far worse.
+
+THE ENGINE. cubic.py for the fields, class groups and place classes;
+principal.py's forms for the imaginary quadratic control. Every
+degree-1 place with p below the population's top cut is mapped once
+and the cuts are read off the one list.
+
+POPULATIONS. Every complex cubic field with h >= 2 in the bands
+  B1 |d_K| <= 3000, B2 3000 < |d_K| <= 6000, B3 6000 < |d_K| <= 12000,
+     places mapped with p < 10^4 (B1 also to 2 * 10^4);
+  B4 12000 < |d_K| <= 24000, places with p < 2000 (the collapse only).
+The cut sweep reads B1-B3 at X = 1000, 2000, 5000, 10^4. The control is
+every imaginary fundamental D with h >= 2 and 250 < |D| <= 4000 in the
+bands (250, 500], (500, 1000], (1000, 2000], (2000, 4000], split places
+with p < 10^4.
+
+PREDICTIONS, fixed before the engine.
+  K  CONTROLS, read before anything else.
+     K1 At X = 1000 over B1-B3 the pooled trivial level reproduces
+        triple.py's: 0.9244 raw and 0.9489 in powers, each to 1e-4,
+        over 535 fields.
+     K2 At every field and cut the summed PI_C over the classes equals
+        the weight read off the splitting types, to 1e-9.
+     K3 THE POSITIVE CONTROL (6): over the quadratic bands the least
+        chi2/dof is at a = 1, and chi2/dof at a = 0 is at least five
+        times it.
+  P  THE READING (the slate's side is RANGE).
+     P1 THE COLLAPSE over B1-B4: the least chi2/dof is at a >= 0.5, and
+        chi2/dof at a = 0 is at least twice it.
+     P2 CLOSURE AT A LARGE CUT: over B1 at X = 2 * 10^4 (X/|d_K| >= 6.7)
+        the trivial level in powers is within 0.01 of 1 or within 2
+        standard errors of it.
+     P3 THE SWEEP: pooled D(X) over B1-B3 falls at each step of
+        1000, 2000, 5000, 10^4.
+  THE RIVAL, printed with no check: TERM reads rho(10^4) in [0.6, 1.6]
+  and the collapse's least at a = 0.
+KILLS, as printed observables: any K line off (nothing below is read);
+RANGE dies if P1's least sits at a <= 0.25 with chi2/dof there at most
+2, or if P2 reads off both bands; TERM dies if P1's least sits at
+a >= 0.5 with a = 0 at least twice it, or if rho(10^4) lies outside
+[0.6, 1.6]. Both alive, or both dead, is printed as undecided. [P2 reads one
+band, B1, and "both bands" above is read as that one.]
+
+FINDINGS. 5/6 checks PASS (6/7 after the audit in RUN RECORD); P1
+fails as frozen (the run exits 0 when exactly P1 fails, so a rerun is
+held to the record). Neither side of the slate names what the prints
+show: the deficit is a FIXED missing weight carried by the smallest
+primes.
+  K  K1 535 fields, T raw 0.92437 and in powers 0.94893 at X = 1000,
+     triple.py's reading reproduced. K2 worst 4.5e-13. No field with an
+     unmapped place among the 1285 with h >= 2. K3 over 1140 imaginary
+     quadratic fields the collapse is least at a = 1 (chi2/dof 0.55; 15.23 at
+     a = 0, 27.9 times it): the statistic recovers the floor's exponent.
+  A  D in powers over B1-B3 falls 0.0511, 0.0313, 0.0125, 0.0069 at
+     X = 1000, 2000, 5000, 10^4 (se 0.0029 to 0.0008), and D * li(X)
+     reads 9.07, 9.86, 8.58, 8.60: flat across the decade, where TERM
+     wants it to grow as li(X) lambda(X) = li(sqrt X). rho(10^4) = 0.425,
+     outside TERM's [0.6, 1.6]. D / (h - 1) stays within about a factor
+     two across h at every cut (0.019 to 0.029 at 1000, 0.002 to 0.004
+     at 10^4; largest over least 1.539, 1.354, 1.994, 2.003).
+  P1 THE PER-PRIME LEVEL (a = 0). l is 0.33 to 0.49 at p = 2 to 7 (the
+     bins from ln p = 0.5 to 2), 0.54 to 0.86 at p from 8 to 90, 0.82
+     to 0.98 from 90 to 400, and within 0.06 of 1 from about 400 up, in
+     every band that reads those bins (B1 reads none below p = 12). The
+     scan barely separates the exponents: chi2/dof 1.97, 1.71, 1.57,
+     2.40, 2.44 at a = 0, 0.25, 0.5, 0.75, 1; least at a = 0.5 but
+     a = 0 only 1.25 times it, so P1 FAILS AS FROZEN. The
+     residual band spread at a = 0 is the larger fields running lower
+     at p near 100 (B3 0.852 and B4 0.816 against B1 0.965 and B2 0.978
+     in the bin from ln p = 4.5). chi2/dof near 2 at every a, where the
+     control's null read 0.55, says the bands DO differ: a real |d_K|
+     dependence, far weaker than the quadratic floor's, whose exponent
+     this scan does not place.
+  P2 over B1 (89 fields) T in powers reads 0.9606, 0.9670, 0.9901,
+     0.9911, 0.9973 +- 0.0010 at X = 1000 to 2 * 10^4: within 0.01 of 1.
+  VERDICT as frozen: RANGE alive, TERM dead. Read plainly: the shortfall
+  is not a term of size li(sqrt X), nor the floor's cut at a = 1; it is a
+  fixed missing weight, the principal places the trivial class lacks
+  among the primes below a few hundred, and it dilutes as 1/li(X). Why
+  the smallest places of a complex cubic field avoid the trivial class,
+  and what sets the few hundred, is open.
+  [A CORRECTION, made after the first read: the first run's collapse
+  marked all three places of a split p principal when any one was,
+  which put the mean of l near 1.5 where uniformity gives 1; the places
+  are counted one by one above, re-read from the same checkpoint. The
+  D * li(X) print was added after the first read, as a reading of the
+  sweep, not a prediction.]
+
+RUN RECORD. 5/6, 526.8 s wall (the population 524.5 s over 3849 fields,
+checkpointed; the re-reads 2.4 s), peak working set 78.6 MB under
+a memory guard (138.0 MB on a re-read). A rehearsal at --cap 1500 ran first
+(57.6 s).
+An audit keyed the checkpoint by the code of shortfall.py, cubic.py and
+triple.py (it had been keyed by the cap alone), ran the quadratic
+control before the population, stopped the run on a failed control,
+added K0 (every field certified, none with an unmapped place), refused
+a cap past B4's 24000 and printed D / (h - 1)'s largest over least by
+cut: 6/7, P1 as recorded, 620.6 s wall (the population rebuilt in
+617.4 s), 98 MB peak commit under a memory guard, a rehearsal of the
+sweep at --cap 1500 first.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import hashlib
+import json
+from collections import Counter
+import sys
+import tempfile
+import time
+from math import floor, log, sqrt
+
+import cubic as C
+import principal as Q
+from module_law import check, section, CHECKS
+from triple import as_recorded, g_mul, g_neg, levels, pooled, type_weight
+
+MISSED = ("P1",)   # the prediction FINDINGS records as failing
+
+CAP = int(sys.argv[sys.argv.index("--cap") + 1]) if "--cap" in sys.argv \
+    else 24000
+if CAP > 24000:
+    sys.exit("--cap is at most 24000, the top of B4")
+BANDS = (3000, 6000, 12000, 24000)      # upper ends of B1 .. B4
+TOPS = (20000, 10000, 10000, 2000)      # places mapped with p below this
+CUTS = (1000, 2000, 5000, 10000, 20000)
+SWEEP = CUTS[:4]                        # the sweep over B1 - B3
+A_LIST = (0.0, 0.25, 0.5, 0.75, 1.0)
+WIDTH = 0.5                             # bin width in ln p
+MIN_CELL = 200                          # places a cell needs to be read
+Q_BANDS = (500, 1000, 2000, 4000)       # the control's bands, |D| > 250
+Q_TOP = 10000
+_SRC = hashlib.sha1(b"".join(   # the code past the module docstrings
+    # of shortfall.py, cubic.py and triple.py
+    open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f),
+         "rb").read().split(b'"""', 2)[2]
+    for f in ("shortfall.py", "cubic.py", "triple.py"))).hexdigest()[:12]
+CKPT = os.path.join(tempfile.gettempdir(),
+                    "shortfall_%d_%s.json" % (CAP, _SRC))
+FRESH = "--fresh" in sys.argv
+
+
+def band_of(m, bands):
+    for i, b in enumerate(bands):
+        if m <= b:
+            return i
+    return None
+
+
+def li(x):
+    """The logarithmic integral, by Ei(ln x) = gamma + ln ln x +
+    sum (ln x)^n / (n n!)."""
+    t = log(x)
+    s, term, n = 0.0, 1.0, 0
+    while True:
+        n += 1
+        term *= t / n
+        s += term / n
+        if term / n < 1e-17 * s:
+            break
+    return 0.5772156649015329 + log(t) + s
+
+
+def lam(x):
+    return li(sqrt(x)) / li(x)
+
+
+# ---------------------------------------------------------------------------
+# the cubic fields
+
+
+def read_field(key, dk):
+    """One field: the trivial level raw and in powers at every cut below
+    its top, the weight check, and its unramified degree-1 places with
+    whether each is principal."""
+    K = C.Field(key, dk)
+    if not K.class_group(always_cert=True):
+        return {"d": dk, "ok": False}
+    h = K.h
+    if h < 2:
+        return {"d": dk, "ok": True, "h": h}
+    inv = list(K.cl)
+    zero = tuple(0 for _ in inv)
+    top = TOPS[band_of(-dk, BANDS)]
+    cuts = [x for x in CUTS if x <= top]
+    raw = [dict() for _ in cuts]
+    pi = [dict() for _ in cuts]
+    places, principal, unmapped = [], [], 0
+    for p in C.PRIMES:
+        if p >= top:
+            break
+        pls = K.places(p)
+        deg1 = [pl for pl in pls if pl.deg == 1]
+        try:
+            cs = [K.place_class(pl) for pl in deg1]
+        except ValueError:
+            cs = [None]
+        if any(c is None for c in cs):
+            unmapped += 1
+            continue
+        unram = all(pl.e == 1 for pl in pls)
+        for c in cs:
+            if unram:
+                places.append(p)
+                if c == zero:
+                    principal.append(p)
+        for j, x in enumerate(cuts):
+            if p < x:
+                for c in cs:
+                    raw[j][c] = raw[j].get(c, 0) + 1
+        for pl in pls:
+            if pl.deg == 1:
+                cP = cs[deg1.index(pl)]
+            elif pl.deg == 2:
+                cP = g_neg(cs[0], inv)
+            else:
+                cP = zero
+            q = p ** pl.deg
+            k = 1
+            while q ** k < top:
+                c = g_mul(k, cP, inv)
+                for j, x in enumerate(cuts):
+                    if q ** k < x:
+                        pi[j][c] = pi[j].get(c, 0.0) + 1 / k
+                k += 1
+    rec = {"d": dk, "ok": True, "h": h, "inv": inv, "unmapped": unmapped,
+           "places": places, "principal": principal}
+    if unmapped == 0:
+        rec["T"] = {str(x): list(levels(raw[j], pi[j], inv, h)["T"])
+                    for j, x in enumerate(cuts)}
+        rec["wdiff"] = max(abs(sum(pi[j].values()) - type_weight(K, x))
+                           for j, x in enumerate(cuts))
+    return rec
+
+
+def population():
+    if not FRESH and os.path.exists(CKPT):
+        with open(CKPT) as fh:
+            print("  read from the checkpoint %s" % CKPT)
+            return json.load(fh)
+    t0 = time.time()
+    F = C.enumerate_fields(CAP)
+    print("  %d complex cubic fields with |d_K| <= %d in %.1f s"
+          % (len(F), CAP, time.time() - t0))
+    recs = []
+    for i, (key, dk) in enumerate(sorted(F.items(),
+                                         key=lambda kv: (-kv[1], kv[0]))):
+        recs.append(read_field(key, dk))
+        if (i + 1) % 500 == 0:
+            print("    %d fields read, %.0f s" % (i + 1, time.time() - t0),
+                  flush=True)
+    with open(CKPT, "w") as fh:
+        json.dump(recs, fh)
+    print("  read in %.1f s, checkpointed" % (time.time() - t0))
+    return recs
+
+
+# ---------------------------------------------------------------------------
+# the collapse
+
+
+def collapse(fields, a):
+    """fields: (ln |d|, band, h, places, principal), the last two
+    Counters of p over places. chi2/dof of the bands' mean of l at
+    matched bins of w_a, and the cells."""
+    cells = {}
+    for lnd, b, h, places, prin in fields:
+        for p, n in places.items():
+            k = floor((log(p) - a * lnd) / WIDTH)
+            c = cells.setdefault((k, b), [0, 0.0, 0.0])
+            c[0] += n
+            c[1] += h * prin.get(p, 0)
+            c[2] += (h - 1) * n
+    chi2, dof = 0.0, 0
+    bins = {}
+    for (k, b), c in cells.items():
+        if c[0] >= MIN_CELL:
+            bins.setdefault(k, []).append(c)
+    for k, cs in bins.items():
+        if len(cs) < 2:
+            continue
+        M = sum(c[1] for c in cs) / sum(c[0] for c in cs)
+        for n, S, V in cs:
+            chi2 += (S / n - M) ** 2 / (V / n ** 2)
+        dof += len(cs) - 1
+    return (chi2 / dof if dof else float("nan")), dof, cells
+
+
+def scan(fields, name):
+    out = {}
+    for a in A_LIST:
+        r, dof, cells = collapse(fields, a)
+        out[a] = (r, dof, cells)
+        print("  %s  a = %.2f  chi2/dof %8.2f  over %3d dof"
+              % (name, a, r, dof))
+    return out
+
+
+def profile(cells, nb, a):
+    print("  the mean of l by bin of ln p - %.2f ln|d| (width %.1f), "
+          "per band:" % (a, WIDTH))
+    ks = sorted({k for k, _ in cells})
+    print("   bin from  " + "".join("%16s" % ("B%d" % (b + 1))
+                                    for b in range(nb)))
+    for k in ks:
+        row = "   %8.2f  " % (k * WIDTH)
+        for b in range(nb):
+            c = cells.get((k, b))
+            if c and c[0] >= MIN_CELL:
+                row += "  %6.3f +-%5.3f" % (c[1] / c[0],
+                                             sqrt(c[2]) / c[0])
+            else:
+                row += "%16s" % "."
+        print(row)
+
+
+# ---------------------------------------------------------------------------
+# the sections
+
+
+def section_controls(recs):
+    section("K  CONTROLS")
+    ok = [r for r in recs if r["ok"]]
+    print("  %d fields, %d certified, %d with h >= 2"
+          % (len(recs), len(ok), sum(r["h"] >= 2 for r in ok)))
+    sw = [r for r in ok if r["h"] >= 2 and -r["d"] <= BANDS[2]]
+    unm = [r for r in ok if r["h"] >= 2 and r["unmapped"]]
+    check("K0 every field certified, none with an unmapped place",
+          len(ok) == len(recs) and not unm,
+          "%d of %d certified, %d with an unmapped place"
+          % (len(ok), len(recs), len(unm)))
+    lv = [r["T"]["1000"] for r in sw if "T" in r]
+    raw = pooled([v[0] for v in lv])
+    cor = pooled([v[1] for v in lv])
+    check("K1 at X = 1000 over B1-B3: 535 fields, T raw 0.9244 and in "
+          "powers 0.9489 to 1e-4",
+          len(lv) == 535 and abs(raw[0] - 0.9244) <= 1e-4 and
+          abs(cor[0] - 0.9489) <= 1e-4,
+          "%d fields, raw %.5f, in powers %.5f" % (len(lv), raw[0], cor[0]))
+    wd = max(r["wdiff"] for r in ok if "wdiff" in r)
+    check("K2 the summed weight equals the types' weight at every cut",
+          wd <= 1e-9, "worst %.1e" % wd)
+    return [r for r in ok if r["h"] >= 2 and "T" in r]
+
+
+def section_quadratic():
+    section("K3  THE POSITIVE CONTROL: imaginary quadratic fields")
+    fields = []
+    for D in range(-Q_BANDS[-1], -250):
+        if not Q.fundamental(D):
+            continue
+        G = Q.Group(D)
+        if G.h < 2:
+            continue
+        places, prin = Counter(), Counter()
+        for p in Q.SMALL:
+            if p >= Q_TOP:
+                break
+            if Q.kron(D, p) == 1:
+                places[p] += 1
+                if G.place(p) == G.e:
+                    prin[p] += 1
+        fields.append((log(-D), band_of(-D, Q_BANDS), G.h, places, prin))
+    print("  %d fields, 250 < |D| <= %d, h >= 2" % (len(fields),
+                                                    Q_BANDS[-1]))
+    out = scan(fields, "quadratic")
+    best = min(A_LIST, key=lambda a: out[a][0])
+    check("K3 least chi2/dof at a = 1, a = 0 at least five times it",
+          best == 1.0 and out[0.0][0] >= 5 * out[1.0][0],
+          "least at a = %.2f; a = 0 over a = 1: %.1f"
+          % (best, out[0.0][0] / out[1.0][0]))
+
+
+def section_sweep(fs):
+    section("A  THE SWEEP: the trivial level across cuts, B1 - B3")
+    sw = [r for r in fs if -r["d"] <= BANDS[2]]
+    D = {}
+    for x in SWEEP:
+        lv = [r["T"][str(x)] for r in sw]
+        raw = pooled([v[0] for v in lv])
+        cor = pooled([v[1] for v in lv])
+        D[x] = (1 - cor[0], cor[1])
+        print("  X = %5d  %d fields  T raw %.4f +- %.4f  in powers %.4f "
+              "+- %.4f  D %.4f" % (x, len(lv), raw[0], raw[1], cor[0],
+                                   cor[1], 1 - cor[0]))
+    print("  D / (h - 1) by class number, in powers:")
+    print("     h  fields" + "".join("%10d" % x for x in SWEEP))
+    perh = {}
+    for h in sorted({r["h"] for r in sw}):
+        rs = [r for r in sw if r["h"] == h]
+        if len(rs) < 10:
+            continue
+        per = [pooled([(1 - r["T"][str(x)][1]) / (h - 1)
+                       for r in rs])[0] for x in SWEEP]
+        perh[h] = per
+        print("  %4d  %6d" % (h, len(rs)) + "".join("%10.4f" % v
+                                                     for v in per))
+    print("  largest over least, by cut:" + "".join(
+        "%10.3f" % (max(v[i] for v in perh.values())
+                    / min(v[i] for v in perh.values()))
+        for i in range(len(SWEEP))))
+    print("  by band, D in powers:")
+    for b in range(3):
+        rs = [r for r in sw if band_of(-r["d"], BANDS) == b]
+        if len(rs) < 2:
+            continue
+        row ="    B%d %4d fields" % (b + 1, len(rs))
+        for x in SWEEP:
+            m, s = pooled([r["T"][str(x)][1] for r in rs])
+            row += "  %.4f +- %.4f" % (1 - m, s)
+        print(row)
+    print("  D * li(X), a fixed missing weight if flat: "
+          + ", ".join("%.2f" % (D[x][0] * li(x)) for x in SWEEP))
+    for x in SWEEP[1:]:
+        rho =(D[x][0] / D[1000][0]) / (lam(x) / lam(1000))
+        print("  rho(%5d) = %.3f   (lambda ratio %.4f)"
+              % (x, rho, lam(x) / lam(1000)))
+    check("P3 pooled D falls at every step of the sweep",
+          all(D[a][0] > D[b][0] for a, b in zip(SWEEP, SWEEP[1:])),
+          " > ".join("%.4f" % D[x][0] for x in SWEEP))
+    return (D[10000][0] / D[1000][0]) / (lam(10000) / lam(1000))
+
+
+def section_collapse(fs):
+    section("P1  THE COLLAPSE: the per-prime level across bands, B1 - B4")
+    fields = [(log(-r["d"]), band_of(-r["d"], BANDS), r["h"],
+               Counter(r["places"]), Counter(r["principal"])) for r in fs]
+    for b in range(len(BANDS)):
+        print("  B%d  %4d fields" % (b + 1,
+                                     sum(1 for f in fields if f[1] == b)))
+    out = scan(fields, "cubic")
+    best = min(A_LIST, key=lambda a: out[a][0])
+    profile(out[best][2], len(BANDS), best)
+    if best != 0.0:
+        profile(out[0.0][2], len(BANDS), 0.0)
+    ratio = out[0.0][0] / out[best][0]
+    check("P1 least chi2/dof at a >= 0.5, a = 0 at least twice it",
+          best >= 0.5 and ratio >= 2,
+          "least at a = %.2f (%.2f); a = 0 over it %.2f"
+          % (best, out[best][0], ratio))
+    return best, out[best][0], ratio
+
+
+def section_closure(fs):
+    section("P2  CLOSURE AT A LARGE CUT: B1 at X = 20000")
+    rs = [r for r in fs if -r["d"] <= BANDS[0]]
+    for x in CUTS:
+        m, s = pooled([r["T"][str(x)][1] for r in rs])
+        print("  X = %5d  %d fields  T in powers %.4f +- %.4f"
+              % (x, len(rs), m, s))
+    cor = pooled([r["T"]["20000"][1] for r in rs])
+    check("P2 T in powers at X = 20000 within 0.01 or 2 se of 1",
+          abs(cor[0] - 1) <= 0.01 or abs(cor[0] - 1) <= 2 * cor[1],
+          "%.4f +- %.4f" % cor)
+    return cor
+
+
+def main():
+    t0 = time.time()
+    section_quadratic()                  # the positive control, read first
+    if not all(CHECKS):                  # before the population's cost
+        print("the positive control failed")
+        raise SystemExit(1)
+    section("S  THE POPULATION")
+    recs = population()
+    fs = section_controls(recs)
+    if not all(CHECKS):                  # nothing below is read
+        print("a control failed")
+        raise SystemExit(1)
+    rho = section_sweep(fs)
+    best, chi, ratio = section_collapse(fs)
+    cor = section_closure(fs)
+    section("V  THE VERDICT")
+    range_dead = (best <= 0.25 and chi <= 2) or not (
+        abs(cor[0] - 1) <= 0.01 or abs(cor[0] - 1) <= 2 * cor[1])
+    term_dead = (best >= 0.5 and ratio >= 2) or not (0.6 <= rho <= 1.6)
+    print("  rho(10000) = %.3f; collapse least at a = %.2f" % (rho, best))
+    print("  RANGE %s, TERM %s" % ("dead" if range_dead else "alive",
+                                  "dead" if term_dead else "alive"))
+    print()
+    print("%d/%d checks PASS, %.1f s" % (sum(CHECKS), len(CHECKS),
+                                         time.time() - t0))
+    raise SystemExit(as_recorded(MISSED))
+
+
+if __name__ == "__main__":
+    main()

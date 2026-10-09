@@ -1,0 +1,494 @@
+"""element_ring.py -- the element world over a number ring: whether the
+supply matrix still prices every move once degrees become norms, what
+the ring must hand the walker beyond it, and whether the curve walk's one
+runaway survives a ring whose ladder does not double.
+
+QUESTION. element.py reads the ring of a curve over F_2 as a SUPPLY
+MATRIX over its class group: a move multiplies the state by an element,
+so it seats a CORE (the place power it aims at) and a RIDER, the minimal
+effective divisor cancelling the core's class; the least moves are
+CORE^door + MINREP(-door c), and past a finite transient the walk keeps
+exactly ONE runaway, because every clock move at least doubles the notch
+while it brings at most R rider units. Over a ring of integers the price
+of a vehicle is its NORM, a product where the curve's degree was a sum,
+and a place's door no longer reads one doubling clock. Three questions:
+  (a) Is the element menu still the minimum over the supply matrix, m a
+      shortest path in the class group, now in (min, x)?
+  (b) What does the ring hand the walker that the matrix does not carry?
+  (c) Does the margin that kept one runaway over a curve port, or does
+      the rider run away with its core?
+
+THE RINGS. The two imaginary quadratic rings module_law.py walks, with
+its engine imported and not rewritten: Z[sqrt(-5)], discriminant -20,
+and Z[w], w^2 = w - 6, the maximal order of Q(sqrt(-23)). A place is
+module_law.py's triple (norm, p, r).
+
+THE ARGUMENT (written before the engine).
+  (1) THE CLASS OF A PLACE, by Gauss's forms (known). The place over p
+      at the root r of w^2 - T w - N0 is the ideal (p, w - r), whose
+      norm form N(X p + Y (w - r)) / p is
+          p X^2 + (T - 2 r) X Y + ((r^2 - T r - N0) / p) Y^2,
+      of discriminant T^2 + 4 N0; an inert place is (p), class 0. The
+      class is the reduced form. Reduced forms are counted directly, and
+      the conjugate place, r -> T - r, negates b, the inverse class. At
+      class number 2 and 3 the group is cyclic and the reduced forms
+      label it with the principal form at 0 and each inverse pair at
+      +-1; the map is tested against principality itself: P Q is
+      principal iff an element of norm N(P) N(Q) factors as P Q.
+  (2) THE MINIMAL RIDER IN (min, x). m(c) is the least norm of an ideal
+      of class c, m(0) = 1. Replacing a place of a minimizing ideal by a
+      least-norm place of the same class keeps the class and never
+      raises the norm, so m is a shortest path over the Cayley graph of
+      the class group, the edge of class c weighted by its least norm,
+      taken in (min, x): the curve's (min, +) after logarithms.
+  (3) THE BARE DOOR, over any Dedekind ring with finite class group. A
+      principal V raising lambda holds a place J, of norm N and class c,
+      with lambda_J(a_J + v_J(V)) not dividing L: so v = v_J(V) is at
+      least J's door r, the least r with lambda_J(a_J + r) not dividing
+      L. V J^(-v) is integral of class -v c, so N(V) >= N^v m(-v c) >=
+      N^r m(-r c), the last step because MINREP(-v c) J^(v - r) is
+      integral of class -r c. J^r MINREP(-r c) raises lambda (adding a
+      rider only raises the lcm), so the least moves are exactly the
+      cores at their doors with their minimal riders, and a longer core
+      never wins (settled on audit: at equality the rider is a least
+      ideal of class -r c, unique at the rings run here but not over
+      every Dedekind ring, two at Q(sqrt -15)).
+  (4) THE SECOND COLUMN. The matrix counts places per colour (norm,
+      class). The door reads the place's own ladder lambda_P(a) against
+      L, and lambda_P is not a function of a count: the ring must hand
+      the walker a LADDER per place. Over F_2 every place shares one
+      clock, the notch, and the ladder was implicit.
+  (5) THE LOCK CARRIES ITS RIDER. module_law.py proves the ideal walk
+      over a number ring LOCKS when its costs are bounded infinitely
+      often: one place, owning v_p(L), pays a constant door e forever.
+      In the element world a lock is one vehicle V = P^r0 MINREP(-r0 c)
+      repeated, r0 constant, so every place X of V's support gains
+      v_X(V) units per move: the rider grows AT THE CORE'S RATE. Over a
+      curve the door at notch T is T + 1 - a, which doubles, so the rider
+      share of a runaway's growth falls like log T / T. The margin step
+      is therefore a statement about the doubling ladder, and over a
+      number ring the limit can hold as many runaways as a lock
+      vehicle has places. At Q(sqrt(-23)) the lock (2) = P2 P2' is the
+      candidate: core P2 at door 1, class c, and MINREP(-c) = P2', the
+      one ideal of norm 2 in class -c.
+
+TRANSPLANTS, marked. From the curves, "one runaway", expected to FAIL
+here. From module_law.py's own sections, the element walks from the void
+(6, 6, 6, then 4) and from (5) (23, 23, then 25) at Q(sqrt(-23)), used as
+the positive control. From an earlier record of these two rings: class
+numbers 2 and 3, m over the classes (1, 2) and (1, 2, 2), every minimal
+representative unique, the element tails at norm 4 at Z[sqrt(-5)] and at
+4 or 25 at Q(sqrt(-23)).
+
+PREDICTIONS, frozen before the engine, each naming what the run PRINTS.
+  RP1 CONTROL. Printed: the void and (5) walks' norms at Q(sqrt(-23)).
+      KILL: either differs from the transplant, and nothing below is
+      read.
+  RP2 THE CLASSES. Printed per ring: the reduced forms and h; the
+      principality test over every pair of places of norm <= 50 and
+      every single place, agreeing with the form map. KILL: one pair
+      disagreeing.
+  RP3 THE MINIMAL RIDER. Printed per ring: m by the (min, x) path and by
+      a brute minimum over every ideal of norm <= 200, and how many
+      ideals attain each class's minimum. KILL: a class where they
+      differ, or a class minimum attained twice (the menu below takes one
+      rider per class).
+  RP4 THE MENU IS THE SUPPLY'S. Printed per ring: states read, and at
+      each the abstract menu (the cores at their doors read off the
+      ring's lambda, each with its minimal rider) against the ring
+      engine's least raising elements, as SETS of ideals. KILL: one
+      state where they differ.
+  RP5 THE BARE DOOR. Printed: cores offered at door + j, j = 1..3, and
+      how many were strictly cheaper. KILL: one. At these two rings the
+      kill is arithmetic, not a test: every rider has norm 1 or 2, so a
+      core one notch past its door costs N^(r+j) m' >= 2 N^r >= N^r m.
+  RP6 THE LOCK. Printed per ring: over every seed (the void and every
+      principal ideal of norm <= 40), whether the last LOCK_R of WALK_N
+      moves repeat one vehicle, and the tally of lock vehicles.
+      Expected: (2) at Z[sqrt(-5)]; (2) or (5) at Q(sqrt(-23)).
+  RP7 THE RIDER RUNS WITH ITS CORE. Printed per lock: the vehicle's
+      support, each place's gain over the last LOCK_R moves, and the
+      gap between the two places over 2 at a (2) lock of Q(sqrt(-23)).
+      Expected: two unbounded places there, each gaining one per move,
+      the gap constant; one at every other lock. The places that grow
+      are the vehicle's support by the lock's own definition, so a
+      laggard that stops gaining cannot pass RP6's lock check; the
+      content is the constant gap. POSITIVE CONTROL for the count: the
+      (5) lock must hold one place, asserted.
+
+FINDINGS (entered after the run, from its printed output).
+  F1 CONTROL (RP1 hit). The void pays 6, 6, 6, then 4 for 37 moves and
+     (5) pays 23, 23, then 25 for 38.
+  F2 THE CLASSES (RP2 hit). h = 2 and 3 by reduced forms, (1, 0, 5),
+     (2, 2, 3) and (1, 1, 6), (2, +-1, 3); 152 and 170 principality tests
+     over the 16 and 17 places of norm <= 50 agree with the form map.
+  F3 THE MINIMAL RIDER (RP3 hit). m = (1, 2) and (1, 2, 2) by the path,
+     equal to the brute minimum over 275 and 393 ideals of norm <= 200,
+     each nonzero class's minimum attained once: the rider is the
+     ramified place over 2 at Z[sqrt(-5)], and at Q(sqrt(-23)) each
+     nonzero class's rider is the place over 2 lying in it.
+  F4 THE MENU IS THE SUPPLY'S (RP4 hit). 1560 and 1620 states over 26
+     and 27 seeds, 60 moves each: every menu equal as a set of ideals, 86
+     of 1570 and 1442 of 1626 least vehicles compound, their support
+     more than one place. The control's shifted class map parts at 12
+     of 12 states of the void walk.
+  F5 THE BARE DOOR (RP5 hit). 14,478 and 21,600 longer cores offered,
+     none strictly cheaper; 84 and 270 tie their own door.
+  F6 THE LOCK (RP6 hit). Every seed ends on one vehicle over its last
+     20 moves. Z[sqrt(-5)]: (2), the ramified place over 2 squared, at
+     all 26. Q(sqrt(-23)): (2) = P2 P2' at 24 seeds, the inert (5) at 3.
+     The (2) rides are permanent: 4 is the least norm of a non-unit at
+     both rings, 2 the only element of norm 4 up to sign, and (2)
+     deepens its ticking place over 2 by that place's e at every move,
+     one tick of the pump once past the head.
+  F7 THE RIDER RUNS WITH ITS CORE (RP7 hit; the suspicion's kill
+     missed). At all 24 (2) locks of Q(sqrt(-23)) both places over 2 gain
+     20 units in the last 20 moves, the gap between them constant; the
+     final gaps are +-1 to +-3 with both signs, so which of the two
+     stands deeper is the seed's. One place grows at each other lock,
+     the (5) control included. At Z[sqrt(-5)] the lock carries no rider:
+     its core's class has order 2 and its door is 2, so -2c = 0, and one
+     place gains 2 a move. The count of runaways is read off the lock
+     vehicle's support, and the margin that made it one over a curve
+     does not port.
+
+RUN RECORD. One process, CPython, no numpy: 9,976 checks, 1.3 s, peak
+13 MB.
+"""
+
+import os
+import sys
+import time
+from collections import Counter
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import module_law as ML
+
+CHECKS = [0]
+TALLY = Counter()
+
+
+def check(cond, msg):
+    CHECKS[0] += 1
+    if not cond:
+        raise AssertionError(msg)
+
+
+PAIR_N = 50     # places paired in the principality test
+BRUTE_N = 200   # ideals enumerated for the brute minimal rider
+SEED_N = 40     # principal seeds up to this norm, the void beside them
+WALK_N = 60     # moves per walk
+LOCK_R = 20     # a lock: the last LOCK_R moves repeat one vehicle
+OFFSETS = 3     # longer cores offered at door + 1 .. door + OFFSETS
+
+
+# ---------------------------------------------------------------------------
+# the class group by Gauss's reduced forms
+
+
+def reduce_form(a, b, c):
+    D = b * b - 4 * a * c
+    while True:
+        k = (b + a - 1) // (2 * a)
+        b -= 2 * a * k
+        c = (b * b - D) // (4 * a)
+        if a > c:
+            a, b, c = c, -b, a
+            continue
+        if a == c and b < 0:
+            b = -b
+        return a, b, c
+
+
+def reduced_forms(D):
+    out, a = [], 1
+    while 3 * a * a <= -D:
+        for b in range(-a + 1, a + 1):
+            if (b * b - D) % (4 * a) == 0:
+                c = (b * b - D) // (4 * a)
+                if c >= a and not (a == c and b < 0):
+                    out.append((a, b, c))
+        a += 1
+    return sorted(out)
+
+
+class Classes:
+    """The class group of F as Z/h (h <= 3, so cyclic) and each place's
+    class, read off its reduced form."""
+
+    def __init__(self, F):
+        self.F = F
+        forms = reduced_forms(F.D)
+        self.forms, self.h = forms, len(forms)
+        check(self.h <= 3, "the labelling below assumes a cyclic group")
+        check(forms[0][0] == 1, "the principal form first")
+        label = {forms[0]: 0}
+        if self.h > 1:
+            f = forms[1]
+            label[f] = 1
+            label[reduce_form(f[0], -f[1], f[2])] = self.h - 1
+        check(len(label) == self.h, "every reduced form labelled")
+        self.label = label
+        self.cls = {pl: self.place_class(pl) for pl in F.places}
+
+    def place_class(self, pl):
+        F = self.F
+        n, p, r = pl
+        if r == -1:
+            return 0
+        if r == -2:
+            r = [s for s in range(p)
+                 if (s * s - F.T * s - F.N0) % p == 0][0]
+        return self.label[reduce_form(p, F.T - 2 * r,
+                                      (r * r - F.T * r - F.N0) // p)]
+
+    def of(self, ideal):
+        return sum(k * self.cls[pl] for pl, k in ideal.items()) % self.h
+
+
+def principal(F, ideal):
+    n = 1
+    for pl, k in ideal.items():
+        n *= pl[0] ** k
+    return any(F.factor(x, y) == ideal for (y, x) in F.elements(n))
+
+
+class Supply:
+    """What a walker handed the supply matrix computes: the least norm per
+    class, m by the (min, x) path, and each minimal rider realised from
+    least places."""
+
+    def __init__(self, C):
+        self.C, self.F, self.h = C, C.F, C.h
+        least = {}
+        for pl in C.F.places:
+            c = C.cls[pl]
+            if pl[0] <= BRUTE_N and (c not in least or pl[0] < least[c][0]):
+                least[c] = (pl[0], pl)
+        self.least = least
+        INF = float("inf")
+        m, via = [INF] * self.h, [None] * self.h
+        m[0], via[0] = 1, ()
+        changed = True
+        while changed:
+            changed = False
+            for x in range(self.h):
+                if m[x] < INF:
+                    for c, (n, pl) in least.items():
+                        y = (x + c) % self.h
+                        if m[x] * n < m[y]:
+                            m[y], via[y] = m[x] * n, via[x] + (pl,)
+                            changed = True
+        self.m = m
+        self.rider = [Counter(v) for v in via]
+
+    def cost(self, pl, r):
+        return pl[0] ** r * self.m[(-r * self.C.cls[pl]) % self.h]
+
+    def vehicle(self, pl, r):
+        v = Counter({pl: r})
+        v.update(self.rider[(-r * self.C.cls[pl]) % self.h])
+        return frozenset(v.items())
+
+
+def abstract_menu(S, st, L):
+    """The least cost and the least vehicles: every core at its door, read
+    off the ring's lambda, with its minimal rider."""
+    F = S.F
+    best, vs = None, set()
+    for pl in F.places:
+        if best is not None and pl[0] > best:
+            break
+        r = ML.door(F, pl, st.get(pl, 0), L)
+        x = S.cost(pl, r)
+        for j in range(1, OFFSETS + 1):
+            TALLY["offsets"] += 1
+            TALLY["offset cheaper"] += S.cost(pl, r + j) < x
+            TALLY["offset tying"] += S.cost(pl, r + j) == x
+        if best is None or x < best:
+            best, vs = x, set()
+        if x == best:
+            vs.add(S.vehicle(pl, r))
+    check(best is not None and best <= F.pmax, "a door beyond the places")
+    return best, vs
+
+
+def ring_menu(F, st, L):
+    n, hits = ML.elem_menu(F, st, L)
+    return n, [frozenset(fac.items()) for yx, fac in hits]
+
+
+# ---------------------------------------------------------------------------
+# the sections
+
+
+def section_control():
+    """RP1: module_law.py's element walks at Q(sqrt(-23))."""
+    print("RP1  CONTROL")
+    F = ML.K23
+    a = [mv[2] for mv in ML.elem_walk(F, {}, 40)[0]]
+    b = [mv[2] for mv in ML.elem_walk(F, {(25, 5, -1): 1}, 40)[0]]
+    check(a == [6, 6, 6] + [4] * 37, "the void walk")
+    check(b == [23, 23] + [25] * 38, "the (5) walk")
+    print(f"  {F.name}: the void pays {a[:5]} ... ({a.count(4)} at 4); (5)"
+          f" pays {b[:4]} ... ({b.count(25)} at 25)")
+
+
+def section_classes(F):
+    """RP2: the form map against principality."""
+    C = Classes(F)
+    pls = [pl for pl in F.places if pl[0] <= PAIR_N]
+    n = 0
+    for i, P in enumerate(pls):
+        check(principal(F, {P: 1}) == (C.cls[P] == 0),
+              f"{F.name}: {P} alone")
+        n += 1
+        for Q in pls[i:]:
+            ideal = Counter({P: 1})
+            ideal[Q] += 1
+            check(principal(F, dict(ideal)) == (C.of(ideal) == 0),
+                  f"{F.name}: {P} {Q}")
+            n += 1
+    by = Counter(C.cls[pl] for pl in pls)
+    print(f"  {F.name:14s} D = {F.D}, h = {C.h}, forms {C.forms}; {n}"
+          f" principality tests over {len(pls)} places agree; places per"
+          f" class {dict(sorted(by.items()))}")
+    return C
+
+
+def section_rider(C):
+    """RP3: the (min, x) path against a brute minimum over ideals."""
+    S = Supply(C)
+    F = C.F
+    ideals = F.ideals(BRUTE_N)
+    best = {0: 1}
+    for n, ideal in ideals:
+        x = C.of(ideal)
+        best[x] = min(best.get(x, n), n)
+    hold = Counter(C.of(ideal) for n, ideal in ideals
+                   if n == best[C.of(ideal)])
+    for x in range(1, C.h):
+        check(S.m[x] == best[x], f"{F.name}: m at {x}")
+        check(hold[x] == 1, f"{F.name}: class {x} has {hold[x]} minima")
+        mins = [ideal for n, ideal in ideals
+                if n == best[x] and C.of(ideal) == x]
+        check(Counter(mins[0]) == S.rider[x],
+              f"{F.name}: the minimal rider's support at {x}")
+    print(f"  {F.name:14s} m = {S.m} by the path and the brute minimum over"
+          f" {len(ideals)} ideals; each nonzero class's minimum attained"
+          f" {[hold[x] for x in range(1, C.h)]} times; riders"
+          f" {[dict(S.rider[x]) for x in range(C.h)]}")
+    return S
+
+
+def section_menu_control(C):
+    """The menu comparison made to fail: the classes of the split places
+    shifted by one, which no automorphism of the group undoes."""
+    bad = Classes(C.F)
+    for pl in bad.cls:
+        if pl[2] >= 0:
+            bad.cls[pl] = (bad.cls[pl] + 1) % bad.h
+    S = Supply(bad)
+    F = C.F
+    st, L, parted = {}, 1, 0
+    for i in range(12):
+        b1, v1 = abstract_menu(S, st, L)
+        b2, v2 = ring_menu(F, st, L)
+        parted += (b1, v1) != (b2, set(v2))
+        for pl, k in v2[0]:
+            st[pl] = st.get(pl, 0) + k
+        L = F.lam_state(st)
+    check(parted > 0, "control: a shifted class map parts the menus")
+    print(f"  control at {F.name}: split classes shifted by one, the void"
+          f" walk's menus part at {parted} of 12 states")
+
+
+def seeds(F):
+    return [{}] + [ideal for n, ideal in F.ideals(SEED_N)
+                   if principal(F, ideal)]
+
+
+def walk(S, seed):
+    """RP4 at every state; the vehicles taken, and the exponents LOCK_R
+    moves before the end and at the end."""
+    F = S.F
+    st, L = dict(seed), F.lam_state(seed)
+    taken, mid = [], None
+    for i in range(WALK_N):
+        if i == WALK_N - LOCK_R:
+            mid = dict(st)
+        b1, v1 = abstract_menu(S, st, L)
+        b2, v2 = ring_menu(F, st, L)
+        check(b1 == b2 and v1 == set(v2), f"{F.name}: menus part at"
+              f" {st}: {b1} {sorted(v1)} against {b2} {sorted(v2)}")
+        TALLY["states"] += 1
+        TALLY["compound"] += sum(len(v) > 1 for v in v1)
+        TALLY["menu entries"] += len(v1)
+        v = v2[0]
+        for pl, k in v:
+            st[pl] = st.get(pl, 0) + k
+        L2 = F.lam_state(st)
+        check(L2 != L, "a move that does not raise lambda")
+        L = L2
+        taken.append((b2, v))
+    return taken, mid, st
+
+
+def section_walks(S):
+    """RP4 to RP7 at one ring."""
+    F = S.F
+    TALLY.clear()
+    t0 = time.time()
+    locks, units, gaps = Counter(), Counter(), Counter()
+    for sd in seeds(F):
+        taken, mid, st = walk(S, sd)
+        tail = taken[-LOCK_R:]
+        check(len({v for c, v in tail}) == 1,
+              f"{F.name}: the seed {sd} does not lock")
+        cost, v = tail[0]
+        v = dict(v)
+        gain = {pl: st.get(pl, 0) - mid.get(pl, 0) for pl in st
+                if st.get(pl, 0) != mid.get(pl, 0)}
+        locks[(cost, tuple(sorted(v.items())))] += 1
+        units[(cost, len(gain), tuple(sorted(gain.values())))] += 1
+        if len(v) == 2:
+            p1, p2 = sorted(v)
+            check(mid[p1] - mid[p2] == st[p1] - st[p2],
+                  "the gap between the two places moves")
+            gaps[st[p1] - st[p2]] += 1
+    print(f"  {F.name:14s} {TALLY['states']} states over "
+          f"{sum(locks.values())} seeds; {TALLY['menu entries']} menu"
+          f" entries, {TALLY['compound']} of them compound, every menu equal;"
+          f" {TALLY['offsets']} offsets, {TALLY['offset cheaper']} cheaper,"
+          f" {TALLY['offset tying']} tying ({time.time() - t0:.1f} s)")
+    check(TALLY["offset cheaper"] == 0, "the bare door")
+    check(all(len(v) == 1 for cost, v in locks if cost == 25),
+          "the (5) lock holds more than one place")
+    for (cost, v), k in sorted(locks.items()):
+        print(f"    lock at {cost}: vehicle {dict(v)} at {k} seeds")
+    for (cost, n, g), k in sorted(units.items()):
+        print(f"    lock at {cost}: {n} growing place(s), gains {list(g)}"
+              f" over the last {LOCK_R} moves, at {k} seeds")
+    if gaps:
+        print(f"    two-place locks: the gap between the places constant"
+              f" over every tail; final gaps (gap, seeds)"
+              f" {sorted(gaps.items())}")
+
+
+def main():
+    t0 = time.time()
+    section_control()
+    print("RP2  THE CLASSES")
+    Cs = [section_classes(F) for F in (ML.K5, ML.K23)]
+    print("RP3  THE MINIMAL RIDER")
+    Ss = [section_rider(C) for C in Cs]
+    print("RP4 - RP7  THE WALKS")
+    section_menu_control(Cs[1])
+    for S in Ss:
+        section_walks(S)
+    print(f"\nALL CHECKS PASS: {CHECKS[0]} ({time.time() - t0:.1f} s)")
+
+
+if __name__ == "__main__":
+    main()

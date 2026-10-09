@@ -1,0 +1,689 @@
+"""seat.py -- where a complex cubic field's degree-1 places sit against
+the squares of its class group: the two fibers of degree-1 places, the
+prime-power term each one carries, and the least partially split place.
+
+QUESTION. K a complex cubic field, d_K < 0, class group Cl of order h,
+2Cl its subgroup of squares. Its degree-1 places over unramified primes
+fall into two FIBERS: the SPLIT fiber, three places over each totally
+split p, and the PARTIAL fiber, the one degree-1 place over each
+partially split p = P1 Q (deg Q = 2). triple.py counts the two together
+and finds, at a finite cut, a shortfall on the trivial class that the
+prime-ideal powers pay only a third of.
+  (a) Which fiber carries the prime-square term of the explicit
+      formula, and which does not?
+  (b) At 2-rank 1 (Cl/2Cl of order 2) is the LEAST partial place a
+      square as often as the others are, or does it prefer a side?
+  (c) If it prefers one, is the preference read off the prime or off
+      the place's RANK, its position among its field's partial places?
+  (d) Is the preference only the class group's generation, which forces
+      some place of small norm outside 2Cl whenever h is even?
+
+THE ARGUMENT (written before the engine).
+  (1) THE FIBERS AS CHEBOTAREV CLASSES. Ht the Galois closure over Q of
+      the Hilbert class field of K; where the triple group is all of M,
+      Gal(Ht/Q) = M x| S3 (triple.py (5)), (v, s)(w, t) = (v + s w, st).
+      A split p has Frobenius (v, 1), a partial p (v, t) with t a
+      transposition, an inert p a 3-cycle. The count of partial places
+      in a class c is a count of primes p with Frob_p in a union Sigma of
+      conjugacy classes whose S3-part is a transposition.
+  (2) THE PARTIAL FIBER HAS NO SQUARE TERM. The explicit formula for
+      the primes with Frob_p in Sigma carries a term at p^k from every
+      p with Frob_p^k in Sigma. A square (v, s)^2 = (v + s v, s^2) has
+      S3-part s^2 in A3, never a transposition, and so does every even
+      power.
+      So Sigma holds no square: the partial fiber's count carries no
+      prime-square term, only odd powers k >= 3, and (v, t)^k has
+      S3-part t, the k-th power of the partial place itself, class
+      k[P1]. The split fiber carries every even power of a partial
+      Frobenius, (v, t)^2 = (2a, -a, -a) with a = [P1] (the place P1
+      squared and the degree-2 place Q, class -a, counted twice at
+      weight 1/2), every power of a split Frobenius and the cube of an
+      inert one (the three coordinates of (v, s)^3 = 0 for a 3-cycle
+      s). So the prime-ideal powers of K split between the fibers: the
+      odd powers of partial places to the partial fiber, everything
+      else to the split fiber.
+  (3) THE PARITY OF A SPLIT PRIME. [P1] + [P2] + [P3] = 0, so modulo
+      2Cl at 2-rank 1 (a group of order 2) an even number of the three
+      places lie outside 2Cl: every split prime carries one or three
+      places in 2Cl, never zero or two.
+  (4) THE PARTIAL PLACE IS UNIFORM (triple.py (4)): [P1] is
+      equidistributed on Cl, so at 2-rank 1 a partial place lies
+      outside 2Cl at share 1/2 in the limit, at every p.
+  (5) GENERATION. The prime ideals of norm at most the Minkowski bound
+      B = (4/pi)(2/9) sqrt|d_K| generate Cl, so at even h their classes
+      are not all in 2Cl. A field whose other places of norm <= B all lie
+      in 2Cl FORCES its least partial place outside 2Cl when that place
+      is of norm <= B. On an UNFORCED field, one where some other place
+      of norm <= B already lies outside 2Cl, generation says nothing
+      about the least partial place.
+
+THE ENGINE. cubic.py: the fields by Hunter's theorem, the maximal order
+from the binary cubic form, the certified class group (always_cert, the
+analytic class number formula checked at every h), the class of every
+degree-1 place. A class is a tuple under the Smith invariants of Cl; it
+lies in 2Cl iff its coordinate at every even invariant is even. The
+2-rank is the number of even invariants. A place of degree 2 over a
+partial p has class -[P1]. RANK r is the r-th odd unramified partially
+split prime of the field, in the order of the primes. The fibers are
+read at the cut X = 1000 over the fields of TRIPLE's population, h >= 2
+and |d_K| <= 12000; per field the LEVEL of a cell is the fiber's mean
+count per class in the cell over the fiber's count per class, raw or
+with each fiber's own prime powers (2) put back at weight 1/k. The cells
+are triple.py's: T the trivial class, S the other squares, N the classes
+outside 2Cl. The seat is read over every field of 2-rank 1 with
+|d_K| <= 48000, in two DISJOINT populations: A, |d_K| <= 24000, and B,
+24000 < |d_K| <= 48000.
+
+PREDICTIONS, fixed before the engine. TRANSPLANT marks a number carried
+from an earlier record of this question, not derived here.
+  P0  controls. Every field's class group certifies; every class read;
+      the split parity (3) holds at every split prime p < 1000 of every
+      seat field; over the partial places with 500 <= p < 1000 of the
+      seat fields the share outside 2Cl is within 0.02 of 1/2 (4).
+  P1  the partial fiber (2). Its levels move by at most 0.01 in every
+      cell when its prime powers are put back.
+  P2  the split fiber (2). Its N cell's excess over 1 falls by more than
+      half when its prime powers are put back.
+  P3  the partial fiber keeps a surplus outside 2Cl: its raw N level
+      exceeds 1 by more than three standard errors (TRANSPLANT: an
+      earlier record read the generator cell 1.09 at this cut).
+  P4  the seat. The rank-1 partial place lies outside 2Cl at a share in
+      [0.80, 0.87] on A and [0.77, 0.84] on B (TRANSPLANT: 0.838 and
+      0.800). KILL: the share within three standard errors of 1/2 on
+      either population, and the seat is noise.
+  P5  the share falls with rank and stays above 1/2: pooled over A and
+      B it is at least 0.55 at rank 10 (TRANSPLANT).
+  P6  rank, not prime. At rank 1 the shares at p = 3, 5, 7, 11 (each
+      read where 30 fields or more have that least place) span at most
+      0.10; and at the same primes 11 <= p <= 29, the share at rank 1
+      exceeds the share at rank >= 3 by more than three standard errors.
+      KILL on the second: a seat read at fixed p that rank does not
+      move is a seat at the norm.
+  P7  generation (5). On the unforced fields the rank-1 share is at
+      least 0.70 (TRANSPLANT: an earlier null priced the confound at a
+      third of the shift). KILL: the unforced share within three
+      standard errors of 1/2, and the seat is generation's.
+  P8  where 2 is totally ramified (2 = P^3) the rank-1 share is at least
+      0.90 (TRANSPLANT: an earlier record read 66 of 66 at h = 2).
+  P9  fixed AFTER a rehearsal over |d_K| <= 6000, whose rank-1 place read
+      outside 2Cl in 79 of 79 fields where 2 is not partially split and
+      0.68 where it is, and so read only on |d_K| > 6000: the least
+      partial place with 2 INCLUDED lies outside 2Cl at share >= 0.90,
+      and where 2 is partially split its own place does at >= 0.90.
+
+FINDINGS.
+  F0  CONTROLS. All 7975 complex cubic fields with |d_K| <= 48000
+      certify and every needed place is placed. The 1532 fields of
+      2-rank 1 break the split parity (3) at no split prime below 1000,
+      and their 55,796 partial places with 500 <= p < 1000 lie outside
+      2Cl at 0.5036 (K1-K4).
+  F1  THE FIBERS (P1-P3 held), 535 fields, cut 1000, raw against each
+      fiber's own prime powers put back:
+          split    T 0.9458 -> 0.9812   S 1.0059 -> 1.0193
+                   N 1.0512 -> 0.9895   (se 0.004 to 0.006)
+          partial  T 0.9108 -> 0.9103   S 1.0130 -> 1.0090
+                   N 1.0769 -> 1.0835   (se 0.004 to 0.005)
+      The partial fiber's largest cell move is 0.0066, the cube sliver
+      (2). The split fiber's N excess is removed, 0.0105 below 1 after.
+      The partial fiber keeps both its N surplus and its T deficit: the
+      fixed weight triple.py finds at the small primes is carried mostly
+      by the fiber that has no square term, the split fiber keeping a T
+      deficit of 0.019 after its powers.
+  F2  THE SEAT (P4, P5 held). The rank-1 place lies outside 2Cl at
+      0.837 +- 0.014 on A (688 fields) and 0.800 +- 0.014 on B (844),
+      the earlier record's 0.838 and 0.800 reproduced. Pooled: 0.817,
+      0.691, 0.654, 0.624 at ranks 1-4, then 0.59 to 0.64 through rank
+      10 (0.589 +- 0.013). By h, rank 1 reads 0.839 and 0.808 at h = 2
+      (485, 531 fields), 0.824 and 0.822 at h = 4, 0.892 and 0.790 at
+      h = 6.
+  F3  RANK, NOT PRIME (P6 held). At rank 1 the share is 0.819, 0.822,
+      0.831, 0.814 where the least place sits over p = 3, 5, 7, 11 (598,
+      422, 237, 140 fields), a span of 0.017. At the same primes 11 to
+      29 the rank-1 place reads 0.788 +- 0.025 (273) and a place of rank
+      >= 3 reads 0.634 +- 0.008 (3240), z = 5.88.
+  F4  GENERATION IS EMPTY HERE (P7 held). No field of the 1532 is
+      forced: at every one some other place of norm <= B already lies
+      outside 2Cl, so the whole seat, 0.817, is read on unforced fields.
+      The margin is wide: 1208 fields have six or more such places and
+      4 have exactly one. G1 is vacuous at this cap, since no forced
+      field exists to test it.
+  F5  HOW 2 SPLITS (P8 held). Rank-1 share 0.959 +- 0.013 where 2 = P^3
+      (222 fields), 0.900 where 2 = P^2 Q (340), 0.848 split (105),
+      0.812 inert (357), and 0.695 +- 0.020 where 2 is itself partially
+      split (508), where the least partial place is 2's and rank 1 is
+      the second.
+  F6  THE LEAST PLACE WITH 2 INCLUDED (P9 FAILED, both halves). It lies
+      outside 2Cl at 0.983 +- 0.012 over the rehearsal's 120 fields and
+      0.841 +- 0.010 over the 1412 with |d_K| > 6000; 2's own place, where
+      it is the least, at 0.790 +- 0.019 (467) and an odd least place at
+      0.867 +- 0.011 (945). The rehearsal's unanimity was the smallest
+      discriminants'. The rank-1 share falls from A to B (0.837, 0.800)
+      pooled over h, though not at h = 4 (0.824, 0.822).
+  TIERS. (2) and (3) are properties, proved above. F1's movements are an
+  observation over one population at one cut. The seat F2-F5 is an
+  observation on two disjoint populations, with no mechanism: the
+  partial place is uniform in the limit at every prime (4), so a share
+  above 1/2 at rank 1 is a finite-discriminant effect, and whether it
+  decays to 1/2, and how fast, is open.
+
+RUN RECORD. 16/18 (the two P9 halves failed), 302.9 s wall (the
+population 302.6 s, checkpointed), peak working set 30.5 MB under
+a memory guard. A rehearsal at --cap 6000 ran first (32.5 s, 21.2 MB). It
+exposed one engine fault, since repaired: the degree-2 place over the
+rank-1 prime carries that prime's square-ness and had been counted
+among the other places in G, so every field read unforced by
+construction. P9 was added after the rehearsal and read only off it.
+An audit keyed the checkpoint by the code of seat.py and cubic.py (it
+had been keyed by the cap alone, so an engine repair read stale
+records), stopped the run on a failed control, made the exit status
+hold the run to the record's misses, printed G1 (vacuous here) rather
+than checking it, and printed A over B at rank 1, 0.037 in 1.9
+standard errors: 15/17 (the two P9 halves, as recorded), 325.5 s wall
+(the population rebuilt), 26 MB peak commit under a memory guard, a
+rehearsal at --cap 3000 first.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import hashlib
+import json
+import sys
+import tempfile
+import time
+from math import sqrt
+
+import cubic as C
+from module_law import check, section, CHECKS, NAMES
+
+MISSED = ("P9",)   # the prediction FINDINGS records as failing
+
+
+def _flag(name, default):
+    if name in sys.argv:
+        return sys.argv[sys.argv.index(name) + 1]
+    return default
+
+
+CAP = int(_flag("--cap", 48000))   # the seat population: |d_K| <= CAP
+SPLIT_AB = CAP // 2                # A: |d_K| <= CAP/2, B: the rest
+FIBER_CAP = min(12000, CAP)        # the fiber population
+X = 1000                           # the fibers' cut
+RANKS = 10                         # partial places read per seat field
+_SRC = hashlib.sha1(b"".join(   # the code past the module docstrings
+    # of seat.py and cubic.py
+    open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f),
+         "rb").read().split(b'"""', 2)[2]
+    for f in ("seat.py", "cubic.py"))).hexdigest()[:12]
+CKPT = os.path.join(tempfile.gettempdir(),
+                    "seat_%d_%s.json" % (CAP, _SRC))
+FRESH = "--fresh" in sys.argv
+
+
+# ---------------------------------------------------------------------------
+# classes
+
+def g_mul(k, x, inv):
+    return tuple((k * a) % n for a, n in zip(x, inv))
+
+
+def two_rank(inv):
+    return sum(1 for n in inv if n % 2 == 0)
+
+
+def is_square(x, inv):
+    """x in 2Cl: even at every even invariant."""
+    return all(a % 2 == 0 for a, n in zip(x, inv) if n % 2 == 0)
+
+
+def cell(x, inv):
+    if all(a == 0 for a in x):
+        return "T"
+    return "S" if is_square(x, inv) else "N"
+
+
+# ---------------------------------------------------------------------------
+# one field
+
+def read_field(key, dk):
+    K = C.Field(key, dk)
+    rec = {"d": dk}
+    ok = K.class_group(always_cert=True)
+    rec["ok"] = bool(ok)
+    if not ok:
+        return rec
+    inv = list(K.cl)
+    h = K.h
+    rec.update(inv=inv, h=h, cert=K.cert)
+    fiber = h >= 2 and -dk <= FIBER_CAP
+    seat = two_rank(inv) == 1
+    if not (fiber or seat):
+        return rec
+    zero = tuple(0 for _ in inv)
+    cache = {}
+    unmapped = [0]
+
+    def cls(pl):
+        k_ = (pl.p, pl.kind, pl.r)
+        if k_ not in cache:
+            c = K.place_class(pl)
+            if c is None:
+                unmapped[0] += 1
+            cache[k_] = c
+        return cache[k_]
+
+    B = K.minkowski()
+    ranks = []          # (p, outside 2Cl) for the first RANKS partial places
+    small = []          # (p, deg, outside 2Cl, is the rank-1 place)
+    parity_bad = 0
+    tail = [0, 0]       # partial places 500 <= p < 1000: count, outside
+    raw_s, raw_p, pi_s, pi_p = {}, {}, {}, {}
+    two = None
+    least = None        # (p, outside 2Cl) for the least partial place, 2 in
+    for p in C.PRIMES:
+        need_f = fiber and p < X
+        need_s = seat and (len(ranks) < RANKS or p <= B or p < X)
+        if not (need_f or need_s):
+            break
+        pls = K.places(p)
+        if p == 2:
+            two = "".join(sorted("%d%d" % (pl.deg, pl.e) for pl in pls))
+        deg1 = [pl for pl in pls if pl.deg == 1]
+        unram = all(pl.e == 1 for pl in pls)
+        cs = [cls(pl) for pl in deg1]
+        if any(c is None for c in cs):
+            continue
+        partial = unram and len(deg1) == 1
+        split = unram and len(deg1) == 3
+        if seat:
+            if p <= B:
+                for pl, c in zip(deg1, cs):
+                    small.append([p, 1, not is_square(c, inv), False])
+                if len(deg1) == 1 and len(pls) == 2 and unram:
+                    # the degree-2 place, class -[P1], norm p^2
+                    if p * p <= B:
+                        small.append([p, 2, not is_square(cs[0], inv),
+                                      False])
+            if split and p < X:
+                n_out = sum(not is_square(c, inv) for c in cs)
+                parity_bad += n_out % 2 == 1
+            if partial and least is None:
+                least = [p, not is_square(cs[0], inv)]
+            if partial and p > 2:
+                out = not is_square(cs[0], inv)
+                if len(ranks) < RANKS:
+                    if not ranks:
+                        # both places over the rank-1 prime carry its
+                        # square-ness ([Q] = -[P1]): one datum
+                        for s in small:
+                            if s[0] == p:
+                                s[3] = True
+                    ranks.append([p, out])
+                if 500 <= p < X:
+                    tail[0] += 1
+                    tail[1] += out
+        if need_f and unram:
+            if split:
+                for c in cs:
+                    raw_s[c] = raw_s.get(c, 0) + 1
+            elif partial:
+                raw_p[cs[0]] = raw_p.get(cs[0], 0) + 1
+            # the prime powers of (2), each to its own fiber
+            if split:
+                k = 2
+                while p ** k < X:
+                    for c in cs:
+                        c2 = g_mul(k, c, inv)
+                        pi_s[c2] = pi_s.get(c2, 0.0) + 1 / k
+                    k += 1
+            elif partial:
+                a = cs[0]
+                k = 2
+                while p ** k < X:
+                    if k % 2:
+                        c2 = g_mul(k, a, inv)
+                        pi_p[c2] = pi_p.get(c2, 0.0) + 1 / k
+                    else:
+                        m = k // 2
+                        for c2 in (g_mul(2 * m, a, inv),
+                                   g_mul(-m, a, inv), g_mul(-m, a, inv)):
+                            pi_s[c2] = pi_s.get(c2, 0.0) + 1 / k
+                    k += 1
+            else:                                   # inert
+                k = 3
+                while p ** k < X:
+                    pi_s[zero] = pi_s.get(zero, 0.0) + 3 / k
+                    k += 3
+    rec["unmapped"] = unmapped[0]
+    if fiber:
+        rec["fib"] = {}
+        for name, raw, pi in (("split", raw_s, pi_s),
+                              ("partial", raw_p, pi_p)):
+            rec["fib"][name] = {
+                "raw": [[list(c), v] for c, v in raw.items()],
+                "pi": [[list(c), v] for c, v in pi.items()]}
+    if seat:
+        rec.update(ranks=ranks, small=small, parity_bad=parity_bad,
+                   tail=tail, two=two, B=B, least=least)
+    return rec
+
+
+def population():
+    if not FRESH and os.path.exists(CKPT):
+        with open(CKPT) as fh:
+            print("  read from the checkpoint %s" % CKPT)
+            return json.load(fh)
+    t0 = time.time()
+    F = C.enumerate_fields(CAP)
+    print("  %d complex cubic fields with |d_K| <= %d in %.1f s"
+          % (len(F), CAP, time.time() - t0))
+    recs = []
+    for i, (key, dk) in enumerate(sorted(F.items(),
+                                         key=lambda kv: (-kv[1], kv[0]))):
+        recs.append(read_field(key, dk))
+        if (i + 1) % 1000 == 0:
+            print("    %d fields read, %.0f s" % (i + 1, time.time() - t0),
+                  flush=True)
+    with open(CKPT, "w") as fh:
+        json.dump(recs, fh)
+    print("  read in %.1f s, checkpointed to %s" % (time.time() - t0, CKPT))
+    return recs
+
+
+# ---------------------------------------------------------------------------
+# statistics
+
+def mean_se(v):
+    n = len(v)
+    if n == 0:
+        return float("nan"), float("nan")
+    m = sum(v) / n
+    if n < 2:
+        return m, float("nan")
+    var = sum((x - m) ** 2 for x in v) / (n - 1)
+    return m, sqrt(var / n)
+
+
+def share(v):
+    """(share, binomial se, n) of a list of booleans."""
+    n = len(v)
+    if n == 0:
+        return float("nan"), float("nan"), 0
+    s = sum(v) / n
+    return s, sqrt(max(s * (1 - s), 1e-12) / n), n
+
+
+def fiber_levels(rec, name, which):
+    """Per-field levels of T, S, N for one fiber, raw or raw + powers."""
+    inv = rec["inv"]
+    h = rec["h"]
+    f = rec["fib"][name]
+    cnt = {tuple(c): v for c, v in f["raw"]}
+    if which == "pi":
+        for c, v in f["pi"]:
+            cnt[tuple(c)] = cnt.get(tuple(c), 0) + v
+    tot = sum(cnt.values())
+    if tot == 0:
+        return {}
+    per = tot / h
+    cells = {"T": [], "S": [], "N": []}
+    for c in elements(inv):
+        cells[cell(c, inv)].append(cnt.get(c, 0) / per)
+    return {k: sum(v) / len(v) for k, v in cells.items() if v}
+
+
+def elements(inv):
+    out = [()]
+    for n in inv:
+        out = [e + (i,) for e in out for i in range(n)]
+    return out
+
+
+# ---------------------------------------------------------------------------
+# sections
+
+def section_controls(recs):
+    section("K  CONTROLS")
+    bad = [r["d"] for r in recs if not r["ok"]]
+    print("  fields %d, class groups certified %d, unresolved %d"
+          % (len(recs), len(recs) - len(bad), len(bad)))
+    check("K1 every class group certifies", not bad, str(bad[:5]))
+    um = sum(r.get("unmapped", 0) for r in recs if r["ok"])
+    check("K2 every needed place is placed", um == 0, "unplaced %d" % um)
+    seat = [r for r in recs if r["ok"] and "ranks" in r]
+    pb = sum(r["parity_bad"] for r in seat)
+    print("  seat fields %d; split primes breaking the parity (3): %d"
+          % (len(seat), pb))
+    check("K3 every split prime carries one or three places in 2Cl",
+          pb == 0)
+    n = sum(r["tail"][0] for r in seat)
+    o = sum(r["tail"][1] for r in seat)
+    s = o / n
+    print("  partial places 500 <= p < 1000: %d, outside 2Cl %.4f" % (n, s))
+    check("K4 the far partial places sit at share 1/2 within 0.02",
+          abs(s - 0.5) <= 0.02, "%.4f" % s)
+
+
+def section_fibers(recs):
+    section("F  THE TWO FIBERS AT X = %d, h >= 2, |d_K| <= %d"
+            % (X, FIBER_CAP))
+    fs = [r for r in recs if r["ok"] and "fib" in r]
+    print("  fields %d" % len(fs))
+    out = {}
+    for name in ("split", "partial"):
+        print("  %s fiber" % name)
+        print("    cell   fields   raw               in its prime powers")
+        for c in ("T", "S", "N"):
+            raw, pi = [], []
+            for r in fs:
+                a = fiber_levels(r, name, "raw")
+                b = fiber_levels(r, name, "pi")
+                if c in a and c in b:
+                    raw.append(a[c])
+                    pi.append(b[c])
+            mr, sr = mean_se(raw)
+            mp, sp = mean_se(pi)
+            mv = max(abs(x - y) for x, y in zip(raw, pi))
+            out[(name, c)] = (mr, sr, mp, sp, mv)
+            print("    %s      %4d     %.4f +- %.4f   %.4f +- %.4f"
+                  "   (max per-field move %.4f)"
+                  % (c, len(raw), mr, sr, mp, sp, mv))
+    mv = max(out[("partial", c)][4] for c in ("T", "S", "N"))
+    mm = max(abs(out[("partial", c)][2] - out[("partial", c)][0])
+             for c in ("T", "S", "N"))
+    print("  partial fiber: largest cell move %.4f, largest per-field "
+          "move %.4f" % (mm, mv))
+    # the partial fiber carries no even power by (2), so P1 reads the
+    # size of its odd powers j >= 3, the cube sliver; it is not a test
+    # of (2), which is proved
+    check("P1 the partial fiber's odd powers move its cells by at most "
+          "0.01", mm <= 0.01, "%.4f" % mm)
+    mr, _, mp, _, _ = out[("split", "N")]
+    check("P2 the split fiber's N excess falls by more than half",
+          (mp - 1) < 0.5 * (mr - 1), "%.4f -> %.4f" % (mr, mp))
+    mr, sr, _, _, _ = out[("partial", "N")]
+    check("P3 the partial fiber's raw N level exceeds 1 by > 3 se",
+          mr - 1 > 3 * sr, "%.4f +- %.4f" % (mr, sr))
+
+
+def seat_fields(recs):
+    return [r for r in recs if r["ok"] and "ranks" in r and r["ranks"]]
+
+
+def section_seat(recs):
+    section("S  THE LEAST PARTIAL PLACE, 2-RANK 1")
+    fs = seat_fields(recs)
+    A = [r for r in fs if -r["d"] <= SPLIT_AB]
+    Bp = [r for r in fs if -r["d"] > SPLIT_AB]
+    print("  seat fields: A (|d_K| <= %d) %d, B %d" % (SPLIT_AB, len(A),
+                                                      len(Bp)))
+    print("  rank    A share          B share          pooled")
+    prof = {}
+    for k in range(RANKS):
+        row = []
+        for pop in (A, Bp, A + Bp):
+            v = [r["ranks"][k][1] for r in pop if len(r["ranks"]) > k]
+            row.append(share(v))
+        prof[k + 1] = row
+        print("  %2d      %.3f +- %.3f    %.3f +- %.3f    %.3f +- %.3f"
+              % (k + 1, row[0][0], row[0][1], row[1][0], row[1][1],
+                 row[2][0], row[2][1]))
+    print("  rank 1 by h (A, B):")
+    for h in sorted({r["h"] for r in fs}):
+        a = share([r["ranks"][0][1] for r in A if r["h"] == h])
+        b = share([r["ranks"][0][1] for r in Bp if r["h"] == h])
+        if a[2] + b[2] >= 40:
+            print("    h = %2d   %.3f +- %.3f (%d)   %.3f +- %.3f (%d)"
+                  % (h, a[0], a[1], a[2], b[0], b[1], b[2]))
+    (sa, ea, _), (sb, eb, _), _ = prof[1]
+    print("  rank 1, A over B: %.3f in %.1f standard errors"
+          % (sa - sb, (sa - sb) / sqrt(ea * ea + eb * eb)))
+    check("P4 rank-1 share in [0.80, 0.87] on A and [0.77, 0.84] on B",
+          0.80 <= sa <= 0.87 and 0.77 <= sb <= 0.84,
+          "%.3f, %.3f" % (sa, sb))
+    check("P4 KILL absent: rank-1 share > 3 se above 1/2 on both",
+          sa - 0.5 > 3 * ea and sb - 0.5 > 3 * eb)
+    s10 = prof[RANKS][2][0]
+    check("P5 the pooled share at rank 10 is at least 0.55", s10 >= 0.55,
+          "%.3f" % s10)
+    return fs
+
+
+def section_rank(fs):
+    section("R  RANK, NOT PRIME")
+    print("  rank 1, by its prime:")
+    by = {}
+    for r in fs:
+        by.setdefault(r["ranks"][0][0], []).append(r["ranks"][0][1])
+    span = []
+    for p in sorted(by):
+        s, e, n = share(by[p])
+        if n >= 30:
+            print("    p = %3d   %.3f +- %.3f   (%d)" % (p, s, e, n))
+            if p in (3, 5, 7, 11):
+                span.append(s)
+    sp = max(span) - min(span) if len(span) >= 2 else float("nan")
+    check("P6 the rank-1 shares at p = 3, 5, 7, 11 span at most 0.10",
+          len(span) == 4 and sp <= 0.10, "span %.3f over %d primes"
+          % (sp, len(span)))
+    print("  at fixed p, rank 1 against rank >= 3:")
+    one, deep = [], []
+    for p in (11, 13, 17, 19, 23, 29):
+        a = [o for r in fs for (q, o) in r["ranks"][:1] if q == p]
+        b = [o for r in fs for (q, o) in r["ranks"][2:] if q == p]
+        one += a
+        deep += b
+        sa, ea, na = share(a)
+        sb, eb, nb = share(b)
+        print("    p = %2d   rank 1 %.3f (%d)   rank >= 3 %.3f (%d)"
+              % (p, sa, na, sb, nb))
+    sa, ea, na = share(one)
+    sb, eb, nb = share(deep)
+    z = (sa - sb) / sqrt(ea * ea + eb * eb)
+    print("  pooled over 11 <= p <= 29: rank 1 %.3f +- %.3f (%d), "
+          "rank >= 3 %.3f +- %.3f (%d), z %.2f" % (sa, ea, na, sb, eb, nb, z))
+    check("P6 KILL absent: at the same primes rank 1 exceeds rank >= 3 "
+          "by > 3 se", z > 3, "z %.2f" % z)
+
+
+def section_generation(fs):
+    section("G  GENERATION")
+    forced, unforced, beyond = [], [], []
+    margin = {}
+    for r in fs:
+        k = sum(1 for s in r["small"] if not s[3] and s[2])
+        margin[min(k, 6)] = margin.get(min(k, 6), 0) + 1
+        out1 = r["ranks"][0][1]
+        others = [s for s in r["small"] if not s[3]]
+        in_small = any(s[3] for s in r["small"])
+        if not in_small:
+            beyond.append(out1)
+        if any(s[2] for s in others):
+            unforced.append(out1)
+        else:
+            forced.append(out1)
+    print("  fields by their other places of norm <= B outside 2Cl "
+          "(6 = six or more): %s" % sorted(margin.items()))
+    sf, ef, nf = share(forced)
+    su, eu, nu = share(unforced)
+    sb, eb, nb = share(beyond)
+    print("  forced fields %d (rank-1 share %.3f), unforced %d (%.3f +- "
+          "%.3f)" % (nf, sf, nu, su, eu))
+    print("  of them, rank-1 place above the Minkowski bound: %d (%.3f +- "
+          "%.3f)" % (nb, sb, eb))
+    # G1 is vacuous where no field is forced, so it prints
+    print("  G1: forced fields %d%s" % (nf, "" if nf == 0 else
+          ", rank-1 place outside 2Cl at %.3f" % sf))
+    check("P7 the unforced rank-1 share is at least 0.70", su >= 0.70,
+          "%.3f" % su)
+    check("P7 KILL absent: the unforced share > 3 se above 1/2",
+          su - 0.5 > 3 * eu)
+
+
+def section_two(fs):
+    section("T  HOW 2 SPLITS")
+    names = {"13": "2 = P^3", "11" + "12": "2 = P^2 Q"}
+    by = {}
+    for r in fs:
+        by.setdefault(r["two"], []).append(r["ranks"][0][1])
+    for t in sorted(by):
+        s, e, n = share(by[t])
+        print("  2 as %-10s  %.3f +- %.3f   (%d)"
+              % (names.get(t, "(%s)" % t), s, e, n))
+    s, e, n = share(by.get("13", []))
+    check("P8 where 2 = P^3 the rank-1 share is at least 0.90", s >= 0.90,
+          "%.3f over %d" % (s, n))
+
+
+def section_least(fs):
+    section("W  THE LEAST PARTIAL PLACE, 2 INCLUDED")
+    far = [r for r in fs if -r["d"] > 6000 and r["least"]]
+    near = [r for r in fs if -r["d"] <= 6000 and r["least"]]
+    for name, pop in (("|d_K| <= 6000 (the rehearsal's)", near),
+                      ("|d_K| >  6000", far)):
+        s, e, n = share([r["least"][1] for r in pop])
+        print("  %-34s %.3f +- %.3f   (%d)" % (name, s, e, n))
+    two = [r["least"][1] for r in far if r["least"][0] == 2]
+    odd = [r["least"][1] for r in far if r["least"][0] > 2]
+    s2, e2, n2 = share(two)
+    so, eo, no = share(odd)
+    print("  on |d_K| > 6000: least place over 2 %.3f +- %.3f (%d), over an "
+          "odd prime %.3f +- %.3f (%d)" % (s2, e2, n2, so, eo, no))
+    s, e, n = share([r["least"][1] for r in far])
+    check("P9 on |d_K| > 6000 the least partial place, 2 included, lies "
+          "outside 2Cl at share >= 0.90", s >= 0.90, "%.3f over %d" % (s, n))
+    check("P9 where 2 is partial its place lies outside 2Cl at share >= "
+          "0.90", s2 >= 0.90, "%.3f over %d" % (s2, n2))
+
+
+def as_recorded(missed):
+    """0 iff the checks that failed are exactly the record's misses."""
+    got = {n.split()[0] for n, ok in zip(NAMES, CHECKS) if not ok}
+    print("misses %s, the record's %s: %s" % (
+        ", ".join(sorted(got)) or "none", ", ".join(sorted(missed)) or "none",
+        "as recorded" if got == set(missed) else "NOT AS RECORDED"))
+    return 0 if got == set(missed) else 1
+
+
+def main():
+    t0 = time.time()
+    section("THE POPULATION")
+    recs = population()
+    section_controls(recs)
+    if not all(CHECKS):                  # nothing below is read
+        print("a control failed")
+        raise SystemExit(1)
+    section_fibers(recs)
+    fs = section_seat(recs)
+    section_rank(fs)
+    section_generation(fs)
+    section_two(fs)
+    section_least(fs)
+    print()
+    print("%d/%d checks passed, %.1f s" % (sum(CHECKS), len(CHECKS),
+                                           time.time() - t0))
+    raise SystemExit(as_recorded(MISSED))
+
+
+if __name__ == "__main__":
+    main()

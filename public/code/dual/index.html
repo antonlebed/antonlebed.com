@@ -1,0 +1,1351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>dual.py | Numbers read one place at a time</title>
+<meta name="description" content="dual.py">
+<link rel="alternate" type="text/x-python" href="/code/dual.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>dual.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/dual/#the-leading-tile-lemma">DUAL: The leading-tile lemma</a> (property); <a href="/dual/#the-two-ends-law">DUAL: The two-ends law</a> (criterion); <a href="/dual/#the-crown-exchange">DUAL: The crown exchange</a> (property); <a href="/dual/#the-coset-rigidity">DUAL: The coset rigidity</a> (property); <a href="/dual/#the-affine-class-theorem">DUAL: The affine class theorem</a> (theorem); <a href="/dual/#the-least-lookahead-law">DUAL: The least-lookahead law</a> (theorem; pattern); <a href="/dual/#the-two-ends-exchange">DUAL: The two-ends exchange</a> (criterion); <a href="/dual/#the-structural-split">DUAL: The structural split</a> (property); <a href="/dual/#the-redundant-reader">DUAL: The redundant reader</a> (theorem); <a href="/dual/#the-hedge">DUAL: The hedge</a> (property); <a href="/dual/#what-the-purchase-spends">DUAL: What the purchase spends</a> (property); <a href="/dual/#the-redundancy-leak">DUAL: The redundancy leak</a> (criterion); <a href="/dual/#the-period-law">DUAL: The period law</a> (theorem); <a href="/dual/#the-dual-haar-measure">DUAL: The dual Haar measure</a> (property); <a href="/dual/#each-end-prices-in-its-own-metric">DUAL: Each end prices in its own metric</a> (property).</p><p>Cited on: <a href="/dual/">DUAL</a>.</p><p>To run it: no other script; standard library only.</p></div>
+<pre>"""
+dual.py -- the leading end of base b: what a reader of an integer's
+sign, exponent and first t digits computes, and how it mirrors the
+trailing end.
+
+QUESTION. Base b writes a positive integer n with e + 1 digits, e =
+floor(log_b n). The LEADING numeration reads it top first: its depth-t
+TILE is the set of integers with the same digit count and the same t
+leading digits, so the archimedean window, size, read to t digits. The
+trailing numeration reads the same integer bottom first, and its
+depth-t tile is n mod b^t. A map f of the positive integers is READ AT
+LOOKAHEAD c when, at every depth t, the depth-t tile of f(n) is a
+function of the depth-(t + c) tile of n, over the n with f(n) &gt;= 1
+(zero has no leading tile). Which places does each end read and hide,
+which operations does the leading end read, at what least lookahead,
+and what does it read that no arithmetic map is?
+
+THE ARGUMENT (written before this script).
+  (1) THE TILE LEMMA. If e + 1 &lt;= t the depth-t tile of n is {n}.
+      Otherwise it is [P b^j, (P + 1) b^j) with j = e + 1 - t, P the
+      t-digit prefix: b^j consecutive integers. The tile is DEEP when j
+      &gt;= 1. So a deep tile of span j is a complete residue system mod
+      b^j, and n mod m (m &gt;= 2) is constant on no tile of length &gt;= 2.
+      The predicate [m | n] can still be: a tile shorter than m holding
+      no multiple of m decides it false. At base 2, [4, 6) is the depth-2
+      tile of 4 and 5 and decides [7 | n].
+  (2) THE TWO-ENDS LAW. For m &gt;= 2 and j &gt;= 0: n mod m is a function of
+      the last j digits iff m | b^j, and every residue mod m has the
+      same count on every span-j leading tile iff m | b^j. The first is
+      the suffix read. For the second, a span-j tile is b^j consecutive
+      integers: each residue appears b^j/m times when m | b^j, and
+      otherwise floor(b^j/m) or floor(b^j/m) + 1 times, both counts
+      occurring, on every such tile. So one condition decides both
+      ends: depth j at the trailing end reads m exactly where span j
+      at the leading end hides it exactly. A prime p is read by some
+      trailing depth, and hidden on every deep leading tile, iff p | b.
+      A prime not dividing b is read at neither end.
+  (3) THE CROWN EXCHANGE. b^(e(x) + e(y)) &lt;= xy &lt; b^(e(x) + e(y) + 2),
+      so e(xy) - e(x) - e(y) is 0 or 1: a product's exponent is read
+      from the factors' to one bit. A difference's is not. Two points of
+      one deep tile of span j differ by any integer in (-b^j, b^j), so
+      their difference takes every exponent 0..j - 1, both signs, and
+      0. Hence [x = y], the sign of x - y and e(x - y) are functions of
+      no pair of depth-t tiles once one is deep: equality and near
+      comparison are walled at every depth, while sign and exponent are
+      native. A residue ring reads x - y = 0 exactly, channel by
+      channel, and on a squarefree modulus the ring's support log
+      reaches 0 by a drop to a smaller support. The leading read is a
+      chart of the real logarithm that omits 0, and a difference is the
+      operation that reaches it. Both logarithms are singular at 0; a
+      squarefree residue ring reads through that point, the leading end
+      is walled by it, and the trailing end of Z reads x = y only modulo
+      b^t.
+  (4) THE COSET RIGIDITY. Let a digit set D represent every integer as
+      a finite trailing string, as {-a, ..., a} with 2a + 1 &gt;= b and a
+      &gt;= 1 does: take d = n mod b in D, n' = (n - d)/b, so |n'| &lt;= (|n|
+      + a)/b &lt; |n| while |n| &gt; a/(b - 1), and a/(b - 1) &lt;= a is a
+      digit. Then the completions of a trailing prefix of value V and
+      length t are exactly V + b^t Z, since the extension's digits
+      write any integer z and nothing else. Two such tiles are equal or
+      disjoint, so the tiles are the b-adic balls however redundant D
+      is, and the trailing Lipschitz and division criteria hold
+      unchanged: no digit set buys the trailing end an overlap.
+  (5) THE AFFINE CLASS THEOREM. Let f be nondecreasing with |f(n) -
+      lambda n| &lt;= C, lambda &gt; 0, and Delta = ceil(C/lambda) + 1. f is
+      read at some lookahead iff (SLOPE) lambda = b^r/h for integers r
+      &gt;= 0, h &gt;= 1, and (ALIGNMENT) for some K &gt;= 0 every positive
+      multiple N of h b^K has f(N) &gt;= lambda N &gt; f(N - 1).
+      The crossing of B is n*(B) = min{n : f(n) &gt;= B}, and |n*(B) -
+      B/lambda| &lt;= Delta. The depth-t output boundaries are the
+      integers M b^J with 1 &lt;= M &lt; b^t; for monotone f a depth-(t + c)
+      input tile maps into one depth-t output tile iff no boundary's
+      crossing sits strictly inside it, so f is read at lookahead c
+      iff every crossing n* with f(n* - 1) &gt;= 1 lying in a deep tile of
+      span j = digits(n*) - t - c is its left end, b^j | n*.
+      SLOPE. n*(b^J) has at least J - G digits for a constant G, so its
+      depth-(1 + c) tile has span at least J - G - 1 - c, and b^(J - G -
+      1 - c) divides it. The integer n*(b^J)/b^(J - G - 1 - c) lies within
+      Delta b^(G + 1 + c - J) of the fixed real b^(G + 1 + c)/lambda,
+      which is therefore an integer: lambda is a power of b over an
+      integer, b^r/h once r is taken least.
+      ALIGNMENT, necessity. For J &gt;= r, N0 = M b^J / lambda = h M b^(J -
+      r) is an integer and the crossing lies within Delta of it, with at
+      least t + J - r - 1 digits, so alignment gives b^(J - r - 1 - c) |
+      n*. N0 is a multiple of the same power, and once b^(J - r - 1 - c)
+      &gt; Delta the two coincide. The threshold J0 depends on neither M
+      nor t, so every multiple of h b^(J0 - r) is its own crossing.
+      ALIGNMENT, sufficiency. For J &gt;= r + K the crossing of M b^J is N
+      = h M b^(J - r), with at most digits(h) + t + J - r digits, so at
+      c &gt;= digits(h) its tile has depth at most J - r and N is aligned.
+      For J &lt; r + K the crossing is below h b^(t + K - 1) + Delta + 1,
+      so it is shallow at c &gt;= digits(h) + K + digits(Delta).
+      COROLLARIES. floor((u/v) n) with gcd(u, v) = 1 has lambda = u/v:
+      the slope needs rad(u) | rad(b), and then h = v b^r / u, every
+      multiple N of h has f(N) = lambda N &gt; f(N - 1), and K = 0. So it is
+      read iff rad(u) | rad(b), THE NUMERATOR CRITERION, the denominator
+      free. floor((n + s)/v) with 0 &lt; s &lt; v has f(N - 1) = N/v at every
+      multiple of v, so it fails at every K: read iff s = 0. n + omega is
+      read iff omega = 0. THE SUM CRITERION: f = sum w_i floor(n/v_i),
+      w_i &gt;= 1, l = lcm(v_i), U = sum w_i l/v_i, lambda = U/l. f(n) &lt;=
+      lambda n with equality iff l | n, and f(N - 1) = lambda N - sum w_i
+      when l | N, so the alignment condition holds at K iff l | h b^K iff
+      U | b^(r + K): f is read iff rad(U) | rad(b), with U the numerator
+      over the lcm, unreduced. At (3, 7), base 10, U = 10 and f is read;
+      at (3, 6) U = 3 and lambda = 1/2, so the slope holds and alignment
+      fails at every base prime to 3. g = floor(n/3) + floor(n/7) is no
+      floor((10n + s)/21), which stays within 1 of 10n/21, since g(20) -
+      200/21 = -32/21.
+  (6) THE LEAST LOOKAHEAD. With h as in (5), K least, delta =
+      digits_b(h), mu = v_b(h) and h' = h/b^mu:
+      THE DEEP BOUND. For J &gt;= r + K the crossing of M b^J is N = h M
+      b^(J - r), its depth-(t + c) tile has depth digits(hM) + J - r - t
+      - c, and N is aligned iff c &gt;= D(M) = digits(hM) - t - v_b(hM). For
+      M prime to b, v_b(hM) = mu, so D(M) = delta - mu = digits(h') when
+      the product OVERFLOWS into delta + t digits, and delta - mu - 1
+      otherwise.
+      (v_b is not additive at composite b, 2 * 5 at base 10, which is
+      why M is taken prime to b.) The overflow interval [b^(delta + t -
+      1)/h, b^t) is nonempty iff h &gt; b^(delta - 1), that is iff h' &gt;=
+      2, its length grows with t, and b consecutive integers hold one
+      = 1 mod b. So c_min &gt;= c_deep = digits_b(h') - [h' = 1], a deep
+      misaligned crossing at c_deep - 1 at every large J; and every
+      D(M) &lt;= c_deep.
+      THE SHALLOW LAYER. For J &lt; r + K the crossing is below
+      b^(delta + t + K - 1) + Delta, so below b^(delta + t + K) when
+      Delta &lt;= (b - 1) b^(delta + K), and its tile has depth at most
+      delta + K - c. So c_min &lt;= max(c_deep, delta + K) under that
+      condition.
+      THE LEAST-LOOKAHEAD LAW. When K = 0, b does not divide h, h &gt;= 2
+      and Delta &lt;= (b - 1) b^delta: c_min = digits_b(h).
+      c_scan, the largest lookahead any crossing the script scans
+      needs (PK), is at most c_min. The script counts the cells with
+      c_scan &lt;= max(c_deep, delta + K - 1), which is no bound on c_min.
+  (7) THE STRUCTURAL SPLIT. A map is read at lookahead 0 iff it sends
+      every tile into a tile of the same depth, and nothing there asks
+      for arithmetic. At base 2, x(n) = n XOR 2^(e - 1) (e &gt;= 1) flips
+      the second digit; at base 10, pi(n) applies the digit permutation
+      d -&gt; 9 - d to the second digit; P(n) = b^e is monotone with P(n)/n
+      running over (1/b, 1], so no line is within a bounded distance of
+      it. All three are read at lookahead 0, and x and pi are not
+      monotone. On a finite product of finite fields a map is
+      channel-local iff it is a polynomial (the locality criterion), so
+      on a squarefree residue ring locality and algebra coincide; the
+      trailing end of Z, Z/b^t with t &gt;= 2, is no such ring. At the
+      leading end they part.
+
+  (8) THE REDUNDANT READER (written before its engine). Give the
+      leading end the digits {-a, ..., a}, 2a + 1 &gt; b, and read a
+      string 0.d_1 d_2 ... as y = sum d_i b^-i in [-rho, rho],
+      rho = a/(b - 1) &gt; 1/2. (i) The completions of a depth-t
+      prefix of value V are exactly the closed interval T = [V - rho
+      b^-t, V + rho b^-t]: the j-digit strings write every integer in
+      [-a R_j, a R_j], R_j = (b^j - 1)/(b - 1), by induction (the
+      intervals [bz - a, bz + a] over consecutive z abut since 2a + 1 &gt;=
+      b), and a limit of finite completions is a completion. (ii) T's
+      children are [V + d b^-(t+1) - rho b^-(t+1), V + d b^-(t+1) + rho
+      b^-(t+1)], d = -a..a; the extreme ones reach V +- (a + rho)
+      b^-(t+1) = V +- rho b^-t, so they cover T, and adjacent ones
+      overlap by (2 rho - 1) b^-(t+1) &gt; 0. So every subinterval of T of
+      length at most (2 rho - 1) b^-(t+1) lies in one child: the
+      purchase is a positive Lebesgue number. (iii) Let F map [-rho,
+      rho]^k to [-rho, rho], L-Lipschitz in the sup metric. At
+      lookahead c with b^c &gt;= 2 rho L / (2 rho - 1), if the depth-t
+      output tile holds F of the input's depth-(t + c) tiles, as [-rho,
+      rho] does at t = 0, then F of the depth-(t + 1 + c) tiles lies
+      inside it with diameter at most 2 rho L b^-(t+1+c) &lt;= (2 rho - 1)
+      b^-(t+1), so it fits a child; committing that child keeps the
+      hypothesis. So F is read at lookahead max(0, ceil(log_b L +
+      log_b(2a/(2a - b + 1)))). At (2, 1) this is max(0,
+      ceil(log_2 L) + 1). A scaling y -&gt; (u/v) y with |u/v| &lt;= 1, the
+      mean (x + y)/2 and the product xy/rho are Lipschitz, so the
+      leading end's walls on them dissolve; the order reads do not.
+  (9) THE HEDGE. If moreover a &lt;= b - 1, so rho &lt;= 1, the first nonzero
+      digit d_i of a prefix fixes the sign of every completion: |V| -
+      rho b^-t &gt;= b^-i (1 - rho) &gt;= 0. So the reader that copies the
+      prefix, negated when its first nonzero digit is negative, keeps
+      each output tile equal to |T|: y -&gt; |y| is read at lookahead 0.
+      Sign is read at no depth: the all-zero prefix's tile holds both
+      signs at every depth. At a &gt; b - 1 the first nonzero digit no
+      longer fixes the sign: at (2, 2), 0.1 followed by -2's reaches
+      1/2 - 2 * 1/2 = -1/2.
+  (10) WHAT THE PURCHASE SPENDS. (a) THE ORDER BLUR. Two depth-t tiles
+      of values V &lt; V' have completions in both orders iff their
+      interiors meet, iff V' - V &lt; 2 rho b^-t; the prefixes are b^-t
+      apart at least, so a tile's order is open against the 2K
+      neighbours with K = ceil(2a/(b - 1)) - 1, 2K + 1 tiles in all,
+      three at (2, 1) and (10, 6), one at a non-redundant end. (b) NO
+      NORMALIZATION. The tile of 1 0 ... 0 (t digits) is [1/b - rho
+      b^-t, 1/b + rho b^-t], which holds 1/b in its interior at every
+      depth, so neither the exponent of y nor its standard string is
+      read there.
+      (c) THE LEAK. Read an integer with t + j signed digits: a prefix
+      of value V has the completions V b^j + z, each z in [-a R_j, a
+      R_j] once as a value and N_j(z) times as a string. For p | b,
+      R_j = 1 mod p and z = d_0 mod p, where d_0 is the last digit. So
+      under counting the residues mod p are uniform on the completions
+      iff p | 2a R_j + 1 iff p | 2a + 1, with bias below 1/(2a R_j +
+      1), and under the string measure iff p | 2a + 1, with a bias
+      independent of j. The non-redundant end hides p exactly (the
+      two-ends law); redundancy leaks it unless p | 2a + 1. This
+      spends a finite place's hiding, not archimedean data. (d)
+      DIVISION'S BIT. y -&gt; x/y is read at no depth on a y-prefix of
+      zeros, whose tile holds values of both signs arbitrarily near 0,
+      so the quotient's image is unbounded. Given |y| &gt;= D, D x/y is
+      (1 + 1/D)-Lipschitz on [-rho, rho] x {D &lt;= |y| &lt;= rho} at rho = 1
+      and (8) reads it: the one bit of size the reader cannot make.
+  (11) THE PERIOD LAW. Non-redundant digits, multiplier a &gt;= 2, alpha =
+      floor(log_b a). An input tile [P b^j, (P + 1) b^j) at depth t' =
+      t + l, of span j, maps into a * [P b^j, (P + 1) b^j - 1]; with
+      theta = [a P &gt;= b^(t' + alpha)] the image's depth-t output tiles
+      have length b^J, J = j + Lam, Lam = l + alpha + theta. The tile is
+      an EXCEPTION iff a multiple of b^J lies in (a P b^j, a P b^j + a
+      (b^j - 1)], iff 1 &lt;= s &lt;= a (b^j - 1)/b^j with s = (-a P) mod
+      b^Lam (s = 0 fails, as b^Lam &gt; a). Over b^Lam consecutive P of one
+      class, s runs over the multiples of d = gcd(a, b^Lam), each d
+      times, so the count of exceptions is exactly
+          d * floor(a (b^j - 1)/(b^j d)),
+      a - d when b^j d &gt; a. It is 0 iff d &gt; a (1 - b^-j), and since d |
+      a and 1 - b^-j &gt;= 1/2, iff d = a: iff rad(a) | rad(b) and Lam &gt;=
+      max_p ceil(v_p(a)/v_p(b)), the numerator criterion's multiplier
+      half at its depth threshold. THE COUNTING COLLAPSE: for a prime to
+      b on deep tiles (b^j &gt; a) the count is a - 1 per b^Lam, and the
+      two classes hold the fractions w0 = (b^(alpha+1) - a)/(a (b - 1))
+      and 1 - w0 of the t'-digit P as t' grows, so the density of
+      exceptions tends to (a - 1) b^-(l + alpha) (w0 + (1 - w0)/b) =
+      (1 - 1/a)/b^l, the base and the multiplier's size gone. THE HUMP:
+      weighting each tile by log_b((P + 1)/P), the class fractions are
+      1 - xi and xi, xi = {log_b a}, and the density tends to (1 - 1/a)
+      H(xi)/b^l, H(xi) = b^(xi-1) (1 + (b - 1)(1 - xi)); ln H is concave and
+      0 at xi = 0 and 1, so H &gt; 1 inside.
+  (12) THE DUAL HAAR. The mantissas form the compact group R_&gt;0/b^Z,
+      whose Haar measure is log-uniform, and the mantissas of the
+      depth-t leading tiles with prefix P lie in the arc
+      [P, P + 1) b^Z, of Haar log_b((P + 1)/P), Benford's law. The
+      arcs have unequal Haar, which is why a density at the leading
+      end names its measure; residue classes are cosets of equal Haar,
+      which is why none at the trailing end needs to. An arc's Haar is
+      invariant under multiplication by every q &gt; 0 because log is a
+      homomorphism; counting
+      is not.
+HAND-ATTACK (on paper, before any engine code).
+  - Crossings of g = floor(n/3) + floor(n/7) at base 10: l = 21, U =
+    10, lambda = 10/21, r = 1, h = 21. n*(M 10^J) = 21 M 10^(J - 1) for
+    J &gt;= 1. At t = 1, M = 5, J = 1: n* = 105, three digits, depth at
+    lookahead 1 is 3 - 1 - 1 = 1, and 10 | 105 fails: a witness at c =
+    1. At c = 2 the depth is 0. delta = 2, h' = 21, c_deep = 2, K = 0,
+    Delta = ceil((32/21)/(10/21)) + 1 = 5 &lt;= 9 * 100, so the law gives
+    c_min = 2.
+  - floor(n/3) at base 10: h = 3, delta = 1, law c_min = 1. floor(2n)
+    at base 2: lambda = 2 = 2/1, h = 1, h' = 1, c_deep = 0; the shallow
+    layer J &lt; r = 1 has crossing ceil(M/2), fewer digits than M, depth
+    at most 0 at c = 0; c_min = 0.
+  - floor(n/9) at base 2: h = 9, delta = 4, h' = 9, c_deep = 4; overflow
+    needs 9M &gt;= 2^(t + 3) with M odd and t-digit: t = 1 (M = 1) gives 9 &lt;
+    16; t = 2 (M = 3) 27 &lt; 32; t = 3 (M = 5, 7): 45, 63 &lt; 64; t = 4, M =
+    15: 135 &gt;= 128. So the deep witness at c = 3 first appears at t = 4.
+  - The digit count of the crossing in (5)'s necessity: N0 &gt;= b^(t - 1 +
+    J - r) and N0 - Delta can lose one digit, hence t + J - r - 1.
+  - (3) at base 2, span 6: the tile [64, 128) holds pairs at every
+    difference -63..63, exponents 0..5.
+
+PREDICTIONS (frozen before any engine code).
+  C0 CONTROLS, read first. The brute tile reader (every n below b^E,
+     grouped by input tile, outputs compared by tile) finds floor(2n)
+     read at c = 0 and floor(3n) at no c &lt;= 3 at base 2, and floor(n/3)
+     read at c = 1 but not 0 and floor((n + 1)/3) at no c &lt;= 3 at base
+     10, at depths t = 1..3. The crossing reader returns the same
+     verdicts, and agrees with the brute reader at every sum cell below
+     at depths 1 and 2 and c &lt;= 3 over the brute range. Kill: any
+     disagreement.
+  PT The leading-tile lemma: every depth-t tile of n below b^E, t = 1..4, at
+     bases 2, 3 and 10 is an interval of the stated length. [4, 6) is
+     a depth-2 tile at base 2 holding no multiple of 7. No deep tile in
+     range decides n mod m for m = 2..12. Kill: one tile off.
+  PH The two-ends law at bases 2..12, m = 2..30, j = 0..4: uniform
+     residue counts on every span-j tile with prefix of 1 or 2 digits
+     iff m | b^j, and n mod m a function of the last j digits over n &lt;
+     b^(j + 3) iff m | b^j. Kill: one (b, m, j) where the three
+     disagree.
+  PZ The crown exchange: e(xy) - e(x) - e(y) in {0, 1} for every x, y
+     below 2^10 at base 2, 3^7 at base 3 and 500 at base 10; the
+     differences within the depth-6 tile [64, 128) at base 2 and the
+     depth-3 tile [1000, 2000) at base 10 realize every exponent below
+     the depth, both signs, and 0. Kill: a third value or a missing one.
+  PC The coset rigidity at (b, a) = (2, 1), (3, 1), (4, 2), (10, 5),
+     (10, 6): the digit recursion writes every |n| &lt;= 10^4 and reads it
+     back; for every trailing prefix of length t &lt;= 3, the values of its
+     extensions by s = 5 more digits contain every point of V + b^t Z
+     within b^(t + 3) of V and nothing off it. Kill: one point missed or
+     one off the coset.
+  PA The affine class, at the 171 cells of 55 pairs 2 &lt;= v1 &lt; v2 &lt;= 12
+     at bases 2, 6, 10 and six weighted sums at base 10 ((2, 3)(1, 7),
+     (3, 3)(1, 7), (2, 3)(2, 7), (1, 2)(1, 5)(1, 10), (1, 2)(1, 3)(1, 7),
+     (1, 3)(1, 7)(1, 21) as (w, v)): the crossing reader (least c &lt;= 10
+     with no misaligned deep crossing at t = 1..3 and J &lt;= c + 8, or a
+     witness at every c &lt;= 10) agrees with rad(U) | rad(b) at every
+     cell, and so does the alignment condition read directly (some K &lt;=
+     8 at the first 400 multiples of h b^K; no K where the slope fails).
+     The count of cells where the reduced numerator is smooth and U is
+     not is at least 1 at bases 2 and 10. floor((u/v) n), gcd(u, v) =
+     1, u, v &lt;= 12, at bases 2, 6, 10: read iff rad(u) | rad(b).
+     floor((n + s)/v), v = 3, 5, 7, and n + omega, |omega| &lt;= 3, at bases
+     2 and 10: read iff s = 0 and iff omega = 0. For g at base 10 the
+     brute reader at t = 1..3 finds exceptions at c = 0, 1 and none at c
+     = 2, and v_10(n*(10^J)) = J - 1 at J = 1..14. At base 2, where U =
+     10 is rough, v_2(n*(2^J)) does not climb: kill if it is at least J
+     - 10 at some J in 20..40. Kill: one cell off.
+  PK The least lookahead, at every read cell of PA, scanning t = 1..
+     max(3, t_ov) and J = 0..r + K + 6, t_ov the first t whose overflow
+     interval holds a unit: c_scan &gt;= c_deep, with a deep misaligned
+     crossing exhibited at c_deep - 1 where c_deep &gt;= 1; c_scan =
+     digits_b(h) at every cell with K = 0, b not dividing h, h &gt;= 2 and
+     Delta &lt;= (b - 1) b^delta; c_scan &lt;= max(c_deep, delta + K) wherever
+     Delta &lt;= (b - 1) b^(delta + K). The counts of cells under each
+     clause, and of cells at max(c_deep, delta + K - 1), are printed,
+     not predicted. floor(n/3) + floor(n/9) at base 2 reads c_scan = 4
+     with its deep witness at t = 4, not below. Kill: one cell off a
+     proved clause.
+  PS The structural split: x, pi and P read at c = 0 by the brute tile
+     reader at depths 1..4; x and pi each have a printed descent n &lt; n'
+     with f(n) &gt; f(n'); P(n)/n takes a value within 0.01 of 1/b and the
+     value 1. Kill: an exception at c = 0.
+
+  PR THE REDUNDANT READER at (b, a) = (2, 1), (3, 2), (4, 2), (10, 6),
+     (10, 9). R0, read first, the positive control: at balanced ternary
+     (3, 1), where 2 rho - 1 = 0, the reader of y -&gt; y/2 at the stream
+     1 0 0 ... is stuck at every depth to 12, and at (2, 1) it is not.
+     R1: the j-digit values fill [-a R_j, a R_j] for j &lt;= 5, and the
+     children overlap by exactly (2 rho - 1) b^-(t+1). R2: the reader
+     at lookahead max(0, ceil(log_b L + log_b(2a/(2a - b + 1)))) never
+     sticks and nests, over 200 random streams to depth 30 (exact
+     rationals), for y -&gt; y/3, y -&gt; 2y/5 and y -&gt; -y/7, the mean (x +
+     y)/2 and the product xy/rho. Kill: a stick at the formula, or R0
+     not sticking at (3, 1).
+  PE THE HEDGE at (2, 1), (3, 1), (10, 6), (10, 9): every prefix to depth
+     5 (depth 3 at base 10) maps its tile onto its copy's tile, negated
+     at a negative first nonzero digit; the all-zero tile holds both
+     signs at every depth. At (2, 2) a prefix with first digit 1 holds a
+     negative value. Kill: one prefix off.
+  PP THE PURCHASE. (a) Over all prefix pairs at depth t &lt;= 3, both
+     orders are realized exactly when V' - V &lt; 2 rho b^-t, and each
+     tile's open-order set has 2K + 1 members away from the ends, three
+     at (2, 1) and (10, 6), one at a non-redundant end (standard digits
+     0..b - 1); (b) the tile of 1 0 ... 0 holds values on both sides of
+     1/b at depth 1..10; (c) at every b = 2..10 and a with 2a + 1 &gt; b
+     and a &lt;= b - 1, p | b, j = 1..4: counting uniform iff string
+     uniform iff p | 2a + 1, and the counting bias at most 1/(2a R_j +
+     1); (d) the quotient's image over the all-zero y-tile is unbounded
+     (it holds +-b^t at depth t), and D x/y with D = 1/2 is read at
+     (2, 1) by R2's reader at its formula. Kill: one case off.
+  PM THE PERIOD LAW over bases 2, 6, 10, multipliers 2..12 and 25, l =
+     1, 2 (3 at base 2), j = 1, 2, 4 (j = 1, 2 at base 10), both
+     classes, three phases each: the exception count over b^Lam
+     consecutive class members equals d floor(a (b^j - 1)/(b^j d))
+     exactly, and it is 0 iff a | b^Lam. The counting density at (b, a,
+     l, j) = (10, 3, 1, 2), (6, 5, 1, 2), (2, 3, 1, 2), (10, 7, 2, 1)
+     is within (2a + 2)/N of (1 - 1/a)/b^l over all N t'-digit P at
+     the largest t' run; the log-weighted density comes within 2% of
+     (1 - 1/a) H(xi)/b^l there. H &gt; 1 at 99 interior grid points at b =
+     2, 3, 10. The Haar positive control: leading-digit 1 carries
+     log_b 2; the counting mass of that tile moves under x -&gt; 3x.
+     Kill: one count off the formula, a zero off a | b^Lam, a density
+     outside its band.
+FINDINGS (entered after the run; prints copied from it).
+  - C0 holds, read first: floor(2n) at c = 0 and floor(n/3) at c = 1
+    by both readers, floor(3n) and floor((n + 1)/3) at no c &lt;= 3. The
+    two readers agree at 1368 of 1368 (sum cell, t, c).
+  - PT holds: every tile at bases 2, 3, 10 is [P b^j, (P + 1) b^j), and
+    the depth-2 tile of 4 at base 2 is [4, 5].
+  - PH holds at all 1595 (b, m, j). The trailing half ran on the pairs
+    n, n + k b^j with n &lt; min(b^j, 60) and k &lt;= 3, not on every n &lt;
+    b^(j + 3): at b = 12, j = 4 that range is 3.6 * 10^7.
+  - PZ holds: e(xy) - e(x) - e(y) takes [0, 1] at all three bases; the
+    tiles [64, 128) and [1000, 2000) give difference exponents [0..5]
+    and [0, 1, 2], signs -1, 0, 1; the prediction's "depth" of these
+    tiles is their span, 6 and 3.
+  - PC holds at all five systems. "Nothing off the coset" is the
+    extension's form, V + b^t z, and was not enumerated.
+  - PA holds: 42 of 171 cells read, the reader and the alignment
+    condition each agreeing with rad(U) | rad(b) at 171 of 171. The
+    crossing reader scans J over 0..25, 0..15 and 0..14 at bases 2, 6
+    and 10, not J &lt;= c + 8; three of the six base-10 sums are
+    weighted. The
+    converse failures are floor(n/3) + floor(n/6) and floor(n/6) +
+    floor(n/12) at bases 2 and 10, 3 floor(n/3) + floor(n/7) at base
+    10, and none at base 6. 273 maps floor((u/v) n) read iff rad(u) |
+    rad(b); the phases and shifts read only at s = 0 and omega = 0. g
+    at base 10, n &lt; 10^6: 1552, 1103 and 0 exceptions at c = 0, 1, 2.
+    v_10(n*(10^J)) = J - 1 at J = 1..14; v_2(n*(2^J)) is 1 at J = 1 mod
+    4 and 0 otherwise over J = 1..40. g(20) - 200/21 = -32/21.
+  - PK holds: c_scan &gt;= c_deep at all 42 read cells with a deep
+    crossing needing exactly c_deep wherever c_deep &gt;= 1; c_scan =
+    digits_b(h) at all 30 law cells, the law's c_min bounding it from
+    above; all 42 cells meet the
+    shallow condition and sit at or under max(c_deep, delta + K). The
+    sharper max(c_deep, delta + K - 1) holds at 42, with equality at 41.
+    floor(n/3) + floor(n/9) at base 2: h = 9, c_deep = 4, t_ov = 4,
+    c_scan = 4, decided by the crossing 135 of 15 * 2^2 at t = 4; to
+    depth 3 the scan reads 3.
+  - PS holds: x, pi and P have 0 exceptions at c = 0 over depths 1..4;
+    x descends at (2, 3), pi at (10, 11); P(n)/n is 0.1010 at 99 and
+    1 at 100.
+  - PP (a)'s open-order sizes are pooled over the depths, since at
+    depth 1 no tile lies clear of the ends.
+  - PR holds. R0, read first: balanced ternary commits 0 digits of y/2
+    at the stream 1 0 0 ... at lookahead 3; signed binary commits 12 of
+    12 at lookahead 0. R1 holds at all five systems. R2: no stick at the
+    formula's lookahead, which is 0 for y/3 at (2, 1), 1 for y/3 at
+    (10, 6), 1 for the mean everywhere and 2 for xy/rho at (2, 1), (3,
+    2), (4, 2). Base 10 ran 40 random streams per map, not 200.
+  - PE holds at all four systems; at (2, 2) the tile of the prefix 1 is
+    [-1/2, 3/2].
+  - PP holds. (a) Every tile clear of the ends has an open-order set of
+    3 at (2, 1), (10, 6) and (3, 2), and the standard end's tiles meet
+    only at endpoints; the pairs read are those within 3K + 3 tiles of
+    each other, at depths up to 3, and up to 2 at (10, 6). The iff
+    itself is the interval algebra of (8)(i), which the check
+    restates rather than tests. (b) holds at depths
+    1..10. (c) holds at all 132 (b, a, p, j). (d) the quotient reaches
+    +-2^t on the all-zero tile, and D x/y at D = 1/2 is read at
+    lookahead 3 on 100 streams with y &gt;= 1/2.
+  - PM holds: 1257 cases, every count on the formula and every zero
+    exactly where a | b^Lam. The densities: counting 0.066667, 0.133333,
+    0.333336 and 0.008571 against 0.066667, 0.133333, 0.333333 and
+    0.008571 (off by at most 0.3 exceptions); log-weighted 0.114118,
+    0.167642, 0.353762 and 0.014364 against 0.114118, 0.167642,
+    0.353759 and 0.014365. The Haar control, run at bases 7 and 10
+    since at bases 2 and 3 tripling moves no leading digit: digit 1
+    carries 0.356207 and 0.301030, the same to 1e-5 after x -&gt; 3x
+    (asserted),
+    while counting moves 0.1667 to 0.3889 and 0.1111 to 0.3704.
+
+SETTLED ON AUDIT (the argument above stays as frozen; these replace it).
+  - (3) holds on a deep tile paired with itself, not on every pair of
+    tiles: two far tiles fix the sign of x - y. [x = y], sign(x - y)
+    and e(|x - y|) take every value on (T, T), T deep, at every depth.
+  - (10)(d) D x/y is (1 + rho/D)-Lipschitz for general rho; 1 + 1/D is
+    the rho = 1 case the script runs.
+  - (11) needs l &gt;= 1 and j &gt;= 1. At l = 0 (theta = 0) b^Lam = 1 is not
+    above a and s = 0 can be an exception (b = 10, a = 3, j = 1: all
+    three m = 1, 2, 3); at j = 0 no tile is an exception while a need
+    not divide b^Lam. The script runs only l &gt;= 1, j &gt;= 1.
+  - (6)'s sharper max(c_deep, delta + K - 1) is read at t &lt;= max(3,
+    t_ov) and J &lt;= r + K + 6 only.
+
+RUN RECORD: 36/36 checks, 21.7 s, peak commit 133 MB under a memory guard.
+"""
+
+import bisect
+import math
+import time
+
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tail = f"  ({detail})" if detail else ""
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}{tail}")
+
+
+# ---- digits ----
+
+<span id="ndig"></span>def ndig(n, b):
+    if b == 2:
+        return n.bit_length()
+    if b == 10:
+        return len(str(n)) if n else 0
+    d = 0
+    while n:
+        n //= b
+        d += 1
+    return d
+
+
+<span id="vb"></span>def vb(n, b):
+    k = 0
+    while n % b == 0:
+        n //= b
+        k += 1
+    return k
+
+
+<span id="primes_of"></span>def primes_of(n):
+    ps, p = set(), 2
+    while p * p &lt;= n:
+        while n % p == 0:
+            ps.add(p)
+            n //= p
+        p += 1
+    if n &gt; 1:
+        ps.add(n)
+    return ps
+
+
+<span id="smooth"></span>def smooth(u, b):
+    return primes_of(u) &lt;= primes_of(b)
+
+
+<span id="tile_key"></span>def tile_key(n, b, t):
+    d = ndig(n, b)
+    return d, n // b ** max(0, d - t)
+
+
+# ---- maps: (f, p, q, C) with lambda = p/q and |f(n) - lambda n| &lt;= C ----
+
+<span id="sum_map"></span>def sum_map(terms):
+    l = math.lcm(*[v for _, v in terms])
+    U = sum(w * l // v for w, v in terms)
+    g = math.gcd(U, l)
+    C = (sum(w * (v - 1) * (l // v) for w, v in terms), l)
+    return Map(lambda n: sum(w * (n // v) for w, v in terms),
+               U // g, l // g, C), U
+
+
+<span id="frac_map"></span>def frac_map(u, v):
+    return Map(lambda n: u * n // v, u, v, (v - 1, v))
+
+
+<span id="phase_map"></span>def phase_map(s, v):
+    return Map(lambda n: (n + s) // v, 1, v, (max(s, v - s), v))
+
+
+<span id="shift_map"></span>def shift_map(w):
+    return Map(lambda n: n + w, 1, 1, (abs(w), 1))
+
+
+<span id="Map"></span>class Map:
+    """f nondecreasing, lambda = p/q, |f(n) - lambda n| &lt;= C = Cn/Cd."""
+
+    def __init__(self, f, p, q, C):
+        self.f, self.p, self.q = f, p, q
+        Cn, Cd = C
+        # Delta = ceil(C/lambda) + 1
+        self.D = -(-(Cn * q) // (Cd * p)) + 1
+
+    def crossing(self, B):
+        f = self.f
+        n = max(1, B * self.q // self.p - self.D - 1)
+        while n &gt; 1 and f(n - 1) &gt;= B:
+            n -= 1
+        while f(n) &lt; B:
+            n += 1
+        return n
+
+    def c_need(self, b, t, M, J):
+        """Least c at which the crossing of M b^J is no depth-t witness."""
+        n = self.crossing(M * b ** J)
+        if n &lt;= 1 or self.f(n - 1) &lt; 1:
+            return 0, n
+        return max(0, ndig(n, b) - t - vb(n, b)), n
+
+    def scan(self, b, ts, Js):
+        best, wit = 0, None
+        for t in ts:
+            for M in range(1, b ** t):
+                if M % b == 0:
+                    continue
+                for J in Js:
+                    c, n = self.c_need(b, t, M, J)
+                    if c &gt; best:
+                        best, wit = c, (t, M, J, n)
+        return best, wit
+
+    def slope(self, b):
+        """(r, h) with lambda = b^r / h, r least, or None."""
+        r = 0
+        while b ** r % self.p:
+            r += 1
+            if r &gt; 64:
+                return None
+        return r, self.q * b ** r // self.p
+
+    def alignment_K(self, b, Kmax=8, count=400):
+        sp = self.slope(b)
+        if sp is None:
+            return None
+        r, h = sp
+        f, p, q = self.f, self.p, self.q
+        for K in range(Kmax + 1):
+            step = h * b ** K
+            if all(f(N) * q &gt;= p * N &gt; f(N - 1) * q
+                   for N in range(step, step * (count + 1), step)):
+                return K
+        return None
+
+
+<span id="J_range"></span>def J_range(b):
+    return range(0, {2: 26, 6: 16, 10: 15}[b])
+
+
+# ---- the brute tile reader ----
+
+<span id="brute_exceptions"></span>def brute_exceptions(vals, b, t, c):
+    img = {}
+    for n in range(1, len(vals)):
+        y = vals[n]
+        if y &gt;= 1:
+            img.setdefault(tile_key(n, b, t + c), set()).add(
+                tile_key(y, b, t))
+    return sum(1 for s in img.values() if len(s) &gt; 1)
+
+
+<span id="values"></span>def values(f, b, E):
+    return [0] + [f(n) for n in range(1, b ** E)]
+
+
+<span id="cells"></span>def cells():
+    out = []
+    for b in (2, 6, 10):
+        for v1 in range(2, 13):
+            for v2 in range(v1 + 1, 13):
+                out.append((b, [(1, v1), (1, v2)]))
+    for terms in ([(2, 3), (1, 7)], [(3, 3), (1, 7)], [(2, 3), (2, 7)],
+                  [(1, 2), (1, 5), (1, 10)], [(1, 2), (1, 3), (1, 7)],
+                  [(1, 3), (1, 7), (1, 21)]):
+        out.append((10, terms))
+    return out
+
+
+<span id="name_of"></span>def name_of(terms):
+    return " + ".join((f"{w} " if w &gt; 1 else "") + f"floor(n/{v})"
+                      for w, v in terms)
+
+
+# ---- C0 ----
+
+<span id="section_0"></span>def section_0():
+    print("C0  controls: the brute reader and the crossing reader")
+    ok = True
+    rows = [("floor(2n)", 2, frac_map(2, 1), 0, 12),
+            ("floor(3n)", 2, frac_map(3, 1), None, 12),
+            ("floor(n/3)", 10, frac_map(1, 3), 1, 5),
+            ("floor((n+1)/3)", 10, phase_map(1, 3), None, 5)]
+    for name, b, m, want, E in rows:
+        vals = values(m.f, b, E)
+        got = next((c for c in range(4)
+                    if all(brute_exceptions(vals, b, t, c) == 0
+                           for t in (1, 2, 3))), None)
+        best, _ = m.scan(b, (1, 2, 3), J_range(b))
+        cr = best if best &lt;= 10 else None
+        print(f"     {name:15s} base {b:2d}: brute least c = {got}, "
+              f"crossing reader {cr} (want {want})")
+        ok &amp;= got == want and cr == want
+    check("the four controls read as predicted by both readers", ok)
+
+    agree = total = 0
+    for b, terms in cells():
+        m, U = sum_map(terms)
+        E = {2: 13, 6: 5, 10: 4}[b]
+        vals = values(m.f, b, E)
+        top = b ** E
+        for t in (1, 2):
+            needs = []
+            for M in range(1, b ** t):
+                if M % b == 0:
+                    continue
+                J = 0
+                while M * b ** J &lt;= vals[-1]:
+                    cn, n = m.c_need(b, t, M, J)
+                    if n &lt; top:
+                        needs.append(cn)
+                    J += 1
+            for c in range(4):
+                brute_ok = brute_exceptions(vals, b, t, c) == 0
+                total += 1
+                agree += brute_ok == all(x &lt;= c for x in needs)
+    check("brute and crossing readers agree at every sum cell, t = 1, 2, "
+          "c &lt;= 3", agree == total, f"{agree} of {total}")
+
+
+# ---- PT ----
+
+<span id="section_t"></span>def section_t():
+    print("PT  the leading-tile lemma")
+    ok = True
+    for b, E in ((2, 12), (3, 7), (10, 4)):
+        for t in range(1, 5):
+            tiles = {}
+            for n in range(1, b ** E):
+                tiles.setdefault(tile_key(n, b, t), []).append(n)
+            for (d, P), ns in tiles.items():
+                j = max(0, d - t)
+                ok &amp;= ns == list(range(P * b ** j, (P + 1) * b ** j))
+                if len(ns) &gt;= 2:
+                    ok &amp;= all(len({n % m for n in ns}) &gt; 1
+                              for m in range(2, 13))
+    check("every tile is [P b^j, (P + 1) b^j), j = max(0, e + 1 - t), "
+          "and no tile of length &gt;= 2 decides n mod m, m = 2..12", ok)
+    t4 = [n for n in range(1, 64) if tile_key(n, 2, 2) == tile_key(4, 2, 2)]
+    print(f"     base 2, the depth-2 tile of 4: {t4}")
+    check("[4, 6) is a depth-2 tile holding no multiple of 7",
+          t4 == [4, 5] and all(n % 7 for n in t4))
+
+
+# ---- PH ----
+
+<span id="section_h"></span>def section_h():
+    print("PH  the two-ends law")
+    bad = []
+    n_cases = 0
+    for b in range(2, 13):
+        for m in range(2, 31):
+            for j in range(5):
+                L = b ** j
+                pred = L % m == 0
+                lead = True
+                for P in range(1, b * b):
+                    A = P * L
+                    cnt = {(A + L - 1 - r) // m - (A - 1 - r) // m
+                           for r in range(m)}
+                    lead &amp;= len(cnt) == 1
+                trail = all((n + k * L) % m == n % m
+                            for n in range(min(L, 60)) for k in (1, 2, 3))
+                n_cases += 1
+                if not pred == lead == trail:
+                    bad.append((b, m, j))
+    print(f"     {n_cases} (b, m, j) read; disagreements: {bad[:5]}")
+    check("uniform on every span-j leading tile with a one- or two-digit "
+          "prefix iff m | b^j iff the last j digits read n mod m", not bad)
+
+
+# ---- PZ ----
+
+<span id="section_z"></span>def section_z():
+    print("PZ  the crown exchange")
+    ok = True
+    for b, X in ((2, 2 ** 10), (3, 3 ** 7), (10, 500)):
+        pw = [1]
+        while pw[-1] &lt;= X * X:
+            pw.append(pw[-1] * b)
+        ex = [0] + [ndig(n, b) - 1 for n in range(1, X)]
+        seen = set()
+        for x in range(1, X):
+            for y in range(1, X):
+                seen.add(bisect.bisect_right(pw, x * y) - 1 - ex[x] - ex[y])
+        print(f"     base {b:2d}, x, y &lt; {X}: e(xy) - e(x) - e(y) takes "
+              f"{sorted(seen)}")
+        ok &amp;= seen == {0, 1}
+    check("a product's exponent is the factors' to one bit", ok)
+    ok = True
+    for b, lo, j in ((2, 64, 6), (10, 1000, 3)):
+        diffs = {x - y for x in range(lo, lo + b ** j)
+                 for y in range(lo, lo + b ** j)}
+        exps = {ndig(abs(d), b) - 1 for d in diffs if d}
+        signs = {(d &gt; 0) - (d &lt; 0) for d in diffs}
+        print(f"     base {b:2d}, tile [{lo}, {lo + b ** j}): difference "
+              f"exponents {sorted(exps)}, signs {sorted(signs)}")
+        ok &amp;= exps == set(range(j)) and signs == {-1, 0, 1}
+    check("one deep tile holds every difference exponent below its span, "
+          "both signs and 0", ok)
+
+
+# ---- PC ----
+
+<span id="write_digits"></span>def write_digits(n, b, a):
+    ds = []
+    while not -a &lt;= n &lt;= a:
+        d = n % b
+        if d &gt; a:
+            d -= b
+        ds.append(d)
+        n = (n - d) // b
+    if n:
+        ds.append(n)
+    return ds
+
+
+<span id="section_c"></span>def section_c():
+    print("PC  the coset rigidity")
+    ok = True
+    for b, a in ((2, 1), (3, 1), (4, 2), (10, 5), (10, 6)):
+        rt = True
+        for n in range(-10 ** 4, 10 ** 4 + 1):
+            ds = write_digits(n, b, a)
+            rt &amp;= (sum(d * b ** k for k, d in enumerate(ds)) == n
+                   and all(-a &lt;= d &lt;= a for d in ds))
+        Z = {0}
+        for k in range(5):
+            Z = {z + d * b ** k for z in Z for d in range(-a, a + 1)}
+        full = all(z in Z for z in range(-b ** 3, b ** 3 + 1))
+        eq = True
+        for t in (1, 2, 3):
+            pref = {0}
+            for k in range(t):
+                pref = {v + d * b ** k for v in pref
+                        for d in range(-a, a + 1)}
+            X = b ** (t + 3)
+            for V in pref:
+                for x in range(V - X, V + X + 1, b ** t):
+                    eq &amp;= (x - V) // b ** t in Z
+                # nothing off the coset: the extension adds b^t z
+        print(f"     (b, a) = ({b:2d}, {a}): round trip {rt}; five-digit "
+              f"extensions hold [-b^3, b^3]: {full}; every prefix's "
+              f"completions reach its coset within b^(t+3): {eq}")
+        ok &amp;= rt and full and eq
+    check("the completions of every trailing prefix of length &lt;= 3 "
+          "reach its coset within b^(t+3)", ok)
+
+
+# ---- PA ----
+
+READ = []
+
+
+<span id="section_a"></span>def section_a():
+    print("PA  the affine class")
+    t0 = time.time()
+    agree = agree_K = 0
+    conv = {2: [], 6: [], 10: []}
+    for b, terms in cells():
+        m, U = sum_map(terms)
+        best, wit = m.scan(b, (1, 2, 3), J_range(b))
+        reader = best &lt;= 10
+        crit = smooth(U, b)
+        K = m.alignment_K(b)
+        agree += reader == crit
+        agree_K += (K is not None) == crit
+        if m.slope(b) is not None and not crit:
+            conv[b].append(name_of(terms))
+        if crit:
+            READ.append((b, terms, best))
+    n = len(cells())
+    print(f"     {n} cells, {len(READ)} read; converse failures (slope "
+          f"holds, U rough): " + "; ".join(f"base {b}: {len(v)} {v}"
+                                           for b, v in conv.items()))
+    check("the crossing reader agrees with rad(U) | rad(b) at every cell",
+          agree == n, f"{agree} of {n}")
+    check("the alignment condition read directly agrees at every cell",
+          agree_K == n, f"{agree_K} of {n}")
+    check("converse failures exist at bases 2 and 10",
+          conv[2] and conv[10])
+
+    ok = True
+    cnt = 0
+    for b in (2, 6, 10):
+        for u in range(1, 13):
+            for v in range(1, 13):
+                if math.gcd(u, v) != 1:
+                    continue
+                m = frac_map(u, v)
+                best, _ = m.scan(b, (1, 2), J_range(b))
+                ok &amp;= (best &lt;= 10) == smooth(u, b)
+                cnt += 1
+    check("floor((u/v) n) is read iff rad(u) | rad(b)", ok,
+          f"{cnt} maps at bases 2, 6, 10")
+    ok = True
+    for b in (2, 10):
+        for v in (3, 5, 7):
+            for s in range(v):
+                best, _ = phase_map(s, v).scan(b, (1, 2), J_range(b))
+                ok &amp;= (best &lt;= 10) == (s == 0)
+        for w in range(-3, 4):
+            best, _ = shift_map(w).scan(b, (1, 2), J_range(b))
+            ok &amp;= (best &lt;= 10) == (w == 0)
+    check("floor((n + s)/v) is read iff s = 0 and n + omega iff omega = 0",
+          ok)
+
+    g, U = sum_map([(1, 3), (1, 7)])
+    vals = values(g.f, 10, 6)
+    exc = [sum(brute_exceptions(vals, 10, t, c) for t in (1, 2, 3))
+           for c in range(3)]
+    print(f"     g = floor(n/3) + floor(n/7), base 10, n &lt; 10^6: brute "
+          f"exceptions at c = 0, 1, 2: {exc}")
+    check("g is read at c = 2 and not at c = 0 or 1 (n &lt; 10^6, t &lt;= 3)",
+          exc[0] &gt; 0 and exc[1] &gt; 0 and exc[2] == 0)
+    v10 = [vb(g.crossing(10 ** J), 10) for J in range(1, 15)]
+    print(f"     v_10(n*(10^J)), J = 1..14: {v10}")
+    check("v_10(n*(10^J)) = J - 1", v10 == list(range(14)))
+    v2 = [vb(g.crossing(2 ** J), 2) for J in range(1, 41)]
+    print(f"     v_2(n*(2^J)), J = 1..40: {v2}")
+    check("at base 2 the crossing's depth does not climb with J",
+          all(v2[J - 1] &lt; J - 10 for J in range(20, 41)))
+    print(f"     g(20) - 200/21 = {vals[20] * 21 - 200}/21")
+    print(f"     [{time.time() - t0:.1f} s]")
+
+
+# ---- PK ----
+
+<span id="section_k"></span>def section_k():
+    print("PK  the least lookahead")
+    t0 = time.time()
+    ok_floor = ok_wit = ok_law = ok_up = True
+    n_law = n_up = n_sharp = n_meet = 0
+    for b, terms, _ in READ:
+        m, U = sum_map(terms)
+        r, h = m.slope(b)
+        K = m.alignment_K(b)
+        dl, mu = ndig(h, b), vb(h, b)
+        hp = h // b ** mu
+        c_deep = ndig(hp, b) - (hp == 1)
+        t_ov = 1
+        if hp &gt;= 2:
+            while not any(math.gcd(M, b) == 1 for M in
+                          range(-(-b ** (dl + t_ov - 1) // h), b ** t_ov)):
+                t_ov += 1
+        ts = range(1, max(3, t_ov) + 1)
+        c_scan, wit = m.scan(b, ts, range(0, r + K + 7))
+        ok_floor &amp;= c_scan &gt;= c_deep
+        if c_deep &gt;= 1:
+            found = False
+            for t in ts:
+                for M in range(1, b ** t):
+                    if math.gcd(M, b) != 1:
+                        continue
+                    c, _ = m.c_need(b, t, M, r + K + 2)
+                    found |= c == c_deep
+            ok_wit &amp;= found
+        D = m.D
+        if K == 0 and h % b and h &gt;= 2 and D &lt;= (b - 1) * b ** dl:
+            n_law += 1
+            ok_law &amp;= c_scan == dl
+        if D &lt;= (b - 1) * b ** (dl + K):
+            n_up += 1
+            ok_up &amp;= c_scan &lt;= max(c_deep, dl + K)
+        n_sharp += c_scan &lt;= max(c_deep, dl + K - 1)
+        n_meet += c_scan == max(c_deep, dl + K - 1)
+        if (b, terms) == (2, [(1, 3), (1, 9)]):
+            c3, _ = m.scan(b, range(1, 4), range(0, r + K + 7))
+            print(f"     floor(n/3) + floor(n/9), base 2: h = {h}, "
+                  f"c_deep = {c_deep}, t_ov = {t_ov}, c_scan = {c_scan}, "
+                  f"deciding crossing (t, M, J, n*) = {wit}; to depth 3 "
+                  f"c_scan = {c3}")
+    print(f"     {len(READ)} read cells; law cells {n_law}; cells under the "
+          f"shallow condition {n_up}; c_scan &lt;= max(c_deep, delta + K - 1) "
+          f"at {n_sharp}, equal at {n_meet}")
+    check("c_scan &gt;= c_deep at every read cell", ok_floor)
+    check("a deep crossing needs exactly c_deep at every cell with "
+          "c_deep &gt;= 1", ok_wit)
+    check("c_scan = digits_b(h), the law's c_min, at every law cell",
+          ok_law)
+    check("c_scan &lt;= max(c_deep, delta + K) under the shallow condition",
+          ok_up)
+    print(f"     [{time.time() - t0:.1f} s]")
+
+
+# ---- PS ----
+
+<span id="section_s"></span>def section_s():
+    print("PS  the structural split")
+
+    def x2(n):
+        e = n.bit_length() - 1
+        return n ^ (1 &lt;&lt; (e - 1)) if e &gt;= 1 else n
+
+    def pi10(n):
+        s = str(n)
+        if len(s) &lt; 2:
+            return n
+        return int(s[0] + str(9 - int(s[1])) + s[2:])
+
+    def pow10(n):
+        return 10 ** (len(str(n)) - 1)
+
+    ok = True
+    for name, f, b, E in (("x", x2, 2, 12), ("pi", pi10, 10, 5),
+                          ("P", pow10, 10, 5)):
+        vals = values(f, b, E)
+        exc = sum(brute_exceptions(vals, b, t, 0) for t in range(1, 5))
+        desc = next(((n, n + 1) for n in range(1, b ** E - 1)
+                     if vals[n] &gt; vals[n + 1]), None)
+        print(f"     {name:2s} base {b:2d}: exceptions at c = 0 over depths "
+              f"1..4: {exc}; first descent {desc}")
+        ok &amp;= exc == 0
+        if name != "P":
+            ok &amp;= desc is not None
+        else:
+            ok &amp;= desc is None
+    ratios = [pow10(n) / n for n in (99, 999, 100)]
+    print(f"     P(n)/n at 99, 999, 100: "
+          f"{', '.join(f'{x:.4f}' for x in ratios)}")
+    ok &amp;= abs(ratios[0] - 0.1) &lt; 0.01 and ratios[2] == 1
+    check("x, pi and P are read at c = 0; x and pi are not monotone; "
+          "P(n)/n is near 1/b at 99 and 1 at 100", ok)
+
+
+
+# ---- the redundant leading end: digits -a..a, 2a + 1 &gt; b, y in [-rho, rho]
+
+import random
+from fractions import Fraction as Fr
+
+
+<span id="rho_of"></span>def rho_of(b, a):
+    return Fr(a, b - 1)
+
+
+<span id="stream_value"></span>def stream_value(ds, b):
+    return sum(Fr(d, b ** (k + 1)) for k, d in enumerate(ds))
+
+
+<span id="tile_of"></span>def tile_of(ds, b, a):
+    V, r = stream_value(ds, b), rho_of(b, a) / b ** len(ds)
+    return V - r, V + r
+
+
+<span id="lookahead_for"></span>def lookahead_for(L, b, a):
+    c, need = 0, L * Fr(2 * a, 2 * a - b + 1)
+    while b ** c &lt; need:
+        c += 1
+    return c
+
+
+<span id="run_reader"></span>def run_reader(F, streams, b, a, c, depth, dom=None):
+    """Commit output digits of F at lookahead c; return the depth reached
+    (depth when never stuck). F maps a list of input intervals to the
+    image interval; dom clips each input interval to the map's domain."""
+    rho = rho_of(b, a)
+    W = Fr(0)
+    for t in range(depth):
+        boxes = []
+        for i, s in enumerate(streams):
+            lo, hi = tile_of(s[:t + 1 + c], b, a)
+            if dom:
+                lo, hi = max(lo, dom[i][0]), min(hi, dom[i][1])
+            boxes.append((lo, hi))
+        ilo, ihi = F(boxes)
+        step = Fr(1, b ** (t + 1))
+        r = rho * step
+        d_lo = math.ceil((ihi - W - r) / step)
+        d_hi = math.floor((ilo - W + r) / step)
+        d_lo, d_hi = max(d_lo, -a), min(d_hi, a)
+        if d_lo &gt; d_hi:
+            return t
+        W += d_lo * step
+    return depth
+
+
+<span id="scale"></span>def scale(q):
+    def F(boxes):
+        lo, hi = boxes[0]
+        return min(q * lo, q * hi), max(q * lo, q * hi)
+    return F
+
+
+<span id="mean"></span>def mean(boxes):
+    (a0, a1), (b0, b1) = boxes
+    return (a0 + b0) / 2, (a1 + b1) / 2
+
+
+<span id="corners"></span>def corners(g):
+    def F(boxes):
+        (a0, a1), (b0, b1) = boxes
+        vals = [g(x, y) for x in (a0, a1) for y in (b0, b1)]
+        return min(vals), max(vals)
+    return F
+
+
+<span id="section_r"></span>def section_r():
+    print("PR  the redundant reader")
+    s3 = [1] + [0] * 40
+    stuck3 = run_reader(scale(Fr(1, 2)), [s3], 3, 1, 3, 12)
+    stuck2 = run_reader(scale(Fr(1, 2)), [s3], 2, 1, 0, 12)
+    print(f"     R0 y -&gt; y/2 at the stream 1 0 0 ...: balanced ternary "
+          f"(3, 1) at lookahead 3 commits {stuck3} digits; (2, 1) at "
+          f"lookahead 0 commits {stuck2} of 12")
+    check("R0: balanced ternary sticks, signed binary does not",
+          stuck3 == 0 and stuck2 == 12)
+    systems = ((2, 1), (3, 2), (4, 2), (10, 6), (10, 9))
+    ok = True
+    for b, a in systems:
+        vals = {0}
+        for j in range(1, 6):
+            vals = {b * v + d for v in vals for d in range(-a, a + 1)}
+            R = (b ** j - 1) // (b - 1)
+            ok &amp;= vals == set(range(-a * R, a * R + 1))
+        rho = rho_of(b, a)
+        ends = (-a * Fr(1, b) - rho / b, a * Fr(1, b) + rho / b)
+        overlap = (Fr(0, 1) + rho / b) - (Fr(1, b) - rho / b)
+        ok &amp;= ends == (-rho, rho) and overlap == (2 * rho - 1) / b
+    check("R1: j-digit values fill [-a R_j, a R_j]; the children cover "
+          "the tile and overlap by (2 rho - 1) b^-(t+1)", ok)
+
+    rng = random.Random(20260924)
+    ok = True
+    rows = []
+    for b, a in systems:
+        rho = rho_of(b, a)
+        maps = [("y/3", scale(Fr(1, 3)), Fr(1, 3), 1),
+                ("2y/5", scale(Fr(2, 5)), Fr(2, 5), 1),
+                ("-y/7", scale(Fr(-1, 7)), Fr(1, 7), 1),
+                ("(x+y)/2", mean, Fr(1), 2),
+                ("xy/rho", corners(lambda x, y, r=rho: x * y / r),
+                 Fr(2), 2)]
+        for name, F, L, k in maps:
+            c = lookahead_for(L, b, a)
+            worst = 30
+            for _ in range(200 if b &lt; 10 else 40):
+                ss = [[rng.randint(-a, a) for _ in range(30 + c + 1)]
+                      for _ in range(k)]
+                worst = min(worst, run_reader(F, ss, b, a, c, 30))
+            rows.append((b, a, name, c, worst))
+            ok &amp;= worst == 30
+    for b, a in systems:
+        print(f"     ({b:2d}, {a}): " + ", ".join(
+            f"{n} c={c}" for bb, aa, n, c, w in rows if (bb, aa) == (b, a)))
+    check("R2: the reader at the formula's lookahead never sticks", ok)
+    return rng
+
+
+<span id="section_e"></span>def section_e():
+    print("PE  the hedge")
+    ok = True
+    for b, a, depth in ((2, 1, 5), (3, 1, 5), (10, 6, 3), (10, 9, 3)):
+        prefixes = [[]]
+        for t in range(1, depth + 1):
+            prefixes = [p + [d] for p in prefixes for d in range(-a, a + 1)]
+            for p in prefixes:
+                lo, hi = tile_of(p, b, a)
+                first = next((d for d in p if d), 0)
+                if first == 0:
+                    ok &amp;= lo &lt; 0 &lt; hi
+                    continue
+                ok &amp;= lo &gt;= 0 if first &gt; 0 else hi &lt;= 0
+                q = [-d for d in p] if first &lt; 0 else p
+                alo, ahi = (lo, hi) if first &gt; 0 else (-hi, -lo)
+                ok &amp;= tile_of(q, b, a) == (alo, ahi)
+    check("|y| is read at lookahead 0 and the all-zero tile holds both "
+          "signs, at (2, 1), (3, 1), (10, 6), (10, 9)", ok)
+    lo, hi = tile_of([1], 2, 2)
+    print(f"     (2, 2): the tile of the prefix 1 is [{lo}, {hi}]")
+    check("at a &gt; b - 1 a positive first digit holds negative values",
+          lo &lt; 0)
+
+
+<span id="section_p"></span>def section_p(rng):
+    print("PP  what the purchase spends")
+    ok = True
+    for b, a, tmax in ((2, 1, 3), (10, 6, 2), (3, 2, 3)):
+        rho = rho_of(b, a)
+        K = math.ceil(Fr(2 * a, b - 1)) - 1
+        seen = set()
+        for t in range(1, tmax + 1):
+            R = (b ** t - 1) // (b - 1)
+            ks = range(-a * R, a * R + 1)
+            r = rho / b ** t
+            sizes = set()
+            for k in ks:
+                if abs(k) &gt; a * R - 2 * K - 1:
+                    continue
+                V = Fr(k, b ** t)
+                opn = 0
+                for k2 in range(k - 3 * K - 3, k + 3 * K + 4):
+                    V2 = Fr(k2, b ** t)
+                    both = V2 - r &lt; V + r and V - r &lt; V2 + r
+                    ok &amp;= both == (abs(V2 - V) &lt; 2 * r)
+                    opn += both
+                sizes.add(opn)
+            seen |= sizes
+        ok &amp;= seen == {2 * K + 1}
+        print(f"     ({b:2d}, {a}): open-order sets of sizes {sorted(seen)}, "
+              f"2K + 1 = {2 * K + 1}")
+    # the non-redundant end: tiles [V, V + b^-t], distinct ones meet at
+    # most at an endpoint
+    for b in (2, 10):
+        for t in (1, 2):
+            for k in range(b ** t - 1):
+                lo1, hi1 = Fr(k, b ** t), Fr(k + 1, b ** t)
+                lo2, hi2 = hi1, Fr(k + 2, b ** t)
+                ok &amp;= not (lo2 &lt; hi1 and lo1 &lt; hi2)
+    check("(a) both orders iff |V' - V| &lt; 2 rho b^-t; 2K + 1 tiles open, "
+          "one at the standard end", ok)
+    ok = True
+    for b, a in ((2, 1), (10, 6), (10, 9)):
+        for t in range(1, 11):
+            lo, hi = tile_of([1] + [0] * (t - 1), b, a)
+            ok &amp;= lo &lt; Fr(1, b) &lt; hi
+    check("(b) the tile of 1 0 ... 0 holds 1/b in its interior at depths 1..10", ok)
+
+    bad, cases = [], 0
+    for b in range(2, 11):
+        for a in range(1, b):
+            if 2 * a + 1 &lt;= b:
+                continue
+            for p in sorted(primes_of(b)):
+                for j in range(1, 5):
+                    R = (b ** j - 1) // (b - 1)
+                    cnt = [0] * p
+                    for z in range(-a * R, a * R + 1):
+                        cnt[z % p] += 1
+                    N = 2 * a * R + 1
+                    dist = [1] + [0] * (p - 1)
+                    for k in range(j):
+                        new = [0] * p
+                        for rr in range(p):
+                            for d in range(-a, a + 1):
+                                new[(rr + d * b ** k) % p] += dist[rr]
+                        dist = new
+                    cu, su = len(set(cnt)) == 1, len(set(dist)) == 1
+                    bias = max(abs(Fr(x, N) - Fr(1, p)) for x in cnt)
+                    cases += 1
+                    if not (cu == su == ((2 * a + 1) % p == 0)
+                            and bias &lt; Fr(1, N)):
+                        bad.append((b, a, p, j))
+    print(f"     {cases} (b, a, p, j) read; off: {bad[:5]}")
+    check("(c) the leak: counting and string uniform iff p | 2a + 1", not bad)
+
+    ok = True
+    for t in range(1, 8):
+        xlo, xhi = tile_of([1], 2, 1)
+        ylo, yhi = tile_of([0] * t, 2, 1)
+        ok &amp;= xhi / yhi == 2 ** t and xhi / ylo == -(2 ** t)
+    D = Fr(1, 2)
+    c = lookahead_for(1 + 1 / D, 2, 1)
+    worst = 30
+    for _ in range(100):
+        xs = [rng.randint(-1, 1) for _ in range(31 + c)]
+        ys = [1] + [rng.randint(0, 1) for _ in range(30 + c)]
+        worst = min(worst, run_reader(
+            corners(lambda x, y: D * x / y), [xs, ys], 2, 1, c, 30,
+            dom=[(Fr(-1), Fr(1)), (D, Fr(1))]))
+    print(f"     D x/y at D = 1/2, (2, 1): lookahead {c}, commits "
+          f"{worst} of 30 on every stream")
+    check("(d) the quotient is unbounded on the all-zero y-tile and read "
+          "given y &gt;= D", ok and worst == 30)
+
+
+# ---- the period law and the singularity's own measure ----
+
+<span id="exceptional"></span>def exceptional(m, a, b, j, t):
+    lo, hi = a * m * b ** j, a * ((m + 1) * b ** j - 1)
+    return tile_key(lo, b, t) != tile_key(hi, b, t)
+
+
+<span id="section_m"></span>def section_m():
+    print("PM  the period law and the measure")
+    t0 = time.time()
+    bad, zero_bad, scopes = [], [], 0
+    plan = {2: ((1, 2, 3), (1, 2, 4)), 6: ((1, 2), (1, 2, 4)),
+            10: ((1, 2), (1, 2))}
+    for b, (ls, js) in plan.items():
+        for a in list(range(2, 13)) + [25]:
+            al = ndig(a, b) - 1
+            for l in ls:
+                for j in js:
+                    for th in (0, 1):
+                        if th == 1 and b ** al == a:
+                            continue
+                        Lam = l + al + th
+                        P = b ** Lam
+                        tp = l + 1
+                        while True:
+                            cut = -(-b ** (tp + al) // a)
+                            lo_c, hi_c = ((b ** (tp - 1), cut) if th == 0
+                                          else (cut, b ** tp))
+                            if hi_c - lo_c &gt;= P + P // 2 + 2:
+                                break
+                            tp += 1
+                        t = tp - l
+                        d = math.gcd(a, P)
+                        want = d * ((a * (b ** j - 1)) // (b ** j * d))
+                        for start in (lo_c, lo_c + 1, lo_c + P // 2):
+                            got = sum(exceptional(m, a, b, j, t)
+                                      for m in range(start, start + P))
+                            scopes += 1
+                            if got != want:
+                                bad.append((b, a, l, j, th, start, got,
+                                            want))
+                        if (want == 0) != (P % a == 0):
+                            zero_bad.append((b, a, l, j, th))
+    print(f"     {scopes} cases read; off the formula: {bad[:3]}; zero "
+          f"locus off a | b^Lam: {zero_bad[:3]}  [{time.time() - t0:.1f} s]")
+    check("the exception count over every class is d floor(a (b^j "
+          "- 1)/(b^j d))", not bad)
+    check("the count is 0 iff a | b^Lam", not zero_bad)
+
+    def H(x, b):
+        return b ** (x - 1) * (1 + (b - 1) * (1 - x))
+
+    ok_c = ok_h = True
+    for b, a, l, j, tp in ((10, 3, 1, 2, 6), (6, 5, 1, 2, 7),
+                           (2, 3, 1, 2, 18), (10, 7, 2, 1, 6)):
+        t = tp - l
+        ms = range(b ** (tp - 1), b ** tp)
+        N = len(ms)
+        exc = [m for m in ms if exceptional(m, a, b, j, t)]
+        cnt = Fr(len(exc))
+        law = Fr(a - 1, a) / b ** l
+        ben = sum(math.log((m + 1) / m, b) for m in exc)
+        x = math.log(a, b) % 1
+        ben_law = (1 - 1 / a) * H(x, b) / b ** l
+        print(f"     (b, a, l, j) = ({b}, {a}, {l}, {j}), t' = {tp}: "
+              f"counting {float(cnt / N):.6f} vs {float(law):.6f} "
+              f"(off by {float(abs(cnt - law * N)):.1f} of {2 * a + 2} "
+              f"allowed); log-weighted {ben:.6f} vs {ben_law:.6f}")
+        ok_c &amp;= abs(cnt - law * N) &lt;= 2 * a + 2
+        ok_h &amp;= abs(ben / ben_law - 1) &lt; 0.02
+    check("the counting density is (1 - 1/a)/b^l within (2a + 2)/N", ok_c)
+    check("the log-weighted density is (1 - 1/a) H(xi)/b^l within 2%", ok_h)
+    hump = all(H(k / 100, b) &gt; 1 for b in (2, 3, 10) for k in range(1, 100))
+    check("H &gt; 1 at 99 interior points at bases 2, 3 and 10", hump)
+    ok = True
+    for b in (7, 10):
+        tp = 5 if b == 10 else 6
+        ms = range(b ** (tp - 1), b ** tp)
+        haar1 = sum(math.log((m + 1) / m, b) for m in ms
+                    if tile_key(m, b, 1)[1] == 1)
+        haar3 = sum(math.log((m + 1) / m, b) for m in ms
+                    if tile_key(3 * m, b, 1)[1] == 1)
+        cnt1 = sum(1 for m in ms if tile_key(m, b, 1)[1] == 1) / len(ms)
+        cnt3 = sum(1 for m in ms if tile_key(3 * m, b, 1)[1] == 1) / len(ms)
+        print(f"     base {b:2d}: leading digit 1 carries Haar "
+              f"{haar1:.6f} (log_b 2 = {math.log(2, b):.6f}), after x -&gt; 3x "
+              f"{haar3:.6f}; counting {cnt1:.4f}, after x -&gt; 3x {cnt3:.4f}")
+        ok &amp;= (abs(haar1 - math.log(2, b)) &lt; 1e-6
+               and abs(haar3 - math.log(2, b)) &lt; 1e-5
+               and abs(cnt3 - cnt1) &gt; 0.05)
+    check("Haar keeps an arc's mass under x -&gt; 3x; counting moves it", ok)
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_0()
+    section_t()
+    section_h()
+    section_z()
+    section_c()
+    section_a()
+    section_k()
+    section_s()
+    rng = section_r()
+    section_e()
+    section_p(rng)
+    section_m()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/dual.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

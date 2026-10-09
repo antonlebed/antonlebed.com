@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cofactor.py | Numbers read one place at a time</title>
+<meta name="description" content="cofactor.py">
+<link rel="alternate" type="text/x-python" href="/code/cofactor.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>cofactor.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/observatory/#the-cofactor-readout">OBSERVATORY: The cofactor readout</a> (theorem); <a href="/observatory/#the-jump-set-as-the-class-maxima">OBSERVATORY: The jump set as the class maxima</a> (theorem).</p><p>Cited on: <a href="/observatory/">OBSERVATORY</a>.</p><p>To run it: <a href="/code/clock.py">clock.py</a>, <a href="/code/module_law.py">module_law.py</a>, <a href="/code/rung.py">rung.py</a>, <a href="/code/staircase.py">staircase.py</a>, <a href="/code/tame.py">tame.py</a>, <a href="/code/triangle.py">triangle.py</a>, <a href="/code/weld.py">weld.py</a>, <a href="/code/wild.py">wild.py</a> beside it; standard library only.</p></div>
+<pre>"""cofactor.py -- at an odd prime, the departure of a field holding
+zeta_(p^N) is p^(N-1) times the level of that root's cofactor, capped at
+the bend, and it can sit below p^M.
+
+QUESTION. Let p be odd and K/Q_p totally ramified of degree e, cut out
+by an Eisenstein F with root pi and u = p/pi^e (triangle.py), holding
+zeta_(p^N) and no higher p-power root of unity, so the bend s = e/(p -
+1) = c_0 p^M with p not dividing c_0, and M &gt;= N - 1. staircase.py
+proved that no class below N is rigid, so the departure l = v(u + 1) of
+tame.py is at least p^(N-1). Every field it read with N &gt;= 2 had l &gt;=
+p^M, so its seat class (level c_0, m = M) was never rigid there. Is l
+&gt;= p^M forced when N &gt;= 2, or does a field exist with p^(N-1) &lt;= l &lt;
+p^M? And what fixes min(l, s), the number the width reads?
+
+THE DERIVATION (on paper, before the engine).
+  (1) THE PRIME ROOT. Write zeta_p - 1 = pi^s tau_p, tau_p a unit.
+      Phi_p(zeta_p) = 0 reads p (1 + (p - 1)/2 (zeta_p - 1) + ...) =
+      -(zeta_p - 1)^(p-1), so -p/(zeta_p - 1)^(p-1) = eps with
+      v(eps - 1) = s exactly ((p - 1)/2 is a unit at odd p). Since
+      p = u pi^((p-1)s), u = -tau_p^(p-1) eps, and
+          u + 1 = 1 - tau_p^(p-1) eps.
+      tau_p^(p-1) is a principal unit whose level j is that of tau_p's
+      principal part (tau_p over its Teichmueller digit), since p - 1 is a
+      unit exponent. So l &gt;= min(j, s), with equality unless j = s:
+          min(l, s) = min(j, s).
+  (2) THE CLIMB. Let zeta be a primitive p^N-th root of unity and mu =
+      zeta - 1 = pi^c tau, c = s/p^(N-1), tau a unit; call i_tau the
+      level of tau's principal part. For Xi of level y &lt;= s/p,
+      (1 + Xi)^p - 1 = Xi^p (1 + delta), delta = sum over 1 &lt;= k &lt;= p - 1
+      of C(p, k) Xi^(k - p), at level at least e - (p - 1) y &gt;= (p -
+      1)^2 s/p, which exceeds s at every odd p (p^2 - 3p + 1 &gt; 0). Each
+      later p-th power keeps a principal correction at or above its
+      level, so zeta_p - 1 = mu^(p^(N-1)) (1 + delta'), v(delta') &gt; s,
+      and tau_p = tau^(p^(N-1)) (1 + delta'). Below the bend a p-th power
+      multiplies a principal level by p, so j = p^(N-1) i_tau whenever
+      p^(N-2) i_tau &lt; s, and j &gt; s otherwise. With (1):
+          min(l, s) = min(p^(N-1) i_tau, s),
+      the COFACTOR READOUT. At N = 1 it is (1) itself. It gives the
+      floor l &gt;= p^(N-1) at once (i_tau &gt;= 1), and more: below s, l is
+      a multiple of p^(N-1). i_tau is not a field invariant, but min(l,
+      s) is (tame.py), so min(p^(N-1) i_tau, s) is too.
+  (3) THE DESIGN. Over L = Q_p(zeta_(p^N)), varpi = zeta - 1, the
+      polynomial x^k + a varpi x^i - varpi (1 &lt;= i &lt; k, p not dividing
+      a) is Eisenstein, and its root pi has varpi = pi^k/(1 - a pi^i):
+      tau = 1/(1 - a pi^i), i_tau = i. Its norm to Q_p is the
+      homogenized cyclotomic polynomial
+          F = sum over 0 &lt;= j &lt; p of A^(j q) B^((p-1-j) q),
+          A = 1 - a x^i + x^k,  B = 1 - a x^i,  q = p^(N-1),
+      monic of degree e = k (p - 1) p^(N-1), F = (A - B)^e = x^e mod p,
+      F(0) = p: Eisenstein, and F(pi) = B^e Phi_(p^N)(A/B)(pi) with A/B
+      = zeta. So s = k p^(N-1), and (2) predicts l = p^(N-1) i for
+      every i &lt; k. The seat is rigid iff l &lt; p^M, and M = v_p(k) + N -
+      1, so iff i &lt; p^(v_p(k)): at p = 3, N = 2, k = 3, e = 18, the
+      designs i = 1, 2 give l = 3, 6 &lt; 9 = p^M, a rigid seat at an odd
+      prime with N = 2. N stays the design's when i &lt; p: a higher root
+      would force l &gt;= p^N &gt; p^(N-1) i.
+  (4) THE SECOND POINT there. staircase.py's closed form at D = l &lt; e:
+      q = 0, r = l, (i_2, beta_2) = ((s + l)/p^v, 1 + v), v = v_p(s +
+      l); at s = 9, l = 3 gives (4, 2), l = 6 gives (5, 2), each after
+      the first point (1, 3). beta_2 &gt;= N = 2 needs p^(N-1) | l, which
+      (2) supplies: the jump set's constraint and the readout's
+      divisibility are one fact.
+
+THE ENGINE. N and the root as staircase.py reads them (read_deep's G,
+root_search at N and N + 1); i_tau at every primitive root zeta^a, 1 &lt;=
+a &lt; p^N, p not dividing a, as v(mu^(p-1) - pi^(c(p-1))) - c(p - 1),
+which is v(tau^(p-1) - 1), the level of tau's principal part. l is
+tame.py's departure off the coefficients. At the rigid designs,
+staircase.py's read_all prints the brute staircase, Pagano's reading and
+the set from G.
+
+TRANSPLANTS. None in the readout: (1) and (2) are this slate's, and
+the claim that a correction exceeds s is odd-p only. The rigid-seat
+prediction (3)-(4) uses staircase.py's closed form, a theorem there.
+
+POPULATIONS. The designs (p, N, k; i; a): (3, 2, 3; i = 1, 2; a = 1,
+2), (3, 2, 2; i = 1; a = 1, 2), (3, 2, 4; i = 1, 2, 3; a = 1, 2), (5,
+2, 2; i = 1; a = 1, 2); at i &gt;= k the norm is not monic, so the capped
+case is read on the cyclotomic family instead: staircase.py's
+Phi_(p^N)(1 + x^c + p Omega(x)), c (staircase.py's k), at (p, N, c)
+= (3, 2, 2), (3, 2, 3), (3, 3, 1), (5, 2, 1), Omega = 0 and two random
+Omega of degree below c with digits below p^2. Its root pi gives
+zeta = 1 + pi^c + p Omega(pi), so tau = 1 + p Omega(pi)/pi^c sits at
+level e - c or deeper, past the bend.
+
+PREDICTIONS, fixed before the run.
+  C  CONTROL, run first. (a) The level reader returns j on pi^c (1 +
+     pi^j), j = 1..5, at x^6 + 3x^3 + 3 and at Q_3(zeta_9). (b) At
+     x^6 + 3x^3 + 3 (N = 1, s = 3) and Q_3(zeta_3) = Phi_3(x + 1) (N =
+     1, s = 1) and Q_3(zeta_9) (N = 2, s = 3) the readout holds, and at
+     both cyclotomic fields min(l, s) = s.
+  R  THE READOUT. At every field and every primitive root, min(l, s) =
+     min(p^(N-1) i_tau, s).
+  D  THE DESIGN. At every design, N is the design's when i &lt; p, and l =
+     p^(N-1) i.
+  K  THE RIGID SEAT. At (3, 2, 3), i = 1, 2, both a: the seat class is
+     one value, e* + l = 30 or 33; the brute staircase, Pagano's reading
+     and the set from G all print [(1, 3), (4, 2)] at i = 1 and [(1,
+     3), (5, 2)] at i = 2, and the second point is the closed form.
+     This kills the suspicion that zeta_(p^2) forces l &gt;= p^M.
+KILLS, as printed observables: a C line off (nothing below is read); one
+(field, root) off R; one design off D; one rigid design whose seat
+prints more than one value or whose three sets differ from K's.
+
+FINDINGS. Every prediction landed: 8/8 checks PASS, no kill fired.
+  C  The reader returns 1..5 at both fields. The readout holds at x^6 +
+     3x^3 + 3 (l = 3, i_tau 3 or the precision cap 18), Q_3(zeta_3)
+     (l = 1) and Q_3(zeta_9) (N = 2, l = 3 = s, i_tau 1, 2 or the cap
+     22 by root).
+  R  26 fields, every primitive root: min(l, s) = min(p^(N-1) i_tau,
+     s). i_tau moves with the root only at or above c, where the cap
+     hides it.
+  D  14 designs: l = 3, 6, 9 at p = 3 (k = 2, 3, 4) and l = 5 at p =
+     5, e = 40, each p^(N-1) i, N = 2 wherever read (i &lt; p).
+  K  At (3, 2, 3), e = 18, s = 9, M = 2: l = 3 and 6, below p^M = 9;
+     the seat class lands at the one value 30 or 33, and the brute
+     staircase, Pagano's reading and the set from G print [(1, 3), (4,
+     2)] and [(1, 3), (5, 2)], the closed form's second point. The
+     suspicion that zeta_(p^2) forces l &gt;= p^M is dead; the cyclotomic
+     family missed the rigid seat because its tau = 1 + p Omega(pi)/pi^c
+     sits past the bend, and its l printed exactly s at all twelve.
+  Tiers: the cofactor readout (2) a theorem; the design (3) a theorem
+  given (2); the rigid seat's staircase an instance of staircase.py's.
+
+RUN RECORD. 8/8, 88.6 s wall, peak working set 16.1 MB under a memory guard.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+import random
+
+from module_law import check, section, CHECKS, vp
+from tame import departure, INF
+from weld import Units
+from staircase import read_deep, root_search, read_all, cyclo, \
+    second_closed, second_point, pmul, padd, ppow
+
+SEED = 1429
+
+
+# ------------------------------------------------------------ designs
+
+<span id="design"></span>def design(p, N, k, i, a):
+    """(e, b, d) of the norm of x^k + a varpi x^i - varpi."""
+    q = p ** (N - 1)
+    B = [1] + [0] * (i - 1) + [-a]
+    A = padd(B, [0] * k + [1])
+    Aq, Bq = ppow(A, q), ppow(B, q)
+    total = [0]
+    for j in range(p):
+        total = padd(total, pmul(ppow(Aq, j), ppow(Bq, p - 1 - j)))
+    while total and total[-1] == 0:
+        total.pop()
+    e = len(total) - 1
+    assert e == k * (p - 1) * q and total[e] == 1
+    assert all(c % p == 0 for c in total[:e]) and total[0] % p ** 2 != 0
+    b = [0] + [total[j] // p for j in range(1, e)]
+    return e, b, -total[0] // p
+
+
+# ------------------------------------------------------------ the reader
+
+<span id="val"></span>def val(U, z):
+    """v_pi(z), capped at U.L."""
+    best = U.L
+    for j, c in enumerate(z):
+        c %= U.mod
+        if c:
+            best = min(best, U.e * vp(c, U.p) + j)
+    return best
+
+
+<span id="cofactor_level"></span>def cofactor_level(U, mu, c):
+    """Level of the principal part of mu/pi^c: v(mu^(p-1) - pi^(c(p-1)))
+    - c(p - 1)."""
+    p = U.p
+    w = U.pw(mu, p - 1)
+    pc = U.loc.pi_pow(c * (p - 1), U.mod)
+    return val(U, [(x - y) % U.mod for x, y in zip(w, pc)]) - c * (p - 1)
+
+
+<span id="read_field"></span>def read_field(p, e, b, d, full=False):
+    """N, l, and i_tau at every primitive p^N-th root."""
+    if full:
+        f = read_all(p, e, b, d)
+        rec, root, higher = f["rec"], f["root"], f["higher"]
+    else:
+        f, rec = None, read_deep(p, e, b, d)
+        Lp = rec["L"] + rec["N"] * e + 1
+        root = root_search(p, e, b, d, rec["N"], Lp)
+        higher = root_search(p, e, b, d, rec["N"] + 1, Lp)
+    s, N, L = rec["s"], rec["N"], rec["L"]
+    U = Units(p, e, b, d, L)
+    c = s // p ** (N - 1)
+    taus = []
+    if root is not None:
+        z = [x % U.mod for x in root]
+        for a in range(1, p ** N):
+            if a % p:
+                za = U.pw(z, a)
+                taus.append(cofactor_level(U, [(za[0] - 1) % U.mod]
+                                           + za[1:], c))
+    return dict(rec=rec, s=s, N=N, M=rec["M"], l=departure(p, e, b, d),
+                taus=taus, root=root, higher=higher, f=f, U=U, c=c)
+
+
+<span id="readout_ok"></span>def readout_ok(r, p):
+    s, N = r["s"], r["N"]
+    return (r["root"] is not None and r["higher"] is None and r["taus"]
+            and all(min(r["l"], s) == min(p ** (N - 1) * t, s)
+                    for t in r["taus"]))
+
+
+<span id="show"></span>def show(r, p, e, label):
+    ts = sorted(set(r["taus"]))
+    print(f"  p={p} e={e:2d} N={r['N']} s={r['s']} M={r['M']} "
+          f"{label:34s} l={'inf' if r['l'] &gt;= INF else r['l']:&gt;3} "
+          f"i_tau {ts}")
+
+
+# ------------------------------------------------------------ sections
+
+<span id="section_control"></span>def section_control():
+    section("C  CONTROL: the level reader, and the readout at known "
+            "fields")
+    for name, p, e, b, d in [("x^6 + 3x^3 + 3", 3, 6, [0, 0, 0, 1, 0, 0],
+                              -1),
+                             ("Q_3(zeta_9)", 3, *cyclo(3, 2, 1, []))]:
+        rec = read_deep(p, e, b, d)
+        U = Units(p, e, b, d, rec["L"])
+        c = rec["s"]
+        got = []
+        for j in range(1, 6):
+            pc = U.loc.pi_pow(c, U.mod)
+            pj = U.loc.pi_pow(c + j, U.mod)
+            got.append(cofactor_level(U, [(x + y) % U.mod
+                                          for x, y in zip(pc, pj)], c))
+        check(f"Ca {name}: the reader returns 1..5", got == [1, 2, 3, 4, 5],
+              f"read {got}")
+    for name, p, N, gen in [("x^6 + 3x^3 + 3", 3, 1,
+                             (6, [0, 0, 0, 1, 0, 0], -1)),
+                            ("Q_3(zeta_3)", 3, 1, cyclo(3, 1, 1, [])),
+                            ("Q_3(zeta_9)", 3, 2, cyclo(3, 2, 1, []))]:
+        e, b, d = gen
+        r = read_field(p, e, b, d)
+        show(r, p, e, name)
+        ok = r["N"] == N and readout_ok(r, p)
+        if name.startswith("Q_"):
+            ok = ok and min(r["l"], r["s"]) == r["s"]
+        check(f"Cb {name}: N = {N}, the readout holds", ok,
+              f"N {r['N']}, l {r['l']}, i_tau {sorted(set(r['taus']))}")
+
+
+DESIGNS = [(3, 2, 3, i, a) for i in (1, 2) for a in (1, 2)] \
+    + [(3, 2, 2, 1, a) for a in (1, 2)] \
+    + [(3, 2, 4, i, a) for i in (1, 2, 3) for a in (1, 2)] \
+    + [(5, 2, 2, 1, a) for a in (1, 2)]
+CYCLO = [(3, 2, 2), (3, 2, 3), (3, 3, 1), (5, 2, 1)]
+RIGID = {1: [(1, 3), (4, 2)], 2: [(1, 3), (5, 2)]}
+
+
+<span id="section_designs"></span>def section_designs(rng):
+    section("R, D, K  THE READOUT, THE DESIGN, THE RIGID SEAT")
+    bad = dict(R=0, D=0, K=0)
+    n = dict(R=0, D=0, K=0)
+    for p, N, k, i, a in DESIGNS:
+        e, b, d = design(p, N, k, i, a)
+        rigid = (p, N, k) == (3, 2, 3) and i &lt; 3
+        r = read_field(p, e, b, d, full=rigid)
+        show(r, p, e, f"design k={k} i={i} a={a}")
+        n["R"] += 1
+        okR = readout_ok(r, p)
+        bad["R"] += not okR
+        n["D"] += 1
+        want_l = p ** (N - 1) * i
+        okD = (i &gt;= p or r["N"] == N) and r["l"] == want_l
+        bad["D"] += not okD
+        if not (okR and okD):
+            print(f"    OFF: N {r['N']} l {r['l']} want {want_l}, "
+                  f"i_tau {sorted(set(r['taus']))}")
+        if rigid:
+            n["K"] += 1
+            f, rec = r["f"], r["rec"]
+            M, es = rec["M"], rec["es"]
+            vals = f["br"][M][2]
+            want = RIGID[i]
+            okK = (vals == {es + r["l"]} and f["st"] == want
+                   and f["J"] == want and f["fromG"] == want
+                   and second_point(f["J"]) == second_closed(p, e, r["l"]))
+            bad["K"] += not okK
+            print(f"    seat m={M}: landings {sorted(vals)}; staircase "
+                  f"{f['st']}, Pagano {f['J']}, from G {f['fromG']}, "
+                  f"closed form {second_closed(p, e, r['l'])}")
+    for p, N, k in CYCLO:
+        for t in range(3):
+            rr = [] if t == 0 else [rng.randrange(p ** 2) for _ in range(k)]
+            e, b, d = cyclo(p, N, k, rr)
+            r = read_field(p, e, b, d)
+            show(r, p, e, f"Phi_{p}^{N}(1+x^{k}+p Omega) Omega={rr}")
+            n["R"] += 1
+            okR = readout_ok(r, p)
+            bad["R"] += not okR
+            if not okR:
+                print(f"    OFF: N {r['N']} l {r['l']}, "
+                      f"i_tau {sorted(set(r['taus']))}")
+    check("R min(l, s) = min(p^(N-1) i_tau, s) at every root",
+          bad["R"] == 0, f"{n['R']} fields, {bad['R']} off")
+    check("D the design: N kept below p, l = p^(N-1) i",
+          bad["D"] == 0, f"{n['D']} designs, {bad['D']} off")
+    check("K a rigid seat at p = 3, N = 2, its staircase as predicted",
+          bad["K"] == 0, f"{n['K']} designs, {bad['K']} off")
+
+
+<span id="main"></span>def main():
+    rng = random.Random(SEED)
+    section_control()
+    if not all(CHECKS):
+        print("\ncontrol failed: nothing below is read")
+        raise SystemExit(1)
+    section_designs(rng)
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks PASS")
+    if not all(CHECKS):
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/cofactor.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

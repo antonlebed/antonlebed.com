@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>precision.py | Numbers read one place at a time</title>
+<meta name="description" content="precision.py">
+<link rel="alternate" type="text/x-python" href="/code/precision.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>precision.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/observatory/#the-jump-set-reads-me-digits-of-u">OBSERVATORY: The jump set reads M·e digits of u</a> (theorem).</p><p>Cited on: <a href="/observatory/">OBSERVATORY</a>.</p><p>To run it: <a href="/code/clock.py">clock.py</a>, <a href="/code/module_law.py">module_law.py</a>, <a href="/code/rung.py">rung.py</a>, <a href="/code/staircase.py">staircase.py</a>, <a href="/code/tame.py">tame.py</a>, <a href="/code/triangle.py">triangle.py</a>, <a href="/code/weld.py">weld.py</a>, <a href="/code/wild.py">wild.py</a> beside it; standard library only.</p></div>
+<pre>"""precision.py -- how many digits of the unit u = p/pi^e fix the jump set
+of a field holding zeta_p, and what the digit cells weigh.
+
+QUESTION. Let K/Q_p be totally ramified of degree e, cut out by an
+Eisenstein F = x^e + sum p b_i x^i - p d with root pi, u = p/pi^e
+(triangle.py), holding zeta_p, so ubar = -1, the bend s = e/(p - 1) =
+c_0 p^M with p not dividing c_0, and e* = p s. staircase.py reads
+Pagano's jump set (Jump sets in local fields, arXiv:1810.09975) as the
+staircase of the class maxima H(m) = G(m) + e, where G(m) is the largest
+v(zeta_p h - 1) over h in U_1^(p^m). The canonical digits u_0, u_1, ...
+of u are the coefficients' digits re-encoded (triangle.py). Is the jump
+set a function of finitely many of them, how many, and how often does
+each jump set occur over the cells of that many digits?
+
+THE DERIVATION (on paper, before the engine).
+  (1) THE BOUND. Every point of the jump set but the first has beta &lt;=
+      M and i &lt;= e*, and rho(i) = min(p i, i + e) is increasing with
+      rho^beta(e*) = e* + beta e, so its weight is at most e* + M e. So
+      at N &lt;= m &lt;= M, G(m) = H(m) - e &lt;= e* + (M - 1) e &lt; T := e* + (M -
+      1) e + 1, while G(m) is infinite at m &lt; N. The jump set is
+      therefore a function of the truncations min(G(m), T), 1 &lt;= m &lt;=
+      M + 1.
+  (2) THE PRECISION. min(G(m), T) is read in U_1/U_T: the image of
+      U_1^(p^m) there is (U_1/U_T)^(p^m), and it needs zeta_p modulo
+      U_T. Replacing zeta_p by a power prime to p changes no G(m), since
+      (zeta_p h)^a = zeta_p^a h^a keeps its level. O_K/pi^A is
+      Z_p[pi]/(pi^A, p - u pi^e), fixed by u modulo pi^(A - e). Take A
+      = T + (p - 2) s. Two fields whose u agree modulo pi^(A - e) share
+      O/pi^A with pi matched to pi; the reduction of the one's zeta_p is
+      a root of Phi_p(1 + y) modulo pi^A in the other, and v(Phi_p'(zeta))
+      = e - s = (p - 2) s, so by Hensel it lies within pi^(A - (p - 2) s)
+      = pi^T of a power of the other's zeta_p. So the two share every
+      min(G(m), T), and their jump sets agree. Here A - e = e* + (M - 2)
+      e + 1 + (p - 2) s = M e + 1 (e* + (p - 2) s = 2 e). THE JUMP SET
+      IS A FUNCTION OF u MODULO pi^(M e + 1): of u_1, ..., u_(M e), u_0
+      being -1. At M = 0 it reads no digit: the jump set is (c_0, 1).
+      At p = 2 no Hensel step is needed, zeta_2 = -1.
+  (3) THE DICHOTOMY AT AN ANCHOR. The anchor Q_p(zeta_(p^(M+1))) (c_0 =
+      1, e = p^M (p - 1)), and its tame twist pi^(c_0) = zeta - 1 at c_0
+      &gt; 1, hold zeta_(p^(M+1)): N = M + 1 and the jump set is (c_0, M +
+      1) alone. A field whose u agrees with the anchor's modulo pi^(M e)
+      shares min(G(m), T - 1) by (2) run one level lower, so G(m) &gt;= e*
+      + (M - 1) e at every m &lt;= M. A finite G(m) at m &lt; M is at most e*
+      + (m - 1) e, below that, so G is infinite below M; and G(M) is
+      infinite or exactly e* + (M - 1) e. So the field's jump set is the
+      anchor's or the anchor's with the point (e*, M) at weight e* + M e
+      added, and the second happens exactly when zeta_(p^(M+1)) is not in
+      K. If one of the p cells u_(M e) = 0..p - 1 below the anchor's
+      does, M e digits do not fix the jump set.
+  (4) THE WEIGHT OF A CELL. Under Haar measure on the coefficients of
+      Eisenstein polynomials of degree e over Q_p with dbar = -1, the
+      coefficient digits are independent and uniform, so by the
+      coefficient triangle (triangle.py) so are u_1, ..., u_(M e); by
+      (2) the jump set is constant on each of the p^(M e) cells, and a
+      jump set's probability is its cell count over p^(M e). ubar = -1
+      holds exactly when K contains E = Q_p(zeta_p): -u is then a
+      principal unit, a (p - 1)-th power, and -p = (pi^s v)^(p - 1).
+      Pagano's Theorem 1.8 is the same probability over Eisenstein
+      polynomials of degree s over E. Both are Serre's measure on the
+      fields (Serre, Une formule de masse, 1978): a field K in a fixed
+      algebraic closure weighs q^(-c(K)), c = d - e + 1 with d the
+      exponent of the different over the base, q = p over Q_p and over
+      E alike. For K containing E, d(K/Q_p) = d(K/E) + s (p - 2), so
+      c over Q_p is d(K/E) + s (p - 2) - e + 1 and c over E is d(K/E) - s
+      + 1, equal. So the p^(M e) cells fall on the jump sets in counts
+      p^(M e) times the Haar mass of Pagano's Theorem 1.7. That mass is
+      a hand computation: the relation vector's coordinate at a in T* =
+      {a &lt; e*, p not dividing a} u {e*} has p-order b &gt;= 1 with P(b) =
+      (p - 1)/p^b, independently, and the jump set is the frontier of
+      the (a, b) under (b, rho^b(a)), conditioned on its least weight
+      being e*. At e = 2: (1, 2), (3, 1) at 1/2; (1, 2), (4, 1) at
+      1/4; (1, 2) at 1/4; Serre's masses of the six ramified quadratics of Q_2
+      are 1/8 at sqrt 2, sqrt -2, sqrt 6, sqrt 10 and 1/4 at sqrt 3,
+      sqrt -1, which carry those jump sets in that order, 4/8, 1/4, 1/4.
+
+THE ENGINE. The jump set by staircase.py's read_deep: G(n) from the
+filtered echelon of U_1^(p^n) in U_1/U_L, L = e* + (M + 1) e + 3 &gt;
+T, zeta_p lifted from 1 + pi^s; the points are the changes of G
+(weld.py's jump_set), which staircase.py proved equal to the class
+maxima and to Pagano's own reading. Fields are made from digits by
+triangle.py: design(p, e, target) is the polynomial with no coefficient
+digit above level N whose u begins with target[0..N], and read(p, e, b,
+d, N) the digits of u. The law is the frontier recursion over the
+coordinates of T*, orders above B lumped (none may survive on an
+admissible frontier, asserted), in exact fractions.
+
+TRANSPLANTS. The class-maxima theorem and the equality of G's changes
+with Pagano's reading are staircase.py's, imported; the Hensel step in
+(2), the dichotomy (3) and the Serre comparison in (4) are this slate's.
+No digit ring and no greedy discrete log is used.
+
+PREDICTIONS, fixed before the run.
+  C  CONTROL, run first. x^2 - 2 reads (1, 2), (3, 1); x^6 + 3x + 3
+     reads (1, 2), (4, 1); x^18 + 3 reads (1, 3), (7, 2), (25, 1);
+     x^12 - 2 reads (3, 3), (9, 2), (21, 1); Phi_8(x + 1) reads (1, 3);
+     the law at e = 2 is (4)'s 1/2, 1/4, 1/4, summing to 1 by its
+     normalization.
+  B  THE BOUND. Over the fields of P, its designs and the anchors'
+     siblings, no point but the first weighs more than e* + M e.
+  P  THE PRECISION. At every random field (dbar = -1) the reduced
+     design of its own first M e + 1 digits, and three designs agreeing
+     with it to u_(M e) and random for e + 2 digits past, read its jump
+     set.
+  A  THE ANCHORS. zeta_4, zeta_8, zeta_16 over 2, zeta_9 over 3,
+     zeta_25 over 5, and Phi_8(x^3 + 1) (c_0 = 3, e = 12): the reduced
+     design of the first M e + 1 digits reads (c_0, M + 1) alone, and
+     each of the p - 1 designs with u_(M e) changed reads (c_0, M + 1),
+     (e*, M) at weight e* + M e: 6, 16, 40, 15, 45, 48.
+  L  THE CELLS. Every coefficient-digit cell at levels 1..M e with dbar
+     = -1 at (p, e) = (2, 2), (2, 4), (3, 6) (4, 256, 729 cells): its
+     count per jump set is p^(M e) times the law, and one random tail
+     past level M e reads the same jump set at every cell.
+KILLS, as printed observables: a C line off (nothing below is read); a
+point past e* + M e; one field or design off its jump set in P; one
+anchor design off in A; one count off the law, or one impure cell, in
+L.
+
+FINDINGS. Every prediction landed: 25/25 checks PASS, no kill fired.
+  C  The five fields read as predicted, x^18 + 3 at (1, 3), (7, 2),
+     (25, 1), and the law at e = 2 is 1/2, 1/4, 1/4.
+  P  Nine (p, e) from (2, 2) to (2, 16) and (5, 20), 65 fields, each
+     read at four designs sharing its first M e + 1 digits: 0 off.
+  A  At all six anchors the own cell reads (c_0, M + 1) alone and every
+     sibling adds (e*, M), at weights 6, 16, 40, 15, 45, 48; at zeta_9
+     and zeta_25 all p - 1 siblings do, so the anchor's is the one cell
+     of its p holding zeta_(p^(M+1)).
+  L  The cells fall 2, 1, 1 at (2, 2); 128, 32, 32, 16, 16, 16, 8, 4,
+     2, 2 at (2, 4); 486, 162, 54, 18, 6, 3 at (3, 6): p^(M e) times the
+     law at every jump set, and no cell impure.
+  B  Over 335 jump sets read, no point past e* + M e, attained at the
+     anchors' siblings.
+  Tiers: (2) a theorem given staircase.py's class-maxima theorem (so
+  given Pagano's Theorem 1.5 and the proof of his Proposition 3.35);
+  (3) a theorem, its second branch read at the six anchors; (4) a
+  theorem given Pagano's Theorem 1.8 and Serre's mass formula.
+
+RUN RECORD. 25/25, 96.1 s wall, peak working set 14.6 MB under
+a memory guard, green on the first run.
+
+Run: python precision.py
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+import random
+from fractions import Fraction
+from itertools import product
+
+from module_law import check, section, CHECKS, vp
+from triangle import read, design, cell_to_poly, random_poly
+from staircase import read_deep, cyclo
+from weld import jump_set, weight
+
+SEED = 1445
+
+
+<span id="jumpset"></span>def jumpset(p, e, b, d):
+    rec = read_deep(p, e, b, d)
+    return tuple(jump_set(p, e, rec["G"], rec["M"] + 1)), rec
+
+
+<span id="shape"></span>def shape(p, e):
+    s = e // (p - 1)
+    M = vp(s, p)
+    return s, M, s // p ** M, p * s
+
+
+<span id="fmt"></span>def fmt(js):
+    return " ".join(f"({i}, {b})" for i, b in js)
+
+
+# ------------------------------------------------------------ the law
+
+<span id="rho_k"></span>def rho_k(p, e, i, k):
+    for _ in range(k):
+        i = min(p * i, i + e)
+    return i
+
+
+<span id="absorb"></span>def absorb(front, pt, p, e):
+    a, b = pt
+    w = rho_k(p, e, a, b)
+    for (a2, b2) in front:
+        if b2 &lt;= b and rho_k(p, e, a2, b2) &lt;= w:
+            return front
+    kept = [(a2, b2) for (a2, b2) in front
+            if not (b &lt;= b2 and w &lt;= rho_k(p, e, a2, b2))]
+    return tuple(sorted(kept + [pt]))
+
+
+<span id="law"></span>def law(p, e):
+    """{jump set: mass} over the admissible frontiers, exact."""
+    s, M, c0, es = shape(p, e)
+    T = [a for a in range(1, es) if a % p] + [es]
+    B = 1
+    while rho_k(p, e, 1, B) &lt; es:
+        B += 1
+    B += 1
+    states = {(): Fraction(1)}
+    for a in T:
+        nxt = {}
+        for front, m in states.items():
+            for b in range(1, B + 2):
+                w = (Fraction(p - 1, p ** b) if b &lt;= B
+                     else Fraction(1, p ** B))
+                f2 = absorb(front, (a, b), p, e)
+                nxt[f2] = nxt.get(f2, Fraction(0)) + m * w
+        states = nxt
+    out = {}
+    for fr, m in states.items():
+        if min(rho_k(p, e, a, b) for a, b in fr) != es:
+            continue
+        assert all(b &lt;= B for _a, b in fr), "a lumped order survives"
+        out[fr] = m
+    tot = sum(out.values())
+    return {fr: m / tot for fr, m in out.items()}
+
+
+# ------------------------------------------------------------ sections
+
+BOUND = []
+
+
+<span id="note_bound"></span>def note_bound(p, e, js):
+    s, M, c0, es = shape(p, e)
+    top = max((weight(p, e, i, bt) for i, bt in js if bt &lt;= M),
+              default=es)
+    BOUND.append(top - es - M * e)
+
+
+CONTROLS = [("x^2 - 2", 2, 2, [0, 0], 1, ((1, 2), (3, 1))),
+            ("x^6 + 3x + 3", 3, 6, [0, 1, 0, 0, 0, 0], -1,
+             ((1, 2), (4, 1))),
+            ("x^18 + 3", 3, 18, [0] * 18, -1, ((1, 3), (7, 2), (25, 1))),
+            ("x^12 - 2", 2, 12, [0] * 12, 1, ((3, 3), (9, 2), (21, 1)))]
+
+
+<span id="section_control"></span>def section_control():
+    section("C  CONTROL: five fields and the law at e = 2")
+    for name, p, e, b, d, want in CONTROLS:
+        js, _ = jumpset(p, e, b, d)
+        check(f"C {name}", js == want, fmt(js))
+    e, b, d = cyclo(2, 3, 1, [])
+    js, _ = jumpset(2, e, b, d)
+    check("C Phi_8(x + 1)", js == ((1, 3),), fmt(js))
+    L2 = law(2, 2)
+    want = {((1, 2), (3, 1)): Fraction(1, 2),
+            ((1, 2), (4, 1)): Fraction(1, 4), ((1, 2),): Fraction(1, 4)}
+    check("C the law at e = 2", L2 == want,
+          "; ".join(f"{fmt(k)} {v}" for k, v in sorted(L2.items())))
+
+
+POP = [(2, 2, 8), (2, 4, 12), (2, 8, 10), (2, 12, 6), (2, 16, 4),
+       (3, 6, 12), (3, 12, 6), (3, 18, 4), (5, 20, 3)]
+
+
+<span id="section_precision"></span>def section_precision(rng):
+    section("P  THE PRECISION: M e + 1 digits of u fix the jump set")
+    for p, e, reps in POP:
+        s, M, c0, es = shape(p, e)
+        n = M * e
+        bad, seen = 0, set()
+        for _ in range(reps):
+            b, d = random_poly(rng, p, e, n // e + 3, d0=p - 1)
+            js, _ = jumpset(p, e, b, d)
+            note_bound(p, e, js)
+            seen.add(js)
+            pre = read(p, e, b, d, n)
+            tails = [pre] + [pre + [rng.randrange(p) for _ in range(e + 2)]
+                             for _ in range(3)]
+            for t in tails:
+                bb, dd = design(p, e, t)
+                if read(p, e, bb, dd, len(t) - 1) != t:
+                    bad += 1
+                    continue
+                j2, _ = jumpset(p, e, bb, dd)
+                note_bound(p, e, j2)
+                bad += j2 != js
+        check(f"P (p, e) = ({p}, {e}), M e = {n}", bad == 0,
+              f"{reps} fields x 4 designs, {len(seen)} jump sets, "
+              f"{bad} off")
+
+
+ANCHORS = [("zeta_4", 2, 2, 1), ("zeta_8", 2, 3, 1), ("zeta_16", 2, 4, 1),
+           ("zeta_9", 3, 2, 1), ("zeta_25", 5, 2, 1),
+           ("Phi_8(x^3 + 1)", 2, 3, 3)]
+
+
+<span id="section_anchor"></span>def section_anchor():
+    section("A  THE ANCHORS: u_(M e) decides the point (e*, M)")
+    for name, p, N, k in ANCHORS:
+        e, b, d = cyclo(p, N, k, [])
+        s, M, c0, es = shape(p, e)
+        n = M * e
+        pre = read(p, e, b, d, n)
+        own, _ = jumpset(p, e, *design(p, e, pre))
+        sibs = []
+        for v in range(p):
+            if v == pre[n]:
+                continue
+            js, _ = jumpset(p, e, *design(p, e, pre[:n] + [v]))
+            note_bound(p, e, js)
+            sibs.append(js)
+        ok = (own == ((c0, M + 1),)
+              and all(j == ((c0, M + 1), (es, M)) for j in sibs))
+        check(f"A {name}: e = {e}, M e = {n}, weight e* + M e = {es + n}",
+              ok, f"own {fmt(own)}; siblings "
+              + "; ".join(fmt(j) for j in sibs))
+
+
+<span id="section_cells"></span>def section_cells(rng):
+    section("L  THE CELLS: p^(M e) digit cells carry the law")
+    for p, e in [(2, 2), (2, 4), (3, 6)]:
+        s, M, c0, es = shape(p, e)
+        n = M * e
+        lw = law(p, e)
+        counts, impure = {}, 0
+        for digs in product(range(p), repeat=n):
+            b, d = cell_to_poly(p, e, p - 1, list(digs))
+            js, _ = jumpset(p, e, b, d)
+            counts[js] = counts.get(js, 0) + 1
+            tail = list(digs) + [rng.randrange(p) for _ in range(e + 1)]
+            j2, _ = jumpset(p, e, *cell_to_poly(p, e, p - 1, tail))
+            impure += j2 != js
+        total = p ** n
+        off = [js for js in set(counts) | set(lw)
+               if counts.get(js, 0) != lw.get(js, 0) * total]
+        check(f"L (p, e) = ({p}, {e}): {total} cells, {len(lw)} jump sets",
+              not off and impure == 0,
+              f"{len(off)} counts off the law, {impure} impure; "
+              + ", ".join(str(counts[k]) for k in
+                          sorted(counts, key=lambda k: -counts[k])))
+
+
+<span id="main"></span>def main():
+    rng = random.Random(SEED)
+    section_control()
+    section_precision(rng)
+    section_anchor()
+    section_cells(rng)
+    section("B  THE BOUND")
+    check("B no point past e* + M e", max(BOUND) &lt;= 0,
+          f"{len(BOUND)} jump sets, highest weight e* + M e + "
+          f"{max(BOUND)}")
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks PASS")
+    if not all(CHECKS):
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/precision.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

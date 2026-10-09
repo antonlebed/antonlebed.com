@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SUPPLY — the element machine over a growing supply of windows | Numbers read one place at a time</title>
+<meta name="description" content="SUPPLY — the element machine over a growing supply of windows">
+<link rel="alternate" type="text/markdown" href="/supply.md">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a> › <a href="/machines/">Machines and learning</a></nav></header>
+<main><article>
+<h1>SUPPLY — the element machine over a growing supply of windows</h1>
+<p class="lead">The object: the <dfn id="t-element-machine">element machine</dfn>, registers over a pool of
+<dfn id="t-windows">windows</dfn>, residue slots Z/m, acted on window by window by add,
+subtract, multiply and writing a constant, read only through the
+zero-test (is the register 0 in every window?), and grown by <dfn id="t-grow">GROW</dfn>,
+which appends a window whose modulus is the next value m_g of the
+<dfn id="t-supply">supply</dfn>, the sequence of moduli the machine is handed; grows are
+counted from g = 1. A grow names one register, which becomes the new
+window's singleton, 1 there and 0 elsewhere, and every other register is
+born 0 there. There is no size read and no read naming a window. The
+named register is a convenience, not a power: a program could build the
+singleton itself from a register <dfn id="t-ones">ONES</dfn>, written 1 before the first
+grow and so 1 at every earlier window, by writing T := 1, then
+F := T − ONES, the singleton, and ONES := T, which makes ONES 1 at every
+window, the new one included, ready for the next grow. A register's
+<dfn id="t-true-value">true value</dfn> is what a window over Z itself, born at the start, would
+hold, and <dfn id="t-base-extension">base extension</dfn>, a write across windows the machine lacks,
+puts its residue into a new window. The <dfn id="t-clock-machine">clock machine</dfn> is the same
+machine cut to <dfn id="t-tick">TICK</dfn> (add ±1 at every window of a register),
+<dfn id="t-pulse">PULSE</dfn> (add ±1 at the newest window only) and GROW, which here names
+no register, every register born 0 in the new window, with no multiply,
+copy or constant, so that no window but the newest can be addressed. The
+question is which supplies make each machine universal, what each read
+leaves a program to remember, and what base extension adds.</p>
+<nav class="toc" aria-label="Contents" data-generated="toc"><ol><li><a href="#a-window-holds-the-free-evaluation-of-its-own-suffix">A window holds the free evaluation of its own suffix</a> <span>theorem</span></li><li><a href="#a-bounded-supply-is-a-finite-automaton-on-its-word">A bounded supply is a finite automaton on its word</a> <span>theorem</span></li><li><a href="#an-unbounded-supply-is-universal">An unbounded supply is universal</a> <span>theorem</span></li><li><a href="#one-zero-test-per-register-needs-no-saved-window">One zero-test per register needs no saved window</a> <span>theorem</span></li><li><a href="#one-zero-test-over-every-register-is-an-automaton-on-the-trip-word">One zero-test over every register is an automaton on the trip word</a> <span>theorem</span></li><li><a href="#one-trip-reads-whether-the-modulus-it-grows-is-coprime-to-the-earlier-ones">One trip reads whether the modulus it grows is coprime to the earlier ones</a> <span>theorem</span></li><li><a href="#base-extension-buys-the-element-machine-at-most-time-never-possibility">Base extension buys the element machine at most time, never possibility</a> <span>theorem</span></li><li><a href="#a-clock-trip-that-reads-coprimality-waits-at-least-of-the-order-of-the-lcm">A clock trip that reads coprimality waits at least of the order of the lcm</a> <span>theorem</span></li><li><a href="#a-rider-on-a-fixed-schedule-lands-where-the-supply-falls-behind-it">A rider on a fixed schedule lands where the supply falls behind it</a> <span>criterion</span></li><li><a href="#open-fronts">Open fronts</a></li></ol></nav>
+<p>The answer, in one line: a bounded supply leaves the element machine a
+finite automaton reading the supply word and an unbounded one makes it
+universal with no base extension; the clock machine is universal on an
+unbounded supply with a zero-test per register and no saved window,
+and with one zero-test over every register at once it is, on a supply
+whose moduli tend to infinity, a finite automaton again, now reading a
+word the supply writes, how each run between two true answers of that
+test ends, and base extension buys the element machine at most time and
+never possibility, no straight-line program writing a new window from
+old ones; in the clock machine such a run that tells, on every supply,
+whether the modulus of the last window grown before it is coprime to the
+moduli of the windows grown earlier waits, wherever one such earlier
+window exists and that last modulus exceeds 1, until a pass whose index
+is at least of the order of their lcm once it passes the program's
+constants. No counter here reads a size: each steps its count one unit
+at a time and either catches the wrap or is handed a modulus the count
+cannot reach, so order is carried by unit steps and paid for in time. A
+machine whose state only multiplies has decidable halting when its tests
+compare prime exponents through one linear form, and through two can run
+Minsky's machine (<a href="/machine/#one-form-decides-and-two-can-run-minsky">MACHINE: One form decides and two can run Minsky</a>),
+and a size read cannot be carried in small change
+(<a href="/size/#the-additive-labelling-law">SIZE: The additive labelling law</a>).</p>
+<h2 id="a-window-holds-the-free-evaluation-of-its-own-suffix">A window holds the free evaluation of its own suffix</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/supply/#section_normal">supply.py::section_normal</a>.</p>
+<p>Along a run with op word w_1 … w_t, the registers' residues in a window
+born at time τ with modulus m are the evaluation over Z of the suffix
+w_(τ+1) … w_t from zero registers and the birth grow's singleton 1,
+reduced mod m:
+reduction mod m is a ring map, constants commute with it, and a later
+grow writes 0 there. So, given the run's op word, a window's content is
+a function of its birth time and its modulus alone, and the pool is a
+delay line of the op word sampled mod the supply: a register that only
+adds a register holding 1 at every window holds its number of such adds
+since τ, mod m, a clock started at the grow, and its zero-test is a
+coincidence of clocks. After a run's last grow its configuration lies in
+a finite set, so a run that grows finitely often halts or repeats a
+configuration, and simulating until one of the two decides it: halting
+reduces to whether the run grows forever. On 60 random programs over
+three supplies, 10,679 window checkpoints equal their suffix evaluated
+over Z and reduced at their own modulus, and the evaluation without its
+birth singleton misses 141.</p>
+<h2 id="a-bounded-supply-is-a-finite-automaton-on-its-word">A bounded supply is a finite automaton on its word</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/supply/#section_bounded">supply.py::section_bounded</a>.</p>
+<p>A window's <dfn id="t-column">column</dfn> is its modulus with the registers' residues there.
+Every op maps each column present by one function of that column, a grow
+writing 0 at the register it names and adding one column, the modulus
+m_g with 1 at that register and 0 elsewhere; and the zero-test of r asks
+whether every column holds 0 at r. So the set of columns an op leaves is
+a function of the set it finds and, for a grow, of m_g. How many windows
+share a column is never read, and the run is carried by the instruction,
+the set of columns present, and the supply from the next grow on.
+With the moduli bounded the columns lie in a finite set, so the machine
+is a finite automaton reading the supply one letter per grow. On an
+eventually periodic supply the phase joins the finite quotient and
+halting decides. On a bounded supply at large it does not: with
+m_g = 2 + [g ∈ S], the program that grows until its singleton added to
+itself is nonzero halts iff S is nonempty. For S the steps at which the
+e-th Turing machine halts, every such supply is computable and the one
+fixed program halts on it iff that machine halts, so no procedure
+decides halting uniformly over computable bounded supplies: the supply
+is an input stream, and it can plant any undecidable content; with S
+noncomputable, the program that grows f times and then halts iff its
+singleton added to itself is nonzero halts iff f ∈ S, and on that one
+supply no procedure decides halting. The count of windows matters only
+through the letters it reaches: on 2, 3, 2, 3, … the set of columns
+alone has two successors, 867 clashes over 150 random programs, and with
+g mod 2 added none, while on the supply of 2s the set alone has one.</p>
+<h2 id="an-unbounded-supply-is-universal">An unbounded supply is universal</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/supply/#section_pointed">supply.py::section_pointed</a>; <a href="/code/supply/#section_price">supply.py::section_price</a>;
+<a href="/code/supply/#section_doubling">supply.py::section_doubling</a>.</p>
+<p>The <dfn id="t-pointed-counter">pointed counter</dfn> holds a count c in a register V as the residue c
+in one window, 0 elsewhere, with that window's singleton P saved and m_P
+its modulus. <dfn id="t-dec">DEC</dfn> is V := V − P, and the zero-test of V is exact
+while c &lt; m_P. <dfn id="t-inc">INC</dfn> grows a window, F its singleton, moves the value
+there in unary through a work register W (V := V − P and W := W + F
+until V is zero), adds one and points at the new window. When every m_g
+exceeds g, the number of grows up to and including it, every count sits
+below its window's modulus, so two pointed counters run Minsky's
+two-counter machine (Minsky 1967): three programs, each run for at most
+60 steps, match a reference at every step from first-counter starts 0
+to 6 on the primes, on the even moduli 4, 6, 8, …, no two of them
+coprime, and on the successor supply 2, 3, 4, ….
+Primality, coprimality and the CRT go unused; what the counter needs is
+fresh windows born at
+zero, each larger than the count it must hold, and on the successor
+supply capped at 8 it first lies at count 8. Its INC at value c spends
+c unary passes, N(N − 1)/2 to count to N, and a value never exceeds its
+INC count; no lower bound over all programs is claimed.</p>
+<p>The <dfn id="t-doubling-counter">doubling counter</dfn>, a pointed counter that moves to a new window
+only when its own is full, needs only that the supply be unbounded.
+Its INC asks whether V + P is zero, which holds exactly when
+c = m_P − 1 and the window is full; then it grows, and after every
+grow compares the new m_F with 2m_P by two tallies stepped in lockstep,
+one on each window, F outlasting when P's tally wraps twice before F's
+wraps once. It grows until F outlasts, moves the value across, points at
+F and adds one. An unbounded supply always yields a window past 2m_P, so
+the grow loop ends and every count stays below its window's modulus: two
+such counters are Minsky's machine on every unbounded supply, monotone
+or not. It counts 0 to 30 and back with every zero-test truthful on
+⌊√(g − 1)⌋ + 2 (2,026 grows), 0 to 50 and back on the supply that is
+g + 1 at odd g and 2 at even g, and 0 to 9 and back on the bit length
+of g − 1 floored at 2, and two such counters run the three programs
+above to the reference on the first two. On the supply of 2s no window
+passes 2m_P = 4, so its first full window has no successor, and the run
+spends a 20,000-grow budget at count 1.</p>
+<h2 id="one-zero-test-per-register-needs-no-saved-window">One zero-test per register needs no saved window</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/clocks/#section_counter">clocks.py::section_counter</a>.</p>
+<p>The clock machine with a zero-test per register is universal on every
+unbounded supply with three registers. Call register A aligned at c when
+every window holds c mod its modulus, and let the <dfn id="t-clock-counter">clock counter</dfn>
+hold its count c as A aligned at c: TICK keeps it aligned, and its
+zero-test is true iff C divides c, C the lcm of every modulus grown, so
+the counter's increment, decrement and zero-test are one op each and
+truthful while c &lt; C, and a zero-test true just after an increment says
+c + 1 = C. Then the increment is undone by one TICK down, the clock
+counter migrates, and the increment is tried again. A migration is a
+GROW, and for each counter a relay through a timer register R at zero,
+first stepping A down and R up with a PULSE holding A's new window at 0,
+which stops after exactly c steps with R aligned at c, then stepping R
+down and A up, which stops after exactly c steps with A aligned at c,
+its new window included. A migration raises C or is repeated, so a lone
+counter, grown from no window, reaches N at the least g with
+lcm(m_1 … m_g) &gt; N, and C is unbounded on every unbounded supply; two
+counters and the timer run Minsky's machine. So the capacity is the lcm
+of every modulus, not one window's: on ⌊√(g − 1)⌋ + 2 it reaches 30 in
+10 grows, where the doubling counter spends 2,026, and on max(2, ⌈√g⌉)
+it reaches 2000 in 65. It runs 0 to 2000 and back on that supply, 0 to
+100 and back on the bit length of g floored at 2, and 0 to 2000 and back
+on g at even g and 2 at odd g, with every window of the counter truthful
+after every increment and decrement and each peak at the least g the lcm
+names (65, 64 and 18 grows); two counters and a timer take B := 3A from
+A = 300 on the first supply and then A := B to (900, 0), and run the
+three programs above to the reference on all three. Both ingredients
+bear the load: without the pulse the first relay that carries a count,
+at count 1, hangs, and without the timer the counter lies.</p>
+<h2 id="one-zero-test-over-every-register-is-an-automaton-on-the-trip-word">One zero-test over every register is an automaton on the trip word</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/clocks/#section_one_read">clocks.py::section_one_read</a>.</p>
+<p>When the clock machine's one read is the zero-test of every register at
+once, a true read leaves every window of every register 0, so the
+configuration there is the control state and the grow count g, and one
+read keeps control and a grow count. A <dfn id="t-trip">trip</dfn>, the run from one true
+read to the next, follows the lasso u v v v … of false answers from its
+start state, a pass being one run through v. Let v hold a GROW and every
+window grown in the loop have modulus above 4|v|, |v| in unit ops. A
+window of register b born at grow position G in pass i holds at a read
+position in pass k the integer c_G + (k − i)n_b once i ≤ k − 2, c_G an
+integer fixed by b, G and the read position, and n_b the net TICK count
+of one pass on b. A true read in a pass k ≥ 4 finds the windows born at
+G in passes k − 3 and k − 2 both 0, integers below their moduli
+differing by n_b, so every n_b = 0; and with every n_b = 0 the read's
+answer is the same in every pass from the third. So a trip whose loop
+grows ends in u, by its third pass, or never, and one whose loop does
+not grows only in u; either way a trip that ends grows a bounded number
+of times. On a supply whose moduli tend to infinity, past a program
+constant, the run is a finite automaton reading the trip word, whose
+g-th letter is the table of trip outcomes from each start state at g,
+one letter per trip, each trip moving on by the grows it adds: the
+bounded supply's theorem again, with a word the supply writes in place
+of the supply. The third pass is attained by a lasso whose loop has
+seven unit ops, a read and a grow counting one each, from 32 and from 64
+windows. Of 1,465 random lassos on g + 1 and 698 on max(2, ⌈√g⌉), the
+latter's loops of at most six unit ops, the 491 and 246 that ended
+within 12 passes ended in u or by pass 2, and none grew more often than
+the grows of u plus three times those of v. The modulus hypothesis bears
+the load: with loop moduli 2 a loop of six unit ops ends in pass 500.</p>
+<h2 id="one-trip-reads-whether-the-modulus-it-grows-is-coprime-to-the-earlier-ones">One trip reads whether the modulus it grows is coprime to the earlier ones</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/clocks/#section_prime">clocks.py::section_prime</a>.</p>
+<p>A loop with no GROW holds every window at a read in pass k at an integer
+a + (k − 1)d, so the read is true iff every such integer is 0 mod its
+modulus: a generalized CRT progression in k, solved exactly at passes no
+step engine reaches. The <dfn id="t-prime-reader">prime reader</dfn> grows once and loops on one
+register B: TICK(B, +1), read, PULSE(B, +1), read, PULSE(B, −1). With C
+the lcm of the earlier moduli and M = m_(g+1), its second read solves
+k ≡ 0 mod C with k ≡ −1 mod M, which has a solution iff gcd(C, M) = 1.
+On m_g = g + 1 it exits at its second read iff g + 2 is prime, in pass
+C((−C⁻¹) mod M), and otherwise at its first, in pass C, or qC when g + 2
+is the square or a higher power of a prime q; exact at every g ≤ 200. So
+a chain, a program of trips routing each exit through a finite
+automaton's transition, is that automaton run on the word [n prime],
+n = 2, 3, …, and its halting is a sentence of the monadic second-order
+theory of (ℕ, &lt;, primes). That theory is decidable under Dickson's
+conjecture (Bateman, Jockusch and Woods, J. Symbolic Logic 58 (1993), read as
+restated in Berthé, Karimov, Nieuwveld, Ouaknine, Vahanwala and Worrell,
+arXiv 2405.07953, section 1), and a decision procedure would settle the
+twin prime conjecture, as Büchi and Landweber observed in 1969
+(the same source). One family of chains halts exactly on a failure of
+the second Hardy–Littlewood conjecture π(x + y) ≤ π(x) + π(y): at each
+y ≥ 2 the automaton holding the last y letters past 2 and halting at
+more than π(y) ones, which the prime tuples conjecture forces at some y
+(Hensley and Richards 1973, as stated in Chahal, Elma, Fellini, Vatwani
+and Vo, arXiv 2503.02766, section 1). A letter need not be a fact about
+which moduli are prime: the <dfn id="t-order-reader">order reader</dfn>, whose pulses put its new
+window at k − 1 and k − 2 at its two reads, exits at a prime p ≥ 3 at
+its first read iff lcm(1 … p − 1)⁻¹ mod p &lt; p/2, and its trip never ends
+at a composite but 4: such a p shares an odd prime with the lcm, or is a
+power of 2 above 4 sharing p/2, and modulo the shared part k ≡ 0 clashes
+with k ≡ 1 and with k ≡ 2. Run without its grow just after the prime
+reader has exited at its second read, so at a prime, it reads that
+prime's bit with no composite ever reaching it, so a chain reads the
+word of order bits at the primes from 3, and whether one-read halting
+decides on m_g = g + 1 at all is open, the order bit being a predicate
+no known theorem adds to (ℕ, &lt;, primes); exact at the 167 primes from 3
+to 1000, 80 of them exiting at the first read.</p>
+<h2 id="base-extension-buys-the-element-machine-at-most-time-never-possibility">Base extension buys the element machine at most time, never possibility</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/supply/#section_price">supply.py::section_price</a>; <a href="/code/supply/#section_freeze">supply.py::section_freeze</a>.</p>
+<p>A straight-line composite of window-by-window ops is window by window,
+so on a newly born window it yields a function of that window's own
+column, a constant, while the true value's residue there is not
+constant. No op of this machine writes across windows, and only the
+zero-test reads across them, so information reaches a new window only
+through zero-test outcomes; the counters here pay the value in unary
+time, and no lower bound over all programs is claimed: the pointed
+counter's transfer is such a loop, N(N − 1)/2 passes to count to N,
+where a dense counter, the count held in every window and so its own
+true value, is kept synced by one base-extension write per grow; and the
+clock counter's relay, which re-aligns a dense count on its new window,
+is base extension at 2c steps. On an unbounded supply the bare machine
+is already universal, so adding base extension back can sell only time,
+and saves it for the counters shown; on a bounded one the true value
+reduced mod the lcm L of every modulus is one more column mod L, moved
+by the same ring ops, so the machine stays a finite automaton on the
+supply word. Without base extension the dense counter lies: a window
+born when the count was c₀ holds (c − U·c₀) mod m under adds and integer
+multipliers, U the product of the multipliers since its birth, since the
+difference of two affine runs is multiplied and never added to, and a
+write of 0 re-syncs it. Over 300 random steps of adds, multipliers 1, 2
+and 3 and grows, 30 windows in all, every window holds that residue,
+each op applied window by window.</p>
+<h2 id="a-clock-trip-that-reads-coprimality-waits-at-least-of-the-order-of-the-lcm">A clock trip that reads coprimality waits at least of the order of the lcm</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/clocks/#section_lcm_wait">clocks.py::section_lcm_wait</a>.</p>
+<p>In the clock machine reading across windows is paid in time as base
+extension is in the element machine. Take the clock machine with its one
+read over every register, and a trip from a start state, the run along
+its lasso u v v v … from one true read, where every window of every
+register is 0, to the next. Call deep the windows grown before the trip,
+all but the last, C′ the lcm of their moduli. No pulse reaches them, so
+register b holds one integer on every deep window, its net TICK count
+X_b = a_b + (k − 1)d_b at a read of v in pass k, a_b the count up to
+that read in pass 1 and d_b the count over a pass, the maxima below
+taken over every read of the trip, a read in u taking its count so
+far as a_b with d_b = 0, and they read zero iff C′ divides every X_b,
+so only if each X_b is 0 or has |X_b| ≥ C′. Below the least pass k with
+max|a_b| + (k − 1)·max|d_b| ≥ C′, a true read has every X_b exactly 0, a
+condition the program alone fixes; so of two supplies agreeing from the
+last pre-trip window on, a trip whose exits differ on them waits at
+least the smaller of their two passes on both. Fix the last modulus,
+that of the last window grown before the trip, which two such supplies
+share. Every supply with a deep window and a last modulus above 1 has
+such a companion with the other answer to whether the last modulus is
+coprime to the deep ones and a larger lcm: multiply one deep modulus by
+a prime of the last modulus, or replace the deep moduli by distinct
+primes above C′ times the last modulus. So a trip that tells, from one
+start state on every supply, whether the last modulus is coprime to the
+deep ones waits, on each supply with a deep window and a last modulus
+above 1, until a pass at least (C′ − max|a_b|)/max|d_b|, at least of the
+order of its own C′ once C′ exceeds the program's constants; with every
+d_b = 0 the deep windows repeat from pass to pass and the trip cannot
+tell. A trip whose u grows before any pulse, as the prime reader's does,
+fits the same frame with the window it grows as the last, no pulse
+reaching the windows before it. Over random trips whose loops do not
+grow, which the proof does not need, on two supplies sharing every
+modulus from the last pre-trip window on, deep lcms 9,699,690 and
+19,399,380, 445 exits below both passes agree, and each of the 287 that
+differ has both exits at or past the smaller pass: a check of the
+agreement, not of a trip that tells coprimality.</p>
+<h2 id="a-rider-on-a-fixed-schedule-lands-where-the-supply-falls-behind-it">A rider on a fixed schedule lands where the supply falls behind it</h2>
+<p class="tag">Tier: <a href="/key/#criterion">criterion</a>.<br>
+Verifier: proof; <a href="/code/clocks/#section_landing">clocks.py::section_landing</a>.</p>
+<p>A <dfn id="t-rider">rider</dfn> holds a count in the newest window, moved to each new window
+in unary, K windows grown per step j after g₀ at the start, so, writing
+m(g) for m_g, on a nondecreasing supply it holds c_j = (c_(j−1) + 1) mod
+m(Kj + g₀), moving it being lossless. A wrap armed at step j₀, the count
+0 there, lands at the least j &gt; j₀ with m(Kj + g₀) ≤ j − j₀, and never
+if there is none: c_j = j − j₀ until the first wrap, and
+c_(j−1) &lt; m(K(j − 1) + g₀) ≤ m(Kj + g₀) makes the add wrap exactly when
+j − j₀ ≥ m(Kj + g₀). So a wrap armed at j₀ never lands iff
+m(Kj + g₀) &gt; j − j₀ at every j &gt; j₀; the dividing line is the modulus's
+growth per step against the rider's one. On m_g = max(1, ⌈g/h⌉), h a
+positive integer, every wrap lands iff K &lt; h, at
+max(j₀ + 1, ⌈(g₀ + hj₀)/(h − K)⌉); at K ≥ h none lands after the first
+step. On m_g = max(1, g − ⌊√g⌋) at K = 1 and g₀ = 0, a rider armed at
+step 0 wraps at steps 1, 2, 4, 16 and 256 by step 3,000, each next wrap
+the least j with ⌊√j⌋ at least the last: the slope-one line decided by
+the sublinear term. The criterion lists the recurrence's wraps in 480 of
+480 cells over ten supplies, K = 1 to 8 and g₀ = 0 to 5, to step 3,000.
+So a nondecreasing sublinear supply lands every wrap at every K, and a
+nondecreasing linear one lands them when its modulus gains less than one
+per step and, past finitely many, hangs when it gains more, the lower
+terms deciding at exactly one, as on g − ⌊√g⌋: the rider's line is that
+slope, and linear against sublinear is neither its line nor the
+machine's, the doubling counter timing its own grows off the zero-test
+and running Minsky on every unbounded supply.</p>
+<h2 id="open-fronts">Open fronts</h2>
+<p>Open: whether a clock op outside TICK, PULSE and GROW, or a zero alarm
+that is not a counter zero-test (a threshold, a phase interval), changes
+what one read over every register can keep across a true read; and
+whether some machine reads coprimality faster than the lcm wait, which
+needs a read that is not one AND over every register, a pulse that
+reaches an old window, or an op moving an old window other than by unit
+steps.</p>
+</article></main>
+<footer>Previous: <a href="/machine/">MACHINE — a state that only multiplies, read as a machine</a> · Next: <a href="/forget/">FORGET — when a state provably no longer holds a datum</a> · <a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/supply.md">Source text</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

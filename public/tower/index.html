@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TOWER — the primorial rungs | Numbers read one place at a time</title>
+<meta name="description" content="TOWER — the primorial rungs">
+<link rel="alternate" type="text/markdown" href="/tower.md">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a> › <a href="/object/">The object: every finite place at once</a></nav></header>
+<main><article>
+<h1>TOWER — the primorial rungs</h1>
+<p class="lead">The object: the <a href="/tower/#t-rung">rungs</a> Z/p_k#, each the integers read through the first k
+primes and nothing else. This page states what a rung is and what it is
+missing, the first fourteen rungs, the transparency criterion that says
+when a rung adds a new element order, the <a href="/tower/#t-fate">fate</a> rule that decides which
+properties the rungs gain or lose as <a href="/fingerprint/#t-channels">channels</a> accumulate, the birthday
+formula for element orders, the residue code every rung from k = 4
+carries, the spectra of its <a href="/naming/#t-hamming-graph">Hamming graph</a> and of its <a href="/tower/#t-unitary-graph">unitary graph</a>, the
+<a href="/tower/#t-escape-law">escape law</a> for a step from a non-unit, how λ, the unit group's exponent,
+grows (almost every rung leaves it alone, and below 10^16 each rung that
+moves it raises one prime power), and what the limit of the rungs keeps.
+The library is <a href="/code/crt/">crt.py</a>.</p>
+<nav class="toc" aria-label="Contents" data-generated="toc"><ol><li><a href="#the-rung">The rung</a> <span>property</span></li><li><a href="#the-first-fourteen-rungs">The first fourteen rungs</a> <span>property</span></li><li><a href="#the-transparency-criterion">The transparency criterion</a> <span>criterion</span></li><li><a href="#the-fate-rule">The fate rule</a> <span>rule</span></li><li><a href="#the-birthday-formula">The birthday formula</a> <span>theorem; observation</span></li><li><a href="#the-residue-codes-distance">The residue code's distance</a> <span>theorem</span></li><li><a href="#the-hamming-spectrum">The Hamming spectrum</a> <span>rule</span></li><li><a href="#the-unitary-spectrum">The unitary spectrum</a> <span>theorem; observation</span></li><li><a href="#the-escape-law">The escape law</a> <span>theorem; observation</span></li><li><a href="#the-density-theorem">The density theorem</a> <span>theorem; observation</span></li><li><a href="#the-serial-ledger">The serial ledger</a> <span>rule</span></li><li><a href="#the-limit">The limit</a> <span>property</span></li><li><a href="#open-fronts">Open fronts</a></li></ol></nav>
+<h2 id="the-rung">The rung</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: <a href="/code/crt/#self_test">crt.py::self_test</a>.</p>
+<p>Write N = p_k# = p_1 p_2 ⋯ p_k for the product of the first k primes.
+The <dfn id="t-rung">rung</dfn> R_k = Z/p_k# is read through k channels, the reduction at
+each of its primes, and by the Chinese Remainder Theorem (the <dfn id="t-crt">CRT</dfn>)
+that reading is a ring isomorphism:</p>
+<pre>Z/p_k#  ≅  Z/p_1 × Z/p_2 × ⋯ × Z/p_k
+Z/2  &lt;  Z/6  &lt;  Z/30  &lt;  Z/210  &lt;  Z/2310  &lt;  Z/30030  &lt;  Z/510510  &lt;  ⋯</pre>
+<p>An element is a k-tuple of residues, and addition, multiplication and
+powering act channel by channel, no channel seeing another's content. At
+every rung, by construction: every channel is a prime field; the
+idempotents are exactly the 2^k elements that are 1 on a set of channels
+and 0 on the rest; the unit group is the product of the cyclic groups
+C_{p_i − 1}, of order φ(N) with φ Euler's totient, and of exponent
+λ(k) = lcm(p_1 − 1, …, p_k − 1); and powering by λ sends every element
+to the idempotent of its support, the set of channels where it is
+nonzero, so units go to 1 and every non-unit to the channels it lives
+on.</p>
+<p>A rung reads the first k finite places and is missing everything else:
+the archimedean place, where size, sign and ordering live, every prime
+larger than p_k, and every higher level Z/p² at the primes it keeps. The
+rungs nest as blocks of channels, R_k's channels being the first k of
+R_{k+1}'s, which is all the display's &lt; says; the ring map that keeps 1
+runs the other way, reduction from Z/30 onto Z/6. The limit of the tower
+keeps every finite place: the product of F_p over all primes p.</p>
+<p>Size, sign and the ordering of the integers are not channel
+quantities. Every claim in this page is a statement about channels,
+and about which primes they are, except two: the residue code's,
+whose guarantee is a bound on size, and the limit's embedding of the
+integers, which size certifies.</p>
+<h2 id="the-first-fourteen-rungs">The first fourteen rungs</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: <a href="/code/tower_rungs/#section_t">tower_rungs.py::section_t</a>; <a href="/code/tower_rungs/#section_c">tower_rungs.py::section_c</a>.</p>
+<pre> k  p_k  N                   φ(N)                λ       transparent
+ 1    2  2                   1                   1
+ 2    3  6                   2                   2
+ 3    5  30                  8                   4
+ 4    7  210                 48                  12
+ 5   11  2310                480                 60
+ 6   13  30030               5760                60      yes
+ 7   17  510510              92160               240
+ 8   19  9699690             1658880             720
+ 9   23  223092870           36495360            7920
+10   29  6469693230          1021870080          55440
+11   31  200560490130        30656102400         55440   yes
+12   37  7420738134810       1103619686400       55440   yes
+13   41  304250263527210     44144787456000      55440   yes
+14   43  13082761331670030   1854081073152000    55440   yes</pre>
+<p>Each computed column is the rung's construction evaluated: N the product of the
+first k primes, φ(N) the product of the p_i − 1, λ their lcm, and the
+rung transparent when λ(k) = λ(k − 1)
+(<a href="/tower/#the-transparency-criterion">The transparency criterion</a>).</p>
+<h2 id="the-transparency-criterion">The transparency criterion</h2>
+<p class="tag">Tier: <a href="/key/#criterion">criterion</a>.<br>
+Verifier: proof; <a href="/code/tower_rungs/#section_c">tower_rungs.py::section_c</a>.</p>
+<p>Rung k ≥ 2 is <dfn id="t-transparent">transparent</dfn> when λ(k) = λ(k − 1), and that holds iff
+(p_k − 1) divides λ(k − 1). Proof: λ(k) = lcm(λ(k − 1), p_k − 1).
+The element orders a rung realizes are exactly the divisors of λ (the
+birthday formula), so a transparent rung adds capacity — φ(N) multiplies
+by p_k − 1, the idempotents double — and no new order. At every other
+rung λ jumps, by λ(k)/λ(k − 1). The first transparent rung is k = 6,
+where p_6 = 13; through k = 14 the transparent rungs are 6, 11, 12, 13 and 14,
+the last four holding λ at the 55,440 that k = 10 set.</p>
+<h2 id="the-fate-rule">The fate rule</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (proved; each row's fate read at its rungs, by brute force
+for k ≤ 6 and by the row's criterion to k = 12, the code's by its sieve
+to k = 10).<br>
+Verifier: <a href="/code/tower_rungs/#section_f">tower_rungs.py::section_f</a>.</p>
+<p>Channels only accumulate: R_{k+1} has R_k's channels and one more. Call
+a property of a set of channels <dfn id="t-u2203-shaped">∃-shaped</dfn> when it passes to every
+larger set (some channel, or some subset of channels, carries it) and
+<dfn id="t-u2200-shaped">∀-shaped</dfn> when it passes to every smaller nonempty set. An ∃-shaped
+property is then born at the first rung that has it and holds at every
+later rung; a ∀-shaped one dies at the first rung that fails it and
+fails at every later rung, so the small primes are permanent vetoes.
+Where a property is born or dies is its <dfn id="t-fate">fate</dfn>. A conjunction of one
+of each is born at most once and, once dead, stays dead.</p>
+<p>Every row of the chart but the code's is computed per rung by brute
+force over the ring's elements for k ≤ 6, where it is monotone in its
+direction, and by the row's criterion to k = 12, monotone as written;
+the code's row is read by a sieve over differences to k = 10, and is
+monotone too. A planted row that is neither is flagged by the same
+check. The chart's last row is the residue code with three parity
+channels (<a href="/tower/#the-residue-codes-distance">The residue code's distance</a>), whose distance argument
+holds on any set of four or more primes, data on the smallest, so it is
+∃-shaped and born at 4.</p>
+<pre>property                        shape            fate
+field                           ∀                dies at 2
+a square root of −1             ∀                dies at 2
+cyclic unit group               ∀                dies at 3
+zero divisors                   ∃                born at 2
+idempotents beyond {0, 1}       ∃                born at 2
+an element of order 4           ∃                born at 3
+an element of order 3           ∃                born at 4
+the distance-4 residue code     ∃                born at 4</pre>
+<p>A square root of −1 needs every odd channel to be 1 mod 4, so the prime
+3 vetoes it at k = 2 for good. In a tower built the same way from 2, 5,
+13, 17 and 29 instead, the rings Z/2, Z/10, Z/130 and so on, it exists
+at every stage, so the veto is the prime and not the rule. An element of
+order 4 is born at k = 3 and never dies, and none squares to −1: the
+order-4 elements of Z/30 are 7, 13, 17 and 23. The tower keeps an
+element of order 4 and discards the square root of −1.</p>
+<h2 id="the-birthday-formula">The birthday formula</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>; observation (the birthdays for m ≤ 200).<br>
+Verifier: proof; <a href="/code/tower_rungs/#section_b">tower_rungs.py::section_b</a>.</p>
+<p>An element of multiplicative order m exists at rung k iff m divides
+λ(k), since the element orders of a finite abelian group are the
+divisors of its exponent (checked element by element for k ≤ 6). So
+for m ≥ 2 the first rung with one is</p>
+<pre>birthday(m)  =  max over prime powers q^a exactly dividing m of
+                the rung of the least prime ≡ 1 (mod q^a)</pre>
+<p>where the rung of the prime p_k is R_k, rungs compared by k. Every order
+is eventually born, by Dirichlet's theorem, and the wait is the least
+prime in an arithmetic progression, which Linnik's theorem bounds by a
+fixed power of the modulus. The wait is rough: order 23 arrives at
+rung 15 and order 19 at rung 43, and the latest birthday for m ≤ 200
+is order 197's, at the prime 3547, rung 497.</p>
+<h2 id="the-residue-codes-distance">The residue code's distance</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/tower_rungs/#section_d">tower_rungs.py::section_d</a>; <a href="/code/crt/#code_correct">crt.py::code_correct</a>;
+<a href="/code/crt/#code_syndrome">crt.py::code_syndrome</a>.</p>
+<p>On rung k with r parity channels, the codewords are the integers
+0 ≤ n &lt; p_{k−r}#, read through all k channels: the redundant residue
+number system with the smallest primes as data. Its minimum distance is
+exactly r + 1 at every k &gt; r. Two codewords that agree on a channel set
+S differ by a multiple of the product of S, and that difference is below
+p_{k−r}#, which no product of k − r of the rung's primes is below; so
+they agree on at most k − r − 1 channels. The pair 0 and p_{k−r−1}#
+agrees on exactly that many. With the data on the largest primes instead
+the distance falls to 1 exactly when p_r# &lt; p_k: k − 1 channels then
+have a product below the data range, and the pair 0 and p_{k−1}# agrees
+on them. At r = 3 it is 2 for k = 4..10, where 30 &gt; p_k while
+30 &lt; p_{k−1}p_k lets 0 and p_{k−2}# agree on k − 2 channels, and 1 from
+k = 11 on; the sieve that counts, for every difference, the channels it
+vanishes on finds 2 at k = 5..8, the argument carrying k = 4, 9 and 10,
+and 1 with r = 1 at k = 3..7 and with r = 2 at k = 4..8.</p>
+<p>With r = 3 the distance is 4 from k = 4 on, the data range Z/2 at
+k = 4: any one wrong channel is corrected while any two are detected,
+a decoder that corrects nothing detects any three, and any k − 3
+channels reconstruct. What k = 7 adds is only the rate, the fraction
+(k − 3)/k of channels that carry data, passing 1/2.</p>
+<p>At r ≥ 2 the syndrome tells a data error from a parity error and names
+the wrong parity channel; at r = 1 it only detects. Read the integer off
+the data channels and check it against each parity channel. A wrong data
+channel p_i moves that integer by (p_{k−r}#/p_i)·t with 0 &lt; |t| &lt; p_i,
+and every parity prime is coprime to the product and larger than p_i, so
+every one of the r checks fails; a wrong parity channel fails only its
+own. With the data on the largest primes instead, some data errors pass
+a check: with M the data product, setting the data channel p_i of the
+codeword 0 to the residue of (M/p_i)·p_j, for a parity prime p_j &lt; p_i,
+makes the data read (M/p_i)·p_j, below M and 0 at p_j.</p>
+<p>The guarantee is a bound on size: an integer is a codeword because it is
+small, which re-imports the archimedean place the rung is missing. It is
+the one property of a rung on this page whose statement needs the size
+of its elements, and ring arithmetic does not keep integers small, so
+the sum or product of two codewords need not be one.</p>
+<h2 id="the-hamming-spectrum">The Hamming spectrum</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (proved for every k ≥ 4; the base cases k = 4, 5 computed).<br>
+Verifier: <a href="/code/tower_rungs/#section_h">tower_rungs.py::section_h</a>.</p>
+<p>The rung's Hamming graph joins two residues that differ in exactly one
+channel, the metric the residue code's distance counts in. At every
+k ≥ 4 it has exactly T_k − 5 distinct eigenvalues, where T_k is the
+sum of the first k primes.</p>
+<p>The graph is the Cartesian product of the complete graphs K_p, one per
+channel. K_p has eigenvalue p − 1 on the constant vector and −1 on the
+p − 1 dimensions summing to zero, and a Cartesian product's
+eigenvalues are sums with one term per factor. So each set S of
+channels gives the eigenvalue Δ − σ(S), where Δ = Σ (p − 1) is the
+degree and σ(S) the sum of the primes in S. Each S contributes the
+product of p − 1 over S to its eigenvalue's multiplicity, and sets
+with the same sum share one eigenvalue. The distinct eigenvalues are
+the distinct subset sums of the first k primes.</p>
+<p>Those sums fill [0, T_k] but for 1, 4, 6 and their reflections T_k − 6,
+T_k − 4, T_k − 1. The set W_k of sums is closed under v ↦ T_k − v, by
+taking complements. Adding the next prime p_{k+1} gives W_k ∪
+(W_k + p_{k+1}), which covers [7, T_{k+1} − 7] as soon as W_k covers
+[7, T_k − 7] and p_{k+1} ≤ T_k − 13; below 7 nothing changes, since
+p_{k+1} ≥ 13, and the top follows by the reflection. That step
+inequality holds at k = 5 (13 ≤ 15), and if it holds at k then
+T_{k+1} − 2p_{k+1} = T_k − p_{k+1} ≥ 13, so Bertrand's postulate,
+p_{k+2} &lt; 2p_{k+1}, carries it to k + 1. What keeps the spectrum full is
+the primes' size: each new prime is small against the sum of the ones
+before it.</p>
+<p>At k = 7 there are 53 distinct eigenvalues, the least −7 with
+multiplicity φ(510510) = 92160. At k = 3 the missing set is
+{1, 4, 6, 9}, the same union with 4 and 6 reflecting onto each other, so
+only the count needs k ≥ 4. The script checks an eigenvector for each
+set S against the adjacency read off the residue tuples at k = 3 and 4,
+and there the whole spectrum with its multiplicities by counting closed
+walks, the missing sums at every k = 3..60, and the step inequality to
+k = 1999, after a control set, {2, 3, 5, 7, 11, 97}, whose last prime
+breaks the inequality and leaves 74 sums between 7 and 118
+(its total 125, less 7) missing.</p>
+<h2 id="the-unitary-spectrum">The unitary spectrum</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a> (the eigenvalues, the criterion for a shared one, the
+recursion and the doubling rung); observation (the doubling rung's
+converse, to k = 24; the ratio, at k = 2..20 and 24).<br>
+Verifier: proof; <a href="/code/tower_rungs/#section_u">tower_rungs.py::section_u</a>.</p>
+<p>The rung's <dfn id="t-unitary-graph">unitary graph</dfn> joins two residues whose difference is a
+unit, so two residues that differ in every channel: the tensor product
+of the complete graphs K_p, where the Hamming graph was their Cartesian
+product. Its eigenvalues are therefore products with one factor per
+channel, p − 1 or −1, where the Hamming graph's were sums of the same
+factors. Each set S of channels gives the eigenvalue</p>
+<pre>e(S)  =  (−1)^|S| · Π (p − 1)      over the channels p off S,</pre>
+<p>with multiplicity the product of p − 1 over S. On the additive character
+of an m with m ≡ 0 exactly at the channels off S, it is the Ramanujan
+sum c_N(m), which with g = gcd(m, N) equals μ(N/g)φ(g), μ the Möbius
+function and N squarefree; Klotz and Sander read the unitary graph's
+eigenvalues as these sums (Electron. J. Combin. 14 (2007) #R45, eqs. (8)
+and (9)).</p>
+<p>Two sets share an eigenvalue iff their sizes have one parity and the
+products of p − 1 off them agree. The channel 2 contributes 1, so
+moving it across S flips the sign and keeps |e(S)|: the spectrum is
+±U_k, with U_k the totients φ(d) of the squarefree d built from the
+odd primes to p_k, and the rung has 2|U_k| distinct eigenvalues
+against 2^k sets. The next prime p_k gives
+U_k = U_{k−1} ∪ (p_k − 1)U_{k−1}, so</p>
+<pre>|U_k|  =  2|U_{k−1}| − |U_{k−1} ∩ (p_k − 1)U_{k−1}|,</pre>
+<p>and each value in that intersection is a <dfn id="t-totient-collision">totient collision</dfn>, a
+value φ(a) = (p_k − 1)φ(b) with a and b squarefree and built from the
+older odd primes. None occurs before 13, where φ(21) = 12. Where the
+Hamming spectrum is kept full by the primes' size, this one is thinned
+by the factoring of p_k − 1.</p>
+<p>The doubling rung. If p_k − 1 has a prime factor ℓ dividing p_i − 1 for
+no i &lt; k, that is, one that λ of the rung below lacks, then ℓ divides
+every element of (p_k − 1)U_{k−1} and none of U_{k−1}: the rung has no
+collision and |U_k| doubles exactly (λ is the exponent of the unit
+group, the lcm of the p_i − 1). To k = 24 the rungs without a collision
+are p_k = 3, 5, 7, 11, 23, 29, 47, 53, 59 and 83, and every one but 5
+brings a new prime into λ. At 5 no prime is new, yet 4 · 1 and 4 · 2
+miss U = {1, 2}: there the power of 2 in 4 blocks the collision, not a
+new prime. The ratio |U_k|/2^(k−1), distinct values against sign-paired
+sets, falls from 1 at k = 5 to 0.81 at k = 6, 0.10 at k = 20 and 0.039
+at k = 24.</p>
+<p>The script checks an eigenvector for each set S against the adjacency
+read off gcd(n − n′, N) = 1 at k = 3 and 4, and there the multiplicities
+by counting closed walks, the Ramanujan sums summed in floats over the
+units of Z/2310 at every m and of Z/30030 at the divisors m of 30030
+(worst error 5.6 × 10⁻¹¹), the number of distinct values e(S) over all
+2^k sets against 2|U_k| to k = 16, and |U_k| by a full listing of subset
+products to k = 20. Its control, "distinct gcd, distinct eigenvalue",
+fails first at k = 6.</p>
+<h2 id="the-escape-law">The escape law</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>; observation (the count at k = 5 and the ratio's
+readings).<br>
+Verifier: proof; <a href="/code/tower_rungs/#section_e">tower_rungs.py::section_e</a>.</p>
+<p>A non-unit n of the rung has a <dfn id="t-null-set">null set</dfn> S, the channels where n ≡ 0,
+and its <dfn id="t-null-class">null class</dfn> is every residue with that null set. A
+<dfn id="t-generator-step">generator step</dfn> sends n to n + s or n − s, with s one of the rung's
+primes. If s is in S no member of the class reaches a unit, since s
+divides n ± s. If s is off S, exactly</p>
+<pre>(s − 1) · Π (p − 2)      over the channels p off S, p ≠ s</pre>
+<p>members of the class land on a unit, out of Π (p − 1) over the channels
+off S; this count is the <dfn id="t-escape-law">escape law</dfn>. Proof: by CRT the class's
+residues off S run over every tuple of nonzero values once. A channel in
+S reads n + s ≡ s, never 0. The channel s reads n + s ≡ n, never 0 since
+s is off S, and leaves s − 1 values free. Every other channel off S must
+avoid −s, which p − 2 of its p − 1 nonzero values do. The step −s is the
+image of the step s under n ↦ −n.</p>
+<p>So the chance of escape is a product with one factor, (p − 2)/(p − 1),
+per channel p off S other than s; s and the channels of S contribute 1.
+The factor at 2 is 0 whenever 2 is off S and s is odd: an
+odd non-unit escapes only by ±2, and an even one never by ±2. The
+class {0} is the one class with no escape at all: any other class
+misses some channel, and if it misses 2 the step 2 lifts it, while if
+it holds 2 an odd s it misses does, every factor p − 2 being then at
+least 1. The law is about classes and not single residues: at k = 5,
+122 nonzero non-units have no unit among their ten neighbours, n = 119
+among them.</p>
+<p>The proof never uses that S is nonempty, so the count holds as well at S
+empty, the class of units, and with s = 2 the chance of escape, one
+factor (p − 2)/(p − 1) per odd channel, is A(k), the chance that z + 2
+is a unit given that z is: 22275/92160 = 0.2417 at k = 7, 22275 being
+the number of residues z with z and z + 2 both units. Since
+(p − 2)/(p − 1) = (1 − 1/(p − 1)²)(1 − 1/p), A(k) is a partial product
+of the twin prime constant C₂, the product of 1 − 1/(p − 1)² over every
+odd prime, 0.6602, times the product of 1 − 1/p over the odd primes to
+p_k, which Mertens' theorem puts at 2e^(−γ)/ln p_k, γ being Euler's
+constant. So A(k)·ln p_k tends to 2C₂e^(−γ), and their ratio A(k)·ln
+p_k/(2C₂e^(−γ)) reads 0.9544 at k = 10 and 0.9993 at k = 2000. The
+script counts every non-unit class and signed step at k = 3..7 from a
+table of units, never from the formula, and compares each count with it,
+after a control formula with p − 1 in place of p − 2, which is wrong at
+1428 of them; it counts the class of units at the step 2 at k = 7.</p>
+<h2 id="the-density-theorem">The density theorem</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>; observation (the in-range table and L's readings).<br>
+Verifier: proof; <a href="/code/tower_growth/#section_w">tower_growth.py::section_w</a>.</p>
+<p>Almost every rung is transparent. With x = p_k and N_nt(k) the number
+of rungs among 2, …, k that move λ,</p>
+<pre>N_nt(k) / k  ≪  loglog x / log x  →  0.</pre>
+<p>The proof has two steps, and neither needs more than Chebyshev-strength
+prime counting and an upper-bound sieve.</p>
+<p>λ grows slowly. Write L(x) = log λ(k) = log lcm{p − 1 : p ≤ x}, the sum
+of a_q log q over the primes q, with q^{a_q} the largest power of q
+dividing some p − 1. Exponents above 1 need q² &lt; x and cost O(√x). The
+primes q ≤ x/log x cost at most θ(x/log x) ≪ x/log x, θ being
+Chebyshev's sum of log q over the primes q up to its argument. A prime
+q &gt; x/log x that divides p − 1 &lt; x is the largest prime factor of
+p − 1, with cofactor m &lt; log x, so the top range costs at most log x
+times the number of pairs (q, mq + 1), both prime, with m &lt; log x; the
+prime-pair upper-bound sieve counts those as ≪ x·loglog x/(log x)², the
+loglog coming from the sum of 1/φ(m) over m &lt; log x. So
+L(x) ≪ x·loglog x/log x. The step needs both primalities: with either
+one alone the top range is bounded no better than the trivial O(x), and
+the bound fails.</p>
+<p>Jumps are written once. A rung that moves λ raises the exponent of
+some prime q, an <dfn id="t-event">event</dfn> at q. Exponents only climb and q^a &lt; x, so q
+hosts at most ⌊log x/log q⌋ events, and an event at q &gt; y adds at
+least log y to L. For every y,</p>
+<pre>N_nt(k)  ≤  Σ_{q ≤ y} ⌊log x / log q⌋  +  L(x) / log y,</pre>
+<p>and y = x/(log x)³ makes the first term O(x/(log x)³) and the second
+≪ x·loglog x/(log x)², which is the theorem.</p>
+<p>The cyclicity ratio. The same two bounds pin a second ratio, α(k) = log
+λ(k)/log φ(p_k#) for k ≥ 2: how far the unit group is from cyclic, on a
+log scale, with α = 1 exactly when it is cyclic. A rung adds at most
+log(p − 1) to L, since the new λ divides the old one times p − 1, so
+α ≤ (N_nt(k)/k)(1 + o(1)) by the prime number theorem, so α vanishes
+with the share of rungs that move λ, and</p>
+<pre>N_nt(k)/k − α(k)  =  O(loglog x / log x).</pre>
+<p>Both ratios vanish, each O(loglog x/log x), so the bound on their
+difference says no more than that: the unit group's exponent is a
+vanishing power of its order, and the share of rungs that move it
+vanishes too. In range the gap closes faster than either ratio. log λ
+is the <dfn id="t-ledger">ledger</dfn> of the jumps, the sum over the rungs that move λ of the
+log of what each one adds.</p>
+<p>In range, over the first 664,579 rungs (every prime below 10^7):</p>
+<pre> k        p_k        transparent   N_nt/k   α        gap
+ 50       229        0.469         0.520    0.296    0.224
+ 2000     17389      0.766         0.234    0.183    0.051
+ 10^4     104729     0.801         0.199    0.165    0.033
+ 664579   9999991    0.851         0.149    0.132    0.017</pre>
+<p>The transparent share is taken over the k − 1 rungs 2, …, k and N_nt
+over k, so the two columns sum to 1 only as k grows: at k = 50, 23 of
+49 rungs are transparent and 26 move λ.</p>
+<p>L(x)·log x/(x·loglog x) reads 0.774, 0.779, 0.766 and 0.764 at x = 10^4,
+10^5, 10^6 and 10^7, so in range L sits near 0.77·x·loglog x/log x, the
+shape of the upper bound. A matching lower bound is open; a printed one
+is L(x) ≫ x^0.6265 (Nath and Jha, arXiv:2106.06782, Thm 1.1 at degree
+1), whose upper side is the trivial O(x); the upper bound is not in that
+paper. The primes q ≤ x/log x contribute at most x/log x, so a matching
+lower bound must come from the top range: it needs ≫ x·loglog x/(log x)²
+prime pairs (q, mq + 1) with m &lt; log x, a lower bound for the very count
+the sieve caps from above, and of twin-prime type. The convergence runs
+at log speed, and at x = 10^7 about 15% of rungs still move λ.</p>
+<h2 id="the-serial-ledger">The serial ledger</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (verified p &lt; 10^16; the record criterion proved).<br>
+Verifier: <a href="/code/tower_growth/#section_s">tower_growth.py::section_s</a>.</p>
+<p>Below 10^16, every rung that moves λ raises the exponent of exactly one
+prime q, to v_q(p_k − 1), the exponent of q in p_k − 1. Up to x = 10^7
+that is read directly off the scan of the rungs; beyond it, off a
+criterion.</p>
+<p>The <dfn id="t-record-criterion">record criterion</dfn>. Let f(m) be the least prime ≡ 1 (mod m). For q
+dividing p − 1, the prime p raises q iff h = v_q(p − 1) exceeds
+v_q(p′ − 1) for every prime p′ &lt; p, iff no prime below p is
+≡ 1 (mod q^h), iff p = f(q^h); and p = f(q^j) for any j ≥ 1 already forces
+p = f(q^h). So p raises q iff p lies in the <dfn id="t-record-set">record set</dfn>
+{f(q^j) : j ≥ 1}, and the ledger's jumps are <dfn id="t-serial">serial</dfn>, no rung raising
+two primes at once, iff the record sets of distinct primes are disjoint.
+A prime in two of them, a <dfn id="t-double-birth">double birth</dfn>, has witnesses m₁ and m₂ with
+m₁m₂ | p − 1, so the smaller is at most √(p − 1). Taking every prime
+power m ≤ 10^8, setting p = f(m) and testing p against the other primes
+of p − 1 is therefore complete below 10^16. The search, run at m ≤ 10^8
+(the script's argument; its default 10^6 is complete below 10^12), finds
+5,762,848 record primes and no double birth. For a record prime p = f(m)
+and each other prime r dividing p − 1, the <dfn id="t-margin">margin</dfn> p/f(r^u),
+u = v_r(p − 1), is at least 1 and equals 1 exactly at a double birth.
+The smallest margin is 7/3, at p = 7 = f(3) against f(2) = 3, and from
+the twentieth smallest on every margin is above 34. A planted control
+deletes 5 and 7 from the primes, leaving 13 the least prime ≡ 1 (mod 3)
+and the least ≡ 1 (mod 4), and the search reports it.</p>
+<p>Two readings of the same law, each holding as far as it does. The
+birthday formula's maximum, over the prime powers q^a exactly dividing
+an order, of the rung of f(q^a) is never a tie between two primes while
+the maximizing f(q^a) is below 10^16, since a tie is a double birth. And
+no rung brings two new primes into λ: the prime q enters at the rung of
+f(q), so distinct primes enter at distinct rungs, every one below 10^16.</p>
+<p>Beyond 10^16 the law is open: a search cannot exclude a double birth at
+every scale, and no proof that the record sets of distinct primes are
+disjoint is known.</p>
+<h2 id="the-limit">The limit</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: proof.</p>
+<p>Reduction from R_{k+1} to R_k forgets the last channel and moves
+nothing else, so a coherent sequence of residues is a free choice of
+one residue at every prime, and the limit of the rungs is</p>
+<pre>lim R_k  =  Π_p F_p  =  Ẑ / J(Ẑ),</pre>
+<p>the product of every prime field. No exponent rises above 1, so no
+p-adic integers form: the limit is the profinite completion
+Ẑ = Π_p Z_p with its Jacobson radical J(Ẑ) = Π_p pZ_p stripped.</p>
+<p>The integers sit inside by size. Z maps into the limit injectively, but
+no finite set S of channels certifies it, since the product of S is a
+nonzero integer reading 0 on all of S. Size certifies it: a prime larger
+than |n| cannot divide n, so a nonzero integer is nonzero on all but
+finitely many channels. Over F₂[x] the same proof runs on degree, since
+an irreducible cannot divide a nonzero polynomial of lower degree, and
+degree is the place at infinity of F₂(x), which is not archimedean. So
+this certificate comes from a place the channels do not read; over Q,
+whose places are the primes and one archimedean place, that place is
+size.</p>
+<p>The image is dense, by the Chinese Remainder Theorem on any finite set
+of channels, and small. A nonzero integer has finitely many zero
+channels, while the tuple that is 0 at every p ≡ 3 (mod 4) and 1
+elsewhere has infinitely many and so is no integer. Under the product of
+the uniform measures a random element is 0 at p with probability 1/p,
+independently, and Σ 1/p diverges, so by Borel–Cantelli almost every
+element has infinitely many zero channels: the integers lie in a set
+of measure zero, and a finite zero set is a necessary mark of a nonzero
+integer, never a sufficient one. A restricted product taken with
+respect to subrings containing 1 is all of Π_p F_p, since F_p has no
+proper subring containing 1; the finite adeles differ, their
+restriction Z_p ⊂ Q_p being such a subring, which gives a ring strictly
+between ⊕_p Q_p and Π_p Q_p. Restricting to {0} at every p gives
+⊕_p F_p, an ideal and not a subring containing 1, meeting Z at 0 alone.</p>
+<p>What the rungs keep and lose. What holds channel by channel survives:
+every coordinate is a field, the idempotents are the 0/1 tuples, now one
+for every set of primes, and the pseudo-inverse a′ (r ↦ r⁻¹ on each
+channel, 0 ↦ 0) satisfies a·a′·a = a. What needs a bound dies. No
+exponent E gives a^{E+1} = a on the limit, since a generator of F_p* has
+order p − 1 &gt; E once p &gt; E + 1: λ(k) ≥ p_k − 1 is unbounded, and an
+identity written with λ(k) fails at the first later rung that moves λ.
+The residue code dies with size, its codewords being the small integers.
+And some channel-wise maps stop being polynomials. On a rung every
+channel-wise map is one, interpolated on each channel and glued by the
+Chinese Remainder Theorem, but a function on F_p has exactly one
+polynomial of degree below p, which for the pseudo-inverse is x^{p−2} at
+every p ≥ 3; a polynomial of degree D with coefficients in the limit
+would give one of degree at most D at every p &gt; D + 2. So the limit
+keeps the channel-wise operations, and the pseudo-inverse keeps no
+polynomial formula, only the limit of the rungs' x^{λ(k)−1}.</p>
+<h2 id="open-fronts">Open fronts</h2>
+<p>Three edges are open, and two are questions about the distribution of
+primes. The serial ledger past 10^16 needs a proof that the record sets
+of distinct primes are disjoint; the density theorem's matching lower
+bound needs a lower bound for prime pairs (q, mq + 1), of twin-prime
+type, and the constant of L·log x/(x·loglog x) with it. Either would be
+settled only by a proof idea, an Elliott–Halberstam-level advance or an
+elementary lower-bound argument; a bigger scan can only refute the
+first, by finding a double birth.</p>
+<p>The third is the unitary spectrum's: whether a rung with no
+collision past k = 3 must bring a new prime into λ (true to k = 24,
+unproved), and how fast the share |U_k|/2^(k−1) falls, a count of the
+coincidences among totients of squarefree numbers that no scan
+settles.</p>
+</article></main>
+<footer>Next: <a href="/fingerprint/">FINGERPRINT — one real number reads a residue tuple up to sign</a> · <a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/tower.md">Source text</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

@@ -1,0 +1,869 @@
+"""sets.py -- set-valued prediction scored against its exact optimum:
+what coverage can and cannot rank, the certificate that brackets the
+marginal optimum, when that certificate is the optimum, and an exact
+solver for the cells no enumeration reaches.
+
+QUESTION. A set-valued predictor (a conformal predictor, say) returns
+a set of labels, and it is sold on a coverage guarantee that holds by
+construction, so coverage cannot rank two of them. What can rank them
+is the set's size, and on natural data the least size is unknown. On
+a family whose posterior is an exact Fraction it is a computation:
+minimize the expected set size subject to marginal coverage
+1 - alpha. What does that optimum look like, what does the textbook
+form of the answer cost against it, and what proves a candidate
+optimal without a search?
+
+THE FAMILY. x in Z/N, N = Mc, under the prior proportional to theta^x,
+read through its residue r = x mod M (an ATOM, of mass w_r) and
+labelled by the magnitude class Y = floor(kx/N). The fiber over r is
+r + jM, j < c, and P(j | r) is proportional to q^j, q = theta^M, the
+theta^r cancelling: the fiber index reads the same at every atom. The
+class is a contiguous block [lo, hi) of j, so
+    P(Y = y | r) = (q^lo - q^hi)/(1 - q^c)    (hi - lo)/c at q = 1.
+The blocks move with the atom's phase r/M and not with theta. Four
+ring cells, alpha = 3/10 throughout:
+    TILT-3       N = 105,  M = 15,  c = 7,  k = 3, theta = 24/25
+    FLAT-3       N = 105,  M = 15,  c = 7,  k = 3, theta = 1
+    DEAD-7       N = 105,  M = 15,  c = 7,  k = 7, theta = 1
+    TILT-4-WIDE  N = 1155, M = 105, c = 11, k = 4, theta = 199/200
+and a designed sweep with no ring in it: M = 3 or 4 atoms, k = 3
+labels, every posterior on the tenths, weights on the twentieths
+(fixed seed), with an equal-weight arm.
+
+THE OBJECTS. A PAIR (r, y) costs w_r and covers w_r p(y|r), so its
+rate is p(y|r) and the atom's weight cancels from the ranking; a rule
+is a set of pairs, its cost the expected set size. T = 1 - alpha. The
+OPERATIVE LEVEL t* is the largest posterior value t whose pairs
+{p >= t} cover at least T. A is the pairs strictly above t*, the TIED
+BLOCK the b pairs at t*, and the DEFICIT delta = T - cov(A).
+    THR   = cost(A) + cost(tied block): the best rule of the
+            thresholded-posterior form {p >= t}, the form Sadinle, Lei
+            and Wasserman (JASA 2019, Theorem 1) prove optimal for a
+            posterior without ties.
+    CERT  = cost(A) + the least cost of a tied subset S with
+            t* cost(S) >= delta (the tied pairs all cover at rate t*).
+    L     = cost(A) + delta/t*, the linear relaxation's value.
+    D     = cov(CERT) - T, the SURPLUS the fill overshoots by.
+    OPT   = the least cost of a rule covering T.
+
+THE ARGUMENT (written before the engine).
+  (A) THE CHAIN (property). delta > 0: if A alone covered T, the next
+      posterior value above t* would be operative. For any rule R
+      covering T, with rc_i = w_i (1 - p_i/t*) the reduced cost at
+      price 1/t*,
+          cost(R) = sum_{i in R} rc_i + cov(R)/t*
+                  >= sum_{rc < 0} rc_i + T/t* = L,
+      and the rc < 0 pairs are exactly A. So L <= OPT <= CERT <= THR.
+      And cov(CERT) = cov(A) + t* fill, so
+          CERT - L = fill - delta/t* = D/t*,
+      exactly, whatever fill is chosen: the certificate's whole room
+      over the relaxation is the surplus divided by the level.
+  (B) EQUAL WEIGHTS (property). Every pair costs w, so OPT is w times
+      the least count of pairs whose posteriors, largest first, cover
+      T; those pairs are A and then tied pairs, since t* is operative.
+      So CERT = OPT, and
+          THR - OPT = w (b - ceil(delta/(w t*))):
+      the form pays exactly when the level is tied past what the
+      deficit needs, and never at b = 1. And D < w t*, so D/t* < w.
+  (C) UNEQUAL WEIGHTS (property, by exhibited cell). Three atoms of
+      weights 3/10, 3/10, 2/5, each with posteriors (2/5, 2/5, 1/5),
+      T = 7/10: t* = 2/5, nothing above it, delta = 7/10, the fill
+      needs tied cost 7/4 and the least such sum of 3/10s and 2/5s
+      (four and two available) is 2, so CERT = THR = 2 with coverage
+      4/5. The sizes (2, 3, 1) cost 19/10 and cover exactly 7/10:
+      OPT <= 19/10 < CERT. The optimum drops a heavy tied pair and tops
+      up with a light BELOW-level one, spending the surplus.
+  (D) THREE TESTS OF EXACTNESS (property). CERT - OPT lies in [0, D/t*]
+      by (A). (i) It is an integer combination of the weights, so
+      D/t* < g, the least positive such combination (the LATTICE GAP,
+      the gcd of the weights), proves CERT = OPT; by (B) this decides
+      every equal-weight cell. (ii) It is sum_r (s_r - s'_r) w_r with
+      s the certificate's sizes and s' an optimum's, each in [0, k],
+      so the least positive value g_hat of sum c_r w_r over the box
+      c_r in [s_r - k, s_r] (the ANCHORED GAP) may replace g, and
+      g_hat >= g since the box sits in the lattice. (iii) A rule leaving
+      out a pair of A or holding a pair below t* costs at least
+      L + |rc_i| by the display in (A); so D/t* < rho, the least
+      nonzero |rc_i| (the PRICE GAP), confines every optimum to A plus
+      tied pairs, whose best is the fill: CERT = OPT.
+  (E) THE SOLVER (property). The same display fixes every pair with
+      |rc_i| > CERT - L, in if rc_i < 0 and out if rc_i > 0, since
+      flipping it costs more than CERT. An atom's rule of size s takes
+      its s largest posteriors, so after fixing each atom keeps a
+      range of sizes; the atoms are split in two halves, each half
+      folded to its Pareto frontier of (cost, coverage), and the
+      halves joined on the coverage axis. The answer is exact with or
+      without the fixing.
+  (F) COVERAGE (the demonstration). Split conformal thresholds one
+      global quantile of an estimated posterior; Mondrian conformal
+      takes the quantile within each atom. The conditional-coverage
+      impossibility (Barber, Candes, Ramdas and Tibshirani, Inf.
+      Inference 2021; Vovk, "Conditional validity of inductive
+      conformal predictors", 2012, Proposition 4) needs a marginal
+      without atoms; Vovk states that at an atom a predictor keeping
+      only that object's examples has conditional validity. The
+      observable x mod M has M atoms, so per-atom coverage is attainable
+      here and scoring it is legitimate. The true posterior being exact, every set's
+      coverage is computed exactly, with no test sample.
+
+DESIGN. The sweep scores every cell exactly in integers (the costs
+and coverages scaled by one common denominator): the chain, the
+certificate's sizes, the three tests, and the solver against
+enumeration of all (k+1)^M size vectors. The ring cells take the solver
+alone, TILT-3 also without fixing (4^15 size vectors, split 4^8 and
+4^7). The coverage section runs split and Mondrian conformal (score
+1 - phat(y|r), phat the training half's frequencies, pooled label
+frequencies at an empty atom; calibration quantile the
+ceil((n_cal + 1)(1 - alpha))-th smallest score, all labels where that
+exceeds the calibration count) at the four ring cells, n in
+{2000, 8000, 32000}, 20 trials each, one seed per (cell, n, trial).
+
+PREDICTIONS (fixed before the engine; figures carried from an earlier
+record are TRANSPLANTS until re-measured).
+  K0 CONTROL (conformal): three equal atoms with posteriors
+     (0.8, 0.15, 0.05), (0.5, 0.3, 0.2), (0.34, 0.33, 0.33) have
+     per-atom oracle sizes 1, 2, 3; at n = 32000 Mondrian's per-atom
+     excess over them has median 0 and maximum at most 1, and both
+     methods' mean marginal coverage is at least 0.68.
+  K1 CONTROL (truth): the closed-form class mass equals the direct sum
+     of theta^x over the fiber at every atom of every ring cell, and
+     the masses sum to 1.
+  K2 CONTROL (sampler): at n = 32000 the pooled atom and label
+     frequencies sit within 4 standard errors of the exact ones.
+  K3 CONTROL (solver): solver == enumeration at every sweep cell;
+     at TILT-3 the unfixed split search equals the fixed solver; at
+     the cell of (C) enumeration returns 19/10.
+  P1 (family) FLAT-3's atoms all carry the multiset {3/7, 2/7, 2/7};
+     DEAD-7's every mass is 1/7, and stays 1/7 under theta = 24/25;
+     TILT-3's and TILT-4-WIDE's atoms carry more than one multiset.
+  P2 (A) at every cell: delta > 0, L <= OPT <= CERT <= THR, and
+     CERT - L = D/t* exactly.
+  P3 (B) at every equal-weight cell: CERT = OPT, THR - OPT =
+     w (b - ceil(delta/(w t*))), D/t* < w.
+  P4 (C) the exhibited cell as derived; and the sweep holds an
+     unequal-weight cell with b = 1 and CERT > OPT, where THR = CERT
+     (TRANSPLANT: an earlier census printed such rows).
+  P5 (D) no test fires at any cell with CERT > OPT, and g_hat >= g at
+     every cell. At the ring the lattice test fires at FLAT-3 and
+     DEAD-7 only, the price gap at TILT-4-WIDE (TRANSPLANT: an earlier
+     solver fixed every non-tied pair there) and not at TILT-3.
+  P6 the ring optima, TRANSPLANTS: TILT-3 L 0.9008338, CERT 0.9287750,
+     OPT 0.9194957; FLAT-3 CERT = OPT = 2, THR = 3; DEAD-7 CERT =
+     OPT = 74/15, THR = 7; TILT-4-WIDE CERT = OPT = 0.8967012, THR = 1.
+  P7 (F) split conformal's mean marginal coverage lies in
+     [0.69, 0.74] at every cell and n, while its worst atom's exact
+     coverage is 0 in some trial at TILT-3 and TILT-4-WIDE at every n
+     (TRANSPLANT); Mondrian's worst atom, averaged over trials, is at
+     least 0.6 at both at n = 32000; split's mean set size sits below
+     THR at FLAT-3 and DEAD-7 at every n (sampling breaks the ties the
+     form is sunk by).
+
+KILL. K0 to K3 off: nothing is read. P2, P3 or P5's first clause off:
+a proof above is wrong and its claim does not stand. P7's zero off:
+the demonstration is restated at what prints.
+[Read later, on a code read: P2's delta > 0 and CERT <= THR, P4's
+THR = CERT at m = 1 and P5's g_hat >= g hold by construction and are no
+longer checked, and CERT - L = D/t* held by D's definition; P2 now reads
+the certificate's own sizes, their cost CERT and coverage T + D. P7's
+band admits a mean below T, so P7' also asks the mean to reach T.]
+
+FINDINGS. No kill fired. One frozen clause was wrong, the slate's: P1
+said DEAD-7 stays flat under theta = 24/25. At k | c the class blocks
+do not move with the atom, so every atom carries ONE law at every
+tilt, and under a tilt that law is the truncated geometric of ratio
+q = theta^15 (0.4643, 0.2517, ..., 0.0118), not 1/7. P1' (after
+run 1) gates the atom-blind form; the frozen clause is printed as a
+record.
+  controls  K0 sizes (1, 2, 3), Mondrian excess median 0, max 0,
+            marginal 0.7667 split, 0.8667 Mondrian; K1 exact at every
+            atom of the four ring cells; K2 largest deviation 3.12 SE;
+            K3 solver == enumeration at all 3,400 sweep cells, fixed and
+            unfixed; the exhibited cell's enumeration 19/10; TILT-3's
+            unfixed search (frontiers 300 and 510) == the fixed one
+            (93 and 256).
+  family    distinct multisets over the atoms: TILT-3 3 of 15,
+            FLAT-3 1, DEAD-7 1, TILT-4-WIDE 4 of 105.
+  chain     (A) holds at all 3,404 cells, the identity exactly.
+  equal     (B) holds at all 402 equal-weight cells; the form pays at
+            117 of them.
+  unequal   the exhibited cell: t* 2/5, CERT = THR = 2, L 7/4, D/t*
+            1/4, OPT 19/10. CERT > OPT at 1,110 of 3,000 unequal-weight
+            cells, 442 of them at b = 1, the first w (1/10, 9/20, 9/20),
+            p (1, 0, 0), (1, 0, 0), (4/5, 1/5, 0): t* 4/5, THR = CERT = 1,
+            OPT 9/10, the optimum dropping the light atom's ABOVE-level
+            pair (cost 1/10) because the surplus 0.21 covers its 0.1.
+  tests     no false firing at any cell; g_hat >= g everywhere. At the
+            1,890 exact unequal-weight sweep cells: lattice 911,
+            anchored 1,011, price 655. The ring:
+              cell          D/t*       g          g_hat      rho
+              TILT-3        2.794e-02  2.345e-21  1.784e-09  1.414e-02
+              FLAT-3        5.000e-02  6.667e-02  6.667e-02  3.333e-02
+              DEAD-7        3.333e-02  6.667e-02  6.667e-02  none
+              TILT-4-WIDE   4.349e-06  6.0e-242   refused    1.813e-03
+            the lattice deciding FLAT-3 and DEAD-7, the price gap
+            TILT-4-WIDE alone, nothing TILT-3 (where CERT > OPT); the
+            anchored box at 105 atoms (5^105) is not searched.
+  optima    L / OPT / CERT / THR: TILT-3 0.9008338 / 0.9194957 /
+            0.9287750 / 1; FLAT-3 1.95 / 2 / 2 / 3; DEAD-7 4.9 / 74/15 /
+            74/15 / 7; TILT-4-WIDE 0.8966969 / 0.8967012 / 0.8967012 /
+            1, its 26 free atoms those holding the tied block's pairs,
+            each half 8,192 points.
+  coverage  split's mean marginal 0.7037 to 0.7263 at every cell and n;
+            its worst atom at exact coverage 0 in 19, 20, 20 of 20
+            trials at TILT-3 and 20, 20, 20 at TILT-4-WIDE (n = 2000,
+            8000, 32000), while its mean size, 0.94 to 0.90, sits within
+            0.04 of OPT. Mondrian's worst atom, trial mean, 0.7160 at
+            TILT-3 and 0.6342, 0.6530, 0.6530 at TILT-4-WIDE; its mean
+            excess over the per-atom oracle falls with n (TILT-3 +0.295,
+            +0.199, +0.066). At FLAT-3 and DEAD-7 split's mean size
+            (1.98 to 2.00, 4.94 to 4.97) sits at OPT and below THR (3,
+            7): sampling breaks the ties the form is sunk by.
+
+RUN RECORD. python sets.py: run 1, 16 of 17 and a print crash (DEAD-7
+has no nonzero reduced cost); run 2, P1' gated and the frozen clause a
+record, 17 of 17, 2.9 s, peak commit 84.1 MB. After a code read, 18 of
+18, 3.0 s, peak commit 83.3 MB: P2 reads the certificate's sizes, 0 of
+3,404 cells off; the first m = 1 cell's surplus D prints 21/100; P7'
+holds at every cell and n.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import random
+import sys
+import time
+from bisect import bisect_left, bisect_right
+from fractions import Fraction as F
+from itertools import product
+from math import ceil, gcd, sqrt
+
+T = F(7, 10)
+NS = (2000, 8000, 32000)
+TRIALS = 20
+SEED = 20260928
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  [{'ok' if ok else 'FAIL'}] {name}" + (f"  {detail}" if detail
+                                                     else ""))
+
+
+def section(title):
+    print()
+    print(title)
+    print("-" * len(title))
+
+
+# ------------------------------------------------------------- cells
+
+class Cell:
+    """Atoms with weights w (Fractions summing to 1) and per-atom
+    posteriors p[r] (Fractions, label order kept)."""
+
+    def __init__(self, name, w, p):
+        self.name, self.w, self.p = name, list(w), [list(x) for x in p]
+        self.M, self.k = len(w), len(p[0])
+        self.srt = [sorted(x, reverse=True) for x in self.p]
+
+    def equal(self):
+        return len(set(self.w)) == 1
+
+
+def ring(name, N, M, k, theta, truth=False):
+    c = N // M
+    q = theta ** M
+    if truth:
+        tx = [theta ** x for x in range(N)]
+        Z = sum(tx)
+    w, p = [], []
+    for r in range(M):
+        ys = [k * (r + j * M) // N for j in range(c)]
+        row = []
+        for y in range(k):
+            js = [j for j in range(c) if ys[j] == y]
+            if not js:
+                row.append(F(0))
+                continue
+            lo, hi = js[0], js[-1] + 1
+            assert js == list(range(lo, hi))
+            row.append(F(hi - lo, c) if q == 1
+                       else (q ** lo - q ** hi) / (1 - q ** c))
+        p.append(row)
+        w.append(F(1, M) if theta == 1 else
+                 theta ** r * (1 - q ** c) / (1 - q) * (1 - theta)
+                 / (1 - theta ** N))
+    cell = Cell(name, w, p)
+    if truth:
+        ok = sum(w) == 1
+        for r in range(M):
+            for y in range(k):
+                direct = sum(tx[x] for x in range(r, N, M)
+                             if k * x // N == y) / Z
+                ok &= direct == w[r] * p[r][y]
+        cell.truth_ok = ok
+    return cell
+
+
+RING = (("TILT-3", 105, 15, 3, F(24, 25)), ("FLAT-3", 105, 15, 3, F(1)),
+        ("DEAD-7", 105, 15, 7, F(1)),
+        ("TILT-4-WIDE", 1155, 105, 4, F(199, 200)))
+
+
+# -------------------------------------------------- the certificate
+
+class Scaled:
+    """A cell in integers: cost W[r], prefix coverage V[r][s] of the s
+    largest posteriors, target TQ, all over one denominator Q."""
+
+    def __init__(self, cell):
+        dens = [x.denominator for x in cell.w]
+        dens += [(cell.w[r] * y).denominator for r in range(cell.M)
+                 for y in cell.srt[r]]
+        Q = T.denominator
+        for d in dens:
+            Q = Q * d // gcd(Q, d)
+        self.Q, self.TQ = Q, int(T * Q)
+        self.W = [int(x * Q) for x in cell.w]
+        self.V = []
+        for r in range(cell.M):
+            acc, row = 0, [0]
+            for y in cell.srt[r]:
+                acc += int(cell.w[r] * y * Q)
+                row.append(acc)
+            self.V.append(row)
+
+
+def least_sum_at_least(items, target):
+    """Least subset sum of the positive integers `items` that is >= target,
+    with one witness mask; meet in the middle, sums deduplicated."""
+    def half(xs, off):
+        sums = {0: 0}
+        for i, x in enumerate(xs):
+            new = dict(sums)
+            for s, mask in sums.items():
+                new.setdefault(s + x, mask | (1 << (i + off)))
+            sums = new
+        return sums
+    h = len(items) // 2
+    left, right = half(items[:h], 0), half(items[h:], h)
+    rk = sorted(right)
+    best = None
+    for s, mask in left.items():
+        j = bisect_left(rk, target - s)
+        if j < len(rk):
+            v = s + rk[j]
+            if best is None or v < best[0]:
+                best = (v, mask | right[rk[j]])
+    return best
+
+
+class Anatomy:
+    def __init__(self, cell):
+        self.cell, sc = cell, Scaled(cell)
+        self.sc = sc
+        levels = sorted({y for row in cell.srt for y in row}, reverse=True)
+        for t in levels:
+            cov = sum(cell.w[r] * y for r in range(cell.M)
+                      for y in cell.srt[r] if y >= t)
+            if cov >= T:
+                self.t = t
+                break
+        t = self.t
+        self.above = [sum(1 for y in row if y > t) for row in cell.srt]
+        self.tied_n = [sum(1 for y in row if y == t) for row in cell.srt]
+        self.m = sum(self.tied_n)
+        costA = sum(sc.W[r] * self.above[r] for r in range(cell.M))
+        covA = sum(sc.V[r][self.above[r]] for r in range(cell.M))
+        self.delta = sc.TQ - covA
+        owners = [r for r in range(cell.M) for _ in range(self.tied_n[r])]
+        items = [sc.W[r] for r in owners]
+        need = ceil(F(self.delta) / t)
+        fill, mask = least_sum_at_least(items, need)
+        self.sizes = list(self.above)
+        for i, r in enumerate(owners):
+            if mask >> i & 1:
+                self.sizes[r] += 1
+        self.cert = costA + fill
+        self.thr = costA + sum(items)
+        self.L = costA + F(self.delta) / t
+        self.D = covA + t * fill - sc.TQ
+        self.room = self.D / t
+        rcs = [sc.W[r] - F(sc.V[r][i + 1] - sc.V[r][i]) / t
+               for r in range(cell.M) for i in range(cell.k)]
+        nz = [abs(x) for x in rcs if x != 0]
+        self.rho = min(nz) if nz else None
+        g = 0
+        for x in sc.W:
+            g = gcd(g, x)
+        self.g = g
+
+    def value(self, x):
+        return F(x) / self.sc.Q
+
+
+def anchored_gap(an):
+    """Least positive sum c_r W_r over c_r in [s_r - k, s_r]."""
+    W, k, s = an.sc.W, an.cell.k, an.sizes
+
+    def half(rs):
+        vals = {0}
+        for r in rs:
+            vals = {v + c * W[r] for v in vals
+                    for c in range(s[r] - k, s[r] + 1)}
+        return vals
+    M = an.cell.M
+    left, right = half(range(M // 2)), sorted(half(range(M // 2, M)))
+    best = None
+    for v in left:
+        j = bisect_right(right, -v)
+        if j < len(right):
+            x = v + right[j]
+            if best is None or x < best:
+                best = x
+    return best
+
+
+def enumerate_opt(an):
+    sc, M, k = an.sc, an.cell.M, an.cell.k
+    best = None
+    for sz in product(range(k + 1), repeat=M):
+        if sum(sc.V[r][sz[r]] for r in range(M)) >= sc.TQ:
+            c = sum(sc.W[r] * sz[r] for r in range(M))
+            if best is None or c < best:
+                best = c
+    return best
+
+
+def pareto(points):
+    points = sorted(set(points), key=lambda x: (x[0], -x[1]))
+    out, top = [], None
+    for c, v in points:
+        if top is None or v > top:
+            out.append((c, v))
+            top = v
+    return out
+
+
+def solve(an, fix=True):
+    """The exact marginal optimum (E): fixing, then two Pareto halves
+    joined on the coverage axis. Returns (OPT, free atoms, frontier
+    sizes)."""
+    sc, cell, t = an.sc, an.cell, an.t
+    gap = an.cert - an.L
+    base_c = base_v = 0
+    free = []
+    for r in range(cell.M):
+        lo, hi = 0, cell.k
+        if fix:
+            for i in range(cell.k):
+                rc = sc.W[r] - F(sc.V[r][i + 1] - sc.V[r][i]) / t
+                if rc < 0 and -rc > gap:
+                    lo = i + 1
+                if rc > 0 and rc > gap:
+                    hi = min(hi, i)
+        opts = [(sc.W[r] * s, sc.V[r][s]) for s in range(lo, hi + 1)]
+        if len(opts) == 1:
+            base_c += opts[0][0]
+            base_v += opts[0][1]
+        else:
+            free.append(opts)
+
+    def fold(group):
+        front = [(0, 0)]
+        for opts in group:
+            front = pareto([(a + c, b + v) for a, b in front
+                            for c, v in opts])
+        return front
+    h = len(free) // 2
+    left, right = fold(free[:h]), fold(free[h:])
+    rv = [v for _, v in right]
+    best = None
+    for c, v in left:
+        j = bisect_left(rv, sc.TQ - base_v - v)
+        if j < len(right):
+            x = base_c + c + right[j][0]
+            if best is None or x < best:
+                best = x
+    return best, len(free), (len(left), len(right))
+
+
+# ------------------------------------------------------------ sweep
+
+TENTHS = [tuple(F(x, 10) for x in (a, b, 10 - a - b))
+          for a in range(11) for b in range(11 - a) if a >= b >= 10 - a - b]
+
+
+def sweep():
+    rng = random.Random(SEED)
+    cells = []
+    for i in range(400):
+        M = 3 if i < 300 else 4
+        cells.append(Cell(f"E{i}", [F(1, M)] * M,
+                          [rng.choice(TENTHS) for _ in range(M)]))
+    comps = [(a, b, 20 - a - b) for a in range(1, 19)
+             for b in range(1, 20 - a)]
+    for i in range(3000):
+        ws = rng.choice(comps)
+        cells.append(Cell(f"U{i}", [F(x, 20) for x in ws],
+                          [rng.choice(TENTHS) for _ in range(3)]))
+    return cells
+
+
+SPECIMEN = Cell("SPECIMEN", [F(3, 10), F(3, 10), F(2, 5)],
+                [[F(2, 5), F(2, 5), F(1, 5)]] * 3)
+
+
+# --------------------------------------------------------- sections
+
+def section_controls(rings, sweep_an):
+    section("CONTROLS")
+    k1 = all(c.truth_ok for c in rings.values())
+    check("K1 closed-form class mass == direct fiber sum at every atom of "
+          "the four ring cells", k1)
+    bad = 0
+    for an in sweep_an:
+        if solve(an)[0] != enumerate_opt(an) or \
+                solve(an, fix=False)[0] != enumerate_opt(an):
+            bad += 1
+    check("K3 solver (fixed and unfixed) == enumeration at every sweep "
+          "cell", bad == 0, f"{len(sweep_an)} cells, {bad} disagree")
+    sp = Anatomy(SPECIMEN)
+    opt = F(enumerate_opt(sp), sp.sc.Q)
+    check("K3 the exhibited cell: enumeration 19/10", opt == F(19, 10),
+          f"OPT {opt}, CERT {sp.value(sp.cert)}")
+    tilt = Anatomy(rings["TILT-3"])
+    a, _, fr_a = solve(tilt, fix=True)
+    b, _, fr_b = solve(tilt, fix=False)
+    check("K3 TILT-3: unfixed split search == fixed solver", a == b,
+          f"frontiers {fr_a} fixed, {fr_b} unfixed")
+    k0, k2 = conformal_controls(rings)
+    check("K0 bare three-atom control: oracle sizes (1, 2, 3); Mondrian "
+          "median excess 0, max <= 1; mean marginal >= 0.68", k0[0],
+          k0[1])
+    check("K2 sampler: atom and label frequencies within 4 SE at "
+          "n = 32000", k2[0], k2[1])
+
+
+def section_family(rings):
+    section("THE FAMILY: which atoms carry which law")
+    for name, cell in rings.items():
+        ms = {tuple(sorted(row)) for row in cell.p}
+        print(f"  {name:12s} {len(ms)} distinct multisets over "
+              f"{cell.M} atoms")
+    flat = rings["FLAT-3"]
+    ok1 = all(sorted(row) == [F(2, 7), F(2, 7), F(3, 7)] for row in flat.p)
+    dead = rings["DEAD-7"]
+    dead_t = ring("DEAD-7 tilted", 105, 15, 7, F(24, 25))
+    ok2 = all(y == F(1, 7) for row in dead.p for y in row)
+    frozen = ok2 and all(y == F(1, 7) for row in dead_t.p for y in row)
+    blind = len({tuple(row) for row in dead_t.p}) == 1
+    print(f"  P1 as frozen, DEAD-7 still 1/7 at theta = 24/25: "
+          f"{'holds' if frozen else 'FAILS'} (record, not gated); at that "
+          f"tilt every atom carries "
+          f"{[round(float(y), 4) for y in dead_t.p[0]]}")
+    ok3 = all(len({tuple(sorted(row)) for row in rings[n].p}) > 1
+              for n in ("TILT-3", "TILT-4-WIDE"))
+    check("P1' (after run 1) FLAT-3 one multiset {3/7, 2/7, 2/7}; DEAD-7 "
+          "flat at uniform and one law at every atom at theta = 24/25; the "
+          "tilted cells vary", ok1 and ok2 and blind and ok3)
+
+
+def section_certificate(all_an):
+    section("THE CHAIN AND THE IDENTITY (A)")
+    bad = 0
+    for an, opt in all_an:
+        sc = an.sc
+        cost = sum(sc.W[r] * s for r, s in enumerate(an.sizes))
+        cover = sum(sc.V[r][s] for r, s in enumerate(an.sizes))
+        ok = an.L <= opt <= an.cert and cost == an.cert
+        ok &= cover - sc.TQ == an.D
+        bad += not ok
+    check("P2 L <= OPT <= CERT, the certificate's sizes costing CERT and "
+          "covering T + D", bad == 0, f"{len(all_an)} cells, {bad} failures")
+
+
+def section_equal(all_an):
+    section("EQUAL WEIGHTS (B)")
+    n = bad = pay = 0
+    for an, opt in all_an:
+        if not an.cell.equal():
+            continue
+        n += 1
+        w = an.sc.W[0]
+        law = w * (an.m - ceil(F(an.delta) / (w * an.t)))
+        ok = an.cert == opt and an.thr - opt == law and an.room < w
+        bad += not ok
+        pay += an.thr > opt
+    check("P3 CERT = OPT, THR - OPT = w(m - ceil(delta/(w t*))), D/t* < w",
+          bad == 0, f"{n} equal-weight cells, {bad} failures; the form "
+          f"pays at {pay}")
+
+
+def section_unequal(all_an):
+    section("UNEQUAL WEIGHTS (C)")
+    sp = Anatomy(SPECIMEN)
+    print(f"  exhibited cell: t* {sp.t}, delta {sp.value(sp.delta)}, "
+          f"CERT {sp.value(sp.cert)}, THR {sp.value(sp.thr)}, L "
+          f"{sp.value(sp.L)}, D/t* {sp.value(sp.room)}")
+    ok = (sp.t == F(2, 5) and sp.value(sp.cert) == 2
+          and sp.value(sp.thr) == 2)
+    over = [(an, opt) for an, opt in all_an
+            if not an.cell.equal() and an.cert > opt]
+    ones = [(an, opt) for an, opt in over if an.m == 1]
+    unequal = sum(1 for an, _ in all_an if not an.cell.equal())
+    print(f"  CERT > OPT at {len(over)} of {unequal} unequal-weight "
+          f"cells, {len(ones)} of them with m = 1")
+    if ones:
+        an, opt = ones[0]
+        print(f"  first m = 1 cell: w {[str(x) for x in an.cell.w]}, "
+              f"p {[[str(y) for y in row] for row in an.cell.p]}")
+        print(f"     t* {an.t}, THR {an.value(an.thr)}, CERT "
+              f"{an.value(an.cert)}, OPT {an.value(opt)}, surplus D "
+              f"{an.value(an.D)}")
+    check("P4 the exhibited cell as derived; an m = 1 cell with "
+          "THR = CERT > OPT", ok and ones)
+
+
+def section_criteria(all_an, ring_an):
+    section("THREE TESTS OF EXACTNESS (D)")
+    bad = 0
+    fired = {"lattice": 0, "anchored": 0, "price": 0}
+    exact = 0
+    for an, opt in all_an:
+        gA = anchored_gap(an)
+        tests = {"lattice": an.room < an.g, "anchored": an.room < gA,
+                 "price": an.rho is not None and an.room < an.rho}
+        if an.cert > opt and any(tests.values()):
+            bad += 1
+        if an.cert == opt and not an.cell.equal():
+            exact += 1
+            for key, v in tests.items():
+                fired[key] += v
+    print(f"  at the {exact} exact unequal-weight sweep cells the tests "
+          f"fire: {fired}")
+    print(f"  {'cell':12s} {'D/t*':>10s} {'g':>10s} {'g_hat':>10s} "
+          f"{'rho':>10s}  lattice anchored price  CERT=OPT")
+    ring_rows = {}
+    for name, (an, opt) in ring_an.items():
+        gA = anchored_gap(an) if an.cell.M <= 15 else None
+        Q = an.sc.Q
+        tests = (an.room < an.g, gA is not None and an.room < gA,
+                 an.rho is not None and an.room < an.rho)
+        ring_rows[name] = tests
+        print(f"  {name:12s} {float(an.room / Q):10.3e} "
+              f"{float(F(an.g, Q)):10.3e} "
+              f"{(f'{float(F(gA, Q)):10.3e}' if gA else '   refused'):>10s} "
+              f"{(f'{float(an.rho / Q):10.3e}' if an.rho else 'none'):>10s}"
+              f"  {str(tests[0]):7s} "
+              f"{str(tests[1]):8s} {str(tests[2]):5s}  {an.cert == opt}")
+        bad += an.cert > opt and any(tests)
+    ok = (ring_rows["FLAT-3"][0] and ring_rows["DEAD-7"][0]
+          and not ring_rows["TILT-3"][0] and not ring_rows["TILT-4-WIDE"][0]
+          and ring_rows["TILT-4-WIDE"][2] and not ring_rows["TILT-3"][2])
+    check("P5 no test fires where CERT > OPT", bad == 0,
+          f"{bad} false firings")
+    check("P5 ring: lattice at FLAT-3 and DEAD-7 only; price gap at "
+          "TILT-4-WIDE, not TILT-3", ok)
+
+
+def section_solver(ring_an):
+    section("THE RING OPTIMA (E)")
+    print(f"  {'cell':12s} {'L':>10s} {'OPT':>10s} {'CERT':>10s} "
+          f"{'THR':>8s}  free atoms  frontiers  m")
+    got = {}
+    for name, (an, opt) in ring_an.items():
+        Q = an.sc.Q
+        got[name] = tuple(F(x, 1) / Q for x in (an.cert, opt, an.thr)) + \
+            (an.L / Q,)
+        print(f"  {name:12s} {float(an.L / Q):10.7f} {float(F(opt, Q)):10.7f} "
+              f"{float(F(an.cert, Q)):10.7f} {float(F(an.thr, Q)):8.4f}  "
+              f"{an.free:10d}  {str(an.fronts):9s}  {an.m}")
+    c, o, th, L = got["TILT-3"]
+    ok = (abs(float(L) - 0.9008338) < 5e-8 and abs(float(c) - 0.9287750)
+          < 5e-8 and abs(float(o) - 0.9194957) < 5e-8)
+    c, o, th, _ = got["FLAT-3"]
+    ok &= c == o == 2 and th == 3
+    c, o, th, _ = got["DEAD-7"]
+    ok &= c == o == F(74, 15) and th == 7
+    c, o, th, _ = got["TILT-4-WIDE"]
+    ok &= c == o and abs(float(c) - 0.8967012) < 5e-8 and th == 1
+    check("P6 the ring optima as carried", ok)
+
+
+# --------------------------------------------------------- conformal
+
+def draw_pairs(cell, n, rng):
+    pairs = [(r, y) for r in range(cell.M) for y in range(cell.k)]
+    cum, acc = [], 0.0
+    for r, y in pairs:
+        acc += float(cell.w[r] * cell.p[r][y])
+        cum.append(acc)
+    return rng.choices(pairs, cum_weights=cum, k=n)
+
+
+def conformal(cell, n, rng):
+    """One trial: split and Mondrian sets per atom, from n draws."""
+    data = draw_pairs(cell, n, rng)
+    train, cal = data[: n // 2], data[n // 2:]
+    M, k = cell.M, cell.k
+    cnt = [[0] * k for _ in range(M)]
+    pool = [0] * k
+    for r, y in train:
+        cnt[r][y] += 1
+        pool[y] += 1
+    ph = []
+    for r in range(M):
+        tot = sum(cnt[r])
+        ph.append([x / tot for x in cnt[r]] if tot else
+                  [x / len(train) for x in pool])
+    scores = sorted(1 - ph[r][y] for r, y in cal)
+    idx = ceil((len(cal) + 1) * (1 - 0.3))
+    qg = scores[idx - 1] if idx <= len(cal) else 2.0
+    per = [[] for _ in range(M)]
+    for r, y in cal:
+        per[r].append(1 - ph[r][y])
+    split, mond = [], []
+    for r in range(M):
+        split.append([y for y in range(k) if ph[r][y] >= 1 - qg - 1e-12])
+        s = sorted(per[r])
+        i = ceil((len(s) + 1) * (1 - 0.3))
+        if i > len(s):
+            mond.append(list(range(k)))
+        else:
+            mond.append([y for y in range(k)
+                         if ph[r][y] >= 1 - s[i - 1] - 1e-12])
+    return split, mond, data
+
+
+def oracle_sizes(cell):
+    out = []
+    for row in cell.srt:
+        acc, s = F(0), 0
+        while acc < T:
+            acc += row[s]
+            s += 1
+        out.append(s)
+    return out
+
+
+def score(cell, sets):
+    cov = [float(sum(cell.p[r][y] for y in sets[r])) for r in range(cell.M)]
+    marg = sum(float(cell.w[r]) * cov[r] for r in range(cell.M))
+    size = sum(float(cell.w[r]) * len(sets[r]) for r in range(cell.M))
+    return marg, min(cov), size
+
+
+def conformal_controls(rings):
+    bare = Cell("K0", [F(1, 3)] * 3,
+                [[F(80, 100), F(15, 100), F(5, 100)],
+                 [F(50, 100), F(30, 100), F(20, 100)],
+                 [F(34, 100), F(33, 100), F(33, 100)]])
+    orc = oracle_sizes(bare)
+    rng = random.Random(SEED + 1)
+    exc, ms, mm = [], [], []
+    for _ in range(TRIALS):
+        split, mond, _ = conformal(bare, 32000, rng)
+        exc += [len(mond[r]) - orc[r] for r in range(3)]
+        ms.append(score(bare, split)[0])
+        mm.append(score(bare, mond)[0])
+    exc.sort()
+    med = exc[len(exc) // 2]
+    ok0 = (orc == [1, 2, 3] and med == 0 and max(exc) <= 1
+           and sum(ms) / TRIALS >= 0.68 and sum(mm) / TRIALS >= 0.68)
+    d0 = (f"sizes {orc}, excess med {med} max {max(exc)}, marginal "
+          f"{sum(ms) / TRIALS:.4f}/{sum(mm) / TRIALS:.4f}")
+    worst = 0.0
+    for name, cell in rings.items():
+        data = draw_pairs(cell, 32000, random.Random(SEED + 2))
+        n = len(data)
+        for r in range(cell.M):
+            pr = float(cell.w[r])
+            f = sum(1 for a, _ in data if a == r) / n
+            worst = max(worst, abs(f - pr) / sqrt(pr * (1 - pr) / n))
+        for y in range(cell.k):
+            pr = float(sum(cell.w[r] * cell.p[r][y] for r in range(cell.M)))
+            if 0 < pr < 1:
+                f = sum(1 for _, b in data if b == y) / n
+                worst = max(worst, abs(f - pr) / sqrt(pr * (1 - pr) / n))
+    return (ok0, d0), (worst < 4, f"largest deviation {worst:.2f} SE")
+
+
+def section_coverage(rings, ring_an):
+    section("COVERAGE CANNOT RANK TWO SET RULES (F)")
+    print(f"  {'cell':12s} {'n':>6s} | split marg  worst(min) zero-trials "
+          f"size | mond marg  worst(mean) excess | THR  OPT")
+    ok_marg = ok_zero = ok_mond = ok_size = ok_t = True
+    for ci, (name, cell) in enumerate(rings.items()):
+        orc = oracle_sizes(cell)
+        an, opt = ring_an[name]
+        thr, o = float(F(an.thr, an.sc.Q)), float(F(opt, an.sc.Q))
+        for n in NS:
+            rows = []
+            for tr in range(TRIALS):
+                rng = random.Random(SEED + 1000 * ci + 10 * n + tr)
+                split, mond, _ = conformal(cell, n, rng)
+                exc = sum(float(cell.w[r]) * (len(mond[r]) - orc[r])
+                          for r in range(cell.M))
+                rows.append(score(cell, split) + score(cell, mond) + (exc,))
+            sm = sum(x[0] for x in rows) / TRIALS
+            sw = min(x[1] for x in rows)
+            zt = sum(1 for x in rows if x[1] == 0)
+            ss = sum(x[2] for x in rows) / TRIALS
+            mmg = sum(x[3] for x in rows) / TRIALS
+            mw = sum(x[4] for x in rows) / TRIALS
+            me = sum(x[6] for x in rows) / TRIALS
+            print(f"  {name:12s} {n:6d} |   {sm:.4f}    {sw:.4f}      "
+                  f"{zt:2d}    {ss:.3f} |   {mmg:.4f}    {mw:.4f}    "
+                  f"{me:+.3f} | {thr:.3f} {o:.3f}")
+            ok_marg &= 0.69 <= sm <= 0.74
+            ok_t &= sm >= T
+            if name in ("TILT-3", "TILT-4-WIDE"):
+                ok_zero &= sw == 0
+                if n == NS[-1]:
+                    ok_mond &= mw >= 0.6
+            else:
+                ok_size &= ss < thr
+    check("P7 split's mean marginal coverage in [0.69, 0.74] everywhere",
+          ok_marg)
+    check("P7' (after a code read) split's mean marginal coverage at "
+          "least T at every cell and n", ok_t)
+    check("P7 split's worst atom at exact coverage 0 in some trial, both "
+          "tilted cells, every n", ok_zero)
+    check("P7 Mondrian's worst atom >= 0.6 on average at the tilted cells, "
+          "n = 32000", ok_mond)
+    check("P7 split's mean size below THR at FLAT-3 and DEAD-7", ok_size)
+
+
+def main():
+    t0 = time.time()
+    rings = {spec[0]: ring(*spec, truth=True) for spec in RING}
+    cells = sweep()
+    sweep_an = [Anatomy(c) for c in cells]
+    section_controls(rings, sweep_an)
+    if not all(CHECKS):
+        print("\nCONTROL FAILED: nothing below is read.")
+        sys.exit(1)
+    all_an = [(an, enumerate_opt(an)) for an in sweep_an]
+    ring_an = {}
+    for name, cell in rings.items():
+        an = Anatomy(cell)
+        opt, an.free, an.fronts = solve(an)
+        ring_an[name] = (an, opt)
+    section_family(rings)
+    section_certificate(all_an + list(ring_an.values()))
+    section_equal(all_an + list(ring_an.values()))
+    section_unequal(all_an)
+    section_criteria(all_an, ring_an)
+    section_solver(ring_an)
+    section_coverage(rings, ring_an)
+    print()
+    print(f"{sum(CHECKS)} of {len(CHECKS)} checks, "
+          f"{time.time() - t0:.1f} s")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

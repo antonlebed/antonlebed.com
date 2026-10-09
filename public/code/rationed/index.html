@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>rationed.py | Numbers read one place at a time</title>
+<meta name="description" content="rationed.py">
+<link rel="alternate" type="text/x-python" href="/code/rationed.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>rationed.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/learner/#the-layers-of-a-holding-set">LEARNER: The layers of a holding set</a> (theorem); <a href="/learner/#under-an-income-the-rank-is-common">LEARNER: Under an income the rank is common</a> (theorem); <a href="/learner/#on-the-eights-row-patience-with-no-bank-lags-for-the-whole-run">LEARNER: On the eights row, patience with no bank lags for the whole run</a> (rule); <a href="/learner/#destination-universality">LEARNER: Destination universality</a> (rule).</p><p>Cited on: <a href="/learner/">LEARNER</a>.</p><p>To run it: <a href="/code/learner.py">learner.py</a> beside it; standard library only.</p></div>
+<pre>"""rationed.py -- a reader of the straddle cover paid a fixed income of
+rank per step: the income decides how deep it reads, and the policy
+decides only which of the incomparable members at that depth it holds.
+
+QUESTION. learner.py's reader commits, at step n, a member of the
+straddle cover holding the image J_n, and with no limit on its moves
+the best reader commits the BOTTOM of J_n, a function of the image
+alone. Here the reader is RATIONED: at each step it receives an
+INCOME of B rank units, a move costs the rank it gains (a tree move 1,
+a chain move from index k to k' the difference k' - k, a chain entry
+at a tile its index), and a chain move is truncated to what is left,
+which stays sound because the straddles at one vertex nest. Unspent
+units go to a BANK of capacity W, overflow lost, and a DRAWDOWN
+coordinate delta caps a step's spending at B + delta (INF draws
+whatever is banked). A policy is learner.py's four coordinates and
+delta. Does the optimum now depend on the stream, on the resources
+(B, W), or on neither; and where, in the cover, can a difference
+between two readers sit?
+
+THE LOSSES. The DEFICIT loss is learner.py's: the product of the
+committed lengths over the counted steps n = 8 .. N - 1, infinite when
+a committed interval is unbounded. The LAG loss reads the committed
+interval on the image's own clock: tau(n) counts the steps m &lt;= n with
+|J_m| &gt;= |C_n|, and the LAG at step n is n + 1 - tau(n), the number of
+steps the reader sits behind the stream; the lag loss sums it over the
+counted steps. The COMPOSITE order compares lag losses and breaks ties
+by the deficit. The sum of scale shortfalls, scale(J_n) - scale(C_n),
+would be no new loss: its first term does not depend on the policy, so
+it is the logarithm of the deficit loss shifted by a constant. The lag
+quantizes the shortfall by the stream's own rate, which is why it can
+order two readers differently.
+
+THE SLATE. learner.py's eight rows and a ninth, y -&gt; 2y on the stream
+whose continued-fraction digits are the Fibonacci word over {1, 2}
+(the fixed point of 1 -&gt; 12, 2 -&gt; 1): bounded digits, never periodic,
+so a value that is not a quadratic irrational. Horizon N = 120.
+Settings: B in 1, 2, 3, 4 and W in 0, 2, 4, 8. The drawdown axis at
+cap W is the values 0, 1, 2, 4 below W and INF, since delta &gt;= W draws
+exactly what INF draws (the bank never holds more than W); at W = 0
+the axis is INF alone. So the policy space has 100, 300, 400 and 500
+members at W = 0, 2, 4, 8.
+
+THE ARGUMENT (written before the engine).
+  (A) THE LAYERS. Fix an image J that is a bounded interval of positive
+      length held by the root. Its path tiles T_0 (the root) ... T_h
+      (= I*) sit at depths 0 .. h, k_i* is the largest index whose
+      straddle at T_i holds J, and the members
+      holding J are the (T_i, k) with 0 &lt;= k &lt;= k_i* (learner.py's (D)
+      shows the tile of a holding member holds J). The rank of (T_i, k)
+      is i + k. CLAIM: if a holding member M' lies strictly inside a
+      holding member M, then rank(M') &gt; rank(M). So two distinct
+      holding members of one rank are incomparable, every rank from 0
+      to r*(J) = h + k_h* carries a holding member (T_R for R &lt;= h,
+      (I*, R - h) above), and the bottom is the only member of rank
+      r*(J).
+      Proof. Write M = (T_i, k), M' = (T_j, k'). If j = i the straddles
+      nest and k' &gt; k. If j &lt; i: M lies inside T_i, which lies inside
+      a child tile of T_j and so misses T_j's vertex v_j, while M'
+      either is T_j itself (not inside M, being larger) or, k' &gt;= 1,
+      straddles v_j; either way M' is not inside M. So j &gt; i, and if
+      k = 0 the rank rises since j &gt; i. If k &gt;= 1, J lies inside
+      S_k(v_i) but its closure misses v_i (else no tile below T_i
+      holds J, and T_j would not exist), so J sits in one child tile
+      of S_k(v_i), say (l + k v_i, v_i), and the path below T_i runs
+      T_(i+m) = (l + (m - 1) v_i, v_i) for m = 1 .. k + 1. For
+      i &lt; j &lt;= i + k the tile T_j has its left end l + (j - i - 1) v_i
+      outside S_k(v_i), whose left end is l + k v_i, and a straddle at
+      T_j contains v_j = l + (j - i) v_i in its interior, a point at
+      or left of that end; so M' is not inside M. Hence j &gt;= i + k + 1
+      and rank(M') &gt;= j &gt; i + k = rank(M). The mirror side is the same.
+  (B) THE COMMON RANK. Let a rationed reader have both patiences 0 and
+      delta = INF. Every legal move holds J_n, so it only ever holds
+      members holding the current image. Above the bottom a move is
+      always legal (learner.py's (E)) and affordable, a tree move
+      costing 1 and a chain move truncating to what is left; so the
+      loop stops exactly when the rank reaches r*(J_n) or the step's
+      units run out. Every move adds its cost to the rank, so the rank
+      gained is route-free: rho_n = min(r*(J_n), rho_(n-1) + B +
+      b_(n-1)), and the bank b_n = min(W, B + b_(n-1) - (rho_n -
+      rho_(n-1))) follows the same recursion, with rho_(-1) = 0 at the
+      root and b_(-1) = 0. So the four greedy spend-all readers share
+      one rank trace and one bank trace, computed without running any
+      of them, and by (A) at every step their committed intervals are
+      EQUAL or INCOMPARABLE. Whatever separates them, the stream
+      included, enters only as a choice between incomparable members
+      of one layer.
+  (C) THE START DELAY. On (identity, eights) the first image is
+      (0, 1), which no member holds, its closure meeting 0, so the
+      greedy reader first moves at step 1, and a reader of tree
+      patience p, with chains refused, first moves at step p + 1. The
+      demand there is
+      about eight ranks a step, so at an income of 1, 2 or 4 both
+      readers spend their whole income every step and the rank gap
+      is B p from step p + 1 on, not closing over the run with no bank
+      (W = 0, the setting run): patience costs a lag the run never
+      closes once the income binds and nothing is banked. With tiles alone the
+      holding members form a chain (learner.py's (F)), so the patient
+      reader's tile contains the greedy one's, and the loss rises
+      strictly with p.
+  (D) A TAUTOLOGY, NAMED BEFORE IT PRINTS. A policy in every row's
+      argmin set minimizes every product over rows, so when such a
+      policy exists the loss lost by training on one set of rows and
+      testing on another is zero. A zero transfer gap is a corollary
+      of a common argmin member, never a second finding.
+
+PREDICTIONS (fixed before the engine ran).
+  P0 [controls, read first] (i) With no income limit the rationed
+     reader commits what learner.py's reader commits, all 100 policies
+     on all eight rows. (ii) The Fibonacci word's first twelve digits
+     are 1,2,1,1,2,1,2,1,1,2,1,1 and its share of 2s over 10^4 digits
+     lies in [0.375, 0.390]. (iii) The unlimited greedy reader's
+     counted lag is at most 6 on every row. (iv) At income 1 on
+     (identity, eights) the greedy reader's lag rises over the counted
+     steps at a slope in [0.80, 0.95] (about 7/8: one rank earned of
+     about eight demanded). (v) The ln-deficit losses of the four
+     greedy spend-all readers on (identity, eights) at (B, W) = (4, 2)
+     print as the published ones: sigma = (0,0) and (0,1) at -14920.6,
+     (1,1) at -14909.1, (1,0) at -14901.0, each to 0.1.
+  P1 [(A), the layers] At every step n &lt;= 20 of every row, over the
+     holding members (T_i, k) with k &lt;= 40 or k &gt;= k_i* - 1: no two
+     distinct members of one rank are nested, every strictly nested pair
+     has the inner one of higher rank, every rank up to 40 and the ranks
+     r*(J_n) - 1 and r*(J_n) carry a member (the first run's walk to r*
+     hung; see the run record), and the bottom is the only member of
+     rank r*(J_n). CONTROL: some layer holds at least two members, so
+     the incomparability is not vacuous.
+  P2 [(B), the common rank] At every setting and row the four greedy
+     spend-all readers have one rank trace and one bank trace, equal
+     to the recursion computed with no reader; at every step their
+     committed intervals are equal or incomparable, never nested.
+     CONTROL: the number of steps at which two of them differ is
+     positive.
+  P3 [(C), the start delay] On (identity, eights) at W = 0 and B = 1,
+     2, 4, the tile-only reader of tree patience p = 1, 2, 3 sits
+     exactly B p ranks below the greedy tile-only reader at every
+     counted step (chains refused, so its route preference is never
+     read and one preference is run); and at B = 1 the loss rises
+     strictly with tree patience 0, 1, 2, 3 at every fixed pair of
+     route preferences and finite chain patience.
+  P4 [destination universality, the principal] At every one of the
+     16 settings, under the deficit order and under the composite
+     order, the nine rows' argmin sets have a common member, and a
+     greedy spend-all policy is among the common members. The
+     policy U = (1, 1, 0, 0, INF), chain first at tiles and tree first
+     at straddles, is common at every setting but (B, W) = (4, 2),
+     where the common set is exactly sigma in {(0,0), (0,1)} at both
+     patiences 0 with delta in {1, INF}. CONTROL: the intersection
+     routine prints empty on a planted pair of disjoint argmin sets,
+     and the per-row argmin sets are not all equal. Added after the
+     first run: the policies common at all 16 settings, printed per
+     order, and checked to be none.
+  P5 [the inversion named] At (4, 2), U and V = (0, 0, 0, 0, INF)
+     commit equal or incomparable intervals at every step (from P2),
+     V's loss is below U's on (identity, eights) and equal to it on
+     the other eight rows (first run as not above it; tightened
+     after); the first counted step at which they differ there is
+     printed with both intervals, their common rank and their lengths.
+
+KILLS (observables).
+  K0 any P0 control misses: nothing below is read.
+  K1 a P1 or P2 failure: (A) or (B) is false in this cover.
+  K2 P4 prints an empty common set at some setting, under either order:
+     the optimum depends on the stream there.
+  K3 P3 prints a gap other than B p: (C)'s demand reading is wrong.
+
+FINDINGS (entered after the run; 26 of 26 checks pass).
+  F0 The controls reproduce: the unlimited reader equals learner.py's
+     on all 800 traces; the word's share of 2s is 0.3820; the unlimited
+     greedy counted lag is at most 2; the income-1 lag slope on
+     (identity, eights) is 0.8739; and the four greedy spend-all
+     ln-losses at (4, 2) print -14920.6, -14920.6, -14909.1, -14901.0.
+  F1 The layers hold at every step checked: 927,384 ordered pairs of
+     holding members over 188 row-steps, no nesting inside a rank, no
+     inner member of lower rank, no missing rank, the bottom alone at
+     its rank; 152 of the 188 row-steps have a layer of two or more.
+  F2 The four greedy spend-all readers share one rank trace and one
+     bank trace at every setting and row, both equal to the recursion
+     run with no reader; they differ at 11,904 pair-steps and every
+     one is incomparable.
+  F3 On (identity, eights) the tile-only gap is exactly B p at every
+     counted step for B = 1, 2, 4 and p = 1, 2, 3, and at B = 1 each
+     tree-patience step costs 58.6 in ln-loss at every fixed pair of
+     preferences and chain patience 0 to 3.
+  F4 A common argmin member exists at all 16 settings under both
+     orders, a greedy spend-all policy always among them; U is common
+     at 15 settings and not at (4, 2), where the common set is exactly
+     (0,0,0,0,1), (0,0,0,0,INF), (0,1,0,0,1), (0,1,0,0,INF), the same
+     under the deficit and the composite order. The per-row argmin
+     sets differ at all 32 setting-orders, so the common member is not
+     the argmin set repeated; and no policy is common at all 16
+     settings under either order.
+  F5 At (4, 2) U and V tie exactly on eight rows and V is below U on
+     (identity, eights), -14920.56 against -14909.08. They differ at 56
+     counted steps, all incomparable. The first is step 8, both at
+     rank 34: U holds the straddle of index 3, ((2047, 16628), (1649,
+     13395)), of length 7/222732060, V the tile ((528, 4289), (1121,
+     9106)), of length 1/39055634, the shorter by a factor near 1.22.
+     The inversion is a choice inside one layer, and which member is
+     shorter depends on the rank the income stops the reader at.
+
+RUN RECORD. 26 checks, 32 s, peak 103 MB. Sequential, exact integers
+in every decision; floats only in printed slopes and logarithms. The
+first run hung in the P1 gap check, which walked every rank up to the
+wall row's bottom, near 10^15; it now walks ranks up to 40 and the
+last two. The second stopped in the P2 recursion at step 0 of
+(identity, eights), whose image (0, 1) no member holds, since the
+root's closure shares an end with it; the recursion now reads that
+step's rank as 0, the root's, which is where every reader stays. No
+prediction was changed.
+"""
+
+import math
+import sys
+
+from learner import (N0, INF, ROOT, ROWS, MAPS, add, lt, le, span,
+                     holds, inside, length, index_max, path_tiles, bottom,
+                     input_tiles, run, loss, cmp, policies, ln_int)
+
+N_MAIN = 120
+INCOMES = [1, 2, 3, 4]
+CAPS = [0, 2, 4, 8]
+FIB = ("dbl", "fib")
+ROWS9 = ROWS + [FIB]
+EIGHTS = ("id", "eights")
+U = (1, 1, 0, 0, INF)
+V = (0, 0, 0, 0, INF)
+
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" +
+          (f"  ({detail})" if detail else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+<span id="fib_word"></span>def fib_word(count):
+    w = "1"
+    while len(w) &lt; count:
+        w = "".join("12" if ch == "1" else "1" for ch in w)
+    return [int(ch) for ch in w[:count]]
+
+
+<span id="tiles_of_digits"></span>def tiles_of_digits(digits):
+    p2, q2, p1, q1 = 0, 1, 1, 0
+    out = []
+    for a in digits:
+        p, q = a * p1 + p2, a * q1 + q2
+        e1, e2 = (p, q), (p + p1, q + q1)
+        out.append((e1, e2) if lt(e1, e2) else (e2, e1))
+        p2, q2, p1, q1 = p1, q1, p, q
+    return out
+
+
+<span id="images9"></span>def images9(horizon):
+    out = {}
+    for m, s in ROWS9:
+        f = MAPS[m]
+        if s == "fib":
+            tiles = tiles_of_digits(fib_word(horizon))
+        else:
+            tiles = input_tiles(s, horizon)
+        row = []
+        for lo, hi in tiles:
+            a, b = f(lo), f(hi)
+            row.append((a, b) if lt(a, b) else (b, a))
+        out[(m, s)] = row
+    return out
+
+
+<span id="rank"></span>def rank(c):
+    return c[3] + c[2]
+
+
+# the rationed reader
+
+<span id="run_rationed"></span>def run_rationed(Js, pol, B, W):
+    """Committed members and bank levels at every step. B = None is the
+    unlimited reader, which ignores W and delta."""
+    s_tile, s_str, pt, pc, dl = pol
+    C = ROOT
+    bank = 0
+    out, banks = [], []
+    for n, J in enumerate(Js):
+        rt = Js[n - pt] if pt is not INF and n - pt &gt;= 0 else None
+        rc = Js[n - pc] if pc is not INF and n - pc &gt;= 0 else None
+        if B is None:
+            rem = None
+        else:
+            avail = B + bank
+            spend = avail if dl is INF else min(avail, B + dl)
+            rem = spend
+        while rem is None or rem &gt; 0:
+            l, r, k, d = C
+            v = add(l, r)
+            lo, hi = span(C)
+            tree = chain = None
+            if rt is not None:
+                for ch in ((lo, v, 0, d + k + 1), (v, hi, 0, d + k + 1)):
+                    if holds(ch, rt):
+                        tree = ch
+                        break
+            if rc is not None:
+                k2 = index_max(l, r, rc)
+                if rem is not None:
+                    k2 = min(k2, k + rem)
+                if k2 &gt; k:
+                    chain = (l, r, k2, d)
+            if tree is None and chain is None:
+                break
+            prefer_chain = (s_tile == 1) if k == 0 else (s_str == 0)
+            prev = rank(C)
+            if chain is not None and (tree is None or prefer_chain):
+                C = chain
+            else:
+                C = tree
+            if rem is not None:
+                rem -= rank(C) - prev
+        if B is not None:
+            bank = min(W, avail - (spend - rem))
+        if not (le(span(C)[0], J[0]) and le(J[1], span(C)[1])):
+            raise AssertionError("a commitment lost the image")
+        out.append(C)
+        banks.append(bank)
+    return out, banks
+
+
+<span id="image_len"></span>def image_len(J):
+    return (J[1][0] * J[0][1] - J[0][0] * J[1][1], J[0][1] * J[1][1])
+
+
+<span id="lags"></span>def lags(Js, trace):
+    """lag(n) = n + 1 - #{m &lt;= n : |J_m| &gt;= |C_n|} at every step."""
+    jl = [image_len(J) for J in Js]
+    out = []
+    tau = 0
+    for n, C in enumerate(trace):
+        c = length(C)
+        if c is None:
+            out.append(n + 1)
+            continue
+        tau = min(tau, n + 1)
+        while tau &lt;= n and jl[tau][0] * c[1] &gt;= c[0] * jl[tau][1]:
+            tau += 1
+        while tau &gt; 0 and jl[tau - 1][0] * c[1] &lt; c[0] * jl[tau - 1][1]:
+            tau -= 1
+        out.append(n + 1 - tau)
+    return out
+
+
+<span id="lag_loss"></span>def lag_loss(Js, trace):
+    return sum(lags(Js, trace)[N0:])
+
+
+<span id="ln_loss"></span>def ln_loss(t):
+    return ln_int(t[0]) - ln_int(t[1]) if not t[2] else float("inf")
+
+
+<span id="d_axis"></span>def d_axis(W):
+    return [d for d in (0, 1, 2, 4) if d &lt; W] + [INF]
+
+
+<span id="space5"></span>def space5(W):
+    return [p + (d,) for p in policies() for d in d_axis(W)]
+
+
+<span id="argmin"></span>def argmin(space, key_cmp):
+    best = [space[0]]
+    for p in space[1:]:
+        c = key_cmp(p, best[0])
+        if c &lt; 0:
+            best = [p]
+        elif c == 0:
+            best.append(p)
+    return set(best)
+
+
+<span id="common"></span>def common(sets):
+    out = None
+    for s in sets:
+        out = set(s) if out is None else out &amp; s
+    return out
+
+
+<span id="relation"></span>def relation(a, b):
+    if a == b:
+        return "equal"
+    if inside(a, b):
+        return "inside"
+    if inside(b, a):
+        return "contains"
+    return "incomparable"
+
+
+# the sections
+
+<span id="section_controls"></span>def section_controls(imgs):
+    section("P0 CONTROLS")
+    bad = 0
+    for row in ROWS:
+        for p in policies():
+            bad += run(imgs[row], p) != run_rationed(imgs[row], p + (INF,),
+                                                     None, 0)[0]
+    check("P0 unlimited rationed reader equals the learner's reader",
+          bad == 0, f"{bad} of 800 traces differ")
+    fw = fib_word(10 ** 4)
+    dens = fw.count(2) / len(fw)
+    check("P0 Fibonacci word prefix and share of 2s",
+          fw[:12] == [1, 2, 1, 1, 2, 1, 2, 1, 1, 2, 1, 1]
+          and 0.375 &lt;= dens &lt;= 0.390, f"share {dens:.4f}")
+    worst = 0
+    for row in ROWS9:
+        tr, _ = run_rationed(imgs[row], (0, 0, 0, 0, INF), None, 0)
+        worst = max(worst, max(lags(imgs[row], tr)[N0:]))
+    check("P0 unlimited greedy counted lag at most 6 on every row",
+          worst &lt;= 6, f"max {worst}")
+    tr, _ = run_rationed(imgs[EIGHTS], (0, 0, 0, 0, INF), 1, 0)
+    lg = lags(imgs[EIGHTS], tr)
+    s = (lg[-1] - lg[N0]) / (len(lg) - 1 - N0)
+    check("P0 income-1 greedy lag slope on (identity, eights) in "
+          "[0.80, 0.95]", 0.80 &lt;= s &lt;= 0.95, f"slope {s:.4f}")
+    pub = {(0, 0): -14920.6, (0, 1): -14920.6, (1, 1): -14909.1,
+           (1, 0): -14901.0}
+    got = {}
+    for sg in pub:
+        tr, _ = run_rationed(imgs[EIGHTS], sg + (0, 0, INF), 4, 2)
+        got[sg] = ln_loss(loss(tr))
+    check("P0 greedy spend-all ln-losses on (identity, eights) at (4, 2) "
+          "match the published ones",
+          all(abs(got[k] - pub[k]) &lt;= 0.1 for k in pub),
+          ", ".join(f"{k} {got[k]:.1f}" for k in pub))
+
+
+<span id="holding_members"></span>def holding_members(J):
+    tiles = path_tiles(J)
+    out = []
+    for i, t in enumerate(tiles):
+        K = index_max(t[0], t[1], J)
+        ks = set(range(0, min(K, 40) + 1)) | {k for k in (K - 1, K)
+                                              if k &gt;= 0}
+        out += [(t[0], t[1], k, t[3]) for k in sorted(ks)]
+    return out
+
+
+<span id="section_layers"></span>def section_layers(imgs):
+    section("P1 THE LAYERS")
+    same_rank_nested = rank_drop = gaps = not_sole = wide = steps = 0
+    pairs = 0
+    for row in ROWS9:
+        for n, J in enumerate(imgs[row][:21]):
+            ms = holding_members(J)
+            if not ms:
+                continue
+            steps += 1
+            b = bottom(J)
+            top = rank(b)
+            ranks = {rank(m) for m in ms}
+            want = set(range(min(top, 40) + 1)) | {top - 1, top}
+            gaps += any(R not in ranks for R in want if R &gt;= 0)
+            not_sole += sum(1 for m in ms if rank(m) == top and m != b)
+            by = {}
+            for m in ms:
+                by.setdefault(rank(m), []).append(m)
+            wide += any(len(g) &gt;= 2 for g in by.values())
+            for a in ms:
+                for c in ms:
+                    if a is c or a == c:
+                        continue
+                    pairs += 1
+                    if inside(a, c):
+                        if rank(a) == rank(c):
+                            same_rank_nested += 1
+                        elif rank(a) &lt; rank(c):
+                            rank_drop += 1
+    check("P1 no two distinct members of one rank are nested",
+          same_rank_nested == 0, f"{pairs} ordered pairs, "
+          f"{same_rank_nested} off")
+    check("P1 a strictly inner member has the higher rank",
+          rank_drop == 0, f"{rank_drop} off")
+    check("P1 every rank to 40, the bottom's and the one below carry a "
+          "member",
+          gaps == 0, f"{gaps} steps with a gap, over {steps}")
+    check("P1 the bottom is the only member of its rank",
+          not_sole == 0, f"{not_sole} off")
+    check("P1 control: some layer holds two or more members",
+          wide &gt; 0, f"{wide} of {steps} row-steps")
+
+
+<span id="recursion"></span>def recursion(Js, B, W):
+    rho, bank, out, banks = 0, 0, [], []
+    for J in Js:
+        b = bottom(J)
+        top = rank(b) if b is not None else 0
+        new = min(top, rho + B + bank)
+        bank = min(W, B + bank - (new - rho))
+        rho = new
+        out.append(rho)
+        banks.append(bank)
+    return out, banks
+
+
+<span id="section_common_rank"></span>def section_common_rank(imgs, traces):
+    section("P2 THE COMMON RANK OF THE GREEDY SPEND-ALL READERS")
+    trace_off = rec_off = nested = differ = 0
+    for (B, W), per in traces.items():
+        for row in ROWS9:
+            quartet = [per[row][sg + (0, 0, INF)]
+                       for sg in ((0, 0), (0, 1), (1, 0), (1, 1))]
+            rks = [[rank(c) for c in tr] for tr, _ in quartet]
+            bks = [bk for _, bk in quartet]
+            trace_off += any(r != rks[0] for r in rks)
+            trace_off += any(b != bks[0] for b in bks)
+            rr, rb = recursion(imgs[row], B, W)
+            rec_off += rr != rks[0] or rb != bks[0]
+            for n in range(len(imgs[row])):
+                ms = [tr[n] for tr, _ in quartet]
+                for i in range(4):
+                    for j in range(i + 1, 4):
+                        rel = relation(ms[i], ms[j])
+                        if rel != "equal":
+                            differ += 1
+                            nested += rel != "incomparable"
+    check("P2 one rank trace and one bank trace per setting and row",
+          trace_off == 0, f"{trace_off} off")
+    check("P2 they equal the recursion run with no reader",
+          rec_off == 0, f"{rec_off} off")
+    check("P2 differing intervals are incomparable, never nested",
+          nested == 0, f"{differ} differing pair-steps, {nested} nested")
+    check("P2 control: the quartet differs somewhere", differ &gt; 0)
+
+
+<span id="section_start_delay"></span>def section_start_delay(imgs):
+    section("P3 THE START DELAY ON (identity, eights)")
+    Js = imgs[EIGHTS]
+    off = []
+    for B in (1, 2, 4):
+        for sg in ((0, 0),):
+            g = [rank(c) for c in run_rationed(Js, sg + (0, INF, INF),
+                                               B, 0)[0]]
+            for p in (1, 2, 3):
+                h = [rank(c) for c in run_rationed(Js, sg + (p, INF, INF),
+                                                   B, 0)[0]]
+                if any(g[n] - h[n] != B * p for n in range(N0, len(Js))):
+                    off.append((B, sg, p))
+    check("P3 tile-only rank gap is B p at every counted step",
+          off == [], f"off at {off}")
+    bad = []
+    steps = []
+    for a in (0, 1):
+        for b in (0, 1):
+            for pc in (0, 1, 2, 3):
+                ls = [loss(run_rationed(Js, (a, b, pt, pc, INF), 1, 0)[0])
+                      for pt in (0, 1, 2, 3)]
+                if not all(cmp(ls[i], ls[i + 1]) &lt; 0 for i in range(3)):
+                    bad.append((a, b, pc))
+                steps += [ln_loss(ls[i + 1]) - ln_loss(ls[i])
+                          for i in range(3)]
+    check("P3 at B = 1 loss rises strictly with tree patience", bad == [],
+          f"off at {bad}; ln step {min(steps):.1f} .. {max(steps):.1f}")
+
+
+QUARTET = [sg + (0, 0, INF) for sg in ((0, 0), (0, 1), (1, 0), (1, 1))]
+
+
+<span id="settings_tables"></span>def settings_tables(imgs):
+    """Per setting: every policy's (deficit loss, lag loss) per row, and
+    the traces of the greedy spend-all quartet, the rest discarded."""
+    tables, traces = {}, {}
+    for B in INCOMES:
+        for W in CAPS:
+            tab, keep = {}, {}
+            for row in ROWS9:
+                tab[row], keep[row] = {}, {}
+                for p in space5(W):
+                    tr, bk = run_rationed(imgs[row], p, B, W)
+                    tab[row][p] = (loss(tr), lag_loss(imgs[row], tr))
+                    if p in QUARTET:
+                        keep[row][p] = (tr, bk)
+            tables[(B, W)], traces[(B, W)] = tab, keep
+    return tables, traces
+
+
+<span id="fmt"></span>def fmt(p):
+    return "(" + ",".join("I" if x is INF else str(x) for x in p) + ")"
+
+
+<span id="section_universality"></span>def section_universality(tables):
+    section("P4 DESTINATION UNIVERSALITY")
+    planted = common([{(1, 0)}, {(0, 1)}])
+    check("P4 control: the intersection of disjoint argmin sets is empty",
+          planted == set())
+    empty = []
+    greedy_missing = []
+    u_off = []
+    at42 = {}
+    every = {}
+    unequal = 0
+    for (B, W), tab in tables.items():
+        space = space5(W)
+        for order in ("deficit", "composite"):
+            sets = []
+            for row in ROWS9:
+                Ls = {p: tab[row][p][0] for p in space}
+                if order == "deficit":
+                    def key(x, y, Ls=Ls):
+                        return cmp(Ls[x], Ls[y])
+                else:
+                    Gs = {p: tab[row][p][1] for p in space}
+
+                    def key(x, y, Ls=Ls, Gs=Gs):
+                        c = (Gs[x] &gt; Gs[y]) - (Gs[x] &lt; Gs[y])
+                        return c if c else cmp(Ls[x], Ls[y])
+                sets.append(argmin(space, key))
+            unequal += any(s != sets[0] for s in sets)
+            com = common(sets)
+            every[order] = com if order not in every else every[order] &amp; com
+            if not com:
+                empty.append((B, W, order))
+            if not any(p[2] == 0 and p[3] == 0 and p[4] is INF for p in com):
+                greedy_missing.append((B, W, order))
+            if (U in com) != ((B, W) != (4, 2)):
+                u_off.append((B, W, order))
+            if (B, W) == (4, 2):
+                at42[order] = com
+    check("P4 the nine rows share an argmin member at every setting, "
+          "both orders", empty == [], f"empty at {empty}")
+    check("P4 a greedy spend-all policy is always common",
+          greedy_missing == [], f"missing at {greedy_missing}")
+    check("P4 U is common at every setting but (4, 2)", u_off == [],
+          f"off at {u_off}")
+    want = {(a, b, 0, 0, d) for a, b in ((0, 0), (0, 1))
+            for d in (1, INF)}
+    for order, com in at42.items():
+        check(f"P4 at (4, 2) the common set is sigma (0,0), (0,1) greedy, "
+              f"delta 1 or INF ({order})", com == want,
+              " ".join(fmt(p) for p in sorted(com, key=str)))
+    check("P4 control: per-row argmin sets are not all equal",
+          unequal &gt; 0, f"{unequal} of 32 setting-orders")
+    for order, com in every.items():
+        print(f"  common at all 16 settings ({order}): "
+              + (" ".join(fmt(p) for p in sorted(com, key=str)) or "none"))
+    check("P4 no policy is common at every setting, either order",
+          not any(every.values()))
+
+
+<span id="section_inversion"></span>def section_inversion(imgs, tables, traces):
+    section("P5 THE INVERSION AT (4, 2) NAMED")
+    tab, per = tables[(4, 2)], traces[(4, 2)]
+    worse = []
+    for row in ROWS9:
+        lu, lv = tab[row][U][0], tab[row][V][0]
+        if row != EIGHTS and cmp(lv, lu) != 0:
+            worse.append(row)
+        print(f"  {row}: ln loss U {ln_loss(lu):.2f}, V {ln_loss(lv):.2f}")
+    tu, tv = per[EIGHTS][U][0], per[EIGHTS][V][0]
+    lu, lv = loss(tu), loss(tv)
+    check("P5 V below U on (identity, eights), equal to it on the eight "
+          "other rows", cmp(lv, lu) &lt; 0 and worse == [],
+          f"V off U on {worse}")
+    diff = [n for n in range(N0, len(tu)) if tu[n] != tv[n]]
+    rels = {relation(tu[n], tv[n]) for n in diff}
+    check("P5 U and V differ only by incomparable intervals",
+          rels &lt;= {"incomparable"}, f"{len(diff)} counted steps differ")
+    if diff:
+        n = diff[0]
+        for name, c in (("U", tu[n]), ("V", tv[n])):
+            ln = length(c)
+            print(f"  step {n}: {name} holds {span(c)}, rank {rank(c)}, "
+                  f"k {c[2]}, length {ln[0]}/{ln[1]}")
+        print(f"  image at step {n}: {imgs[EIGHTS][n]}")
+
+
+<span id="main"></span>def main():
+    imgs = images9(N_MAIN)
+    section_controls(imgs)
+    if not all(CHECKS):
+        print("controls failed: no verdict is read")
+        sys.exit(1)
+    section_layers(imgs)
+    section_start_delay(imgs)
+    tables, traces = settings_tables(imgs)
+    section_common_rank(imgs, traces)
+    section_universality(tables)
+    section_inversion(imgs, tables, traces)
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/rationed.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

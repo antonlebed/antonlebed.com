@@ -1,0 +1,430 @@
+"""
+bonacci.py -- which scalings and floor divisions extend continuously
+to the completion of the trailing d-bonacci numeration.
+
+QUESTION. The trailing d-bonacci numeration has places q_j = 2^j for
+j < d and q_k = q_(k-1) + ... + q_(k-d) after, and writes every n >= 0
+by greedy digits, which are exactly the 0/1 strings with no d
+consecutive ones (d = 2 is Zeckendorf). Its completion K_d is the set
+of infinite such strings under the agreement metric. The comb (in
+reading.py) shows n -> 2n has no continuous extension to K_d at any
+d >= 2. The comb's move does not transplant to 3: 3 q_k = q_(k+1) +
+q_k + q_(k-d) keeps a copy at k. Do n -> 3n, and more generally
+n -> mn and n -> floor(n/m), extend continuously to K_d? At d = 2 the
+circle decides every one of them (ostrowski.py); past d = 2 the
+completion sits over a torus instead of a circle.
+
+THE ARGUMENT (written before this script).
+  (1) THE TORUS CODING. Let beta be the largest root of x^d - x^(d-1)
+      - ... - 1, a Pisot number (its other roots lie inside the unit
+      circle; Brauer, Math. Nachr. 4, 1950), and alpha = (beta^-1,
+      ..., beta^-(d-1)). Extend q backward by the recurrence and set
+      nu_k = (q_(k-1), ..., q_(k-d+1)) and theta_k = q_k alpha - nu_k.
+      Each coordinate q_k beta^-i - q_(k-i) solves the recurrence and
+      its beta-component cancels, so |theta_k| <= C rho^k with rho < 1
+      the largest conjugate modulus. So phi(y) = sum y_k theta_k mod
+      Z^(d-1) is a continuous map K_d -> T^(d-1), and phi(n) = n alpha
+      for every integer n. beta lies strictly between 1 and 2 and is
+      an algebraic integer, so it is irrational.
+  (2) FLOOR DIVISION IS TORN, at every d >= 2 and m >= 2. The inputs
+      q_K converge to 0 in K_d. With r_K = q_K mod m, floor(q_K/m)
+      alpha = (theta_K + nu_K - r_K alpha)/m exactly in R^(d-1). The
+      state s_K = (q_K, ..., q_(K-d+1)) mod m is purely periodic (the
+      companion matrix has determinant +-1) and not constant (at
+      K = d - 1 it holds 1 and 2 side by side). On a class gamma of
+      its period, nu_K = nu_gamma mod m Z^(d-1), so every cluster
+      point y of floor(q_K/m) there has phi(y) = P_gamma =
+      (nu_gamma - r_gamma alpha)/m mod Z^(d-1). Two classes with
+      different states have different P_gamma, since P_gamma =
+      P_gamma' would put (r_gamma - r_gamma') beta^-1 in Q with
+      r_gamma != r_gamma', or else nu_gamma = nu_gamma' mod m. So
+      floor(n/m) has at least two cluster values over the one input
+      limit 0.
+  (3) LEMMA V (the codings of -r). q_K - 1 has, below K, its zeros
+      exactly at the positions j = K mod d: q_K - 1 = q_(K-1) + ...
+      + q_(K-d+1) + (q_(K-d) - 1), down to q_j - 1 = 2^j - 1 for
+      j < d. Take r >= 1 and L < K with L = K mod d and q_L >= r.
+      Below L the string of q_K - 1 is that of q_L - 1 and position L
+      is 0, so q_K - r is the part above L plus q_L - r < q_L; the
+      concatenation keeps the 0 at L, so it is legal, hence greedy.
+      So with L_a the least index = a mod d with q_L >= r, the limit
+      of q_K - r along K = a mod d is greedy(q_(L_a) - r) below L_a
+      and, from L_a up, zeros exactly at the positions = a mod d.
+      The d limits are distinct.
+  (4) LEMMA W (the witness). Let W = w_1 w_2 ... be a purely periodic
+      0/1 word of period pi with no d consecutive ones, cyclically,
+      and A_K = sum_(i=1..K) w_i q_(K-i): W written top-down from
+      position K - 1. Its string is legal, so it is A_K's greedy
+      expansion, and its digit at position j < K is w_(K-j), which on
+      a class K = gamma mod pi does not depend on K: A_K converges on
+      every class. Put e_K = q_K - m A_K, D(z) = 1 - z - ... - z^d,
+      N(z) = D(z) sum q_k z^k (a polynomial of degree < d, in fact
+      1 + z + ... + z^(d-1)) and R(z) = sum_(i=1..pi) w_i z^i. Then
+      sum e_K z^K = N(z) (1 - z^pi - m R(z)) / (D(z) (1 - z^pi)). If
+      D divides 1 - z^pi - m R(z) (this holds iff sum w_i beta^-i =
+      1/m, W being 1/m's beta-expansion), the quotient S has degree
+      at most pi - d, so N S has degree below pi and e_K is PURELY
+      periodic with period pi.
+  (5) THE TEAR. If some class gamma has e_gamma >= 1 and the class meets two
+      residues mod d, which holds whenever d does not divide pi, then
+      A_K converges on the class while m A_K = q_K - e_gamma has at least
+      two cluster points by (3): n -> mn has no continuous extension.
+      The divisibility is a finite check, so each (d, m) the
+      certificate passes is PROVED, not scanned. At m = 1 the word is
+      (1^(d-1) 0), period d, and the certificate must decide nothing.
+  (6) m = 2 AT EVERY d. W = 0 1^(d-1) 0, period d + 1, and
+      (1 + z) D(z) = 1 - 2z^2 - ... - 2z^d - z^(d+1) = 1 - z^(d+1) -
+      2 R(z), so S = 1 + z and e = N (1 + z) / (1 - z^(d+1)): e_K =
+      1, 2, ..., 2, 1 at K = 0, 1, ..., d - 1, d mod d + 1. Every e_K
+      >= 1 and gcd(d + 1, d) = 1, so every class decides: a second
+      proof, independent of the comb, that x2 is torn at every d,
+      with d cluster points over each of d + 1 input limits.
+
+HAND-ATTACK (before any engine code).
+  - (2) needs only that two classes carry different states; the
+    period is at least 2. The number of distinct cluster values is at
+    least the number of distinct states, not the number of digits
+    where they differ, so a depth-40 print can undercount.
+  - In (4) the degree count: deg N <= d - 1, deg S = pi - d when
+    deg(1 - z^pi - m R) = pi, so deg(N S) <= pi - 1. No preperiod.
+  - e_K need not lie in [0, m): W truncated is 1/m's expansion cut, not
+    the floor, and the cut can overshoot by one. The tear needs e_gamma >= 1
+    only; a class with e_gamma <= 0 decides nothing (q_K + s converges).
+  - A word W found by reading the top digits of floor(q_K/m) at large
+    K is a GUESS; the divisibility check is what certifies it, and a
+    guess that fails it is reported, never used.
+
+PREDICTIONS (frozen before any engine code).
+  P-T  The coding's input: max |theta_k| over k = 200..240 is below a
+       tenth of the max over k = 100..140, at d = 2..10.
+  P-F  At d = 2..6, m = 2..5, along each class of the state period,
+       floor(q_K/m)'s low 12 digits are one pattern, and the classes
+       give at least two patterns; at depth 40 the number of distinct
+       patterns equals the state period.
+  P-V  Lemma V's string equals greedy(q_K - r) at d = 2..8, r = 1..12,
+       every K with q_(K-d) > r up to K = 80.
+  P-W  At d = 2..10, m = 1..12, the guessed W is legal cyclically, D
+       divides 1 - z^pi - m R(z), and the directly computed e_K is
+       periodic with period pi over K < 3 pi. The certificate decides
+       m = 2 at every d, m = 3 at every d = 3..10, and never m = 1.
+       At d = 2, m = 3 it does not decide (pi = 8 is even); the circle
+       does, in ostrowski.py.
+  P-2  At d = 2..12 the m = 2 word is 0 1^(d-1) 0 and e is 1, 2, ...,
+       2, 1 over one period.
+  P-X  At d = 3, m = 3, on a class with e_gamma >= 1: A_K at three K in the
+       class, one per residue mod 3, agree below the least K, while
+       3 A_K = q_K - e_gamma take three patterns in their low 8 digits.
+
+FINDINGS (entered after the run; prints copied from it).
+  - P-T holds: max |theta| falls from 2.51e-14 to 1.73e-27 at d = 3
+    and from 4.36e-03 to 1.91e-04 at d = 10, the slowest. (At 80
+    digits the window 200..240 read the precision floor at d = 2 to 6;
+    beta now carries 160.)
+  - P-F holds at the 18 (d, m) with state period at most 400: one
+    depth-12 pattern per class, and as many depth-40 patterns as the
+    period (13 at d = 3, m = 3; 312 at d = 4, m = 5, where depth 12
+    shows 311).
+  - P-V holds: 6115/6115 strings.
+  - P-W's m = 2 half and the rest hold; its m = 3 half FAILS. The
+    certificate decides m = 3 at d = 3, 4, 5, 6, 9. At d = 7 and 8
+    the word is certified (pi = 364 and 80) but d divides pi, so every
+    class sits in one residue mod d and the family decides nothing; at
+    d = 10 no word of period below 1200 was found. Over d = 2..10,
+    m = 2..12: 47 of 99 pairs torn by certificate, 23 certified and
+    undecided, 29 with no word found.
+  - The first run's m = 1 control failed for the script's reason, not
+    the claim's: floor(q_K/1) is q_K, whose top digits are no periodic
+    word. The design's word at m = 1 is 1's quasi-greedy expansion
+    1^(d-1) 0; supplied, the control decides nothing at every d.
+  - P-2 holds at d = 2..12.
+  - P-X holds: at d = 3, m = 3, class 0 (e = 1), K = 39, 52, 65 agree
+    below 39 and their triples end 10110110, 01101101, 11011011.
+  - P-S (added after the run, before its code): the word's period
+    equals the period of the state (q_K, ..., q_(K-d+1)) mod m at
+    70/70 certificates. One direction is proved: e_K = q_K mod m is
+    periodic with period pi, so the state period divides pi.
+  - Tiers: floor division torn at every d >= 2 and m >= 2 (theorem,
+    (2)); x2 torn at every d (theorem, (6), a second proof); xm torn
+    at the 47 certified pairs, x3 among them at d = 3, 4, 5, 6, 9
+    (proved per pair by the certificate); x3 at d = 7, 8, 10 open.
+
+RUN RECORD: 13/13 checks, 3.4 s, peak commit 11.1 MB under a memory guard.
+"""
+
+import math
+from decimal import Decimal, getcontext
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  [{'PASS' if ok else 'FAIL'}] {name}" +
+          (f" -- {detail}" if detail else ""))
+
+
+def places(d, n):
+    q = [2 ** j for j in range(d)]
+    while len(q) < n:
+        q.append(sum(q[-d:]))
+    return q
+
+
+def greedy(n, q):
+    digs = set()
+    for k in range(len(q) - 1, -1, -1):
+        if q[k] <= n:
+            digs.add(k)
+            n -= q[k]
+    assert n == 0
+    return digs
+
+
+def low(s, t):
+    return frozenset(x for x in s if x < t)
+
+
+def legal(s, d):
+    return all(not all(j + i in s for i in range(d)) for j in s)
+
+
+# ------------------------------------------------------------ the coding
+def beta_of(d):
+    getcontext().prec = 160
+    f = lambda x: x ** d - sum(x ** i for i in range(d))
+    lo, hi = Decimal(1), Decimal(2)
+    for _ in range(540):
+        mid = (lo + hi) / 2
+        if f(mid) > 0:
+            hi = mid
+        else:
+            lo = mid
+    return lo
+
+
+def section_t():
+    print("T  the torus coding: theta_k shrinks")
+    ok = True
+    for d in range(2, 11):
+        b = beta_of(d)
+        q = places(d, 260)
+
+        def worst(ks):
+            return max(abs(q[k] / b ** i - q[k - i])
+                       for k in ks for i in range(1, d))
+        a, z = worst(range(100, 141)), worst(range(200, 241))
+        ok &= z < a / 10
+        print(f"     d = {d}: max |theta| {float(a):.2e} at 100..140, "
+              f"{float(z):.2e} at 200..240")
+    check("P-T: theta_k contracts at d = 2..10", ok)
+
+
+# ---------------------------------------------------------------- floors
+def state_period(d, m, q, K0):
+    st = lambda K: tuple(q[K - i] % m for i in range(d))
+    for p in range(1, 5000):
+        if st(K0 + p) == st(K0):
+            return p
+
+
+def section_f():
+    print("F  floor division along the state classes")
+    ok1 = ok2 = True
+    for d in range(2, 7):
+        for m in range(2, 6):
+            pi = state_period(d, m, places(d, 6000), 100)
+            if pi > 400:
+                continue
+            q = places(d, 100 + 6 * pi)
+            pats12, pats40 = [], set()
+            for c in range(pi):
+                Ks = [100 + c + pi * j for j in range(5)]
+                g = [greedy(q[K] // m, q) for K in Ks]
+                p12 = {low(s, 12) for s in g}
+                ok1 &= len(p12) == 1
+                pats12.append(next(iter(p12)))
+                pats40.add(low(g[-1], 40))
+            ok1 &= len(set(pats12)) >= 2
+            ok2 &= len(pats40) == pi
+            print(f"     d = {d}, m = {m}: state period {pi}, patterns "
+                  f"{len(set(pats12))} at depth 12, {len(pats40)} at "
+                  f"depth 40")
+    check("P-F: one pattern per class, at least two classes apart", ok1)
+    check("P-F: depth-40 patterns as many as the state period", ok2)
+
+
+# -------------------------------------------------------------- lemma V
+def section_v():
+    print("V  Lemma V: the codings of -r")
+    bad = cells = 0
+    for d in range(2, 9):
+        q = places(d, 90)
+        for r in range(1, 13):
+            for K in range(d, 81):
+                if q[K - d] <= r:
+                    continue
+                a = K % d
+                L = min(j for j in range(a, K, d) if q[j] >= r)
+                want = greedy(q[L] - r, q) | {j for j in range(L, K)
+                                              if j % d != a}
+                cells += 1
+                bad += greedy(q[K] - r, q) != want
+    print(f"     {cells - bad}/{cells} strings match")
+    check("P-V: Lemma V at d = 2..8, r = 1..12", bad == 0 and cells > 0)
+
+
+# -------------------------------------------------------------- lemma W
+def pmul(a, b):
+    out = [0] * (len(a) + len(b) - 1)
+    for i, x in enumerate(a):
+        if x:
+            for j, y in enumerate(b):
+                out[i + j] += x * y
+    return out
+
+
+def pdiv_exact(p, dpoly):
+    """p / dpoly as a polynomial if exact (dpoly[0] = 1), else None."""
+    n = len(p) - len(dpoly) + 1
+    if n < 1:
+        return None
+    s, r = [], list(p)
+    for k in range(n):
+        c = r[k]
+        s.append(c)
+        for j, y in enumerate(dpoly):
+            r[k + j] -= c * y
+    return s if not any(r) else None
+
+
+def guess_word(d, m):
+    """1/m's expansion read off the top digits of floor(q_K/m)."""
+    K = 3000
+    q = places(d, K + 1)
+    s = greedy(q[K] // m, q)
+    top = [1 if K - 1 - i in s else 0 for i in range(2400)]
+    for p in range(1, 1200):
+        if all(top[i] == top[i + p] for i in range(2400 - p)):
+            return top[:p]
+    return None
+
+
+def certificate(d, m):
+    # at m = 1 the floor is q_K itself; the word is 1's quasi-greedy one
+    W = [1] * (d - 1) + [0] if m == 1 else guess_word(d, m)
+    if W is None:
+        return None
+    pi = len(W)
+    cyc = {i for i in range(3 * pi) if W[i % pi]}
+    if not legal(cyc, d):
+        return None
+    D = [1] + [-1] * d
+    P = [1] + [-m * W[i - 1] for i in range(1, pi + 1)]
+    P[pi] -= 1
+    S = pdiv_exact(P, D)
+    if S is None:
+        return None
+    q = places(d, 3 * pi + 1)
+    e = [q[K] - m * sum(W[(i - 1) % pi] * q[K - i] for i in range(1, K + 1))
+         for K in range(3 * pi)]
+    periodic = all(e[K] == e[K % pi] for K in range(3 * pi))
+    good = [c for c in range(pi) if e[c] >= 1]
+    tear = bool(good) and math.gcd(pi, d) < d
+    return dict(W=W, pi=pi, S=S, e=e[:pi], periodic=periodic, tear=tear,
+                good=good)
+
+
+def section_w():
+    print("W  the certificate: 1/m's word, the divisibility, the tear")
+    table, ok = {}, True
+    for d in range(2, 11):
+        row = []
+        for m in range(1, 13):
+            c = certificate(d, m)
+            table[d, m] = c
+            if c is None:
+                row.append("?")
+                continue
+            ok &= c["periodic"]
+            row.append("T" if c["tear"] else ".")
+        print(f"     d = {d:2}: m = 1..12  {' '.join(row)}")
+    fails = [k for k, c in table.items() if c is None]
+    print(f"     no certificate at {len(fails)} pairs: {fails}")
+    check("P-W: every pair without a certificate has no word found",
+          all(guess_word(d, m) is None for (d, m) in fails))
+    torn = [k for k, c in table.items() if c and c["tear"]]
+    print(f"     torn by certificate: {len(torn)} of the {len(table) - 9} "
+          f"pairs with m >= 2; certified and undecided: "
+          f"{sum(1 for (d, m), c in table.items() if c and m > 1) - len(torn)}")
+    check("P-W: every certificate found has periodic e", ok)
+    check("P-W: m = 2 torn at every d = 2..10",
+          all(table[d, 2] and table[d, 2]["tear"] for d in range(2, 11)))
+    check("P-W as run: m = 3 torn at d = 3, 4, 5, 6, 9 only, d = 2..10",
+          [d for d in range(2, 11) if table[d, 3] and table[d, 3]["tear"]]
+          == [3, 4, 5, 6, 9])
+    print(f"     m = 3: pi = {table[7, 3]['pi']} at d = 7, "
+          f"{table[8, 3]['pi']} at d = 8")
+    check("P-W as run: at d = 7, 8 the word is certified and d divides pi",
+          all(table[d, 3] and table[d, 3]["pi"] % d == 0 for d in (7, 8)))
+    same = [state_period(d, m, places(d, 3 * c["pi"] + 400), 200) == c["pi"]
+            for (d, m), c in table.items() if c and m > 1]
+    print(f"     pi equals the period of the state mod m at "
+          f"{sum(same)}/{len(same)} certificates")
+    check("P-S: pi is the state period at every certificate", all(same))
+    check("m = 1: the word 1^(d-1) 0 is certified at every d and tears "
+          "nothing",
+          all(table[d, 1] and not table[d, 1]["tear"]
+              for d in range(2, 11)))
+    c = table[3, 3]
+    print(f"     d = 3, m = 3: W = {''.join(map(str, c['W']))}, "
+          f"S = {c['S']}, e = {c['e']}")
+    return table
+
+
+def section_2():
+    print("2  m = 2 at every d")
+    ok = True
+    for d in range(2, 13):
+        c = certificate(d, 2)
+        want = [0] + [1] * (d - 1) + [0]
+        ok &= (c is not None and c["W"] == want and c["S"] == [1, 1]
+               and c["e"] == [1] + [2] * (d - 1) + [1])
+    check("P-2: W = 0 1^(d-1) 0, S = 1 + z, e = 1, 2..2, 1 at d = 2..12",
+          ok)
+
+
+def section_x(table):
+    print("X  the tear at d = 3, m = 3")
+    c = table[3, 3]
+    W, pi = c["W"], c["pi"]
+    cl = c["good"][0]
+    Ks = [cl + pi * j for j in range(3, 12)]
+    Ks = [next(K for K in Ks if K % 3 == a) for a in range(3)]
+    q = places(3, max(Ks) + 1)
+    A = [sum(W[(i - 1) % pi] * q[K - i] for i in range(1, K + 1)) for K in Ks]
+    gA = [greedy(a, q) for a in A]
+    agree = all(low(g, min(Ks)) == low(gA[0], min(Ks)) for g in gA)
+    trip = [low(greedy(3 * a, q), 8) for a in A]
+    ok = agree and len(set(trip)) == 3 and all(
+        3 * a == q[K] - c["e"][cl] for a, K in zip(A, Ks))
+    for K, t in zip(Ks, trip):
+        print(f"     K = {K} (K mod 3 = {K % 3}): 3 A_K low 8 digits "
+              f"{''.join('1' if j in t else '0' for j in range(7, -1, -1))}")
+    print(f"     class {cl}, e = {c['e'][cl]}, inputs agree below "
+          f"{min(Ks)}: {agree}")
+    check("P-X: one input limit, three image patterns", ok)
+
+
+def main():
+    section_t()
+    section_f()
+    section_v()
+    table = section_w()
+    section_2()
+    section_x(table)
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

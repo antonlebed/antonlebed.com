@@ -1,0 +1,415 @@
+"""selfreport.py -- what a deletion auditor can say about the stability
+of their own answer without the truth, and the proof that no such
+statement is right at every size.
+
+QUESTION. The mixture-proportion audit of audit.py returns an estimate
+on one side of one half, and a second audit of the same world on fresh
+samples may land on the other. audit.py proved that off the box the
+side is the sign of one scalar at the replicate's own coefficients,
+    D-hat = s_u^2 - s_in^2/2 - s_out^2/2 - dhat^2/4,
+so two replicates, both off the box with their vertices on one side of
+it, disagree exactly when their D-hats differ in sign.
+That event needs no truth: both replicates share the one unknown
+direction. An auditor holding D-hat and a truth-free estimate of its
+spread can therefore STATE an instability, the chance a fresh audit
+lands on the other side, of the form Phi(-|D-hat| / (zeta sd-hat)) for a
+scale zeta, or the pair form 2 p-hat (1 - p-hat). How good is any such
+self-report, and can one be right in the mean at every size?
+
+THE WORLDS. audit.py's depth cells W2 = (12, 3), kappa = 1/5, and
+W3 = (2, 8), kappa = 4/5, imported with their samplers and estimator,
+never copied. Population D = A - (G/2 - B/4): 0.0308 at W2, 1/25 at W3.
+
+THE ARGUMENT (written before the engine).
+  (A) THE PAIR RATE. Write nu = D/sigma, signed, sigma the spread of
+      D-hat (D > 0 at both cells).
+      In the normal reading D-hat ~ N(D, sigma^2) two independent
+      replicates differ in sign with probability
+          g(nu) = 2 Phi(nu) Phi(-nu),
+      even in nu, 1/2 at nu = 0 and decaying like 2 Phi(-|nu|).
+  (B) THE COMPRESSION LAW. A statement Phi(-|D-hat|/(zeta sigma))
+      has mean E[Phi(-|nu + Z|/zeta)], Z standard normal: the FOLDED
+      convolution. Dropping the fold (|nu| several units) gives the
+      closed form Phi(-|nu| / sqrt(1 + zeta^2)), so the statement's
+      decay exponent is flattened from nu^2/2 to nu^2/(2(1 + zeta^2))
+      and its ratio to g diverges for every zeta > 0; sharpening
+      (zeta -> 0) buys the exponent back only by sending the statement
+      toward 0 at nu = 0, where g is 1/2. The pair plug-in has the same
+      fold. The carried corrections of the first self-report, the spread
+      of D-hat rather than of A-hat and the predictive sqrt 2, are two
+      values of zeta.
+  (C) NO UNBIASED SELF-REPORT (property, proved in the normal model).
+      Put X = D-hat/sigma ~ N(nu, 1), sigma known, nu any real. No
+      bounded measurable f has E_nu f(X) = g(nu) for every nu.
+      Proof. G(nu) = integral f(x) phi(x - nu) dx is entire in nu, and
+      at nu = i t, phi(x - i t) = phi(x) e^{i t x} e^{t^2/2}, so
+      |G(i t)| <= sup|f| e^{t^2/2}. For g: with X1, X2 the two
+      replicates, U = (X1 + X2)/sqrt 2 ~ N(sqrt2 nu, 1) and
+      V = (X1 - X2)/sqrt 2 ~ N(0, 1) are independent, and the signs
+      differ iff |V| > |U|; so g(nu) = E h(U), h(u) = 2 Phi(-|u|), and
+          g(nu) = integral h(u) phi(u - sqrt2 nu) du,
+      also entire, with g(i t) = e^{t^2} psi-hat(sqrt2 t), psi = h phi,
+      psi-hat(w) = integral psi(u) cos(w u) du. psi is even and smooth
+      on each side of 0 with a kink there, psi'(0+) = -2 phi(0)^2, so
+      two integrations by parts give
+          psi-hat(w) = -2 psi'(0+)/w^2 + O(w^-3) = 2/(pi w^2) + ...,
+      and g(i t) ~ e^{t^2}/(pi t^2). If G = g on the real line, the two
+      entire functions agree everywhere, and e^{t^2}/(pi t^2) <=
+      sup|f| e^{t^2/2} fails for large t. QED. So calibration in the
+      mean at every distance is not a form to be found: even an auditor
+      handed sigma exactly, whose whole evidence is D-hat, has none.
+      (Sufficiency makes D-hat the whole evidence in that model; the
+      finite-sample worlds are only near it.)
+  (D) THE CONDITIONAL TRUTH HAS TWO VALUES. Given replicate 1, a fresh
+      replicate disagrees with probability p = Phi(-|nu|) if D-hat_1 has
+      D's sign and 1 - p if not. A statement reads |D-hat_1| (and its
+      sign, whose meaning needs D's), so binning on it mixes the two
+      values: a reliability diagram of any such statement slopes, and
+      the mixture weight is a function of nu, hence of the truth.
+
+HAND NUMBERS (carried at the freeze from an earlier record's measured
+spreads; audit.py's exact delta-method sd, printed in the controls,
+gives W3's as 0.54, 1.09, 2.45):
+nu = 0.34, 0.69, 1.53 at W2 and 0.57, 1.11, 2.47 at W3 for
+n = 50, 200, 1000; g = 0.47, 0.37, 0.12 and 0.41, 0.23, 0.013.
+
+DESIGN. For each cell and n in {50, 200, 1000}, R = 1000 replicate
+PAIRS (fresh member, non-member and audited samples of size n each).
+Per replicate: A-hat, G-hat, B-hat, the estimate and its side of 1/2
+(audit.py's estimator), D-hat, and the replicate's OWN delta-method
+spread sd-hat(D-hat): audit.py's formula with the sample's central
+moments (ddof 0 for the third and fourth) in place of the exact ones.
+The realized pair event is the ESTIMATOR's: the two estimates on
+opposite sides of 1/2. Four truth-free arms from replicate 1:
+  PHI1   Phi(-|D-hat|/sd-hat)            (zeta = 1)
+  PHI2   Phi(-|D-hat|/(sqrt2 sd-hat))    (zeta = sqrt 2, the carried form)
+  PAIR   2 p (1 - p), p = Phi(-|D-hat|/sd-hat)
+  SHARP  2 p (1 - p), p = Phi(-2|D-hat|/sd-hat)
+Each arm's law is its own folded expectation at the row's nu (exact
+sigma), by quadrature over Z. The proof's two ingredients are checked
+by quadrature: the representation g = E h(U) on the real line, and
+psi-hat(sqrt2 t) pi t^2 approaching 1. One seed per (cell, n).
+
+PREDICTIONS (fixed before the engine).
+  P0 CONTROLS, read first. (i) audit.py's population D at W2 and W3
+     equals A - G/2 + B/4 in Fraction and the exact D at W3 is 1/25.
+     (ii) On every pair whose two replicates both have their own vertex
+     off the box and on the same side of it, "estimates on opposite
+     sides of 1/2" equals "D-hats of opposite sign": zero exceptions.
+     (iii) At n in {200, 1000} the mean plug-in sd-hat is within 5% of
+     the exact delta sd, and the measured sd of D-hat over replicates
+     is within 5% of it. (TRANSPLANT: the first self-report checked
+     this for sd(A-hat), not for sd(D-hat).)
+  P1 (C) The representation g(nu) = E h(U) matches 2 Phi(nu) Phi(-nu)
+     to 1e-9 on nu in [-4, 4]; psi-hat(sqrt2 t) pi t^2 is within 0.05
+     of 1 at t = 8, moving toward 1 from t = 2 to 8; and
+     g(i t)/e^{t^2/2} exceeds 1000 at t = 8.
+  P2 (A) At n in {200, 1000} the realized pair rate is within 4
+     standard errors (at the law's value, R = 1000) of g(nu).
+  P3 (B) At n in {200, 1000} every arm's mean is within 0.025 of its
+     folded law; n = 50 printed and weighed.
+  P4 (B) For PHI1, PHI2 and PAIR the ratio of the arm's mean to g(nu)
+     is larger at the largest-nu row (W3, n = 1000) than at the
+     smallest (W2, n = 50), and above 2 there. SHARP's ratio is below
+     1 at every one of the six rows: the one member not diverging on
+     this sweep is optimistic across it.
+  P5 (D) At n in {200, 1000}, among pairs whose first D-hat has D's
+     sign the realized rate is within 4 standard errors of Phi(-nu),
+     and among the rest of 1 - Phi(-nu), wherever a group holds at
+     least 30 pairs.
+
+KILL. P0 off: nothing is read. P1 off: the proof's representation or
+its asymptote is wrong. P3 off at n >= 200: the compression law is
+not the law of these statements.
+
+FINDINGS. No kill fired. One frozen clause was wrong, and the error is
+the slate's: P4 carried from an earlier record that the sharpened pair
+arm stays below the pair rate across the sweep, which (B) itself
+forbids for every zeta > 0. Its folded law meets g at nu* = 2.18, and the
+largest-nu row, nu = 2.45, measures 0.019 against g = 0.014 (law
+0.017): the sharpened arm over-warns too, only later. The earlier
+record's 0.011 there was a 300-replicate mean below its own law. The
+clause is printed as a record and fails; P4' was added after the first
+run and gates the law's form instead. P0(i) as frozen held by this
+file's own algebra (A - G/2 + B/4 written twice), and its first repair,
+the variance form var_u - var_in/2 - var_out/2 - d^2/4, held by
+audit.py's definitions A = var_u - var_in and G = var_out - var_in +
+d^2; so P0(i) now checks W3's D = 1/25 alone, a regression value
+against the coefficients audit.py prints (A = 34/225, G = 5/18,
+B = 1/9). P0(ii) and P0(iii) are scored in the statements' loop and
+gate every verdict after them.
+  controls  D = 7857/254800 at W2 and 1/25 at W3; exact delta sd(D-hat)
+            0.0912, 0.0452, 0.0202 and 0.0739, 0.0366, 0.0163.
+            Opposite sides of 1/2 iff opposite signs of D-hat: 0
+            exceptions on 4,819 pairs. At n >= 200 the plug-in sd-hat
+            (0.0441, 0.0201; 0.0362, 0.0163) and the measured sd
+            (0.0446, 0.0196; 0.0358, 0.0163) sit within 5% of exact:
+            the SPREAD is solved from inside.
+  proof     the representation to 5.3e-10 at 33 points of [-4, 4];
+            psi-hat(sqrt2 t) pi t^2 = 1.753, 1.170, 1.062, 1.033 at
+            t = 2, 4, 6, 8, and g(it)/e^{t^2/2} = 1.03, 69.4, 6.2e5,
+            4.1e11.
+  pair      realized against g(nu): 0.465/0.465, 0.373/0.372,
+            0.123/0.118 at W2 (nu = 0.34, 0.68, 1.53) and 0.394/0.415,
+            0.241/0.236, 0.018/0.014 at W3 (nu = 0.54, 1.09, 2.45).
+  law       every arm within 0.025 of its folded law at n >= 200 (the
+            worst 0.010); at n = 50 the arms sit 0.003 to 0.024 below
+            it, D-hat's normal reading degrading there. Ratio to g from
+            the smallest nu to the largest: PHI1 0.48 -> 2.83, PHI2
+            0.60 -> 5.43, PAIR 0.65 -> 4.45, SHARP 0.37 -> 1.33. Each
+            law meets g once: nu* = 1.51, 1.13, 1.07, 2.18. Every arm
+            under-warns below its nu* and over-warns above it.
+  sides     given replicate 1, the realized rate is Phi(-nu) on D's side
+            and 1 - Phi(-nu) off it: 0.246 vs 0.247 and 0.707 vs 0.753
+            at W2, n = 200; 0.136 vs 0.137 and 0.892 vs 0.863 at W3,
+            n = 200.
+Rates over R = 1000 read to about 0.015 at their largest.
+
+RUN RECORD. python selfreport.py: run 1 7 of 8 (P4's SHARP clause);
+run 2, the clause printed as a record and P4' added, 9 of 9, 3.7 s,
+peak commit 107.7 MB; run 3, after an audit (P0(i) checking W3's
+regression value alone, P0(ii) and (iii) gating), 9 of 9, 3.7 s, 107.8 MB.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import sys
+import time
+from fractions import Fraction as F
+from math import exp, pi, sqrt
+
+import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from audit import W2, W3, coefficients, estimate  # noqa: E402
+
+NS = (50, 200, 1000)
+R = 1000
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f"  ({detail})" if detail else ""))
+
+
+def section(title):
+    print()
+    print(title)
+
+
+def Phi(x):
+    from scipy.special import ndtr
+    return ndtr(x)
+
+
+# --------------------------------------------------------- the pieces
+
+def pair_rate(nu):
+    """(A) two normal replicates of mean nu differ in sign."""
+    return 2 * Phi(nu) * Phi(-nu)
+
+
+Z = np.linspace(-12.0, 12.0, 48001)
+WZ = np.exp(-Z * Z / 2) / sqrt(2 * pi) * (Z[1] - Z[0])
+
+
+def folded(nu, stat):
+    """(B) E[stat(|nu + Z|)] by quadrature over Z."""
+    return float(np.sum(WZ * stat(np.abs(nu + Z))))
+
+
+ARMS = {
+    "PHI1": lambda x: Phi(-x),
+    "PHI2": lambda x: Phi(-x / sqrt(2)),
+    "PAIR": lambda x: 2 * Phi(-x) * Phi(x),
+    "SHARP": lambda x: 2 * Phi(-2 * x) * Phi(2 * x),
+}
+
+
+def sd_hat(xm, xn, xu):
+    """The replicate's own delta-method spread of D-hat: audit.py's
+    Depth.sd_D with sample moments in place of the exact ones."""
+    n = xm.shape[-1]
+
+    def mom(x):
+        c = x - x.mean(-1, keepdims=True)
+        return (c * c).sum(-1) / (n - 1), (c ** 3).mean(-1), (c ** 4).mean(-1)
+    (vm, m3m, m4m), (vn, m3n, m4n), (vu, _, m4u) = mom(xm), mom(xn), mom(xu)
+
+    def v(m4, var):
+        return m4 / n - var * var * (n - 3) / (n * (n - 1))
+    d = xn.mean(-1) - xm.mean(-1)
+    tot = (v(m4u, vu) + v(m4m, vm) / 4 + v(m4n, vn) / 4
+           + d * d / 4 * (vm + vn) / n + d / 2 * (m3n - m3m) / n)
+    return np.sqrt(np.maximum(tot, 0.0))
+
+
+def replicate(w, rng, n):
+    """R replicates: D-hat, sd-hat, the estimate's side of 1/2, and
+    whether the replicate's own vertex is off the box (and which side)."""
+    xm, xn, xu = w.draw(rng, n, size=R)
+    A, G, B = coefficients(xm, xn, xu)
+    est = estimate(A, G, B)[0]
+    with np.errstate(divide="ignore", invalid="ignore"):
+        v = np.where(B > 0, G / (2 * B), np.nan)
+    vside = np.where(v < 0, -1, np.where(v > 1, 1, 0))
+    return {"D": A - (G / 2 - B / 4), "sd": sd_hat(xm, xn, xu),
+            "up": est > 0.5, "vside": vside}
+
+
+def rng_for(ci, n):
+    return np.random.default_rng([20260929, ci, n])
+
+
+# ------------------------------------------------------------ sections
+
+def section_controls():
+    section("CONTROLS")
+    for w in (W2, W3):
+        D = w.A - w.G / 2 + w.B / 4
+        print(f"  {w.name}: D = {D} = {float(D):.7f}, exact delta sd(D-hat) "
+              + ", ".join(f"{w.sd_D(n):.4f}" for n in NS))
+    check("P0(i) W3's population D is 1/25 in Fraction",
+          W3.A - W3.G / 2 + W3.B / 4 == F(1, 25))
+
+
+def section_theorem():
+    section("THE PROOF'S TWO INGREDIENTS, by quadrature")
+    u = np.linspace(-16.0, 16.0, 320001)
+    du = u[1] - u[0]
+    h = 2 * Phi(-np.abs(u))
+    worst = 0.0
+    for nu in np.linspace(-4, 4, 33):
+        g = float(np.sum(h * np.exp(-(u - sqrt(2) * nu) ** 2 / 2))
+                  / sqrt(2 * pi) * du)
+        worst = max(worst, abs(g - float(pair_rate(nu))))
+    print(f"  representation g(nu) = E h(U): worst gap {worst:.1e} "
+          "over 33 points of [-4, 4]")
+    up = np.linspace(0.0, 14.0, 1400001)
+    dup = up[1] - up[0]
+    psi = 2 * Phi(-up) * np.exp(-up * up / 2) / sqrt(2 * pi)
+    wts = np.full(up.shape, dup)
+    wts[0] = wts[-1] = dup / 2
+    rows = []
+    for t in (2, 4, 6, 8):
+        w = sqrt(2) * t
+        ph = 2 * float(np.sum(wts * psi * np.cos(w * up)))
+        rows.append((t, ph * pi * t * t, exp(t * t / 2) * ph))
+        print(f"  t = {t}:  psi-hat(sqrt2 t) pi t^2 = {rows[-1][1]:.5f}   "
+              f"g(it)/e^(t^2/2) = {rows[-1][2]:.4g}")
+    ratios = [r[1] for r in rows]
+    check("P1 representation to 1e-9; asymptote within 0.05 of 1 at t = 8 "
+          "and approaching; growth past 1000 at t = 8",
+          worst < 1e-9 and abs(ratios[-1] - 1) < 0.05
+          and all(abs(ratios[i + 1] - 1) < abs(ratios[i] - 1)
+                  for i in range(3))
+          and rows[-1][2] > 1000,
+          f"{ratios[-1]:.4f}, {rows[-1][2]:.3g}")
+
+
+def section_statements():
+    section("THE SELF-REPORT: four truth-free arms against the pair event")
+    exc, scored = 0, 0
+    sd_ok, pair_ok, law_ok, cond_ok = True, True, True, True
+    ratio = {}
+    print("  cell    n     nu   g(nu)  realized   sd-hat  sd(meas)   "
+          "exact    arm means (law)")
+    for ci, w in enumerate((W2, W3), start=1):
+        Dpop = float(w.A - w.G / 2 + w.B / 4)
+        for n in NS:
+            rng = rng_for(ci, n)
+            r1, r2 = replicate(w, rng, n), replicate(w, rng, n)
+            sig = w.sd_D(n)
+            nu = abs(Dpop) / sig
+            g = float(pair_rate(nu))
+            diff = r1["up"] != r2["up"]
+            both = (r1["vside"] != 0) & (r1["vside"] == r2["vside"])
+            sgn = (r1["D"] < 0) != (r2["D"] < 0)
+            exc += int(np.sum(diff[both] != sgn[both]))
+            scored += int(both.sum())
+            real = float(diff.mean())
+            sdh = float(r1["sd"].mean())
+            sdm = float(np.concatenate([r1["D"], r2["D"]]).std(ddof=1))
+            if n > 50:
+                sd_ok &= abs(sdh / sig - 1) < 0.05 and abs(sdm / sig - 1) < 0.05
+                pair_ok &= abs(real - g) <= 4 * sqrt(g * (1 - g) / R)
+            x = np.abs(r1["D"]) / r1["sd"]
+            cells = []
+            for name, f in ARMS.items():
+                m, law = float(f(x).mean()), folded(nu, f)
+                if n > 50:
+                    law_ok &= abs(m - law) <= 0.025
+                ratio[w.name, n, name] = m / g
+                cells.append(f"{name} {m:.3f} ({law:.3f})")
+            print(f"  {w.name:7s} {n:4d}  {nu:.3f}  {g:.3f}   {real:.3f}   "
+                  f"{sdh:.4f}   {sdm:.4f}   {sig:.4f}   " + "  ".join(cells))
+            same = (r1["D"] > 0) == (Dpop > 0)
+            p = float(Phi(-nu))
+            parts = []
+            for grp, want in ((same, p), (~same, 1 - p)):
+                k = int(grp.sum())
+                rate = float(diff[grp].mean()) if k else float("nan")
+                parts.append(f"{rate:.3f} of {k} vs {want:.3f}")
+                if n > 50 and k >= 30:
+                    cond_ok &= abs(rate - want) <= 4 * sqrt(
+                        want * (1 - want) / k)
+            print(f"      conditional: D's side {parts[0]};  "
+                  f"other side {parts[1]}")
+    check("P0(ii) off the box, same vertex side: opposite sides of 1/2 "
+          "iff opposite signs of D-hat", exc == 0,
+          f"{exc} exceptions on {scored} pairs")
+    check("P0(iii) plug-in and measured sd(D-hat) within 5% of the exact "
+          "delta sd at n >= 200", sd_ok)
+    if not (exc == 0 and sd_ok):
+        print("\nCONTROL FAILED: no verdict below is read.")
+        sys.exit(1)
+    check("P2 realized pair rate within 4 se of g(nu) at n >= 200", pair_ok)
+    check("P3 every arm's mean within 0.025 of its folded law at n >= 200",
+          law_ok)
+    lo, hi = (W2.name, 50), (W3.name, 1000)
+    print("  ratio to g, smallest nu -> largest: " + ", ".join(
+        f"{a} {ratio[lo + (a,)]:.2f} -> {ratio[hi + (a,)]:.2f}"
+        for a in ARMS))
+    sharp = [ratio[w.name, n, "SHARP"] for w in (W2, W3) for n in NS]
+    check("P4 PHI1, PHI2, PAIR diverge (ratio rises, above 2 at the "
+          "largest nu)",
+          all(ratio[hi + (a,)] > max(ratio[lo + (a,)], 2)
+              for a in ("PHI1", "PHI2", "PAIR")))
+    print(f"  P4 as frozen also asked SHARP below 1 at all six rows: "
+          f"{min(sharp):.2f} to {max(sharp):.2f}, "
+          f"{'holds' if max(sharp) < 1 else 'FAILS'} (record, not gated)")
+    # Added after the first run: where each arm's folded law meets g.
+    grid = np.linspace(0.0, 6.0, 601)
+    crossings, one = [], True
+    for name, f in ARMS.items():
+        gap = np.array([folded(m, f) for m in grid]) - pair_rate(grid)
+        idx = np.nonzero(np.diff(np.sign(gap)))[0]
+        one &= len(idx) == 1 and gap[0] < 0
+        crossings.append(f"{name} {grid[idx[0]]:.2f}" if len(idx) else
+                         f"{name} none")
+    print("  each arm's law meets g at nu* = " + ", ".join(crossings))
+    check("P4' (after the first run) each arm's folded law is below g at "
+          "nu = 0 and meets it exactly once on [0, 6]", one)
+    check("P5 the conditional truth takes the two values p and 1 - p "
+          "(n >= 200, groups of 30 or more)", cond_ok)
+
+
+def main():
+    t0 = time.time()
+    section_controls()
+    if not all(CHECKS):
+        print("\nCONTROL FAILED: nothing below is read.")
+        sys.exit(1)
+    section_theorem()
+    section_statements()
+    print()
+    print(f"{sum(CHECKS)} of {len(CHECKS)} checks, "
+          f"{time.time() - t0:.1f} s")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

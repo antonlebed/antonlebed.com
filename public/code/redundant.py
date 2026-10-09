@@ -1,0 +1,940 @@
+"""
+redundant.py -- what a signed-digit reader of integers computes at
+bounded lookahead, and exactly how much lookahead it needs.
+
+QUESTION. Write integers top first in radix b with the digits
+D = {-a, ..., a}, 2a + 1 > b, so the SLACK rho = 2a + 1 - b is at
+least 1 and a value has many strings. Which maps does a reader that
+commits one output digit per input digit compute, and at what least
+lookahead? This script starts with scaling: f(n) = floor(lam n +
+theta), lam = u/v > 0 in lowest terms, theta = w/z in [0, 1).
+
+THE ARGUMENT (written before this script).
+  (0) THE GAME. Write R_j = (b^j - 1)/(b - 1). The j-digit strings of
+      D write exactly the integers of [-a R_j, a R_j] (dual.py's
+      redundant reader). f is READ AT LOOKAHEAD c when a reader, taking
+      the digits of n top first at any length, commits one digit of D
+      after each digit read, so that after every step t the t digits
+      committed, followed by some c digits of D, write f(n_t), n_t the
+      value of the t digits read. With Q_t the value of the committed
+      digits put R = lam n_t + theta - b^c Q_t. The flush exists iff
+      floor(R) lies in [-A, A], A = a R_c, iff R lies in
+      [-A, A + 1). A digit x read and a digit e committed move
+          R' = b R + lam x - (b - 1) theta - b^c e,
+      from R_0 = theta. What remains legal depends on R alone, so a
+      reader exists iff this safety game is won from theta, and the
+      WINNING SET W is the greatest set of states in the finish range from
+      which every x has an answer e staying in the set. In y = R -
+      theta the phase leaves the move, y' = b y + lam x - b^c e, from
+      y = 0, and moves the finish range to [-A - theta, A + 1 - theta).
+  (1) THE LATTICE. Every y reached from 0 lies in lam Z + b^c Z =
+      delta Z, delta = gcd(u, v b^c)/v, which holds
+      P = b^c/delta = v b^c / gcd(u, v b^c) classes mod b^c.
+  (2) THE ENDPOINT BOUND. If W is nonempty with maximum H, the digit x
+      = a forces y' >= b H + lam a - b^c a whatever e is played, and
+      y' <= H then gives H <= eps = a(b^c - lam)/(b - 1). The minimum
+      is at least -eps by the mirror. So W lies in
+          J = [-eps, eps] meet [-A - theta, A + 1 - theta).
+  (3) NECESSITY. If 0 is in W, after t steps y_t = lam X (mod b^c),
+      X any integer of [-a R_t, a R_t] the opponent picks, since the
+      committed digits enter as a multiple of b^c. X -> lam X mod b^c
+      has period P, and 2a R_t + 1 >= P for t large, so the y_t meet
+      every class of delta Z mod b^c. All lie in W, inside J.
+  (4) SUFFICIENCY. Suppose J meets every class of delta Z mod b^c, and
+      let S = J meet delta Z. For y in S and x in D, T = b y + lam x
+      lies in delta Z, so T - e b^c lies in J for some integer e. Take
+      J = [lo, hi]. As hi <= eps, (b - 1) hi <= a(b^c - lam), so
+      T - a b^c <= b hi + lam a - a b^c <= hi, and T + a b^c >= lo by
+      the mirror. If every such e exceeded a, the least one e0 would
+      put z0 = T - e0 b^c in J and z0 + b^c above hi, while
+      z0 + b^c = T - (e0 - 1) b^c <= T - a b^c <= hi. So some e lies
+      in D and S is invariant. S nonempty forces eps >= 0, which puts
+      0 in J: the reader wins.
+  (5) THE SLOPE CRITERION. f is read at lookahead c iff J holds at
+      least P points of delta Z; then W meet delta Z = J meet delta Z,
+      and otherwise W misses delta Z entirely (a winning y there
+      would, as in (3), put every class in J). J is an interval and P
+      consecutive points of delta Z meet every class, so "at least P
+      points" and "every class" are one condition. The least
+      lookahead c_min is the least such c: a reader at c is one at
+      c + 1 that commits a 0 first.
+  (6) THE TWO REGIMES. eps - A = a(1 - lam)/(b - 1).
+      SLOPE lam >= 1: eps <= A, so J = [-eps, eps], the phase never
+      enters, and the test is 2 floor(eps/delta) + 1 >= P.
+      SLOPE lam < 1: at c >= 1, J holds [-A, A] or [-A, eps], of
+      length 2A >= b^c or A + eps > 2A, so c_min <= 1. At c = 0,
+      delta = 1/v and P = v, and at phase 0 J = [0, min(eps, 1)),
+      which holds v points of (1/v)Z iff eps >= 1 - 1/v, that is iff
+          a(v - u) >= (b - 1)(v - 1).
+  (7) THE PHASE NEVER RAISES THE LOOKAHEAD. At lam >= 1 it does not
+      move J. At lam < 1 every phase is feasible at c = 1 by (6), so
+      only c = 0 is at stake, where A = 0 and J_theta =
+      [max(-eps, -theta), min(eps, 1 - theta)). If eps >= 1 - theta,
+      J_theta is [-theta, 1 - theta), a half-open interval of length
+      b^0 = 1 holding P points, or it contains [-eps, 0], the mirror
+      of J_0 = [0, min(eps, 1)) when eps < 1 (the lattice is
+      symmetric). If eps < 1 - theta, J_theta = [max(-eps, -theta),
+      eps] contains J_0 = [0, eps].
+  (8) b-POWERS. lam = b^N, N >= 0: delta = b^min(N, c) and eps < 0
+      below c = N, eps = 0 at c = N with P = 1, so c_min = N.
+      lam = b^N, N < 0: c_min = 0 iff a(b^-N - 1) >= (b - 1)(b^-N - 1),
+      iff a >= b - 1, at every N, and 1 otherwise. Dividing by the
+      radix is free on a symmetric set only when it contains
+      {-(b-1)..(b-1)}.
+  (9) THE LENGTH BOUND c_L, the least c >= 0 with 2 eps >= b^c, that is
+      b^c (2a - b + 1) >= 2 a lam: the criterion with the lattice
+      dropped. lam >= 1: with x = eps/delta and M = P, 2x >= M gives
+      2 floor(x) + 1 >= M, so c_min <= c_L; and 2x + 1 >= M at c gives
+      2 eps(c + 1) = 2 b eps(c) + 2 a lam >= b^(c+1) - b delta + b lam
+      >= b^(c+1), so c_L <= c_min + 1. lam < 1: c_L <= 1, and c_L = 0
+      needs 2a(v - u) >= (b - 1)v, which with c_min = 1 is possible
+      while c_min = 0 with c_L = 1 would need v < 2. So the length
+      bound misses by at most one digit, and it misses HIGH only at
+      slopes at least 1 and LOW only at slopes below 1.
+
+THE DESIGN, frozen before the engine.
+  The game is solved by brute force, independent of (1)-(9): with
+  L = lcm(v, z), states m = L R are the integers of
+  [-A L, (A + 1) L - 1], the move m' = b m + (L u/v) x - (b - 1) L
+  theta - L b^c e, and W is the greatest fixed point of deleting a
+  state some x leaves with no answer. The criterion is computed in
+  exact rationals from (5), counting points k delta of J. Grid: b = 2
+  to 7, every a with 2a + 1 > b and a <= b, every u/v in lowest terms
+  with u, v <= 7, theta in {0, 1/2, 1/3, 2/3}, every c from 0 until
+  the game is feasible, cells with more than 6000 states skipped and
+  counted.
+
+PREDICTIONS.
+  PA the controls, read first: (2,1) x3 at 3 and x4 at 2; (10,6) x2 at
+     1, x10 at 1 and slope 1/7 at 1; slope 1/3 at (2,1) at 0; slope
+     3/5 at (2,1) and 1/3 at (10,6) at 1, and at 0 under theta = 1/2.
+  PC at every cell and every c the game's verdict equals the criterion.
+  PW at every feasible cell W meet (the start's lattice) is exactly the
+     lattice points of J, and at every infeasible cell it is empty.
+  PP no phase raises c_min over its theta = 0 value; at lam >= 1 no
+     phase changes it.
+  PS at lam < 1 and theta = 0, c_min is 0 iff a(v - u) >= (b - 1)(v -
+     1), else 1.
+  PB lam = b^N reads at N (N = 0..3); lam = b^N (N = -1..-3) at 0 iff
+     a >= b - 1, else 1.
+  PL at theta = 0, |c_min - c_L| <= 1; c_min < c_L only at lam >= 1
+     and c_min > c_L only at lam < 1.
+  PR a reader playing any answer that stays in W, on 300 random inputs
+     of 1 to 14 digits per feasible control cell, commits digits that
+     with a greedy c-digit flush write floor(lam n + theta) at every
+     step.
+
+KILLS, as what the script prints.
+  K1 a PA line prints a c_min other than its stated value: the game
+     convention is wrong and nothing below is read.
+  K2 a cell prints game and criterion disagreeing: (5) is false; the
+     printed side says which of (3) and (4) broke.
+  K3 a cell prints W meet the lattice other than J's points: (5)'s
+     identity is false.
+  K4 a cell prints a phased c_min above its theta = 0 value: (7) is
+     false.
+  K5 a PS or PB line off its prediction: (6) or (8) is false.
+  K6 a PL line printing a miss of two digits or a miss on the wrong
+     side of slope 1: (9) is false.
+  K7 a PR line printing a mismatch: the game does not model the reader.
+
+POSITIVE CONTROL: PA, read before any verdict line.
+
+SUMS OF STREAMS (a second slate: argument, design, predictions and
+kills fixed before its engine).
+
+QUESTION. Does the lattice count carry to maps of several streams
+read in lockstep, and to digit sets that are not symmetric? Addition
+X + Y is the case wanted.
+
+THE ARGUMENT.
+  (10) THE SETTING. Every stream and the output use D = {-a-, ...,
+      a+}, a-, a+ >= 0, the interval I = [-a-, a+] of length
+      |I| = a- + a+, and slack rho = |I| + 1 - b >= 1. k streams are
+      read in lockstep, one digit of each per step, and
+      f(X_1, ..., X_k) = floor(sum lam_i X_i + theta), with
+      lam_i = u_i/v nonzero and gcd(u_1, ..., u_k, v) = 1. The game of
+      (0) carries over with the finish range [-A- - theta, A+ + 1 - theta),
+      A+- = a+- R_c, and the move y' = b y + s - b^c e, where the
+      INJECTION s = sum lam_i x_i has x_i in D and e is in D. Its
+      largest value is M+ = a+ (sum of the positive lam_i) + a- (sum
+      of |lam_i| over the negative ones), and M- is minus its least.
+  (11) THE AFFINE CRITERION. Put delta = gcd(u_1, ..., u_k, v b^c)/v,
+      P = b^c/delta, eps+- = (a+- b^c - M+-)/(b - 1) and
+          J = [-eps-, eps+] meet [-A- - theta, A+ + 1 - theta).
+      W meets delta Z in exactly the points of J when J holds at least
+      P of them, and misses delta Z otherwise; f is read at c iff
+      moreover 0 lies in J. Proof: (2)-(5) with the extremes put in.
+      At W's maximum H the opponent injects M+, so some successor
+      b H + M+ - b^c e <= H with e <= a+, giving H <= eps+; the mirror
+      gives the minimum >= -eps-. From zeta in W meet delta Z, the
+      state t steps after zeta is congruent to b^t zeta + sum lam_i X_i
+      (mod b^c), X_i any integer of [-a- R_t, a+ R_t] (t digits of D
+      write that whole range as |I| + 1 >= b), and once the ranges pass
+      v b^c the sums meet every class of delta Z mod b^c. For
+      sufficiency take S = J meet delta Z with maximum hi
+      and minimum lo: T = b y + s <= b hi + M+, so T - a+ b^c <= hi as
+      hi <= eps+, T + a- b^c >= lo by the mirror, and (4)'s least-e
+      argument puts e in D. In the symmetric case J is symmetric and
+      holds 0 once it is nonempty; here the clause is its own.
+  (12) POSITIVE WEIGHTS. If every lam_i > 0, M+- = a+- Lam with Lam =
+      sum lam_i, so eps+- = a+- t, t = (b^c - Lam)/(b - 1). The map
+      enters only through its total rate Lam and its lattice delta: k
+      streams of rate Lam are one stream of slope Lam read on a finer
+      lattice. 0 lies in J iff b^c >= Lam, and at Lam >= 1, eps+- <=
+      A+-, so the finish range never binds and the phase never enters.
+  (13) ADDITION. X + Y is Lam = 2, delta = 1, P = b^c. At c = 0,
+      t < 0 and 0 is not in J. At c = 1 the finish range does not bind and J
+      holds floor(a- (b-2)/(b-1)) + floor(a+ (b-2)/(b-1)) + 1 = |I| + 1 -
+      sigma integers, sigma = ceil(a-/(b-1)) + ceil(a+/(b-1)), by
+      floor(x (b-2)/(b-1)) = x - ceil(x/(b-1)); so c_min = 1 iff
+      rho >= sigma. At c = 2, eps+ + eps- = |I| (b^2 - 2)/(b - 1) >= b^2
+      since |I| >= b, so c_min <= 2. The doubling 2X is Lam = 2 on
+      delta = gcd(2, b^c): at an odd radix it is X + Y's criterion, and
+      at an even one its lattice is 2Z from c = 1 on, half the classes,
+      so 2X never reads later than X + Y and at (2, 1) reads at 1
+      against 2.
+  (14) THE LENGTH BOUND FOR SUMS. With positive weights and Lam >= 1,
+      let c_len be the least c with b^c rho >= Lam |I|, which is
+      eps+ + eps- >= b^c, the criterion with the lattice dropped: at
+      one symmetric stream it is (9)'s c_L, and at addition the margin
+      b^c rho >= 2|I|. Then c_min <= c_len <= c_min + 1. At c_len, b^c
+      rho >= Lam |I| > Lam rho gives b^c > Lam, so 0 lies in J, and an
+      interval of length at least P delta holds P points. If J holds
+      P points at c, eps+ + eps- >= (P - 1) delta, and eps+-(c + 1) =
+      b eps+-(c) + M+-, so the length at c + 1 is at least b^(c+1) -
+      b delta + Lam |I| >= b^(c+1), as delta <= min lam_i <= Lam and
+      |I| >= b. At addition the margin grants c = 1 iff rho (b - 2) >=
+      2(b - 1), which caps rho at 3 for b = 3 and at 2 for b >= 4 and
+      never holds at b = 2; with (13) the one-digit misses are exactly
+          (b >= 3, rho = 2, min(a-, a+) != 1) or (b = 3, rho = 3),
+      THE WEDGE: rho = 1 has sigma >= 2, rho = 2 has sigma = 3 at an
+      endpoint of magnitude 1 and 2 otherwise, and b = 3 with rho = 3
+      has sigma <= 3.
+
+THE DESIGN. The game is solved by brute force, independent of
+(10)-(14), in states m = L y with L = lcm(v, z): the finish range's
+integers [-A- L - L theta, (A+ + 1) L - L theta - 1], the move m' =
+b m + L s - L b^c e over the distinct injections, W the greatest
+fixed point, and the start m = 0. Grid: b = 2 to 5, every (a-, a+)
+with rho >= 1 and a+- <= b; weights k = 1 with u in +-{1..4} and v
+in {1, 2, 3}, k = 2 with u_i in +-{1, 2, 3} and v in {1, 2}, k = 3
+with u_i in +-{1, 2} and v = 1, one weight vector per multiset, gcd
+1; theta in {0, 1/2, 1/3}; every c from 0 to the first feasible one
+or 4; families over 6000 states skipped and counted. The arithmetic
+checks run the criterion alone over b <= 40, a+- <= 30, rho >= 1.
+
+PREDICTIONS.
+  SA the controls, read first: X + Y at (2, 1) at 2, at (10, 6) at 1,
+     at (3, 2) at 1, at (2, 2) and (2, 3) at 2, and at b = 3 with
+     (a-, a+) = (0, 5), (1, 4), (2, 3) at 1; x3 at (2, 1) at 3 through
+     the new engine.
+  SC at every cell the game's verdict equals (11)'s criterion.
+  SW at every cell W meet delta Z is J's points when J holds P of
+     them, and empty otherwise; the grid holds cells where J holds P
+     points but not 0, and the game rejects each.
+  SD X + Y: c_min = 1 iff rho >= sigma, else 2, at every game cell of
+     weights (1, 1) and every arithmetic cell.
+  SM at every arithmetic cell the margin b^c rho >= 2|I| is eps+ + eps-
+     >= b^c, and the margin misses c_min exactly on the wedge.
+  SL at every game family with positive weights and Lam >= 1, every
+     phase, c_min <= c_len <= c_min + 1.
+  S2 2X and X + Y agree at every odd-radix game cell; at even radix
+     2X never reads later.
+  SR a reader playing W's answers on 300 random input pairs of 1 to 12
+     digits at four addition cells keeps the residual x + y - b^c Q
+     inside [-A-, A+] at every step.
+
+KILLS, as what the script prints.
+  K8  an SA line off its value: the game's convention is wrong and
+      nothing below is read.
+  K9  a cell with game and criterion disagreeing: (11) is false.
+  K10 a cell with W meet delta Z other than predicted: (11)'s identity
+      or its 0 clause is false.
+  K11 an SD cell off: (13) is false.
+  K12 an SM cell off: (14)'s margin or wedge is false.
+  K13 an SL family off: (14)'s bound is false.
+  K14 an S2 or SR line off: (13)'s doubling or the game as a model of
+      the adder is wrong.
+
+POSITIVE CONTROL: SA, read before any verdict line.
+
+FINDINGS (entered after the run; every number is a print).
+  - PA holds, all ten controls at their recorded values, (10,6) slope
+    1/7 at 1 and both phase-1/2 savings (1 -> 0) included. K1 did not
+    fire.
+  - PC holds: 4973 cells, 2520 feasible, every one of the 2520
+    families reaching its c_min under the state cap (none cut short).
+    The criterion is the game's verdict at every cell, among them the
+    families where gcd(u, v b^c) > 1 at c_min and the length bound
+    sits a digit high (30 of PL's 56): the count of lattice
+    points is the whole test.
+  - PW holds at every cell, feasible and infeasible.
+  - PP holds: no phase raises c_min, none moves it at slope >= 1, and
+    223 phased families read one digit lower than at phase 0.
+  - PS holds at 306 families; PB at 238 criterion cells (b = 2..10)
+    and 12 game cells.
+  - PL holds over 630 phase-0 families: the length bound high by one
+    at 56 (all at slope >= 1), low by one at 66 (all below 1), never
+    two off.
+  - PR holds: 13317 steps over six cells, the residual always within
+    [-a R_c, a R_c]. The frozen design said a GREEDY flush, and the
+    greedy writer (last digit n mod b lifted into D) is not exact: at
+    (2, 1) it leaves -1 unwritten in one digit. The check reads the
+    range itself, which (0) makes the flush's existence. It runs at
+    six cells, four of PA's and (3, 2) at 5/2 and (4, 2) at 7/3, and
+    plays the least winning digit, not any answer in W.
+  - SA holds: all nine sum controls at their recorded values, the
+    three b = 3 asymmetric sets at 1 and x3 at (2, 1) at 3 through
+    the new engine. K8 did not fire.
+  - SC and SW hold: 36068 cells over b = 2..5, 10740 feasible, no
+    family cut by the state cap. The affine criterion is the game's
+    verdict at every cell, and W on delta Z is J's points or empty at
+    every cell. The 0 clause is load-bearing: at 3529 cells J holds P
+    lattice points but not 0, and the game rejects every one.
+  - SD holds at 156 game families of X + Y and 26330 arithmetic cells.
+  - SM holds: the margin is the length test at all 105320 (cell, c)
+    pairs, and its 711 misses are one digit each, all on the wedge.
+  - SL holds at 3276 positive-weight families with Lam >= 1, every
+    phase; the length bound is one digit high at 483, never low.
+  - S2 holds at 156 pairs: 2X and X + Y agree at every odd radix,
+    and at even radix 2X reads one digit earlier at 36, never later.
+  - SR holds: 7684 steps over four addition cells, no bad residual.
+  - The literature's statement: the generalized signed-digit framework
+    (Parhami, IEEE Trans. Computers 39(1), 1990) proves, by its
+    Lemmas 1 and 2, that its carry-free addition algorithm applies
+    iff rho >= ceil(a-/(b-1)) + ceil(a+/(b-1)), and unpacks this in
+    its Theorem 1 as rho >= 3 with an endpoint of magnitude 1 and
+    rho >= 2 otherwise, at radix above 2. (13) reaches the same
+    inequality for every reader rather than for one algorithm.
+  - (14) as frozen left one step unstated: at b = 2 the margin never
+    grants c = 1, and no miss arises because sigma = |I| > rho there,
+    so c_min = 2. SM's zero off-wedge count covers b = 2.
+  - (6) as frozen writes the c = 0 interval as [0, min(eps, 1)); it is
+    [0, eps] when eps < 1, and the test eps >= 1 - 1/v is that closed
+    interval's. (6) and (9) hold for lam > 0, as QUESTION sets it.
+
+RUN RECORD: 36/36 checks, 52.0 s, peak commit 12.8 MB under a memory guard;
+after an audit (PP's lowering asserted one digit, PL's gcd count),
+36/36, 52.3 s, 13.1 MB.
+"""
+
+import math
+import random
+import time
+from fractions import Fraction as Fr
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tail = f"  ({detail})" if detail else ""
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}{tail}")
+
+
+def repunit(b, j):
+    return (b ** j - 1) // (b - 1)
+
+
+def digit_sets(b, top):
+    """Every a <= top with 2a + 1 > b."""
+    return range(b // 2 + b % 2, top + 1)
+
+
+# ---- the game, by brute force ----
+
+class Game:
+    """The slope game in integer states m = L R."""
+
+    def __init__(self, b, a, lam, theta, c):
+        self.b, self.a = b, a
+        u, v = lam.numerator, lam.denominator
+        z = theta.denominator
+        L = v * z // math.gcd(v, z)
+        self.L = L
+        self.q = L * u // v
+        self.N = L * b ** c
+        self.phi = L * theta.numerator // z
+        A = a * repunit(b, c)
+        self.lo, self.hi = -A * L, (A + 1) * L - 1
+
+    def size(self):
+        return self.hi - self.lo + 1
+
+    def step(self, m, x, e):
+        return (self.b * m + self.q * x - (self.b - 1) * self.phi
+                - e * self.N)
+
+    def solve(self):
+        """W over [lo, hi]: the greatest fixed point."""
+        lo, hi, a, N, b = self.lo, self.hi, self.a, self.N, self.b
+        n = hi - lo + 1
+        alive = [True] * n
+        changed = True
+        while changed:
+            changed = False
+            for i in range(n):
+                if not alive[i]:
+                    continue
+                base = b * (lo + i) - (b - 1) * self.phi
+                for x in range(-a, a + 1):
+                    t = base + self.q * x
+                    e0 = max(-a, -((hi - t) // N))
+                    e1 = min(a, (t - lo) // N)
+                    if not any(alive[t - e * N - lo]
+                               for e in range(e0, e1 + 1)):
+                        alive[i] = False
+                        changed = True
+                        break
+        self.W = alive
+
+    def wins(self, m):
+        return self.lo <= m <= self.hi and self.W[m - self.lo]
+
+    def answer(self, m, x):
+        t = self.step(m, x, 0)
+        for e in range(-self.a, self.a + 1):
+            if self.wins(t - e * self.N):
+                return e
+        return None
+
+
+# ---- the criterion, in exact rationals ----
+
+def lattice(b, lam, c):
+    """delta and P of (1)."""
+    u, v = lam.numerator, lam.denominator
+    g = math.gcd(u, v * b ** c)
+    return Fr(g, v), v * b ** c // g
+
+
+def interval(b, a, lam, theta, c):
+    """J of (2) as (lo, hi, hi_open)."""
+    A = a * repunit(b, c)
+    eps = Fr(a) * (b ** c - lam) / (b - 1)
+    lo = max(-eps, -A - theta)
+    top = A + 1 - theta
+    if eps < top:
+        return lo, eps, False
+    return lo, top, True
+
+
+def lattice_points(b, a, lam, theta, c):
+    lo, hi, hi_open = interval(b, a, lam, theta, c)
+    delta, P = lattice(b, lam, c)
+    k0 = math.ceil(lo / delta)
+    k1 = math.floor(hi / delta)
+    if hi_open and k1 * delta == hi:
+        k1 -= 1
+    return [k * delta for k in range(k0, k1 + 1)], P
+
+
+def criterion(b, a, lam, theta, c):
+    pts, P = lattice_points(b, a, lam, theta, c)
+    return len(pts) >= P
+
+
+def c_min(b, a, lam, theta, cap=40):
+    for c in range(cap):
+        if criterion(b, a, lam, theta, c):
+            return c
+    return None
+
+
+def c_len(b, a, lam):
+    c = 0
+    while b ** c * (2 * a - b + 1) < 2 * a * lam:
+        c += 1
+    return c
+
+
+def game_c_min(b, a, lam, theta, cmax=8):
+    for c in range(cmax):
+        G = Game(b, a, lam, theta, c)
+        G.solve()
+        if G.wins(G.phi):
+            return c
+    return None
+
+
+# ---- the sections ----
+
+def section_a():
+    print("PA  the controls")
+    cases = [((2, 1), Fr(3), 0, 3), ((2, 1), Fr(4), 0, 2),
+             ((10, 6), Fr(2), 0, 1), ((10, 6), Fr(10), 0, 1),
+             ((10, 6), Fr(1, 7), 0, 1), ((2, 1), Fr(1, 3), 0, 0),
+             ((2, 1), Fr(3, 5), 0, 1), ((2, 1), Fr(3, 5), Fr(1, 2), 0),
+             ((10, 6), Fr(1, 3), 0, 1), ((10, 6), Fr(1, 3), Fr(1, 2), 0)]
+    for (b, a), lam, th, want in cases:
+        got = game_c_min(b, a, lam, Fr(th))
+        check(f"({b},{a}) slope {lam} phase {th}: game c_min = {got}",
+              got == want, f"recorded {want}")
+
+
+def grid():
+    for b in range(2, 8):
+        for a in digit_sets(b, b):
+            for u in range(1, 8):
+                for v in range(1, 8):
+                    if math.gcd(u, v) != 1:
+                        continue
+                    for th in (Fr(0), Fr(1, 2), Fr(1, 3), Fr(2, 3)):
+                        yield b, a, Fr(u, v), th
+
+
+def section_c():
+    print("PC, PW, PP, PS, PL  the criterion against the game")
+    cells = feas = skipped = 0
+    bad_c, bad_w, cm = [], [], {}
+    for b, a, lam, th in grid():
+        got = None
+        for c in range(8):
+            G = Game(b, a, lam, th, c)
+            if G.size() > 6000:
+                skipped += 1
+                break
+            G.solve()
+            cells += 1
+            game = G.wins(G.phi)
+            crit = criterion(b, a, lam, th, c)
+            if game != crit:
+                bad_c.append((b, a, str(lam), str(th), c, game, crit))
+            g = G.L * lattice(b, lam, c)[0]
+            won = [m - G.phi for m in range(G.lo, G.hi + 1)
+                   if G.wins(m) and (m - G.phi) % g == 0]
+            pts, _ = lattice_points(b, a, lam, th, c)
+            want = [int(p * G.L) for p in pts] if crit else []
+            if won != want:
+                bad_w.append((b, a, str(lam), str(th), c, len(won),
+                              len(want)))
+            if game:
+                feas += 1
+                got = c
+                break
+        cm[(b, a, lam, th)] = got
+    print(f"  cells read: {cells} ({feas} feasible); families cut short "
+          f"by the 6000-state cap: {skipped}")
+    check("PC game verdict == criterion at every cell", not bad_c,
+          f"first misses {bad_c[:3]}")
+    check("PW W on the start's lattice == the points of J, or empty",
+          not bad_w, f"first misses {bad_w[:3]}")
+
+    raised = changed = lowered = by_one = 0
+    for (b, a, lam, th), c in cm.items():
+        c0 = cm.get((b, a, lam, Fr(0)))
+        if th == 0 or c is None or c0 is None:
+            continue
+        raised += c > c0
+        lowered += c < c0
+        by_one += c == c0 - 1
+        changed += lam >= 1 and c != c0
+    check("PP no phase raises c_min; none changes it at slope >= 1; "
+          "every lowering is one digit",
+          raised == 0 and changed == 0 and lowered == by_one,
+          f"raised {raised}, changed at slope >= 1 {changed}, "
+          f"lowered {lowered}")
+
+    bad_s = n_s = 0
+    for (b, a, lam, th), c in cm.items():
+        if th or lam >= 1 or c is None:
+            continue
+        u, v = lam.numerator, lam.denominator
+        n_s += 1
+        bad_s += c != (0 if a * (v - u) >= (b - 1) * (v - 1) else 1)
+    check("PS slope < 1, phase 0: c_min = 0 iff a(v-u) >= (b-1)(v-1)",
+          bad_s == 0, f"{n_s} families, {bad_s} off")
+
+    hi = lo = far = wrong = n_l = hi_gcd = 0
+    for (b, a, lam, th), c in cm.items():
+        if th or c is None:
+            continue
+        n_l += 1
+        cl = c_len(b, a, lam)
+        far += abs(c - cl) >= 2
+        if c < cl:
+            hi += 1
+            wrong += lam < 1
+            hi_gcd += math.gcd(lam.numerator,
+                               lam.denominator * b ** c) > 1
+        elif c > cl:
+            lo += 1
+            wrong += lam >= 1
+    check("PL length bound within one digit, high only at slope >= 1, "
+          "low only below", far == 0 and wrong == 0,
+          f"{n_l} phase-0 families: bound high at {hi} ({hi_gcd} at "
+          f"gcd(u, v b^c) > 1), low at {lo}, "
+          f"{far} two or more off, {wrong} on the wrong side")
+
+
+def section_b():
+    print("PB  b-powers, by the criterion and by the game")
+    bad = n = 0
+    for b in range(2, 11):
+        for a in digit_sets(b, b):
+            for s in range(4):
+                n += 1
+                bad += c_min(b, a, Fr(b ** s), Fr(0)) != s
+            for t in range(1, 4):
+                n += 1
+                want = 0 if a >= b - 1 else 1
+                bad += c_min(b, a, Fr(1, b ** t), Fr(0)) != want
+    gcells = [(b, a, t) for b, a in ((2, 1), (3, 2), (4, 2), (4, 3),
+                                     (5, 3), (5, 4)) for t in (1, 2)]
+    gb = sum(game_c_min(b, a, Fr(1, b ** t), Fr(0))
+             != (0 if a >= b - 1 else 1) for b, a, t in gcells)
+    check("PB b^s at s, b^-t at 0 iff a >= b - 1", bad == 0 and gb == 0,
+          f"{n} criterion cells, {bad} off; {len(gcells)} game cells, "
+          f"{gb} off")
+
+
+def section_r():
+    print("PR  the reader the game hands over, on random inputs")
+    rng = random.Random(1)
+    cases = [((2, 1), Fr(3), Fr(0)), ((2, 1), Fr(1, 3), Fr(0)),
+             ((10, 6), Fr(1, 7), Fr(0)), ((2, 1), Fr(3, 5), Fr(1, 2)),
+             ((3, 2), Fr(5, 2), Fr(1, 3)), ((4, 2), Fr(7, 3), Fr(2, 3))]
+    bad = steps = 0
+    for (b, a), lam, th in cases:
+        c = game_c_min(b, a, lam, th)
+        G = Game(b, a, lam, th, c)
+        G.solve()
+        for _ in range(300):
+            m, n, Q = G.phi, 0, 0
+            for _ in range(rng.randint(1, 14)):
+                x = rng.randint(-a, a)
+                e = G.answer(m, x)
+                if e is None:
+                    bad += 1
+                    break
+                m, n, Q = G.step(m, x, e), b * n + x, b * Q + e
+                steps += 1
+                f = math.floor(lam * n + th)
+                if abs(f - b ** c * Q) > a * repunit(b, c):
+                    bad += 1
+                    break
+    check("PR the committed digits leave a residual c digits write",
+          bad == 0,
+          f"{steps} steps over {len(cases)} cells, {bad} bad")
+
+
+# ---- sums of streams: the game on D = {-am..ap}, k weights ----
+
+class SumGame:
+    """The affine game of (10) in integer states m = L y."""
+
+    def __init__(self, b, am, ap, lams, theta, c):
+        v = math.lcm(*(lam.denominator for lam in lams))
+        L = math.lcm(v, theta.denominator)
+        self.b, self.am, self.ap, self.L = b, am, ap, L
+        self.N = L * b ** c
+        phi = L * theta.numerator // theta.denominator
+        self.lo = -am * repunit(b, c) * L - phi
+        self.hi = (ap * repunit(b, c) + 1) * L - phi - 1
+        inj = {0}
+        for lam in lams:
+            q = L * lam.numerator // lam.denominator
+            inj = {s + q * x for s in inj for x in range(-am, ap + 1)}
+        self.inj = sorted(inj)
+
+    def size(self):
+        return self.hi - self.lo + 1
+
+    def solve(self):
+        lo, hi, N, b = self.lo, self.hi, self.N, self.b
+        am, ap = self.am, self.ap
+        alive = [True] * (hi - lo + 1)
+        changed = True
+        while changed:
+            changed = False
+            for i, ok in enumerate(alive):
+                if not ok:
+                    continue
+                base = b * (lo + i)
+                for s in self.inj:
+                    t = base + s
+                    e0 = max(-am, -((hi - t) // N))
+                    e1 = min(ap, (t - lo) // N)
+                    if not any(alive[t - e * N - lo]
+                               for e in range(e0, e1 + 1)):
+                        alive[i] = False
+                        changed = True
+                        break
+        self.W = alive
+
+    def wins(self, m):
+        return self.lo <= m <= self.hi and self.W[m - self.lo]
+
+
+def sum_lattice(b, lams, c):
+    v = math.lcm(*(lam.denominator for lam in lams))
+    g = math.gcd(*(lam.numerator * (v // lam.denominator)
+                   for lam in lams), v * b ** c)
+    return Fr(g, v), v * b ** c // g
+
+
+def sum_interval(b, am, ap, lams, theta, c):
+    """J of (11) as (lo, hi, hi_open)."""
+    Mp = sum(abs(lam) * (ap if lam > 0 else am) for lam in lams)
+    Mm = sum(abs(lam) * (am if lam > 0 else ap) for lam in lams)
+    R = repunit(b, c)
+    ep = (Fr(ap * b ** c) - Mp) / (b - 1)
+    em = (Fr(am * b ** c) - Mm) / (b - 1)
+    lo = max(-em, -am * R - theta)
+    top = ap * R + 1 - theta
+    if ep < top:
+        return lo, ep, False
+    return lo, top, True
+
+
+def sum_points(b, am, ap, lams, theta, c):
+    lo, hi, hi_open = sum_interval(b, am, ap, lams, theta, c)
+    delta, P = sum_lattice(b, lams, c)
+    k0 = math.ceil(lo / delta)
+    k1 = math.floor(hi / delta)
+    if hi_open and k1 * delta == hi:
+        k1 -= 1
+    return [k * delta for k in range(k0, k1 + 1)], P
+
+
+def sum_criterion(b, am, ap, lams, theta, c):
+    pts, P = sum_points(b, am, ap, lams, theta, c)
+    return len(pts) >= P and 0 in pts
+
+
+def sum_c_min(b, am, ap, lams, theta, cap=12):
+    for c in range(cap):
+        if sum_criterion(b, am, ap, lams, theta, c):
+            return c
+    return None
+
+
+def sum_game_c_min(b, am, ap, lams, theta, cmax=6):
+    for c in range(cmax):
+        G = SumGame(b, am, ap, lams, theta, c)
+        G.solve()
+        if G.wins(0):
+            return c
+    return None
+
+
+def sigma(b, am, ap):
+    return -(-am // (b - 1)) - (-ap // (b - 1))
+
+
+def weight_vectors():
+    seen = set()
+    for us, v in ([((u,), v) for u in range(-4, 5) if u
+                   for v in (1, 2, 3)]
+                  + [((u1, u2), v) for u1 in range(-3, 4) if u1
+                     for u2 in range(u1, 4) if u2 for v in (1, 2)]
+                  + [((u1, u2, u3), 1) for u1 in (-2, -1, 1, 2)
+                     for u2 in (-2, -1, 1, 2) if u2 >= u1
+                     for u3 in (-2, -1, 1, 2) if u3 >= u2]):
+        if math.gcd(*us, v) != 1:
+            continue
+        lams = tuple(Fr(u, v) for u in us)
+        if lams not in seen:
+            seen.add(lams)
+            yield lams
+
+
+def sum_grid():
+    for b in range(2, 6):
+        for am in range(b + 1):
+            for ap in range(b + 1):
+                if am + ap + 1 - b < 1:
+                    continue
+                for lams in weight_vectors():
+                    for th in (Fr(0), Fr(1, 2), Fr(1, 3)):
+                        yield b, am, ap, lams, th
+
+
+ADD = (Fr(1), Fr(1))
+
+
+def section_sa():
+    print("SA  the controls for sums")
+    cases = [((2, 1, 1), ADD, 2), ((10, 6, 6), ADD, 1),
+             ((3, 2, 2), ADD, 1), ((2, 2, 2), ADD, 2),
+             ((2, 3, 3), ADD, 2), ((3, 0, 5), ADD, 1),
+             ((3, 1, 4), ADD, 1), ((3, 2, 3), ADD, 1),
+             ((2, 1, 1), (Fr(3),), 3)]
+    for (b, am, ap), lams, want in cases:
+        got = sum_game_c_min(b, am, ap, lams, Fr(0))
+        name = "x".join(str(l) for l in lams) if len(lams) == 1 \
+            else "+".join(str(l) for l in lams)
+        check(f"b = {b}, D = [-{am}, {ap}], weights {name}: game c_min "
+              f"= {got}", got == want, f"recorded {want}")
+
+
+def section_ss():
+    print("SC, SW, SD, SL, S2  the affine criterion against the game")
+    cells = feas = skipped = zero_only = 0
+    bad_c, bad_w, cm = [], [], {}
+    for b, am, ap, lams, th in sum_grid():
+        got = None
+        for c in range(5):
+            G = SumGame(b, am, ap, lams, th, c)
+            if G.size() > 6000:
+                skipped += 1
+                got = "cut"
+                break
+            G.solve()
+            cells += 1
+            game = G.wins(0)
+            crit = sum_criterion(b, am, ap, lams, th, c)
+            if game != crit:
+                bad_c.append((b, am, ap, lams, th, c, game, crit))
+            delta, P = sum_lattice(b, lams, c)
+            g = G.L * delta
+            pts, _ = sum_points(b, am, ap, lams, th, c)
+            won = [m for m in range(G.lo, G.hi + 1)
+                   if G.wins(m) and m % g == 0]
+            want = [int(p * G.L) for p in pts] if len(pts) >= P else []
+            if won != want:
+                bad_w.append((b, am, ap, lams, th, c, len(won), len(want)))
+            if len(pts) >= P and 0 not in pts:
+                zero_only += 1
+            if game:
+                feas += 1
+                got = c
+                break
+        cm[(b, am, ap, lams, th)] = got
+    print(f"  cells read: {cells} ({feas} feasible); families cut by "
+          f"the 6000-state cap: {skipped}")
+    check("SC game verdict == affine criterion at every cell", not bad_c,
+          f"first misses {bad_c[:3]}")
+    check("SW W on delta Z == J's points when P fit, else empty",
+          not bad_w, f"first misses {bad_w[:3]}")
+    check("SW the 0 clause bites: cells with P points of J but not 0",
+          zero_only > 0, f"{zero_only} cells, each rejected by the game "
+          "(else SC fails)")
+
+    bad_d = n_d = 0
+    for (b, am, ap, lams, th), c in cm.items():
+        if lams != ADD or c in (None, "cut"):
+            continue
+        n_d += 1
+        bad_d += c != (1 if am + ap + 1 - b >= sigma(b, am, ap) else 2)
+    check("SD X + Y: c_min = 1 iff rho >= sigma, else 2 (game)",
+          n_d and bad_d == 0, f"{n_d} families, {bad_d} off")
+
+    bad_l = n_l = hi = 0
+    for (b, am, ap, lams, th), c in cm.items():
+        Lam = sum(lams)
+        if c in (None, "cut") or min(lams) < 0 or Lam < 1:
+            continue
+        n_l += 1
+        W, rho = am + ap, am + ap + 1 - b
+        cl = 0
+        while b ** cl * rho < Lam * W:
+            cl += 1
+        bad_l += not (c <= cl <= c + 1)
+        hi += cl > c
+    check("SL positive weights, Lam >= 1: c_min <= c_len <= c_min + 1",
+          n_l and bad_l == 0,
+          f"{n_l} families, bound high at {hi}, {bad_l} off")
+
+    odd_off = even_later = even_earlier = n2 = 0
+    for (b, am, ap, lams, th), c in cm.items():
+        if lams != ADD or c in (None, "cut"):
+            continue
+        c2 = cm.get((b, am, ap, (Fr(2),), th))
+        if c2 in (None, "cut"):
+            continue
+        n2 += 1
+        if b % 2:
+            odd_off += c2 != c
+        else:
+            even_later += c2 > c
+            even_earlier += c2 < c
+    check("S2 2X == X + Y at odd radix; never later at even radix",
+          n2 and odd_off == 0 and even_later == 0,
+          f"{n2} pairs, odd off {odd_off}, even later {even_later}, "
+          f"even earlier {even_earlier}")
+
+
+def section_sm():
+    print("SD, SM  addition by the criterion alone, b <= 40, a+- <= 30")
+    n = bad_d = bad_m = bad_w = misses = 0
+    for b in range(2, 41):
+        for am in range(31):
+            for ap in range(31):
+                W, rho = am + ap, am + ap + 1 - b
+                if rho < 1:
+                    continue
+                n += 1
+                c = sum_c_min(b, am, ap, ADD, Fr(0))
+                s = sigma(b, am, ap)
+                bad_d += c != (1 if rho >= s else 2)
+                cm_ = 0
+                while b ** cm_ * rho < 2 * W:
+                    cm_ += 1
+                for cc in range(4):
+                    lo, hi, _ = sum_interval(b, am, ap, ADD, Fr(0), cc)
+                    bad_m += ((b ** cc * rho >= 2 * W)
+                              != (hi - lo >= b ** cc))
+                miss = cm_ != c
+                misses += miss
+                wedge = ((b >= 3 and rho == 2 and min(am, ap) != 1)
+                         or (b == 3 and rho == 3))
+                bad_w += miss != wedge or (miss and cm_ != c + 1)
+    check("SD X + Y: c_min = 1 iff rho >= sigma, else 2 (criterion)",
+          bad_d == 0, f"{n} cells, {bad_d} off")
+    check("SM the margin is the length test at c = 0..3", bad_m == 0,
+          f"{4 * n} (cell, c), {bad_m} off")
+    check("SM the margin misses by one digit exactly on the wedge",
+          bad_w == 0, f"{misses} misses, {bad_w} off the wedge")
+
+
+def section_sr():
+    print("SR  the adder the game hands over, on random pairs")
+    rng = random.Random(2)
+    bad = steps = 0
+    for b, am, ap in ((2, 1, 1), (3, 2, 2), (3, 1, 3), (10, 6, 6)):
+        c = sum_game_c_min(b, am, ap, ADD, Fr(0))
+        G = SumGame(b, am, ap, ADD, Fr(0), c)
+        G.solve()
+        R = repunit(b, c)
+        for _ in range(300):
+            m = n = Q = 0
+            for _ in range(rng.randint(1, 12)):
+                x, y = rng.randint(-am, ap), rng.randint(-am, ap)
+                t = b * m + x + y
+                es = [e for e in range(-am, ap + 1)
+                      if G.wins(t - e * G.N)]
+                if not es:
+                    bad += 1
+                    break
+                e = rng.choice(es)
+                m, n, Q = t - e * G.N, b * n + x + y, b * Q + e
+                steps += 1
+                if not -am * R <= n - b ** c * Q <= ap * R:
+                    bad += 1
+                    break
+    check("SR the committed digits leave a residual c digits write",
+          bad == 0, f"{steps} steps over 4 cells, {bad} bad")
+
+
+def main():
+    t0 = time.time()
+    section_a()
+    if not all(CHECKS):
+        print("\nCONTROL FAILED: nothing below is read.")
+        raise SystemExit(1)
+    section_c()
+    section_b()
+    section_r()
+    section_sa()
+    section_ss()
+    section_sm()
+    section_sr()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

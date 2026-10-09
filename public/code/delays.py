@@ -1,0 +1,302 @@
+"""
+delays.py -- the delay of an on-line unit, read by one entry point:
+pass a unit's box, as its width rate (the sup of its gradient's L1
+norm over the box) and its range, or its pieces, or a chain, at a
+signed digit system, and read its lead, its delay L* and its
+lookahead.
+
+USE. In Python, from the folder holding delays.py and the scripts its
+page lists. At radix 4 with digits -2..2 every stream fills
+[-2/3, 2/3]; the product x y has box width rate 2 * 2/3 and range
+[-4/9, 4/9]:
+
+    >>> from fractions import Fraction as F
+    >>> from delays import unit, table
+    >>> M = F(2, 3)
+    >>> unit(4, 2, 2, 2 * M, -M * M, M * M)    # (lead, L*, lookahead)
+    (0, 2, 2)
+    >>> table(4, 2, 2, 32)["1/(s+x)"][:3]      # far from its pole it runs ahead
+    (-2, -4, -2)
+
+WHAT IT IS FOR. An on-line unit reads its operands most significant
+digit first through a signed digit set and emits its result the same
+way. Its LOOKAHEAD is how many input digits it must see past each
+output digit. The engines beside this file decide it exactly, each for
+its own claim: manystream.py for a smooth map of any number of streams,
+poles.py for the units with a pole, piecewise.py for a map built from
+pieces, chains.py for units wired in series. Each is written to check
+its claim over a census, not to be handed a stranger's unit. This file
+is that hand: it owns no mathematics and adds no claim, and every
+number it returns is one of those engines' functions called at the
+arguments given.
+
+THE READER. Radix b >= 2, digits D = {-a-, ..., a+}, a+- >= 1, SLACK
+rho = a- + a+ + 1 - b >= 1; a stream's values fill [-M-, M+],
+M+- = a+-/(b - 1), |I| = a- + a+ the width of the digit interval
+I = [-a-, a+]. The output's first digit sits o places above the
+input's: the LEAD o is the least integer whose root tile
+[-M- b^o, M+ b^o] holds the unit's range. With Lam the BOX WIDTH
+RATE, the sup over the root box of the gradient's L1 norm, the unit is
+read at the least L = c + o with b^L rho >= Lam |I| (manystream.py),
+its DELAY L*, and its LOOKAHEAD is c* = L* - o, negative where it
+emits before it reads. A map that is affine on the root box can read
+below L* (redundant.py decides it); every other C^2 map reads at L*
+exactly (the theorem manystream.py checks; this file only calls it).
+
+THE CALLS. Every argument that is a number is an exact rational: an
+int or a fractions.Fraction. A row of table() is a named tuple Row
+(lead, L, c, estimate, dead_below, dead_at), certify() returns a Cert
+(lead, L, dead_below, dead_at) and piecewise() a Pieces (lead, L,
+floor); unit() returns a plain tuple and chains() a dict.
+  unit(b, am, ap, lam, lo, hi) -> (o, L*, c*): a unit of your own,
+      its box width rate and its range's ends.
+  table(b, am, ap, h, certify=False) -> {name: row}: six units, the
+      product x y, the multiply-add x y + z, x^2 + y, the reciprocal
+      1/(s + x), the root sqrt(s + x) and the divider x/(s + y), the
+      pole units at POLE DISTANCE h > 0, the least value their
+      denominator or radicand takes (s = M- + h). A row's first four
+      fields are (o, L*, c*, estimate), the estimate
+      log_b(Gamma |I| / rho) with Gamma = Lam/K the RELATIVE GRADIENT,
+      K = max(hi/M+, -lo/M-) the range's scale: c* lies within one
+      digit of it (poles.py). Its last two fields are None unless
+      certify is true, and then are the output depth at which a reader
+      at L* - 1 dies, and the same at L*, None where the scan finds no
+      death or runs out of its budget; for a map not affine on the root
+      box the first should be a number and the second None. h <= 0 is
+      refused.
+  certify(b, am, ap, d, image, partials, lam, lo, hi) -> (o, L*, dead
+      below, dead at): the same certificate for a map of d streams
+      you describe: image(B), the exact ends (lo, hi) of the map over
+      a box B, a list of d intervals of Fractions; partials(B), one
+      interval per stream bounding that partial over B, never below
+      the true one.
+  piecewise(b, am, ap, kinks, polys) -> (o, L*, floor): a continuous
+      map of one stream cut at rational kinks into pieces, each a
+      polynomial of degree at most 3, coefficients low to high, monotone
+      on its piece; the floor is the least L its three clauses leave
+      empty (piecewise.py), at most L*, or None when the map is
+      still read four digits below L*.
+  chains(b, am, ap) -> {name: (naive, floor) or None}: a multiplier
+      x y feeding a second unit, the adder (x y) + z and the product
+      (x y) z, and an adder feeding a product, z (x + y). Naive is the
+      sum of the two units' floors, floor the least total the escape
+      law and the threshold-miss law admit (chains.py); None for the
+      two x y rows where x y's range does not fit the root tile at
+      lead 0, and for z (x + y) where the range of z times (x + y)/b,
+      the adder read at lead 1, does not. The escape
+      law is verified at radices 2 to 4 and the threshold-miss gain
+      cells to radix 40; past those the floor is the laws' word.
+  Comparators cost nothing: max, min, the clamp and the rectifier are
+  read at lookahead 0 at every digit set (comparators.py), and so are
+  left out of the table.
+
+WHAT RUNNING IT PRINTS. The file run by itself prints the table and
+the chain rows at one digit system and checks the calls against rows
+the engines produced before this file existed: seven checks over the
+five calls.
+
+THE CONTROLS, fixed before the first run. At radix 4 over {-2..2}
+with h = 1/3: x y (0, 2, 2), the divider (1, 3, 2); at h = 32 the
+reciprocal (-2, -4, -2). unit() on x y's rate and range at that digit
+set equals its table row. At (2, 1, 1) the divider at h = 2 reads
+(-1, 1, 2), dead at L* - 1 and not at L*. The two-piece map x/2 on
+x <= 0, x on x >= 0 at (5, 2, 3): L* = 1, lead 0, floor 1; the map
+x/5 + x^2/20 on x <= 0, x on x >= 0 at (3, 1, 2): L* = 1, floor 0.
+The chain rows at (4, 2, 2): (x y) + z (4, 4), (x y) z (4, 3),
+z (x + y) (3, 3); at (5, 2, 3) z (x + y) (4, 3); at (3, 2, 1) the two
+product-fed rows absent. [Ruled: the check read (x y) z and the
+sum-fed z (x + y) absent, not (x y) + z; one fit test gates both
+product-fed rows, and the check now reads all three absent.]
+
+RUN RECORD. 7/7 checks, 0.0 s of work, 0.3 s of wall and a peak
+working set of 15.6 MB under a memory watch; after an audit, (x y) + z
+priced by the escape law rather than set to the naive sum, 7/7, peak
+commit 10.4 MB. Every certified row of the table at (4, 2, 2),
+h = 1/3, dies at L* - 1, at output depths 2, 1, 1, 3, 2 and 1, and
+no row dies at L*; the divider described by hand
+dies at output depth 3. The estimate column reads 1.50 for x y and
+1.79 for the divider. Checked once against the tables an earlier
+program printed, over every cell of radices 2 to 6 at
+h = j/(b - 1), j in {1, 2, 4, 8, 32, 128}: 1,365 rows compared, none
+off. That program also priced the adder chain at the 13 cells where
+the root tile at lead 0 does not hold x y's range; the escape law has
+no word there, and chains() returns None. With radix below 2 and
+h <= 0 refused and the chain check reading all three rows at
+(3, 2, 1), 7/7, peak commit 8.4 MB.
+"""
+
+import math
+import time
+from collections import namedtuple
+from fractions import Fraction as Fr
+
+import chains as ch
+import manystream as ms
+import piecewise as pwm
+import poles
+
+CHECKS = []
+Row = namedtuple("Row", "lead L c estimate dead_below dead_at",
+                 defaults=(None, None))
+Cert = namedtuple("Cert", "lead L dead_below dead_at")
+Pieces = namedtuple("Pieces", "lead L floor")
+UNITS = ["x y", "x y + z", "x^2 + y", "1/(s+x)", "sqrt(s+x)", "x/(s+y)"]
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tail = f"  ({detail})" if detail else ""
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}{tail}")
+
+
+def cell_of(b, am, ap):
+    if b < 2 or am < 1 or ap < 1 or am + ap + 1 - b < 1:
+        raise ValueError("needs b >= 2, a+- >= 1, slack a- + a+ + 1 - b >= 1")
+    return ms.Cell(b, am, ap)
+
+
+def unit(b, am, ap, lam, lo, hi):
+    cell = cell_of(b, am, ap)
+    o, L = cell.lead((Fr(lo), Fr(hi))), cell.law_L(Fr(lam))
+    return o, L, L - o
+
+
+def estimate(cell, lam, lo, hi):
+    G = max(float(hi) / float(cell.Mp), -float(lo) / float(cell.Mm))
+    return math.log(float(lam) / G * cell.I / cell.rho, cell.b)
+
+
+def _named(cell):
+    """The three polynomial units as manystream maps with their ranges."""
+    Mm, Mp, Mh = cell.Mm, cell.Mp, cell.Mh
+    by = {m[0]: m for m in ms.MAPS}
+    return {"x y": (by["x y"], (-Mm * Mp, Mh * Mh)),
+            "x y + z": (by["x y + z"], (-Mm * Mp - Mm, Mh * Mh + Mp)),
+            "x^2 + y": (by["x^2 + y"], (-Mm, Mh * Mh + Mp))}
+
+
+def table(b, am, ap, h, certify=False):
+    cell, h = cell_of(b, am, ap), Fr(h)
+    if h <= 0:
+        raise ValueError("needs pole distance h > 0")
+    rows = {}
+    for name, (mp, rng) in _named(cell).items():
+        lam = mp[4](cell.Mh)
+        o, L = cell.lead(rng), cell.law_L(lam)
+        row = (o, L, L - o, estimate(cell, lam, *rng))
+        if certify:
+            row += (ms.scan(cell, mp, L - 1, o)[0],
+                    ms.scan(cell, mp, L, o)[0])
+        rows[name] = row
+    for name, u in (("1/(s+x)", poles.Recip(cell, h)),
+                    ("x/(s+y)", poles.Divider(cell, h))):
+        o, L = u.lead(), u.law_L()
+        row = (o, L, L - o, estimate(cell, u.lam, *u.rng))
+        if certify:
+            row += (ms.scan(cell, u.mapping(), L - 1, o)[0],
+                    ms.scan(cell, u.mapping(), L, o)[0])
+        rows[name] = row
+    r = poles.Root(cell, h)
+    o, L = r.lead(), r.law_L()
+    G = math.sqrt(float(h + cell.w)) / float(cell.Mp)
+    lam = 1 / (2 * math.sqrt(float(h)))
+    row = (o, L, L - o, math.log(lam / G * cell.I / cell.rho, b))
+    if certify:
+        row += (poles.one_scan(cell, r, L - 1, o)[0],
+                poles.one_scan(cell, r, L, o)[0])
+    rows["sqrt(s+x)"] = row
+    return {n: Row(*rows[n]) for n in UNITS}
+
+
+def certify(b, am, ap, d, image, partials, lam, lo, hi):
+    cell = cell_of(b, am, ap)
+    o, L, _ = unit(b, am, ap, lam, lo, hi)
+    mp = ("map", d, image, partials, None)
+    return Cert(o, L, ms.scan(cell, mp, L - 1, o)[0],
+                ms.scan(cell, mp, L, o)[0])
+
+
+def piecewise(b, am, ap, kinks, polys):
+    cell = cell_of(b, am, ap)
+    f = pwm.PW("map", cell, kinks, polys)
+    L = f.law_L()
+    return Pieces(f.lead(), L, pwm.Clauses(f).floor(L))
+
+
+def chains(b, am, ap):
+    cell = cell_of(b, am, ap)
+    rows = dict.fromkeys(["(x y) + z", "(x y) z", "z (x + y)"])
+    if ch.representable(cell):
+        L1s, L2s = ch.floor_xy(cell), ch.sum_floor(cell)
+        naive = L1s + L2s
+        least = min([naive] + [L1 + L2 for L1 in range(L1s, naive)
+                               for L2 in range(1, naive - L1)
+                               if ch.escape_cost(cell, L2)
+                               <= ch.budget_xy(cell, L1)])
+        rows["(x y) + z"] = (naive, least)
+        rows["(x y) z"] = ch.two_unit(cell, ch.xy_head)[:2]
+    if ch.sum_fed_ok(cell):
+        rows["z (x + y)"] = ch.two_unit(cell, ch.sum_head)[:2]
+    return rows
+
+
+def show(b, am, ap, h):
+    print(f"the table at radix {b} over {{-{am}..{ap}}}, h = {h}: "
+          "(lead, L*, lookahead, estimate)")
+    for name, row in table(b, am, ap, h).items():
+        print(f"  {name:10s} {row[0]:3d} {row[1]:3d} {row[2]:3d}"
+              f"   {row[3]:6.2f}")
+    print("the chains: (naive, floor)")
+    for name, row in chains(b, am, ap).items():
+        print(f"  {name:10s} {row if row else 'absent'}")
+
+
+def main():
+    t0 = time.time()
+    show(4, 2, 2, Fr(1, 3))
+    print("CONTROLS")
+    t = table(4, 2, 2, Fr(1, 3), certify=True)
+    check(f"x y and the divider at (4, 2, 2), h = 1/3: "
+          f"{t['x y'][:3]}, {t['x/(s+y)'][:3]}",
+          t["x y"][:3] == (0, 2, 2) and t["x/(s+y)"][:3] == (1, 3, 2))
+    check(f"every row dead at L* - 1 and not at L*: "
+          f"{[r[4:] for r in t.values()]}",
+          all(r[4] is not None and r[5] is None for r in t.values()))
+    r = table(4, 2, 2, 32)["1/(s+x)"]
+    check(f"the reciprocal at h = 32 runs ahead: {r[:3]}",
+          r[:3] == (-2, -4, -2))
+    M = Fr(2, 3)
+    check("unit() on x y's rate and range is its row",
+          unit(4, 2, 2, 2 * M, -M * M, M * M) == t["x y"][:3])
+    s = Fr(1) + 2   # s = M- + h at (2, 1, 1), h = 2
+
+    def img(B):
+        v = [x / (s + y) for x in B[0] for y in B[1]]
+        return min(v), max(v)
+
+    def parts(B):
+        X = max(abs(B[0][0]), abs(B[0][1]))
+        return [(1 / (s + B[1][1]), 1 / (s + B[1][0])),
+                (-X / (s + B[1][0]) ** 2, X / (s + B[1][0]) ** 2)]
+    got = certify(2, 1, 1, 2, img, parts, Fr(3, 4), Fr(-1, 2), Fr(1, 2))
+    check(f"the divider at (2, 1, 1), h = 2, described by hand: {got}",
+          got[:2] == (-1, 1) and got[2] is not None and got[3] is None)
+    p1 = piecewise(5, 2, 3, [0], [(0, Fr(1, 2)), (0, 1)])
+    p2 = piecewise(3, 1, 2, [0], [(0, Fr(1, 5), Fr(1, 20)), (0, 1)])
+    check(f"the two piecewise specimens: {p1}, {p2}",
+          p1 == (0, 1, 1) and p2[1:] == (1, 0))
+    c1, c2, c3 = chains(4, 2, 2), chains(5, 2, 3), chains(3, 2, 1)
+    check(f"the chain rows: {c1}; {c2['z (x + y)']}; "
+          f"{c3['(x y) + z']}, {c3['(x y) z']}, {c3['z (x + y)']}",
+          c1 == {"(x y) + z": (4, 4), "(x y) z": (4, 3),
+                 "z (x + y)": (3, 3)}
+          and c2["z (x + y)"] == (4, 3)
+          and c3["(x y) z"] is None and c3["z (x + y)"] is None
+          and c3["(x y) + z"] is None)
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed, "
+          f"{time.time() - t0:.1f} s")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

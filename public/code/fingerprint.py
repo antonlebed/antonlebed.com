@@ -1,0 +1,548 @@
+"""fingerprint.py -- one real number reads a residue tuple up to sign.
+
+QUESTION. Let M = q_1 q_2 ... q_k be a product of powers of k DISTINCT
+primes, and read n mod M through its k channels n mod q_j. The
+FINGERPRINT of n is the real number
+
+    Theta_M(n) = sum over j of 2cos(2 pi n / q_j),
+
+which depends on n only through its channels. Changing the sign of n in
+one channel (n -> m with m = -n mod q_j and m = n mod every other
+factor) leaves every term unchanged. Is that the ONLY way two residues
+share a fingerprint -- does Theta_M(n) = Theta_M(m) force m = +-n in
+every channel, independently -- for every M?
+
+THE ARGUMENT (written before this script). Write c_j for the CLASS of n
+at q_j, the least of n and -n mod q_j, so 0 <= c_j <= q_j/2 and the
+channel's value is 2cos(2 pi c_j / q_j). Suppose two class tuples give
+one sum.
+  (1) ISOLATION. The Galois group of Q(zeta_M) is the product of the
+      groups of the Q(zeta_{q_j}), the prime powers being coprime.
+      Average the vanishing difference over the subgroup fixing
+      zeta_{q_j}: channel j's difference delta_j is fixed and every
+      other channel's is replaced by a rational number. So each delta_j
+      is RATIONAL.
+  (2) ONE CHANNEL. The value 2cos(2 pi c / q) with q = p^e generates
+      the real subfield of Q(zeta_{p^a}), p^a = q / gcd(c, q), and those
+      fields grow strictly in degree with a once the value is
+      irrational. A rational difference of two irrational values puts
+      both in one layer, where every value of exact level p^a is a
+      Galois conjugate of every other and so has the same trace; the
+      difference then equals its own average, 0. A rational difference
+      of a rational and an irrational value is impossible. So a
+      NONZERO rational delta_j needs both values rational, and by
+      Niven's theorem the rational values of 2cos(2 pi r) with r
+      rational are 2, 1, 0, -1, -2. Hence the nonzero rational
+      differences at q are: +-4 at q = 2 (values 2, -2); +-2 and +-4
+      at q = 2^e, e >= 2 (values 2, 0, -2); +-3 at q = 3^e (values 2,
+      -1); none at q = p^e, p >= 5 (value 2 alone). Within one channel
+      2cos is strictly decreasing on the class range, so delta_j = 0
+      means equal classes.
+  (3) THE CLASH. At most one factor is a power of 2 and one a power of
+      3. A zero sum needs a difference in {0, +-2, +-4} at the 2-power
+      channel to cancel one in {0, +-3} at the 3-power channel, so both
+      are 0, and every channel's class agrees.
+So Theta_M is injective on class tuples, for every M, and its fibres
+are the orbits of the SIGN GROUP G_M = {g : g = +-1 mod every q_j},
+acting by multiplication: m = g n. The distinct fingerprints number
+prod_j (floor(q_j / 2) + 1).
+
+Two readings of the same function. With 2cos t = 2 - 4 sin^2(t/2),
+Theta_M(n) = 2k - |d(n)|^2 where |d(n)|^2 = sum_j 4 sin^2(pi n / q_j) is
+the squared chord distance from 0 to n on the torus that draws each
+channel as a circle of q_j points: the distance from the origin fixes
+the point up to reflecting each circle. And Theta_M(m) is the
+eigenvalue of the CHANNEL-STEP GRAPH -- the Cayley graph of Z/M whose
+steps are +-1 in one channel, the product of the cycles C_{q_j} -- on
+the character psi_m(x) = exp(2 pi i sum_j m_j x_j / q_j), labelled by
+its CRT coordinates m_j = m mod q_j. So the theorem says each
+eigenvalue's multiplicity is exactly the size of a sign orbit: the
+spectrum is as simple as its symmetry allows. The additive character
+x -> exp(2 pi i m x / M) is the character with coordinates m u_j, where
+u_j is the inverse of M / q_j mod q_j, so its eigenvalue is
+Theta_M(u * m), a TWIST that changes nothing while every u_j = +-1.
+
+DESIGN. Sections, each a set of checks printing PASS or FAIL.
+  R  step (2), exactly. For every prime power q <= 200: psi_q, the monic
+     integer polynomial of 2cos(2 pi / q), is built from the cyclotomic
+     polynomial (z^(-h) Phi_q(z) written in z^j + z^-j = D_j(z + 1/z),
+     h = phi(q)/2, D_0 = 2, D_1 = x, D_{j+1} = x D_j - D_{j-1}) and
+     certified irreducible by Rabin's test modulo a prime r whose class
+     generates (Z/q)* / {+-1}, which makes it the minimal polynomial.
+     The class value at c is then D_c reduced mod psi_q, and a pair
+     difference is rational iff its reduction is a constant
+     polynomial. Every pair c' < c <= q/2 is reduced in integer
+     arithmetic, no float in the verdict, and the set of rational
+     differences is compared with step (2)'s law. q = 2 has degree-1
+     Phi and rational values, and is read directly.
+     POSITIVE CONTROL, read before the law's verdict: the detector must
+     fire at q = 3, 4, 8, 9, where rational differences exist.
+  Z  step (3): only the primes 2 and 3 carry nonzero difference sets
+     in R, so a zero sum across channels at distinct primes pairs one
+     2-power with one 3-power; no such pair with a nonzero entry sums
+     to zero. POSITIVE CONTROL: two channels at ONE prime
+     (2 and 4; 3 and 9), which the hypothesis excludes, must show a
+     zero sum -- the theorem's distinct-primes hypothesis is load-bearing.
+  E  the whole statement in floats, where enumeration reaches: every
+     class tuple's fingerprint for the squarefree rungs Z/p_k#,
+     k = 1..7, and the powered moduli 8*9*5*7*11, 16*27*5*7 and
+     4*9*25*49; the values are distinct iff the least gap between
+     them, sorted, is above 1e-9, and that gap is printed, with the
+     order of G_M counted over every g of Z/M. Then, by brute force
+     over every n in Z/M for M = 210, 2310, 360 and 900, the fibre of
+     Theta_M through each n against its sign orbit {g n : g in G_M}.
+  G  the channel-step graph at M = 30, 210, 360: the adjacency applied
+     to every psi_m returns Theta_M(m) psi_m, read at every
+     max(1, M // 60)-th point (30 at M = 30, 70 at 210, 60 at 360); the
+     multiplicity of each eigenvalue among the psi_m is its orbit
+     size; the additive character's eigenvalue is Theta_M(u * m); the
+     u_j ladder over the rungs k = 1..10 and the first rung where some
+     u_j is not +-1; and off the primorials, Z/15, where u = 2 at 5.
+  C  the chord identity over every n of Z/2310 and Z/360.
+
+PREDICTIONS, fixed before the run.
+  R1 psi_q irreducible (a certificate found) at every prime power
+     q <= 200 with q >= 3; psi_q(2) = Phi_q(1), which is p at q = p^e.
+  R2 the rational-difference sets: {+-4} at 2; {+-2, +-4} at 4, 8, 16,
+     32, 64, 128; {+-3} at 3, 9, 27, 81; empty at every other prime
+     power <= 200. KILL: any printed set that differs.
+  R3 the detector fires at 3, 4, 8, 9.
+  Z1 no zero sum across distinct primes; Z2 the planted same-prime
+     pairs (2, 4) and (3, 9) each show one.
+  E1 distinct fingerprints = class count at every modulus in E: 2, 4,
+     12, 48, 288, 2016, 18144 for k = 1..7; 1800, 1512 and 4875 for the
+     powered moduli. Every fibre is its sign orbit; the largest orbit
+     is 2^(number of factors above 2), 64 at k = 7.
+  G1 the eigen-relation at float precision (deviation below 1e-9); the
+     multiplicities are the orbit sizes; the twist is invisible through
+     k = 3 and first visible at k = 4, where u = 3 at 5 and 4 at 7
+     (the inverses of 42 mod 5 and 30 mod 7).
+  C1 deviation below 1e-12.
+  One number was corrected before the first run: 4*9*25*49 has
+  3*5*13*25 = 4875 classes, first written as 7800.
+
+FINDINGS. Every prediction landed: 29/29 checks PASS.
+  R1 59 certificates, one per prime power 3 <= q <= 200, each from the
+     least prime generating (Z/q)* / {+-1} and confirmed by Rabin's
+     test; psi_q(2) = p throughout.
+  R2 R3 the sets are exactly the law's at the 59 computed prime powers
+     and at q = 2, read directly: {+-4} at 2, {+-2, +-4} at every
+     larger power of 2, {+-3} at every power of 3, empty at 5, 25,
+     125, 7, 49, 11, 121, ..., 199. The detector
+     fires at 3, 4, 8 and 9.
+  Z1 no zero sum over the 28 pairs of a 2-power and a 3-power channel.
+  Z2 the same-prime pairs collide, (-4, 4) at (2, 4) and (-3, 3) at
+     (3, 9): two channels at one prime can cancel, so the hypothesis is
+     used.
+  E1 distinct fingerprints equal the class count at all ten moduli, the
+     least gap falling 4, 1, 0.38, 1.1e-2, 2.2e-5, 6.8e-6, 1.9e-7 over
+     the rungs k = 1..7 and 6.5e-6, 4.3e-6, 3.0e-7 over the powered
+     moduli. Every fibre is its sign orbit at 210, 2310, 360 and 900,
+     the largest 8, 16, 8, 8 = 2^(factors above 2); |G_M| counts 1, 2,
+     4, 8, 16, 32, 64 over the rungs.
+  G1 eigen-relation deviations at most 4.5e-14 on psi_m and 1.6e-12 on
+     the additive characters; multiplicities are the sign orbits at 30,
+     210 and 360; the twist first shows at k = 4, u = (1, 1, 3, 4);
+     at Z/15, u = (2, 2).
+  C1 deviation 3.6e-15.
+  Tiers: the fingerprint theorem is a theorem, proved above; R and Z
+  check steps (2) and (3) exactly at every prime power to 200, and E, G
+  and C are float cross-checks at small moduli, reported as such.
+
+RUN RECORD. The first run failed one check: E1 at M = 2310 found 292
+fibres against 288 sign orbits. The fibres had been grouped by rounding
+each value to nine decimals, four values sat on a rounding edge, and
+float noise from unreduced arguments split each in two. Grouping by
+gaps after sorting, with n reduced mod q before the cosine, fixed it
+(true gaps at that modulus are at least 2.2e-5); the chord side then
+needed the same reduction. A later reading added E1's count of G_M
+over every g of Z/M and G2, the twist off the primorials. The recorded
+run: 29/29 PASS, 8.6 MB peak commit, 1.3 s.
+
+Standard library only.
+
+    python fingerprint.py
+"""
+
+from itertools import product
+from math import cos, pi, prod, sin
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  [{'PASS' if ok else 'FAIL'}] {name}"
+          + (f" -- {detail}" if detail else ""))
+
+
+def is_prime(n):
+    return n > 1 and all(n % d for d in range(2, int(n ** 0.5) + 1))
+
+
+def prime_of(q):
+    return next(p for p in range(2, q + 1) if q % p == 0)
+
+
+PRIME_POWERS = [q for q in range(2, 201)
+                if is_prime(prime_of(q))
+                and all(q % d for d in range(2, q) if d != prime_of(q)
+                        and is_prime(d))]
+
+
+# ------------------------------------------------ integer polynomials
+# Little-endian coefficient lists over Z.
+
+def pnorm(a):
+    a = list(a)
+    while a and a[-1] == 0:
+        a.pop()
+    return a
+
+
+def padd(a, b, s=1):
+    n = max(len(a), len(b))
+    return pnorm([(a[i] if i < len(a) else 0)
+                  + s * (b[i] if i < len(b) else 0) for i in range(n)])
+
+
+def pmul(a, b):
+    out = [0] * (len(a) + len(b) - 1)
+    for i, x in enumerate(a):
+        for j, y in enumerate(b):
+            out[i + j] += x * y
+    return pnorm(out)
+
+
+def pmod(a, m, q=None):
+    """a mod the monic m, over Z, or over F_q when q is given."""
+    a = pnorm(a if q is None else [c % q for c in a])
+    dm = len(m) - 1
+    while len(a) - 1 >= dm and a:
+        lead, shift = a[-1], len(a) - 1 - dm
+        for i, c in enumerate(m):
+            a[shift + i] -= lead * c
+        a = pnorm(a if q is None else [c % q for c in a])
+    return a
+
+
+def peval(a, x):
+    v = 0
+    for c in reversed(a):
+        v = v * x + c
+    return v
+
+
+def cyclotomic(q):
+    """Phi_q for a prime power q = p^e: Phi_p(z^(p^(e-1)))."""
+    p = prime_of(q)
+    step = q // p
+    out = [0] * (q - step + 1)
+    for i in range(p):
+        out[i * step] = 1
+    return out
+
+
+def dickson(h):
+    """D_0..D_h with D_j(z + 1/z) = z^j + z^-j."""
+    D = [[2], [0, 1]]
+    while len(D) <= h:
+        D.append(padd(pmul([0, 1], D[-1]), D[-2], -1))
+    return D[:h + 1]
+
+
+def psi(q):
+    """The monic integer polynomial of 2cos(2 pi / q), q >= 3."""
+    phi = cyclotomic(q)
+    h = (len(phi) - 1) // 2
+    D = dickson(max(h, q // 2))
+    out = [phi[h]]
+    for j in range(1, h + 1):
+        out = padd(out, [phi[h + j] * c for c in D[j]])
+    return out, D
+
+
+def rabin_irreducible(f, r):
+    """f monic over Z; irreducible mod the prime r (Rabin's test)."""
+    m = len(f) - 1
+    fr = [c % r for c in f]
+    if m == 1:
+        return True
+
+    def mulmod(a, b):
+        return pmod(pmul(a, b) if a and b else [], fr, r)
+
+    def frob(times):
+        t = [0, 1]
+        for _ in range(times):
+            base, e, acc = t, r, [1]
+            while e:
+                if e & 1:
+                    acc = mulmod(acc, base)
+                base = mulmod(base, base)
+                e >>= 1
+            t = acc
+        return t
+
+    if pnorm([c % r for c in padd(frob(m), [0, 1], -1)]):
+        return False
+    for ell in {d for d in range(2, m + 1) if m % d == 0 and is_prime(d)}:
+        a, b = [c % r for c in padd(frob(m // ell), [0, 1], -1)], fr
+        while b:                                   # gcd over F_r
+            inv = pow(b[-1], r - 2, r)
+            b = [c * inv % r for c in b]
+            a, b = b, pmod(a, b, r)
+        if len(a) != 1:
+            return False
+    return True
+
+
+# ------------------------------------------------------------------ R
+
+LAW = {"2": [-4, 4], "2^e": [-4, -2, 2, 4], "3^e": [-3, 3], "p>=5": []}
+
+
+def law(q):
+    p = prime_of(q)
+    if q == 2:
+        return LAW["2"]
+    return LAW["2^e"] if p == 2 else LAW["3^e"] if p == 3 else LAW["p>=5"]
+
+
+def candidate(q):
+    """The least prime r whose class generates (Z/q)* / {+-1}: psi_q is
+    irreducible mod r iff that order is phi(q)/2. Theory picks r and
+    Rabin's test certifies it, independently."""
+    h = (len(cyclotomic(q)) - 1) // 2
+    for r in range(2, 2000):
+        if is_prime(r) and q % r:
+            x, order = r % q, 1
+            while x not in (1, q - 1):
+                x, order = x * r % q, order + 1
+            if order == h:
+                return r
+    return None
+
+
+def rational_differences(q):
+    """Every rational value of v(c) - v(c'), 0 <= c' < c <= q/2, where
+    v(c) = 2cos(2 pi c / q); integer-exact."""
+    if q == 2:
+        return [-4, 4], None
+    f, D = psi(q)
+    red = [pmod(D[c], f) for c in range(q // 2 + 1)]
+    diffs = set()
+    for c in range(len(red)):
+        for cp in range(c):
+            d = padd(red[c], red[cp], -1)
+            if len(d) <= 1:                        # a constant reduction
+                v = d[0] if d else 0
+                diffs.update((v, -v))
+    return sorted(diffs), f
+
+
+def section_r():
+    print("R  rational differences at every prime power q <= 200, exact")
+    certs, psi2, sets = 0, True, {}
+    for q in PRIME_POWERS:
+        got, f = rational_differences(q)
+        sets[q] = got
+        if f is None:
+            continue
+        psi2 &= peval(f, 2) == prime_of(q)
+        cert = candidate(q)
+        certs += cert is not None and rabin_irreducible(f, cert)
+    check("R1 psi_q irreducible for every prime power 3 <= q <= 200",
+          certs == len(PRIME_POWERS) - 1, f"{certs} certificates")
+    check("R1 psi_q(2) = p at every q = p^e", psi2)
+    check("R3 the detector fires at 3, 4, 8 and 9",
+          all(sets[q] for q in (3, 4, 8, 9)))
+    wrong = {q: s for q, s in sets.items() if s != law(q)}
+    for q in (2, 3, 4, 8, 9, 16, 27, 5, 25, 7, 49, 11, 121, 125, 199):
+        print(f"     q = {q:3d}  rational differences {sets[q] or 'none'}")
+    check("R2 every set equals step (2)'s law", not wrong,
+          f"differing at {wrong}" if wrong else
+          f"{len(sets)} prime powers")
+    return sets
+
+
+# ------------------------------------------------------------------ Z
+
+def zero_sums(channel_sets):
+    """Choices, one difference per channel (0 allowed), summing to zero
+    with some entry nonzero."""
+    return [t for t in product(*[[0] + s for s in channel_sets])
+            if sum(t) == 0 and any(t)]
+
+
+def section_z(sets):
+    print("Z  the clash across channels")
+    by_prime = {}
+    for q, s in sets.items():
+        if s:
+            by_prime.setdefault(prime_of(q), []).append(q)
+    hits = [(a, b) for a in by_prime.get(2, []) for b in by_prime.get(3, [])
+            if zero_sums([sets[a], sets[b]])]
+    check("Z1 no zero sum over a 2-power and a 3-power channel",
+          not hits and set(by_prime) == {2, 3},
+          f"{len(by_prime[2]) * len(by_prime[3])} pairs; only primes "
+          f"{sorted(by_prime)} have nonzero sets")
+    planted = [zero_sums([sets[2], sets[4]]), zero_sums([sets[3], sets[9]])]
+    check("Z2 the planted same-prime pairs (2, 4) and (3, 9) collide",
+          all(planted), f"e.g. {[z[:1] for z in planted]}")
+
+
+# ------------------------------------------------------------------ E
+
+def classes(q):
+    return range(q // 2 + 1)
+
+
+def fingerprint(n, factors):
+    return sum(2 * cos(2 * pi * (n % q) / q) for q in factors)
+
+
+def fibres(values, tol=1e-9):
+    """Group the keys of {key: real} into runs of values closer than tol,
+    after sorting: no rounding edge to straddle."""
+    order = sorted(values, key=values.get)
+    groups = [[order[0]]]
+    for a, b in zip(order, order[1:]):
+        if values[b] - values[a] < tol:
+            groups[-1].append(b)
+        else:
+            groups.append([b])
+    return [set(g) for g in groups]
+
+
+def value_table(factors):
+    vals = [0.0]
+    for q in factors:
+        vals = [v + 2 * cos(2 * pi * c / q) for v in vals for c in classes(q)]
+    return vals
+
+
+def sign_group(factors):
+    M = prod(factors)
+    return [g for g in range(M)
+            if all(g % q in (1 % q, q - 1) for q in factors)]
+
+
+FIRST = [2, 3, 5, 7, 11, 13, 17]
+POWERED = [(8, 9, 5, 7, 11), (16, 27, 5, 7), (4, 9, 25, 49)]
+
+
+def section_e():
+    print("E  the whole statement in floats")
+    for factors in [FIRST[:k] for k in range(1, 8)] + POWERED:
+        vals = sorted(value_table(factors))         # one per class tuple
+        gap = min((b - a for a, b in zip(vals, vals[1:])), default=1.0)
+        order = len(sign_group(factors))
+        above2 = sum(q > 2 for q in factors)
+        check(f"E1 M = {'*'.join(map(str, factors))}: distinct = classes",
+              gap > 1e-9 and order == 2 ** above2,
+              f"{len(vals)} classes, least gap {gap:.1e}, |G| = {order}")
+    for factors in [(2, 3, 5, 7), (2, 3, 5, 7, 11), (8, 9, 5), (4, 9, 25)]:
+        M, G = prod(factors), sign_group(factors)
+        buckets = fibres({n: fingerprint(n, factors) for n in range(M)})
+        ok = all(members == {g * n % M for g in G}
+                 for members in buckets for n in members)
+        big = max(len(b) for b in buckets)
+        above2 = sum(q > 2 for q in factors)
+        check(f"E1 M = {M}: every fibre is its sign orbit", ok
+              and big == 2 ** above2 and len(G) == 2 ** above2,
+              f"{len(buckets)} fibres, largest {big}, |G| = {len(G)}")
+
+
+# ------------------------------------------------------------------ G
+
+def crt_units(factors):
+    M = prod(factors)
+    return [pow(M // q, -1, q) for q in factors]
+
+
+def section_g():
+    print("G  the channel-step graph")
+    for factors in [(2, 3, 5), (2, 3, 5, 7), (8, 9, 5)]:
+        M, k = prod(factors), len(factors)
+        steps = []
+        for j, q in enumerate(factors):
+            e = next(x for x in range(M) if all(
+                x % r == (1 if i == j else 0) for i, r in enumerate(factors)))
+            steps += [e, M - e] if q > 2 else [e]
+        # at q = 2 a step of +1 and -1 is one edge; the graph's degree
+        # counts it twice so that each channel contributes 2cos
+        weight = [1 if q > 2 else 2 for q in factors for _ in
+                  range(2 if q > 2 else 1)]
+        units = crt_units(factors)
+        dev, twist_dev = 0.0, 0.0
+        eig = {}
+        for m in range(M):
+            psi_m = [complex(cos(a), sin(a)) for a in
+                     (2 * pi * sum((m % q) * (x % q) / q for q in factors)
+                      for x in range(M))]
+            lam = fingerprint(m, factors)
+            for x in range(0, M, max(1, M // 60)):
+                applied = sum(w * psi_m[(x + s) % M]
+                              for s, w in zip(steps, weight))
+                dev = max(dev, abs(applied - lam * psi_m[x]))
+            eig[m] = lam
+            chi = [complex(cos(2 * pi * m * x / M), sin(2 * pi * m * x / M))
+                   for x in range(M)]
+            twisted = sum(2 * cos(2 * pi * m * u / q)
+                          for u, q in zip(units, factors))
+            for x in range(0, M, max(1, M // 60)):
+                applied = sum(w * chi[(x + s) % M]
+                              for s, w in zip(steps, weight))
+                twist_dev = max(twist_dev, abs(applied - twisted * chi[x]))
+        G = sign_group(factors)
+        eig = fibres(eig)
+        mult_ok = all(ms == {g * min(ms) % M for g in G} for ms in eig)
+        check(f"G1 M = {M}: A psi_m = Theta(m) psi_m and the additive "
+              f"character carries Theta(u*m)", dev < 1e-9 and twist_dev
+              < 1e-9, f"deviations {dev:.1e}, {twist_dev:.1e}")
+        check(f"G1 M = {M}: multiplicities are the sign orbits", mult_ok,
+              f"{len(eig)} eigenvalues")
+    first_visible = None
+    for k in range(1, 11):
+        u = crt_units(FIRST[:k] + [19, 23, 29][:max(0, k - 7)])
+        q = FIRST[:k] + [19, 23, 29][:max(0, k - 7)]
+        signed = [x if x <= qq // 2 else x - qq for x, qq in zip(u, q)]
+        visible = any(abs(s) != 1 for s in signed)
+        print(f"     k = {k:2d}  u = {signed}")
+        if visible and first_visible is None:
+            first_visible = (k, u)
+    check("G1 the twist is first visible at k = 4, u = 3 at 5 and 4 at 7",
+          first_visible is not None and first_visible[0] == 4
+          and first_visible[1][2:] == [3, 4], f"{first_visible}")
+    u15 = crt_units([3, 5])
+    check("G2 off the primorials, at Z/15, u = 2 at 5", u15[1] == 2,
+          f"u = {u15}")
+
+
+# ------------------------------------------------------------------ C
+
+def section_c():
+    print("C  the chord identity")
+    dev = 0.0
+    for factors in [(2, 3, 5, 7, 11), (8, 9, 5)]:
+        for n in range(prod(factors)):
+            chord2 = sum(4 * sin(pi * (n % q) / q) ** 2 for q in factors)
+            dev = max(dev, abs(fingerprint(n, factors)
+                               - (2 * len(factors) - chord2)))
+    check("C1 Theta = 2k - |d|^2 on Z/2310 and Z/360", dev < 1e-12,
+          f"deviation {dev:.1e}")
+
+
+def main():
+    sets = section_r()
+    section_z(sets)
+    section_e()
+    section_g()
+    section_c()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

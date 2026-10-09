@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>faces.py | Numbers read one place at a time</title>
+<meta name="description" content="faces.py">
+<link rel="alternate" type="text/x-python" href="/code/faces.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>faces.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/collide/#the-descent-dimension">COLLIDE: The descent dimension</a> (property); <a href="/collide/#two-factorizations-no-proper-face-separates">COLLIDE: Two factorizations no proper face separates</a> (property); <a href="/collide/#the-sign-scan">COLLIDE: The sign scan</a> (criterion); <a href="/collide/#the-face-law">COLLIDE: The face law</a> (criterion).</p><p>Cited on: <a href="/collide/">COLLIDE</a>.</p><p>To run it: <a href="/code/collide.py">collide.py</a> beside it; needs sympy.</p></div>
+<pre>"""faces.py -- where on the Newton polytope two factorizations of one
+menu product part, and what a face reads there.
+
+QUESTION. collide.py defines the DESCENT DIMENSION delta of two
+factorizations of a product over N: the least dimension of a face of the
+product's Newton polytope on which the multisets of initial forms, each
+divided by its monomial gcd, differ, at least 1 in the menu frame.
+How low does delta sit through ten terms, where the classification by
+number of terms is complete? Do two factorizations of one product exist
+that no proper face separates? Which pairs of menus have a product
+factoring two ways when one of them is a seed with a two-factor core,
+and can the test be read off one product without factoring the whole?
+And when two factorizations have the SHARED SHAPE, one factor p common
+to a block on each side,
+
+    {p n, q}   against   {p, n q},
+
+exactly which faces separate them?
+
+THE ARGUMENT (written before the engine).
+  (A) EDGE DESCENT THROUGH TEN TERMS. A product's term counts multiply
+      (collide.py, the term-count law), so non-uniqueness needs a
+      composite count; van de Woestijne's classification makes 4, 8
+      and 9 unique, leaving 6 and 10. At 6 the one shape X^a (1 + X^b
+      + ... + X^(5b)) spends one of its two exponents on a translation,
+      so read through Lemma 3.10 in several variables its exponent
+      vectors are alpha + i beta: a segment, delta &lt;= 1. The three
+      sporadic ten-term shapes likewise carry one free exponent and a
+      translation, so they sit on segments. The two ten-term families
+        F1 (1 + X^(3b))(1 + X^a + X^b + X^(a+b) + X^(a+2b))
+             = (1 + X^b)(1 + X^a + X^(a+2b) + X^(3b) + X^(a+4b)),
+        F2 (1 + X^(3b))(1 + X^a + X^b + X^(a+b) + X^(2b))
+             = (1 + X^b)(1 + X^a + X^(2b) + X^(a+3b) + X^(4b)),
+      with a and b read as independent vectors, carry two weights w
+      with &lt;w, b&gt; = 0. The engine minimizes w.e, so &lt;w, a&gt; &lt; 0 keeps
+      the a-terms and &lt;w, a&gt; &gt; 0 drops them. Writing v = X^b, F1 keeping
+      them and F2 dropping them read {1 + v^3, 1 + v + v^2} against
+      {1 + v, 1 + v^2 + v^4}: they differ on a face spanned by b alone,
+      so delta = 1. (The other weight reads {1 + v^3, 1 + v} on both
+      sides in both families and does not separate.)
+      So any two factorizations of a product of at most ten terms,
+      counted with multiplicity as the classification counts them,
+      have delta = 1, and delta = 2 needs twelve, eleven being prime.
+  (B) THE SIGN SCAN. Let a seed's core have exactly two Z-irreducible
+      factors, n with a negative coefficient and p nonnegative, and a
+      partner's core be one Z-irreducible q, nonnegative since it is a
+      0/1 polynomial. The product's Z-factors are {n, p, q} up to
+      monomials. Of the five partitions, {n, p, q} and {n, p q} leave
+      n alone and fail; {n p q} splits as (n p) q and is not atomic;
+      {n p, q} always stands; {n q, p} stands iff n q has no negative
+      coefficient. So the product factors two ways iff n q &gt;= 0 and
+      q != p, where the two survivors coincide. A two-factor core with
+      BOTH factors negative is unique against any such partner: every
+      partition but {n1 n2, q} leaves a negative block.
+  (C) THE FACE LAW. On two factorizations of the shared shape, write
+      P, N, Q for the initial forms of p, n, q at a weight w, each
+      divided by its monomial gcd. Initial forms multiply, and so
+      does that division: the least exponent of each variable in a
+      product is the sum of the least exponents. Blocks both sides hold
+      contribute the same form to both and cancel. So the face reads
+      {P N, Q} against {P, N Q}, forms equal to 1 dropped. If they
+      agree, P N equals P or N Q, so N = 1 or P = Q by cancellation in a
+      domain; conversely either gives equality. In the frame a monomial
+      initial form gamma x^v of n has gamma = 1: a generic refinement of
+      w picks a vertex of the menu product, of coefficient 1 as every
+      menu's vertices are, so each nonnegative integer block has
+      coefficient 1 there, p n among them, whose coefficient is gamma
+      times p's. So N = 1 means in_w(n) is a monomial. Hence
+        A FACE SEPARATES IFF in_w(n) IS NOT A MONOMIAL AND P != Q.
+      At product dimension 2, with vertices never separating, delta = 1
+      exactly when some edge normal of Newt(n) is an edge normal of
+      Newt(p) or Newt(q) along which P != Q. The clause P != Q is the
+      ACCIDENT's: with p = 1 + t, n = 1 - t + t^2 and
+      q = (1 + t) + y (1 + t + t^2) + y^2 (1 + t), both edges of the
+      product parallel to n read in_w(q) = p, so no proper face
+      separates and delta = 2, although n's edge is parallel to p's.
+  (D) THE LINE SHAPE. Take p = 1 + t, n univariate in t, and
+      q = sum over j of y^j q_j. Then n has non-monomial initial forms
+      only at w = (0, 1) and (0, -1), where p reads itself and q its
+      lowest and highest layer. So delta = 2 exactly when both
+      outermost layers of q are monomial multiples of p.
+  (E) TWELVE IS EMPTY IN THE LINE SHAPE. Let two such factorizations
+      have delta = 2, B = p n, and q not divisible by 1 + t. Counted with
+      multiplicity, |F| = |B| |q| for F = B q. B(-1) = 0 makes |B|
+      even. The outermost layers are multiples of 1 + t, so some
+      middle layer r has r(-1) != 0, and n r &gt;= 0 (n q = sum y^j n q_j) rules
+      out a monomial r, n carrying a negative coefficient. So |q| &gt;= 2 + 2 +
+      2 and |F| &gt;= 12, with equality only at |B| = 2 and one two-term
+      middle layer. |B| = 2 makes B = 1 + t^k, k odd, k &gt;= 3, n = 1 -
+      t + t^2 - ... + t^(k-1); r = t^c (1 + t^m) gives n r / t^c the
+      coefficient -1 + [m = 1] at t, so m = 1 and r is a multiple of
+      1 + t, contradicting its choice. No line-shape product factoring
+      two ways at delta = 2 with q not divisible by 1 + t has twelve
+      terms, at any degree and any layer count.
+  (F) SIXTEEN IS EMPTY TOO (added after the runs above, with its own check P7).
+      With |q| &gt;= 6 and |B| even, |F| = 16 forces |B| = 2 and |q| = 8, so
+      B = 1 + t^k and n as in (E). A multiple of 1 + t has an even number of
+      terms with multiplicity, so the outer layers hold at least 4 and the
+      middle layers an even number, at most 4; none is a monomial, and a
+      two-term one is a multiple of 1 + t by (E), so the layer r with
+      r(-1) != 0 has four terms. With c now the least exponent of r, the
+      coefficient at t in n r / t^c is -1 + [1 in X], X the exponents of
+      r / t^c, so X = {0, 1, a, b} with 1 &lt; a &lt; b and
+      n r / t^c = 1 + t^k + t^a n + t^b n. The -1 of t^a n at a + 1 is
+      covered only by t^k or by b = a + 1, and b = a + 1 makes
+      r = (1 + t)(1 + t^a); so k = a + 1. At
+      k = 3 the -1 of t^b n at b + 1 is covered only at b = 3, again a
+      multiple. At k &gt;= 5 the -1 of t^a n at k + 2 needs b = k (a multiple) or
+      b = k + 2, which leaves a -1 at 2k. No line-shape product factoring two
+      ways at delta = 2 has sixteen terms either, q not divisible by 1 + t,
+      among q whose middle layers are 0/1, so among every 0/1 F, since
+      q &lt;= F = q + t^k q coefficient by coefficient. A layer with a coefficient
+      above 1, F not 0/1, is not ruled out, and P7 searches 0/1 layers only.
+
+DESIGN. collide.py supplies the counter (Z-factors, atomic
+factorizations over N) and the exact face engine for products of Newton
+dimension at most 2. Sections:
+  CONTROL: the six-term identity (1 + x)(1 + x^2 + x^4) = (1 + x + x^2)
+     (1 + x^3) counted and graded; the escape of collide.py graded.
+  EDGE: F1 and F2 at three independent vector choices and one parallel
+     choice, and the three sporadic shapes lifted by X -&gt; x0 x1^2 beside
+     a monomial x1^3; every pair of atomic factorizations graded.
+  WITNESS: {4,6} x {3,4,8,9,18,24} against {2,4} x {6,8,9,24,27,36};
+     the counter, the Z-factors, the polygon's faces enumerated, delta,
+     and the edge normals of Newt(n) against those of Newt(p), Newt(q).
+  SCAN: seeds with a two-factor core -- every size-2 seed of {2..64},
+     {2,8,32}, every size-4 seed of {2..20} with such a core, and the
+     witness's seed -- against every menu of sizes 2 to 6 in {2..14}
+     whose core is one Z-irreducible; the scan's verdict against the
+     counter's at every pair.
+  LAW: at every face of every scan product factoring two ways of Newt
+     dimension at most 2, of the witness, of the escape, of the
+     fourteen-term specimen {2,16} x {2,4,6,12,18,24,36} = {2,4} x
+     {2,6,16,18,24,96,144}, and of every LINE object below: separation
+     against the law, and delta against the delta the law predicts.
+  LINE: p = 1 + t (t the prime 2, y the prime 3); every 0/1 univariate
+     B of degree &lt;= 5 with constant term 1, B(-1) = 0 and a negative
+     coefficient in n = B/(1 + t); layers the nonzero 0/1 univariates r
+     of degree &lt;= 5 with n r &gt;= 0 and B r 0/1; q of two layers, or of
+     three with the middle one possibly zero, least t-exponent 0, some
+     layer nonzero at t = -1. Kept when the counter returns exactly the
+     two factorizations {B, q} and {p, n q}; deduplicated on F.
+  SIXTEEN: for k odd in 3..41, every 0/1 layer with least exponent 0
+     and exponents to 60 of two terms (a control), and of four terms
+     with r(-1) != 0, tested for n r &gt;= 0; the layers (1 + t)(1 + t^a),
+     a = 2..29, a second control.
+
+PREDICTIONS (fixed before the engine).
+  P1 CONTROL: the six-term identity has 2 atomic factorizations, Newt
+     dimension 1, delta 1; the escape has delta 1 at dimension 2.
+  P2 EDGE: every family instance is 0/1 with ten terms and at least two
+     atomic factorizations; every pair of them reads delta 1; the
+     independent choices have dimension 2, the parallel one and every
+     sporadic lift dimension 1.
+  P3 WITNESS: both menu products agree; 12 terms, 0/1; exactly 2
+     atomic factorizations; Z-factors x0 + x1, x0 + 1 and a five-term n
+     with a negative coefficient and a two-dimensional polygon; product
+     dimension 2; delta 2; no edge normal of Newt(n) is an edge normal
+     of Newt(p) or Newt(q).
+  P4 SCAN: the scan and the counter agree at every pair; both verdicts
+     occur; the clause q = p decides at least one pair ({2,16} against
+     {2,4}); the witness pair is among the non-unique.
+  P5 LAW: the law and separation agree at every face read, in both
+     directions; the law's delta equals the engine's at every object;
+     the fourteen-term specimen reads delta 2 with two faces where
+     in_w(n) is not a monomial and P = Q, the escape delta 1 with one.
+  P6 LINE: at least one delta = 2 object; delta = 2 exactly when both
+     outermost layers are monomial multiples of 1 + t, at every object;
+     no delta = 2 object has twelve terms.
+  P7 SIXTEEN (fixed before its own section ran): no four-term 0/1
+     layer r with least exponent 0 and r(-1) != 0 has n r &gt;= 0, for k
+     odd in 3..41 and exponents to 60; controls: a two-term layer
+     passes only at 1 + t, and the layers (1 + t)(1 + t^a) pass [ruled
+     on audit: checked at all 560 (k, a), a = 2..29 at each odd k].
+
+KILLS. A delta other than 1 in EDGE kills (A). A scan verdict against
+the counter kills (B). A face where the law and separation disagree
+kills (C), which is proved, so it is read as an engine fault first. A
+delta = 2 object at twelve terms in LINE kills (E), a passing layer in
+P7 kills (F); a disagreement
+with the closed reading kills (D). A witness with delta below 2, or
+with a third factorization, retracts the witness. P1 is the positive
+control: if it misses, nothing after it is read.
+
+FINDINGS. Every prediction held and no kill fired.
+  P1 the six-term identity reads 2 atomic factorizations, Newt
+     dimension 1, delta 1; the escape reads delta 1 at dimension 2.
+  P2 F1 and F2 at a, b = (0,1), (1,0); (1,1), (0,1); (3,1), (1,2) are
+     0/1 with ten terms, two factorizations, dimension 2, delta 1; at
+     the parallel choice (1,0), (2,0) and at the three sporadic lifts,
+     dimension 1 and delta 1.
+  P3 {4,6} x {3,4,8,9,18,24} = {2,4} x {6,8,9,24,27,36}; the core has
+     12 terms, all 1, and exactly 2 atomic factorizations; Z-factors
+     x0 + x1, x0 + 1 and n = x0^2 x1 + x0^2 - x0 x1 + x1^2 + x1, five
+     terms of rank 2; the polygon's 16 proper faces (8 vertices, 8
+     edges) separate nowhere, delta 2 at dimension 2. The normals where
+     an initial form is not a monomial: n (1,0), (-1,0), (1,2),
+     (-1,-2); p (0,1), (0,-1); q (1,1), (-1,-1); disjoint.
+  P4 20 two-factor seeds (none with both factors negative, so the
+     sibling clause is proved and not exercised) against 4049 menus of
+     {2..14} with an irreducible core: 80980 pairs, 80568 unique and
+     412 factoring two ways, 106 decided by q = p, 0 disagreements;
+     the witness pair among the 412.
+  P5 the 412 give 404 distinct products: 207 of Newt dimension at most
+     2 read face by face, 197 past it left unread by the engine, every
+     one of the 197 with a menu product that is not 0/1 (the
+     first {2,3,6,16} x {2,3,4,5,10}), while the 78 with a 0/1 menu
+     product all sit at dimension at most 2; with the witness, the two
+     specimens and the 924 line products factoring two ways, no face
+     disagrees with the law and no delta differs from the law's. The
+     escape reads delta 1 with one accident face; the fourteen-term
+     specimen, whose menu products agree, delta 2 with two.
+  P6 the line box holds 5 admissible B and 924 products factoring two
+     ways (64 candidates dropped by the counter); delta 2 at 86, 52 of
+     14 terms and 34 of 18, none of 12; the closed reading holds at all
+     924.
+  P7 a two-term layer passes only at m = 1, all 560 of the (k, a)
+     pairs pass with r = (1 + t)(1 + t^a), and of the 21,170 four-term layers
+     with r(-1) != 0, tried at each of the 20 values of k (423,400
+     pairs), none passes: (F) stands.
+
+RUN RECORD. python faces.py: 10 of 10 checks, 59.5 s, peak commit
+69.0 MB (8 of 8 before P7). The first run passed 8 of 8 with a vacuous
+witness check: the normals of a segment were read off the face
+engine, which lists only a segment's two vertices, so p and q reported
+none and "disjoint" held by emptiness. A segment's two normals are now computed
+from its direction; the disjointness holds on the real sets. The frame split of
+the scan's products factoring two ways was added after the second
+run.
+"""
+
+import os
+import sys
+import time
+from itertools import combinations
+from math import gcd
+
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+from collide import (  # noqa: E402
+    GENS, Dp, all_atomic_lists, descent, dkey, dmul, face_multisets,
+    face_weights,
+    menu_factors, negative, nonneg, prod, rank, zdir, zfactors)
+
+CHECKS = []
+R = len(GENS)
+D_LINE = 5
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f"  ({detail})" if detail else ""))
+
+
+<span id="control"></span>def control(name, ok, detail=""):
+    check(name, ok, detail)
+    if not ok:
+        print("  control failed: run stopped")
+        raise SystemExit(1)
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+# ------------------------------------------------------------ polynomials
+
+<span id="ev"></span>def ev(*e):
+    """An exponent vector with the given leading entries."""
+    return tuple(list(e) + [0] * (R - len(e)))
+
+
+<span id="mono"></span>def mono(*e):
+    return Dp({ev(*e): 1})
+
+
+<span id="dp"></span>def dp(pairs):
+    """A Dp from {(i, j): c} over the first two variables."""
+    return Dp({ev(i, j): c for (i, j), c in pairs.items()})
+
+
+<span id="uni"></span>def uni(exps, var=0):
+    """A 0/1 polynomial in one variable from its exponents."""
+    return Dp({ev(*([0] * var + [k])): 1 for k in exps})
+
+
+<span id="sub"></span>def sub(x_exp, shift, exps):
+    """A 0/1 polynomial in X = x^x_exp from its exponents in X,
+    times the monomial x^shift; vectors of two entries."""
+    return Dp({ev(shift[0] + k * x_exp[0], shift[1] + k * x_exp[1]): 1
+               for k in exps})
+
+
+<span id="add"></span>def add(*ps):
+    out = {}
+    for p in ps:
+        for e, c in p.d.items():
+            out[e] = out.get(e, 0) + c
+    return Dp(out)
+
+
+<span id="terms"></span>def terms(p):
+    return len(p.d)
+
+
+<span id="zero_one"></span>def zero_one(p):
+    return all(c == 1 for c in p.d.values())
+
+
+<span id="prim_init"></span>def prim_init(f, w):
+    """The initial form of f at the weight w (minimizing), divided by
+    its monomial gcd, as a frozenset of (exponent, coefficient)."""
+    vals = {e: sum(a * b for a, b in zip(w, e)) for e in f.d}
+    lo = min(vals.values())
+    init = [(e, c) for e, c in f.d.items() if vals[e] == lo]
+    base = [min(e[i] for e, _ in init) for i in range(R)]
+    return frozenset((tuple(a - b for a, b in zip(e, base)), c)
+                     for e, c in init)
+
+
+<span id="is_mono"></span>def is_mono(f, w):
+    return len(prim_init(f, w)) == 1
+
+
+<span id="face_read"></span>def face_read(p, n, q):
+    """Every face of the shared-shape factorizations {p n, q} / {p, n q}:
+    (face dimension, separates, law, accident). The accident is a face
+    where in_w(n) is not a monomial and p, q have the same initial form
+    at w after division by monomial gcd (prim_init)."""
+    side_a, side_b = [p * n, q], [p, n * q]
+    points = list((p * n * q).d)
+    dim, faces = face_weights(points)
+    out = []
+    for fdim, w in faces:
+        sep = face_multisets(side_a, w) != face_multisets(side_b, w)
+        live = not is_mono(n, w)
+        same = prim_init(p, w) == prim_init(q, w)
+        out.append((fdim, sep, live and not same, live and same))
+    return dim, out
+
+
+<span id="law_delta"></span>def law_delta(dim, reads):
+    fired = [fdim for fdim, _, law, _ in reads if law]
+    return min(fired) if fired else dim
+
+
+<span id="shared_delta"></span>def shared_delta(p, n, q):
+    return descent([p * n, q], [p, n * q])
+
+
+<span id="edge_normals"></span>def edge_normals(f):
+    """The primitive normals w of Newt(f), f in the first two variables,
+    at which in_w(f) is not a monomial: a polygon's edge normals, or
+    the two normals of a segment."""
+    pts = [e for e in f.d]
+    if rank(pts) == 1:
+        d = next(tuple(a - b for a, b in zip(e, pts[0])) for e in pts
+                 if e != pts[0])
+        g = gcd(d[0], d[1])
+        return {(-d[1] // g, d[0] // g), (d[1] // g, -d[0] // g)}
+    out = set()
+    for fdim, w in face_weights(pts)[1]:
+        if fdim == 1:
+            g = gcd(w[0], w[1])
+            out.add((w[0] // g, w[1] // g))
+    return out
+
+
+# ------------------------------------------------------------ sections
+
+<span id="section_control"></span>def section_control():
+    section("CONTROL: the six-term identity and the escape")
+    lhs = [uni((0, 1)), uni((0, 2, 4))]
+    facts = all_atomic_lists(zfactors(prod(lhs)))
+    pts = list(prod(lhs).d)
+    d6 = descent(facts[0], facts[1]) if len(facts) == 2 else (-1, -1)
+    print(f"    (1+x)(1+x^2+x^4): {len(facts)} atomic factorizations, "
+          f"(delta, dimension) {d6}, Newt dimension {rank(pts)}")
+    p, n = uni((0, 1)), dp({(0, 0): 1, (1, 0): -1, (2, 0): 1})
+    q = add(uni((0, 1)), dp({(0, 1): 1, (1, 1): 1, (2, 1): 1}))
+    de = shared_delta(p, n, q)
+    print(f"    the escape (1+t^3)((1+t) + y(1+t+t^2)): (delta, dim) {de}")
+    control("P1 control: 2 factorizations at delta 1, escape delta 1",
+          len(facts) == 2 and d6 == (1, 1) and de == (1, 2))
+
+
+<span id="section_edge"></span>def section_edge():
+    section("EDGE: the ten-term classification graded")
+    rows = []
+    for a, b, want in (((0, 1), (1, 0), 2), ((1, 1), (0, 1), 2),
+                       ((3, 1), (1, 2), 2), ((1, 0), (2, 0), 1)):
+        A = lambda k, a=a, b=b: (k[0] * a[0] + k[1] * b[0],  # noqa: E731
+                                 k[0] * a[1] + k[1] * b[1])
+        # exponents written as (coefficient of a, coefficient of b)
+        f1 = [[(0, 0), (0, 3)],
+              [(0, 0), (1, 0), (0, 1), (1, 1), (1, 2)]]
+        f2 = [[(0, 0), (0, 3)],
+              [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2)]]
+        for name, fam in (("F1", f1), ("F2", f2)):
+            blocks = [Dp({ev(*A(k)): 1 for k in blk}) for blk in fam]
+            rows.append((f"{name} a={a} b={b}", prod(blocks), want))
+    sporadic = {
+        "S1": [(0, 1), (0, 2, 4, 6, 8)],
+        "S2": [(0, 1), (0, 4, 6, 8, 12)],
+        "S3": [(0, 3), (0, 2, 4, 6, 8)],
+    }
+    for name, (u, v) in sporadic.items():
+        blocks = [sub((1, 2), (0, 3), u), sub((1, 2), (0, 0), v)]
+        rows.append((f"{name} X=x0 x1^2", prod(blocks), 1))
+    ok = True
+    for name, whole, want in rows:
+        facts = all_atomic_lists(zfactors(whole))
+        dim = rank(list(whole.d))
+        deltas = sorted({descent(f, g)[0]
+                         for f, g in combinations(facts, 2)})
+        good = zero_one(whole) and terms(whole) == 10 and len(facts) &gt;= 2
+        good = good and deltas == [1] and dim == want
+        ok = ok and good
+        print(f"    {name:26s} terms {terms(whole)}, factorizations "
+              f"{len(facts)}, dimension {dim}, deltas {deltas}")
+    check("P2 every ten-term collision reads delta 1 at its dimension",
+          ok)
+
+
+WITNESS = ((4, 6), (3, 4, 8, 9, 18, 24), (2, 4), (6, 8, 9, 24, 27, 36))
+
+
+<span id="section_witness"></span>def section_witness():
+    section("WITNESS: a twelve-term collision no proper face separates")
+    a, b, c, d = WITNESS
+    same = dmul(zdir(a), zdir(b)) == dmul(zdir(c), zdir(d))
+    fs = menu_factors(a) + menu_factors(b)
+    whole = prod(fs)
+    facts = all_atomic_lists(fs)
+    print(f"    {a} x {b} = {c} x {d}: {same}; core terms {terms(whole)}"
+          f", 0/1 {zero_one(whole)}, atomic factorizations {len(facts)}")
+    for f in fs:
+        print(f"      Z-factor {f.as_expr()}")
+    n = next(f for f in fs if negative(f))
+    rest = [f for f in fs if not negative(f)]
+    q = menu_factors(a)[0]
+    p = next(f for f in rest if f != q)
+    dim, reads = face_read(p, n, q)
+    delta = shared_delta(p, n, q)
+    nn, pn, qn = edge_normals(n), edge_normals(p), edge_normals(q)
+    print(f"    p = {p.as_expr()}, q = {q.as_expr()}, n has "
+          f"{terms(n)} terms and rank {rank(list(n.d))}")
+    print(f"    faces {len(reads)} (vertices "
+          f"{sum(1 for r in reads if r[0] == 0)}, edges "
+          f"{sum(1 for r in reads if r[0] == 1)}), separating "
+          f"{sum(1 for r in reads if r[1])}; (delta, dim) {delta}")
+    print(f"    edge normals: n {sorted(nn)}, p {sorted(pn)}, "
+          f"q {sorted(qn)}")
+    check("P3 the witness: two factorizations, delta 2, no shared normal",
+          same and terms(whole) == 12 and zero_one(whole)
+          and len(facts) == 2 and len(fs) == 3 and terms(n) == 5
+          and rank(list(n.d)) == 2 and delta == (2, 2)
+          and not (nn &amp; (pn | qn)))
+    return p, n, q
+
+
+<span id="two_factor_seeds"></span>def two_factor_seeds():
+    out = []
+    for m in combinations(range(2, 65), 2):
+        out.append(m)
+    out.append((2, 8, 32))
+    out += list(combinations(range(2, 21), 4))
+    out.append(WITNESS[1])
+    seeds, sibling = [], []
+    for m in out:
+        if len(m) == 2 and not negative_quick(m):
+            continue
+        fs = menu_factors(m)
+        if len(fs) != 2:
+            continue
+        neg = [f for f in fs if negative(f)]
+        if len(neg) == 1:
+            seeds.append(m)
+        elif len(neg) == 2:
+            sibling.append(m)
+    return seeds, sibling
+
+
+<span id="negative_quick"></span>def negative_quick(m):
+    """A size-2 menu is a seed iff its d has an odd prime factor
+    (collide.py); used only to skip factoring the rest."""
+    from collide import size2_criterion
+    return size2_criterion(m)
+
+
+<span id="section_scan"></span>def section_scan():
+    section("SCAN: two-factor seeds against irreducible cores")
+    t0 = time.time()
+    seeds, sibling = two_factor_seeds()
+    partners = [m for s in range(2, 7)
+                for m in combinations(range(2, 15), s)
+                if len(menu_factors(m)) == 1]
+    print(f"    {len(seeds)} two-factor seeds, {len(sibling)} with both "
+          f"factors negative, {len(partners)} partners "
+          f"[{time.time() - t0:.1f} s]")
+    bad, verdicts, by_clause, found = 0, [0, 0], 0, []
+    for s in seeds:
+        fs = menu_factors(s)
+        n = next(f for f in fs if negative(f))
+        p = next(f for f in fs if not negative(f))
+        for m in partners:
+            q = menu_factors(m)[0]
+            scan = nonneg(n * q) and q != p
+            if nonneg(n * q) and q == p:
+                by_clause += 1
+            count = len(all_atomic_lists([n, p, q]))
+            bad += scan != (count == 2)
+            verdicts[scan] += 1
+            if scan:
+                found.append((s, m, p, n, q))
+    for s in sibling:
+        fs = menu_factors(s)
+        for m in partners:
+            bad += len(all_atomic_lists(fs + menu_factors(m))) != 1
+    print(f"    pairs {sum(verdicts)}: unique {verdicts[0]}, two ways "
+          f"{verdicts[1]}; decided by q = p {by_clause}; disagreements "
+          f"{bad} [{time.time() - t0:.1f} s]")
+    hit = any(s == WITNESS[1] and m == WITNESS[0] for s, m, *_ in found)
+    check("P4 the scan agrees with the counter at every pair",
+          bad == 0 and min(verdicts) &gt; 0 and by_clause &gt; 0 and hit)
+    return found
+
+
+<span id="law_over"></span>def law_over(objects, label):
+    """Read every face of every (p, n, q); return disagreements, the
+    delta mismatches and the objects read."""
+    bad = mism = read = skipped = 0
+    for p, n, q in objects:
+        if rank(list((p * n * q).d)) &gt; 2:
+            skipped += 1
+            continue
+        dim, reads = face_read(p, n, q)
+        read += 1
+        bad += sum(1 for _, sep, law, _ in reads if sep != law)
+        mism += law_delta(dim, reads) != shared_delta(p, n, q)[0]
+    print(f"    {label}: objects read {read}, skipped at dimension &gt; 2 "
+          f"{skipped}, face disagreements {bad}, delta mismatches {mism}")
+    return bad, mism, read
+
+
+<span id="section_law"></span>def section_law(found, witness):
+    section("LAW: every face against the face law")
+    seen, objs, high, split = set(), [], None, {}
+    for s, m, p, n, q in found:
+        whole = dmul(zdir(s), zdir(m))
+        key = dkey(whole)
+        if key not in seen:
+            seen.add(key)
+            objs.append((p, n, q))
+            past = rank(list((p * n * q).d)) &gt; 2
+            frame = set(whole.values()) == {1}
+            split[past, frame] = split.get((past, frame), 0) + 1
+            if high is None and past:
+                high = (s, m, frame)
+    print(f"    (past dimension 2, menu product 0/1): count "
+          f"{dict(sorted(split.items()))}")
+    print(f"    first past dimension 2, and whether 0/1: {high}")
+    b1, m1, r1 = law_over(objs, "scan collisions")
+    b2, m2, r2 = law_over([witness], "the witness")
+    p, n = uni((0, 1)), dp({(0, 0): 1, (1, 0): -1, (2, 0): 1})
+    esc = add(uni((0, 1)), dp({(0, 1): 1, (1, 1): 1, (2, 1): 1}))
+    q14 = add(esc, dp({(0, 2): 1, (1, 2): 1}))
+    same = dmul(zdir((2, 16)), zdir((2, 4, 6, 12, 18, 24, 36))) == dmul(
+        zdir((2, 4)), zdir((2, 6, 16, 18, 24, 96, 144)))
+    out = []
+    for name, q in (("escape", esc), ("fourteen", q14)):
+        dim, reads = face_read(p, n, q)
+        acc = sum(1 for r in reads if r[3])
+        delta = shared_delta(p, n, q)
+        facts = len(all_atomic_lists(zfactors(p * n * q)))
+        out.append((delta[0], acc, facts))
+        print(f"    {name}: terms {terms(p * n * q)}, factorizations "
+              f"{facts}, (delta, dim) {delta}, accident faces {acc}")
+    b3, m3, r3 = law_over([(p, n, esc), (p, n, q14)], "the two specimens")
+    core = prod(menu_factors((2, 16))
+                + menu_factors((2, 4, 6, 12, 18, 24, 36)))
+    print(f"    the fourteen-term specimen's menu core is p n q: "
+          f"{core == p * n * q14}")
+    check("P5 the law agrees with separation at every face read",
+          b1 + b2 + b3 == 0 and m1 + m2 + m3 == 0
+          and r1 &gt; 0 and (r2, r3) == (1, 2))
+    check("P5 the fourteen-term specimen: delta 2 through two accidents",
+          same and core == p * n * q14 and out == [(1, 1, 2), (2, 2, 2)])
+
+
+<span id="line_objects"></span>def line_objects():
+    D = D_LINE
+    p = uni((0, 1))
+    bs = []
+    for mask in range(1, 1 &lt;&lt; (D + 1), 2):
+        ex = [k for k in range(D + 1) if mask &gt;&gt; k &amp; 1]
+        if len(ex) &lt; 2 or sum((-1) ** k for k in ex) != 0:
+            continue
+        B = uni(ex)
+        n = Dp({})
+        rem = dict(B.d)
+        for k in range(max(ex), 0, -1):
+            c = rem.get(ev(k), 0)
+            if c:
+                n.d[ev(k - 1)] = c
+                rem[ev(k - 1)] = rem.get(ev(k - 1), 0) - c
+                rem[ev(k)] = 0
+        assert all(v == 0 for v in rem.values())
+        if negative(n):
+            bs.append((B, n))
+    out, seen, dropped = [], set(), 0
+    for B, n in bs:
+        layers = []
+        for mask in range(1, 1 &lt;&lt; (D + 1)):
+            r = uni([k for k in range(D + 1) if mask &gt;&gt; k &amp; 1])
+            if nonneg(n * r) and zero_one(B * r):
+                layers.append(mask)
+        cands = [(a, b) for a in layers for b in layers]
+        cands += [(a, m, b) for a in layers for m in [0] + layers
+                  for b in layers]
+        for c in cands:
+            if min((mk &amp; -mk).bit_length() for mk in c if mk) != 1:
+                continue
+            if all(sum((-1) ** k for k in range(D + 1) if mk &gt;&gt; k &amp; 1)
+                   == 0 for mk in c):
+                continue
+            q = Dp({ev(k, j): 1 for j, mk in enumerate(c)
+                    for k in range(D + 1) if mk &gt;&gt; k &amp; 1})
+            F = B * q
+            key = frozenset(F.d)
+            if key in seen:
+                continue
+            seen.add(key)
+            facts = all_atomic_lists(zfactors(F))
+            want = {frozenset([B, q]), frozenset([p, n * q])}
+            got = {frozenset(f) for f in facts}
+            if got != want:
+                dropped += 1
+                continue
+            out.append((p, n, q, c, terms(F)))
+    return bs, out, dropped
+
+
+<span id="section_line"></span>def section_line():
+    section(f"LINE: p = 1 + t, n univariate, degrees at most {D_LINE}")
+    t0 = time.time()
+    bs, objs, dropped = line_objects()
+    closed_bad, twelve, spectrum = 0, 0, {}
+    for p_, n, q, c, T in objs:
+        delta = shared_delta(p_, n, q)[0]
+        outer = [c[0], c[-1]]
+        mult = all(mk &amp; (mk &gt;&gt; 1) and bin(mk).count("1") == 2
+                   and mk == (mk &amp; -mk) * 3 for mk in outer)
+        closed_bad += (delta == 2) != mult
+        if delta == 2:
+            spectrum[T] = spectrum.get(T, 0) + 1
+            twelve += T == 12
+    print(f"    admissible B {len(bs)}, collisions {len(objs)}, "
+          f"candidates dropped by the counter {dropped} "
+          f"[{time.time() - t0:.1f} s]")
+    print(f"    delta 2 by term count {dict(sorted(spectrum.items()))}; "
+          f"closed-reading disagreements {closed_bad}")
+    b, m, r = law_over([(p_, n, q) for p_, n, q, _, _ in objs],
+                       "line collisions")
+    check("P6 the closed reading holds and twelve is empty",
+          sum(spectrum.values()) &gt; 0 and closed_bad == 0 and twelve == 0)
+    check("P5 the law agrees at every face of every line collision",
+          b == 0 and m == 0 and r == len(objs) &gt; 0)
+
+
+<span id="layer_ok"></span>def layer_ok(k, exps):
+    """n r &gt;= 0 for n = (1 + t^k)/(1 + t) and r the 0/1 layer on exps."""
+    c = [0] * (k + max(exps))
+    for e in exps:
+        for i in range(k):
+            c[e + i] += (-1) ** i
+    return min(c) &gt;= 0
+
+
+<span id="section_sixteen"></span>def section_sixteen():
+    section("SIXTEEN: the four-term middle layer of (F), k odd 3..41, "
+            "exponents to 60")
+    ks = range(3, 42, 2)
+    two = sorted({m for k in ks for m in range(1, 61) if layer_ok(k, (0, m))})
+    mult = sum(layer_ok(k, (0, 1, a, a + 1)) for k in ks for a in range(2, 30))
+    tested, passing = 0, 0
+    for k in ks:
+        for rest in combinations(range(1, 61), 3):
+            exps = (0,) + rest
+            if sum((-1) ** e for e in exps) == 0:
+                continue
+            tested += 1
+            passing += layer_ok(k, exps)
+    print(f"    two-term layers passing at m = {two}; (1 + t)(1 + t^a) "
+          f"passing at {mult} (k, a); four-term layers with r(-1) != 0 "
+          f"tested {tested}, passing {passing}")
+    check("P7 the controls: two-term only at 1 + t, every "
+          "(1 + t)(1 + t^a) passes", two == [1] and mult == len(ks) * 28)
+    check("P7 no four-term layer with r(-1) != 0 passes", passing == 0)
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_control()
+    section_edge()
+    witness = section_witness()
+    found = section_scan()
+    section_law(found, witness)
+    section_line()
+    section_sixteen()
+    print()
+    n, ok = len(CHECKS), sum(CHECKS)
+    print(f"{ok} of {n} checks pass  [{time.time() - t0:.1f} s]")
+    return 0 if ok == n else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/faces.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

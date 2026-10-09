@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>borrow.py | Numbers read one place at a time</title>
+<meta name="description" content="borrow.py">
+<link rel="alternate" type="text/x-python" href="/code/borrow.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>borrow.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/machine/#clearing-a-place-decides-and-dividing-once-does-not">MACHINE: Clearing a place decides and dividing once does not</a> (theorem).</p><p>Cited on: <a href="/machine/">MACHINE</a>.</p><p>To run it: no other script; standard library only.</p></div>
+<pre>"""borrow.py -- which moves that lower a depth keep a program's halting
+decidable: a move that clears a place whole, or one that divides once.
+
+QUESTION. machine.py decides every program over pushes and presence
+reads: the depths v_p(M) only rise, and (instruction, zero-pattern) is
+a finite quotient. Give the program a move that LOWERS a depth. Two
+come to hand at a place p: CLEAR p, M -&gt; M / p^(v_p(M)), which drops
+the place whole, and DIVIDE p, M -&gt; M / p when p | M, which drops one.
+Both lower a depth, and both make a tested depth fall back to zero, so
+"a down-move" does not separate them. What does?
+
+THE OBJECT. States M = 2^a 3^b, so the counters are the depths a and b.
+A PROGRAM is a finite list of instructions, each PUSH p (M -&gt; Mp),
+CLEAR p, DIVIDE p, or TEST p t (does p^t divide M?) with two targets,
+plus HALT. T is the largest t a program tests. For a set O of maps of
+N (the moves on one depth) and a set of tests on N, the COARSEST
+CONGRUENCE is the coarsest equivalence on N that refines every test
+and is carried into itself by every map in O; its CLASS COUNT is its
+number of classes.
+
+THE ARGUMENT (written before the engine).
+  (C) CLEARING DECIDES. With moves PUSH and CLEAR and tests t &lt;= T,
+      the map v -&gt; min(v, T) respects all three: min(v + 1, T) is a
+      function of min(v, T), CLEAR sends every v to 0, and v &gt;= t iff
+      min(v, T) &gt;= t for t &lt;= T. So (q, min(a, T), min(b, T)) is a
+      bisimulation onto a finite set of |Q| (T + 1)^2 states, the run
+      halts iff its projection reaches HALT, and otherwise it loops;
+      halting decides. machine.py's depth machine is the CLEAR-free
+      T = 1 case.
+  (I) THE CLASS COUNT IS THE GRADE. The argument in (C) is the statement
+      that the coarsest congruence of {PUSH, CLEAR} refining the tests
+      t &lt;= T has T + 1 classes. Replace CLEAR by DIVIDE: v and w &gt; v are
+      separated by DIVIDE^v followed by the test t = 1, so the coarsest
+      congruence is equality, one class per depth; with two depths
+      and the zero-test this is Minsky's machine (Minsky 1967), cited,
+      and halting is undecidable. Both moves lower a depth to zero; the
+      one that decides is the one whose congruence is finite. A
+      down-move no test reads cannot steer a run, and a test of depths
+      that only rise flips once; the damage is the pair's class count. The program "at q0: if 2 does not
+      divide M halt, else divide by 2; at q1: if 2 does not divide M
+      loop, else divide by 2 and go to q0" halts from 4 and loops from
+      8, both from the class (q0, (1, 0)).
+  (R) THE READ VARIES THE SAME COUNT. Hold the move fixed and vary the
+      test. At an odd prime l seated in M the push l lowers the
+      headroom counter c = v_l(lambda(M)) + 1 - v_l(M) by one,
+      truncated at zero (machine.py, the headroom counters). Under a
+      blind test of the push l (independence, new idempotents,
+      semisimplicity, which see the support and the squarefree bit)
+      the states 3.7, 3.19 and 3.163 answer alike at every depth of
+      the orbit; under dynamics (does the push raise lambda?) they are
+      told apart by how many pushes pass before lambda rises, which is
+      c = 1, 2 and 4. So machine.py's "the price is a read" and this
+      file's "the price is the move" are one invariant with a
+      different coordinate held fixed.
+
+THE PREDICTIONS (fixed before the engine ran).
+  P1 section_clear: on every program of up to two instructions with
+     T = 2 and of three instructions with T = 1, over PUSH, CLEAR and
+     TEST at the places 2 and 3, from every start (a, b) in {0, 1,
+     2}^2, the quotient decider's verdict matches a direct run of
+     4 |Q| (T + 1)^2 + 1 steps; runs from starts sharing a class
+     project to the same (q, min(a, T), min(b, T)) trace for that
+     many steps.
+  P2 section_classes: over v in 0..30 and every word of length at most
+     L, the classes the tests separate number exactly T + 1 for
+     {PUSH, CLEAR}, T = 1, 2, 3, at every L in {4, 6, 8}; and exactly
+     L + 2 for {PUSH, DIVIDE} with the zero-test (v &lt;= L each alone,
+     the rest together), rising with L.
+  P3 section_divide: the halve-twice program halts from M = 1, 4, 16
+     and loops from 2, 8, 32; the runs from 4 and 8 start at one
+     class (q0, (1, 0)), so the decider of P1 is wrong on one of them.
+  P4 section_clear (the positive control on the down-flip): a program
+     that pushes and clears 2 forever flips its test from yes to no
+     at least 100 times in 400 steps, and the decider settles it LOOP.
+  P5 section_read: from 3.7, 3.19 and 3.163 the number of transparent
+     pushes of 3 before lambda rises is 1, 2 and 4. The three blind
+     demands answer the push 3 alike at every state of the three
+     orbits by construction, 3 dividing every state; printed, not
+     checked.
+
+  P7 section_classes (added after the first green run, when the
+     erasure reading was carried here): over v in 0..30, push and
+     division restricted to v &gt;= 1 merge no two depths, clear merges
+     all 31 into one value and truncated division merges exactly the
+     pair 0, 1; so erasing and not erasing each occur on both sides of
+     the class-count line. The counts follow from the definitions; the
+     check prints them beside the class counts.
+
+THE KILLS (observables, fixed before the engine ran).
+  K1 any disagreement printed by P1 kills (C).
+  K2 any {PUSH, CLEAR} class count other than T + 1 at any L &gt;= T
+     kills (I)'s finite row; a {PUSH, DIVIDE} count that does not
+     rise with L kills its infinite row.
+  K3 P3 printing the same fate from 4 and 8 kills the positive
+     control, and no verdict of P1 is read.
+
+THE DESIGN. Pure Python. The engine holds the depths (a, b), not M:
+PUSH, CLEAR and DIVIDE at a place act on its depth alone and TEST p t
+reads v_p(M) &gt;= t, so the counter run is the run on M exactly. P5
+works on M through its factorization with lambda from prime powers.
+
+FINDINGS (entered after the run, from its printed output).
+  1. P1 hit: the quotient decider agrees with a direct run on 1016280
+     (program, start) cases, 0 disagreements, and the 463320 start
+     classes each project to one trace, 331776 of them holding two
+     starts or more (the rest, singletons, pass trivially).
+  2. P2 hit: push/clear prints [2, 3, 4] classes at T = 1, 2, 3 for L
+     = 4, 6 and 8; push/divide prints 6, 8, 10, which is L + 2.
+  3. P3 hit: halve-twice halts from 1, 4, 16 and loops from 2, 8, 32;
+     the runs from 4 and 8 start at the class (q0, (1, 0)).
+  4. P4 hit at the edge of its band: the pump flips its test from yes
+     to no exactly 100 times in 400 steps, one flip per four-step
+     cycle (the estimate on paper had been about 133, reading the
+     cycle as three steps), and the decider settles it LOOP.
+  5. P5 hit: 1, 2 and 4 transparent pushes of 3 from 21, 57 and 489,
+     and one blind answer, (False, False, False), throughout.
+  6. P6 (added after the first green run, which had no check able to
+     see the decider wrong): run on halve-twice, P1's decider answers
+     LOOP from both 4 and 8, where 4 halts.
+  7. P7 hit (added after the first green run): over 0..30 push merges
+     0 depths, clear 30, division on v &gt;= 1 0, truncated division 1.
+  Tiers: (C) and (I) are theorems, proved above, with undecidability
+  given Minsky's theorem; the engine checks instances. SETTLED ON
+  AUDIT: (I)'s title reads the class count as the grade, and it is a
+  sufficient condition only: a vector addition system keeps one class
+  per value and still decides reachability (Mayr 1981, Kosaraju 1982).
+
+RUN RECORD. 11 checks, 18 s, peak 12 MB.
+"""
+
+import sys
+from itertools import product
+from math import gcd
+
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" +
+          (f"  ({detail})" if detail else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+# ----------------------------------------------------------------------
+# the counter engine: the depths (a, b) at the places 2 and 3
+
+<span id="step"></span>def step(ins, v):
+    """One instruction on the depth vector v; returns (next, v)."""
+    op = ins[0]
+    if op == "TEST":
+        return (ins[3] if v[ins[1]] &gt;= ins[2] else ins[4]), v
+    v = list(v)
+    if op == "PUSH":
+        v[ins[1]] += 1
+    elif op == "CLEAR":
+        v[ins[1]] = 0
+    elif v[ins[1]] &gt; 0:
+        v[ins[1]] -= 1
+    return ins[2], tuple(v)
+
+
+<span id="run_direct"></span>def run_direct(prog, v, steps):
+    """Returns ('HALT'|'LOOP'|'OPEN', trace of (q, v))."""
+    q, trace = 0, []
+    for _ in range(steps):
+        ins = prog[q]
+        trace.append((q, v))
+        if ins[0] == "HALT":
+            return "HALT", trace
+        if ins[0] == "LOOP":
+            return "LOOP", trace
+        q, v = step(ins, v)
+    return "OPEN", trace
+
+
+<span id="cap"></span>def cap(v, T):
+    return tuple(min(x, T) for x in v)
+
+
+<span id="decide"></span>def decide(prog, v, T):
+    """The quotient decider on (q, min(v, T)); PUSH/CLEAR/TEST only."""
+    q, z, seen = 0, cap(v, T), set()
+    while (q, z) not in seen:
+        seen.add((q, z))
+        ins = prog[q]
+        if ins[0] == "HALT":
+            return "HALT"
+        if ins[0] == "LOOP":
+            return "LOOP"
+        q, z = step(ins, z)
+        z = cap(z, T)
+    return "LOOP"
+
+
+<span id="programs"></span>def programs(n, T):
+    """Every PUSH/CLEAR/TEST program of n instructions over the two
+    places with tests t &lt;= T, HALT at index n; targets 0..n."""
+    opts = []
+    for i in (0, 1):
+        for x in range(n + 1):
+            opts.append(("PUSH", i, x))
+            opts.append(("CLEAR", i, x))
+        for t in range(1, T + 1):
+            for x in range(n + 1):
+                for y in range(n + 1):
+                    opts.append(("TEST", i, t, x, y))
+    for body in product(opts, repeat=n):
+        yield list(body) + [("HALT",)]
+
+
+# ----------------------------------------------------------------------
+# section_clear
+
+PUMP = [("PUSH", 0, 1), ("TEST", 0, 1, 2, 0), ("CLEAR", 0, 1), ("HALT",)]
+
+
+<span id="section_clear"></span>def section_clear():
+    section("CLEAR -- push, clear and bounded tests decide")
+    total = agree = nclass = same = multi = 0
+    starts = list(product(range(3), repeat=2))
+    for n, T in ((1, 2), (2, 2), (3, 1)):
+        for prog in programs(n, T):
+            steps = 4 * len(prog) * (T + 1) ** 2 + 1
+            proj = {}
+            for v in starts:
+                total += 1
+                d = decide(prog, v, T)
+                r, trace = run_direct(prog, v, steps)
+                agree += (d == "HALT") == (r == "HALT")
+                p = tuple((q, cap(x, T)) for q, x in trace)
+                proj.setdefault(cap(v, T), []).append(p)
+            for ps in proj.values():
+                nclass += 1
+                multi += len(ps) &gt; 1
+                same += all(p == ps[0] for p in ps)
+    print(f"  {total} (program, start) cases; {nclass} start classes, "
+          f"{multi} holding two starts or more")
+    check("P1 the quotient decider matches a direct run everywhere",
+          agree == total, f"{total - agree} disagreements")
+    check("P1 starts in one class project to one trace",
+          same == nclass, f"{nclass - same} classes split")
+    r, trace = run_direct(PUMP, (0, 0), 400)
+    outs = [x[0] &gt;= 1 for q, x in trace if q == 1]
+    down = sum(1 for u, w in zip(outs, outs[1:]) if u and not w)
+    d = decide(PUMP, (0, 0), 1)
+    print(f"  push-and-clear: {down} yes-to-no flips in 400 steps; "
+          f"decider {d}, direct {r}")
+    check("P4 clearing flips the test down at least 100 times",
+          down &gt;= 100)
+    check("P4 and the decider settles the pump LOOP", d == "LOOP")
+
+
+# ----------------------------------------------------------------------
+# section_classes: the coarsest congruence, read through words
+
+<span id="classes"></span>def classes(ops, tests, L, top=30):
+    words = [()]
+    for n in range(1, L + 1):
+        words += list(product(range(len(ops)), repeat=n))
+    sig = {}
+    for v in range(top + 1):
+        s = []
+        for w in words:
+            x = v
+            for i in w:
+                x = ops[i](x)
+            s.append(tuple(x &gt;= t for t in tests))
+        sig.setdefault(tuple(s), []).append(v)
+    return len(sig)
+
+
+<span id="section_classes"></span>def section_classes():
+    section("CLASSES -- the coarsest congruence refining the tests")
+    push = lambda x: x + 1
+    clear = lambda x: 0
+    divide = lambda x: max(0, x - 1)
+    ok_clear = ok_div = True
+    for L in (4, 6, 8):
+        row = []
+        for T in (1, 2, 3):
+            c = classes([push, clear], range(1, T + 1), L)
+            row.append(c)
+            ok_clear &amp;= c == T + 1
+        d = classes([push, divide], (1,), L)
+        ok_div &amp;= d == L + 2
+        print(f"  L = {L}: push/clear at T = 1, 2, 3 -&gt; {row}; "
+              f"push/divide at T = 1 -&gt; {d}")
+    check("P2 push/clear has T + 1 classes at every L", ok_clear)
+    check("P2 push/divide separates 0..L alone: L + 2 classes", ok_div)
+    moves = {"push": (push, range(31)), "clear": (clear, range(31)),
+             "divide, v &gt;= 1": (divide, range(1, 31)),
+             "divide, truncated": (divide, range(31))}
+    merged = {}
+    for name, (f, dom) in moves.items():
+        dom = list(dom)
+        merged[name] = len(dom) - len({f(v) for v in dom})
+    print("  depths merged over 0..30: " + ", ".join(
+        f"{k} {v}" for k, v in merged.items()))
+    check("P7 erasure falls on both sides of the class-count line",
+          merged == {"push": 0, "clear": 30, "divide, v &gt;= 1": 0,
+                     "divide, truncated": 1})
+
+
+# ----------------------------------------------------------------------
+# section_divide
+
+HALVE_TWICE = [("TEST", 0, 1, 1, 4), ("DIVIDE", 0, 2),
+               ("TEST", 0, 1, 3, 5), ("DIVIDE", 0, 0), ("HALT",),
+               ("LOOP",)]
+
+
+<span id="section_divide"></span>def section_divide():
+    section("DIVIDE -- one division breaks the quotient")
+    out = {a: run_direct(HALVE_TWICE, (a, 0), 100) for a in range(6)}
+    print("  halve-twice from M = 2^a: " + " ".join(
+        f"{2 ** a}:{out[a][0]}" for a in range(6)))
+    check("P3 halts from 1, 4, 16 and loops from 2, 8, 32",
+          all(out[a][0] == ("HALT" if a % 2 == 0 else "LOOP")
+              for a in range(6)))
+    n4 = (out[2][1][0][0], cap(out[2][1][0][1], 1))
+    n8 = (out[3][1][0][0], cap(out[3][1][0][1], 1))
+    check("P3 the runs from 4 and 8 start at one class", n4 == n8,
+          f"{n4}")
+    d4, d8 = decide(HALVE_TWICE, (2, 0), 1), decide(HALVE_TWICE, (3, 0), 1)
+    print(f"  P1's decider on halve-twice: 4 -&gt; {d4}, 8 -&gt; {d8}")
+    check("P6 P1's comparison can fail: one verdict, two fates",
+          d4 == d8 and out[2][0] != out[3][0])
+
+
+# ----------------------------------------------------------------------
+# section_read: the push 3 on the headroom, blind and sighted
+
+<span id="factor"></span>def factor(n):
+    f, p = {}, 2
+    while p * p &lt;= n:
+        while n % p == 0:
+            f[p] = f.get(p, 0) + 1
+            n //= p
+        p += 1
+    if n &gt; 1:
+        f[n] = f.get(n, 0) + 1
+    return f
+
+
+<span id="lam"></span>def lam(f):
+    out = 1
+    for p, a in f.items():
+        if p == 2:
+            x = 1 if a == 1 else 2 if a == 2 else 2 ** (a - 2)
+        else:
+            x = p ** (a - 1) * (p - 1)
+        out = out * x // gcd(out, x)
+    return out
+
+
+<span id="blind"></span>def blind(f, m):
+    fm = factor(m)
+    g = dict(f)
+    for p, a in fm.items():
+        g[p] = g.get(p, 0) + a
+    return (all(p not in f for p in fm), any(p not in f for p in fm),
+            all(a == 1 for a in g.values()))
+
+
+<span id="section_read"></span>def section_read():
+    section("READ -- the same push under a blind and a sighted test")
+    counts, blinds = [], set()
+    for M in (21, 57, 489):
+        f, n = factor(M), 0
+        while True:
+            blinds.add(blind(f, 3))
+            g = dict(f)
+            g[3] += 1
+            if lam(g) != lam(f):
+                break
+            n, f = n + 1, g
+        counts.append(n)
+    print(f"  transparent pushes of 3 from 21, 57, 489: {counts}; "
+          f"blind answers seen: {sorted(blinds)}")
+    check("P5 the sighted test counts 1, 2, 4", counts == [1, 2, 4])
+
+
+<span id="main"></span>def main():
+    section_divide()
+    section_classes()
+    section_read()
+    section_clear()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/borrow.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

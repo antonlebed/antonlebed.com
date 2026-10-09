@@ -1,0 +1,558 @@
+"""collision.py -- a substrate of primes grown on the collisions a
+labelled set of integers presents, read off the primorial tower's own chain
+of unresolved differences.
+
+QUESTION. learner.py's reader commits members of a fixed cover. Let the
+substrate grow instead. A LABELLED SET is a finite set of integers
+with a label on each member; a SUBSTRATE is a set S of primes from a POOL,
+the first K primes, reading an integer x as its residues mod each p in
+S. Two inputs with different labels are a MUST-SEPARATE pair, and S
+RESOLVES the pair (x, y) when some p in S has x != y mod p; an
+unresolved must-separate pair is a COLLISION. The LEAST-NEW grower
+starts from the empty substrate and, while a collision remains, adds the
+smallest pool prime not held that resolves at least one collision,
+stopping when none remains or no pool prime resolves one. What does the
+grown substrate depend on: only how fine the labelled set needs it, or also
+which primes? And where, in the order of substrates by inclusion, can
+two labelled sets' substrates part?
+
+THE ARGUMENT (written before the engine).
+  (A) THE DIFFERENCE SET. S resolves (x, y) iff some p in S does not
+      divide x - y, iff prod(S) does not divide x - y, the primes being
+      distinct. So everything a labelled set asks is its DIFFERENCE SET D,
+      the |x - y| over must-separate pairs, and a prime p resolves d
+      iff p does not divide d: growth is a hitting set over D.
+  (B) THE RUNG READING. Write p_t# for the product of the first t pool
+      primes (p_0# = 1) and D_t for the multiples of p_t# in D: the
+      differences rung t of the tower leaves unresolved. Claim: the
+      grower walks the pool upward, takes p_(t+1) exactly when
+      D_(t+1) != D_t, and stops at the first t with D_t empty or at
+      the pool's end; after it has passed p_t, its collisions are
+      exactly D_t. Proof. Let U be the grower's collisions, the
+      elements of D divisible by prod(S). A prime p not held is legal
+      iff it fails to divide some element of U. A legal prime is taken
+      only if every smaller prime not held is illegal, so divides every
+      element of U; U only shrinks, so such a prime divides every later
+      U and is never taken: the grower passes the pool once, upward.
+      Induct on t: after passing p_t, every element of U is divisible
+      by every prime passed, taken or not, so U lies in D_t; and D_t
+      lies in U since prod(S) divides p_t#. At p_(t+1), legal iff some
+      element of D_t is not divisible by p_(t+1), iff D_(t+1) != D_t.
+      A pool prime passed without a take below the last prime taken is
+      a SKIP; a pass after the last take, the whole remaining pool
+      dividing a difference, is no skip.
+  (C) HOW FINE AND WHAT. The DEPTH of D is the least t with D_t empty.
+      The grown set lies in the first DEPTH pool primes, and is all of
+      them exactly when no rung is skipped. A sufficient witness:
+      p_t# lies in D for every t below the depth, since then p_t# is
+      in D_t and not in D_(t+1). For the labelled set 0 .. M - 1
+      all distinct, D = {1, .., M - 1}, the witness holds and the depth
+      is the least t with p_t# >= M. A skip at q needs every element of
+      D_t divisible by q; a labelled set of the multiples of q skips q
+      whenever it reaches it.
+  (D) THE ENCODING BOUND. If a squarefree m with every prime factor in
+      the pool divides no element of D, the grower stops by the time it
+      passes m's largest prime factor, since p_t# is then a multiple of
+      m. Under place value in base Q, a form stem . suffix with one
+      suffix symbol is enc(stem) * Q + suffix; two forms with different
+      suffixes differ by a number congruent to the suffix difference,
+      nonzero and below Q in size, mod Q, so Q divides no difference
+      of the suffix-labelled set. So for squarefree Q the grown set lies
+      below Q's largest prime factor. The bound is not containment in
+      Q's factors: the pool below them is walked first.
+  (E) THE LAYER. The collisions of S' contain none that S resolves
+      when S lies inside S', so every count of collisions is antitone
+      in inclusion and no collision count orders two nested substrates
+      against it. The grower takes
+      one prime a step, so its t-th substrate has t primes, and two
+      labelled sets' growers first part either where one stops and the
+      other takes a prime (nested, ordered with inclusion) or at a step
+      where both hold one set and take different primes: two
+      incomparable members of one LAYER of the Boolean order.
+  (F) THE SOLE RESOLVER. When r is the one pool prime not dividing a
+      difference d, its SOLE RESOLVER, d is unresolved by every
+      substrate lacking r (the converse fails when the whole pool
+      divides d). A substrate grown without r then fails on d whatever
+      else it holds. 770 = 2 * 5 * 7 * 11 on the pool 2 .. 11 has sole
+      resolver 3.
+  (G) THE WORST CASE. Each prime the grower takes resolves at least
+      one difference no earlier one did, so it takes at most |D|. On
+      D = {p_0#, .., p_(T-1)#} it takes the first T primes, while the
+      pool's T-th prime, its own last pick, divides none of them and
+      resolves all alone. The greedy that ranks primes by how many
+      differences they resolve takes that prime first. So the grower's
+      overpay over the least cover reaches the factor |D|, its maximum.
+
+THE LABELLED SETS.
+  ALL-DISTINCT(M): 0 .. M - 1, every label distinct.
+  SUBLATTICE(M, q): the multiples of q below M, labels distinct.
+  RANDOM(M, c): each of 0 .. M - 1 labelled uniformly from c classes;
+    the 24 such sets are drawn in turn from one random.Random(11)
+    stream.
+  FEATURE(Q, seed): ten two-symbol stems and five one-symbol suffixes
+    drawn at random in base Q (duplicates merged), form = stem . suffix
+    read in base Q, stem high-order, label = the suffix.
+  PARADIGM(seed): twelve lexemes x drawn from 0 .. 999, five cells with
+    offsets 0 .. 4, form x + offset, label = the cell; its CONTROL gives
+    each (lexeme, cell) an independent random form in the same range.
+    Two forms landing on one integer are dropped from D, since no
+    substrate separates them.
+
+ADDED AFTER THE FIRST RUN, BEFORE ITS CHECKS RAN.
+  (H) THE LEAST NON-DIVISOR. The chain drops at p_(t+1) iff some d has
+      p_t# dividing it and p_(t+1)# not, iff the least prime not
+      dividing d, its LEAST NON-DIVISOR l(d), is p_(t+1). So the grown
+      substrate is {l(d) : d in D}, a difference the whole pool divides
+      left a collision: each difference names one prime, and the
+      grower takes the primes named. The witness p_t# names p_(t+1).
+  (I) ADDITION AGAINST BINDING. Let N be a squarefree modulus the
+      pool primes all divide, lexemes L units mod N, and cells c. Join
+      lexeme and cell by addition, form = L + c, or by binding,
+      multiplication by the unit L, form = L * c mod N. A same-lexeme
+      difference is c2 - c1 in the first case and congruent to
+      L (c2 - c1) mod N in the second; L is a unit mod every pool
+      prime, so both have the least non-divisor of c2 - c1,
+      and over same-lexeme pairs on the same cells the two encoders
+      grow one substrate (pairs across lexemes are not read). When
+      the cells are units of an even N, every cell is odd and every
+      cell difference even, so 2 is named by none.
+
+PREDICTIONS (fixed before the engine ran).
+  P0 [controls, read first] (i) resolves() agrees with the product form
+     and with the residue-tuple test on 4000 random (S, x, y). (ii)
+     ALL-DISTINCT(30) grows [2, 3, 5]. (iii) enc([1, 2], 10) = 12.
+  P1 [(B)] the rung reading equals the grower on every instance of a
+     random family of 20,000 difference sets and pools (three shapes:
+     random integers, multiples of a pool prime, products of pool
+     primes), and on the all-distinct and sublattice labelled sets.
+  P2 [(C), depth] ALL-DISTINCT(M) at M = 30, 210, 2310, 30030 grows
+     the first 3, 4, 5, 6 primes.
+  P3 [(C), skips] SUBLATTICE(630, q) grows [2, 5, 7, 11], [2, 3, 7, 11],
+     [2, 3, 5, 11] at q = 3, 5, 7 on the twelve-prime pool.
+  P4 [(C), the witness] each of 24 RANDOM(210, 8) labelled sets holds
+     1, 2, 6 and 30 in D, and all grow [2, 3, 5, 7].
+  P5 [(D)] FEATURE at Q = 30 and Q = 35 on the pool 2 .. 11: no
+     difference is divisible by Q, and the grown set lies in the primes
+     up to 5 and up to 7; the Q = 35 set is not inside {5, 7}. At the
+     prime Q = 29 no pool factor bounds it.
+  P6 [compression] PARADIGM's same-lexeme differences are exactly the
+     offset differences {1, 2, 3, 4}; its D is smaller than its
+     control's; both grow [2, 3, 5, 7, 11] on the pool 2 .. 11.
+  P7 [(F)] {770} grows [3] on the pool 2 .. 11; SUBLATTICE(300, 3)
+     grows [2, 5, 7, 11] there and leaves 770 unresolved.
+  P8 [(G)] on D = {1, 2, 6, 30, 210} with the pool 2 .. 13 the grower
+     takes [2, 3, 5, 7, 11], the coverage greedy [11]. Over the random
+     family the grower never takes more than |D| primes.
+  P9 [(E)] the growers of the three sublattice labelled sets first
+     part at a common set with different primes: at [2], [2] and
+     [2, 3] (asserted; the first run's check of the parting was true
+     by its own construction). The nested-pair half of (E) is the
+     definition of resolving; its run, a count that could not exceed
+     zero, is dropped.
+
+  PH [(H)] {l(d)} equals the grower on the random family.
+  PI [(I)] N = 510510, twelve unit lexemes and five unit cells drawn
+     at random: the same-lexeme differences under the sum and the
+     binding name the same primes and grow one substrate on the pool
+     2 .. 11, with no 2 in it; the additive difference set is smaller.
+
+KILLS (observables).
+  K0 any P0 control misses: nothing below is read.
+  K1 an instance where the rung reading and the grower differ: (B)'s
+     proof is wrong.
+  K2 a P2 or P3 set other than predicted: (C) is misread.
+  K3 a FEATURE difference divisible by Q, or a grown set past Q's
+     largest factor at Q = 30 or 35: (D) is wrong.
+
+FINDINGS (entered after the runs; 33 of 33 checks pass, 35 of 35
+once P9's nested half was dropped and F5's sets asserted).
+  F0 The controls pass: 4000 samples agree three ways, ALL-DISTINCT(30)
+     grows [2, 3, 5], enc([1, 2], 10) = 12.
+  F1 The rung reading equals the grower on all 20,000 instances, 5,144
+     of which skip a pool prime below their last take, and on every
+     named labelled set; no instance takes more than |D| primes.
+  F2 ALL-DISTINCT at M = 30, 210, 2310, 30030 grows the first 3, 4, 5,
+     6 primes.
+  F3 SUBLATTICE(630, q) grows [2, 5, 7, 11], [2, 3, 7, 11] and
+     [2, 3, 5, 11] at q = 3, 5, 7, as predicted rung by rung.
+  F4 All 24 RANDOM(210, 8) labelled sets hold 1, 2, 6, 30 and grow
+     [2, 3, 5, 7].
+  F5 FEATURE: Q = 30 grows [2, 3, 5] (|D| = 696), Q = 35 grows
+     [2, 3, 5, 7] (|D| = 819), not inside {5, 7}, Q = 29 grows the
+     whole pool 2 .. 11 (|D| = 783); no difference is divisible by Q
+     at any of the three.
+  F6 PARADIGM's same-lexeme differences are {1, 2, 3, 4}; its D has 431
+     elements against the control's 644; both grow [2, 3, 5, 7, 11].
+  F7 {770} grows [3]; SUBLATTICE(300, 3) grows [2, 5, 7, 11] and 770
+     is its collision.
+  F8 On {1, 2, 6, 30, 210} the grower takes [2, 3, 5, 7, 11] and the
+     coverage greedy [11].
+  F9 The sublattice growers part at [2] (q = 3 against 5 and against 7,
+     taking 5 where the others take 3) and at [2, 3] (q = 5 against 7).
+  F10 {l(d)} equals the grower on all 20,000 instances.
+  F11 On the drawn units the additive difference set has 10 elements
+     and the multiplicative one 119; both name the primes 5 and 7 and
+     grow [5, 7]. The five drawn cells are all 2 mod 3 (printed), so
+     3 is skipped beside 2.
+
+RUN RECORD. 35 checks, 0.8 s, peak 46 MB. Exact integers throughout.
+The first run printed no count of skipping instances in the random
+family; the count was added so that the reading's agreement is not
+read off a family with no skips, and nothing else changed. (H) and
+(I) were derived after that run, from its reading, and written with
+PH and PI before their sections existed.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import random
+import sys
+from itertools import combinations
+from math import prod
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" +
+          (f"  ({detail})" if detail else ""))
+
+
+def section(title):
+    print()
+    print(title)
+
+
+def first_primes(n):
+    ps, c = [], 2
+    while len(ps) < n:
+        if all(c % p for p in ps):
+            ps.append(c)
+        c += 1
+    return ps
+
+
+POOL = first_primes(12)
+POOL5 = POOL[:5]
+
+
+# the substrate and the grower
+
+def resolves(S, x, y):
+    return any((x - y) % p for p in S)
+
+
+def collisions(S, D):
+    P = prod(S)
+    return [d for d in D if d % P == 0]
+
+
+def grow(D, pool=POOL):
+    """The least-new grower, as defined: smallest legal prime first."""
+    S = []
+    while True:
+        u = collisions(S, D)
+        if not u:
+            return S
+        for p in pool:
+            if p not in S and any(d % p for d in u):
+                S.append(p)
+                break
+        else:
+            return S
+
+
+def rung_reading(D, pool=POOL):
+    """The grown set read off the chain D_0, D_1, .. of rung collisions."""
+    S, Dt, P = [], set(D), 1
+    for p in pool:
+        if not Dt:
+            break
+        P *= p
+        nxt = {d for d in Dt if d % P == 0}
+        if nxt != Dt:
+            S.append(p)
+        Dt = nxt
+    return S
+
+
+def coverage_greedy(D, pool=POOL):
+    """The literature's greedy: the prime resolving the most differences left,
+    the smaller on a tie."""
+    S, left = [], set(D)
+    while left:
+        best = max(pool, key=lambda p: (sum(1 for d in left if d % p),
+                                        -p))
+        if not any(d % best for d in left):
+            break
+        S.append(best)
+        left = {d for d in left if d % best == 0}
+    return S
+
+
+# the labellings
+
+def diffs(labelling):
+    xs = sorted(labelling)
+    return {b - a for a, b in combinations(xs, 2)
+            if labelling[a] != labelling[b]}
+
+
+def all_distinct(M):
+    return set(range(1, M))
+
+
+def sublattice(M, q):
+    xs = range(0, M, q)
+    return {b - a for a, b in combinations(xs, 2)}
+
+
+def enc(digits, Q):
+    v = 0
+    for d in digits:
+        v = v * Q + d
+    return v
+
+
+def feature_labelling(Q, rng):
+    stems = {tuple(rng.randrange(Q) for _ in range(2)) for _ in range(10)}
+    sufs = {rng.randrange(Q) for _ in range(5)}
+    return {enc(list(s), Q) * Q + f: f for s in stems for f in sufs}
+
+
+def cell_diffs(forms):
+    items = list(forms.items())
+    return {abs(va - vb) for (ka, va), (kb, vb) in combinations(items, 2)
+            if ka[1] != kb[1] and va != vb}
+
+
+def paradigm(rng, offsets):
+    lex = rng.sample(range(1000), 12)
+    return {(i, c): x + t for i, x in enumerate(lex)
+            for c, t in enumerate(offsets)}
+
+
+def control(rng, n_cells, top):
+    vals = rng.sample(range(top), 12 * n_cells)
+    return {(i, c): vals[i * n_cells + c]
+            for i in range(12) for c in range(n_cells)}
+
+
+# the sections
+
+def section_controls():
+    section("CONTROLS")
+    rng = random.Random(20250311)
+    ok = True
+    for _ in range(4000):
+        S = rng.sample(POOL, rng.randrange(1, 6))
+        x, y = rng.randrange(2000), rng.randrange(2000)
+        r = resolves(S, x, y)
+        ok &= r == ((x - y) % prod(S) != 0)
+        ok &= r == any(x % p != y % p for p in S)
+    check("resolves = product form = residue tuples, 4000 samples", ok)
+    g = grow(all_distinct(30))
+    check("ALL-DISTINCT(30) grows [2, 3, 5]", g == [2, 3, 5], str(g))
+    check("enc([1, 2], 10) = 12", enc([1, 2], 10) == 12)
+
+
+def random_family(n, seed):
+    rng = random.Random(seed)
+    out = []
+    for _ in range(n):
+        pool = POOL[:rng.randrange(1, 9)]
+        shape = rng.randrange(3)
+        if shape == 0:
+            D = {rng.randrange(1, 5000) for _ in range(rng.randrange(1, 30))}
+        elif shape == 1:
+            q = rng.choice(POOL[:6])
+            D = {q * rng.randrange(1, 800)
+                 for _ in range(rng.randrange(1, 30))}
+        else:
+            D = {prod(rng.sample(POOL[:9], rng.randrange(0, 6)))
+                 * rng.randrange(1, 4) for _ in range(rng.randrange(1, 8))}
+        out.append((D, pool))
+    return out
+
+
+def section_reading(fam):
+    section("THE RUNG READING")
+    bad = [(D, pool) for D, pool in fam if grow(D, pool) != rung_reading(D, pool)]
+    check("rung reading = grower on the random family", not bad,
+          f"{len(fam)} instances, {len(bad)} differ")
+    skips = sum(1 for D, pool in fam
+                if rung_reading(D, pool) != pool[:len(rung_reading(D, pool))])
+    check("the family holds skipping instances", skips > 0, f"{skips}")
+    over = sum(1 for D, pool in fam if len(grow(D, pool)) > len(D))
+    check("the grower never takes more than |D| primes", over == 0,
+          f"{over} over")
+
+
+def section_depth():
+    section("HOW FINE: THE ALL-DISTINCT DEPTH")
+    for M, t in ((30, 3), (210, 4), (2310, 5), (30030, 6)):
+        D = all_distinct(M)
+        g = grow(D)
+        check(f"ALL-DISTINCT({M}) grows the first {t} primes",
+              g == POOL[:t] and g == rung_reading(D), str(g))
+
+
+def section_skips():
+    section("WHAT: SKIPS")
+    want = {3: [2, 5, 7, 11], 5: [2, 3, 7, 11], 7: [2, 3, 5, 11]}
+    grown = {}
+    for q, w in want.items():
+        D = sublattice(630, q)
+        g = grow(D)
+        grown[q] = g
+        check(f"SUBLATTICE(630, {q}) grows {w}",
+              g == w and g == rung_reading(D), str(g))
+    return grown
+
+
+def section_witness():
+    section("THE PRIMORIAL WITNESS ON RANDOM LABELLED SETS")
+    rng = random.Random(11)
+    held = same = 0
+    for _ in range(24):
+        D = diffs({x: rng.randrange(8) for x in range(210)})
+        held += {1, 2, 6, 30} <= D
+        same += grow(D) == [2, 3, 5, 7]
+    check("24 RANDOM(210, 8) labelled sets hold 1, 2, 6, 30", held == 24,
+          f"{held} of 24")
+    check("and all grow [2, 3, 5, 7]", same == 24, f"{same} of 24")
+
+
+def section_encoding():
+    section("THE ENCODING BOUND")
+    for Q, top in ((30, 5), (35, 7), (29, None)):
+        rng = random.Random(11)
+        D = diffs(feature_labelling(Q, rng))
+        g = grow(D, POOL5)
+        mult = sum(1 for d in D if d % Q == 0)
+        print(f"    Q = {Q}: |D| = {len(D)}, grown {g}")
+        check(f"Q = {Q}: no difference divisible by Q", mult == 0,
+              f"{mult}")
+        if top:
+            check(f"Q = {Q}: grown set within the primes up to {top}",
+                  all(p <= top for p in g), str(g))
+        want = {30: [2, 3, 5], 35: [2, 3, 5, 7], 29: POOL5}[Q]
+        check(f"Q = {Q}: grows {want}", g == want, str(g))
+    rng = random.Random(11)
+    g35 = grow(diffs(feature_labelling(35, rng)), POOL5)
+    check("Q = 35: the grown set is not inside {5, 7}",
+          not set(g35) <= {5, 7}, str(g35))
+
+
+def section_compression():
+    section("COMPRESSION")
+    rng = random.Random(23)
+    offs = [0, 1, 2, 3, 4]
+    comp = paradigm(rng, offs)
+    same = {abs(a - b) for (ka, a), (kb, b) in
+            combinations(comp.items(), 2) if ka[0] == kb[0] and a != b}
+    ctrl = control(rng, len(offs), max(comp.values()) + 1)
+    Dc, Dk = cell_diffs(comp), cell_diffs(ctrl)
+    gc, gk = grow(Dc, POOL5), grow(Dk, POOL5)
+    print(f"    |D| paradigm {len(Dc)}, control {len(Dk)}; grown {gc}, {gk}")
+    check("same-lexeme differences = offset differences",
+          same == {1, 2, 3, 4}, str(sorted(same)))
+    check("the paradigm's D is smaller than the control's",
+          len(Dc) < len(Dk))
+    check("both grow [2, 3, 5, 7, 11]", gc == gk == POOL5)
+
+
+def section_sole_resolver():
+    section("THE SOLE RESOLVER")
+    g = grow({770}, POOL5)
+    check("{770} grows [3] on the pool 2 .. 11", g == [3], str(g))
+    s = grow(sublattice(300, 3), POOL5)
+    check("SUBLATTICE(300, 3) grows [2, 5, 7, 11] and fails on 770",
+          s == [2, 5, 7, 11] and collisions(s, {770}) == [770], str(s))
+
+
+def section_worst():
+    section("THE WORST CASE")
+    D = {1, 2, 6, 30, 210}
+    g, c = grow(D, POOL[:6]), coverage_greedy(D, POOL[:6])
+    check("grower [2, 3, 5, 7, 11], coverage greedy [11]",
+          g == [2, 3, 5, 7, 11] and c == [11], f"{g}, {c}")
+
+
+def least_non_divisor(d, pool=POOL):
+    return next((p for p in pool if d % p), None)
+
+
+def section_least_non_divisor(fam):
+    section("THE LEAST NON-DIVISOR")
+    bad = sum(1 for D, pool in fam
+              if sorted({least_non_divisor(d, pool) for d in D} - {None})
+              != grow(D, pool))
+    check("{l(d)} = grower on the random family", bad == 0,
+          f"{bad} differ")
+
+
+def section_binding():
+    section("THE BINDING OPERATION")
+    N = 510510
+    rng = random.Random(29)
+    units = [u for u in range(1, N) if all(u % p for p in (2, 3, 5, 7, 11,
+                                                          13, 17))]
+    lex = rng.sample(units, 12)
+    cells = rng.sample(units, 5)
+    add = {abs(c2 - c1) for c1, c2 in combinations(cells, 2)}
+    mul = {abs(L * c2 % N - L * c1 % N) for L in lex
+           for c1, c2 in combinations(cells, 2)}
+    mul.discard(0)
+    na = {least_non_divisor(d, POOL5) for d in add}
+    nm = {least_non_divisor(d, POOL5) for d in mul}
+    ga, gm = grow(add, POOL5), grow(mul, POOL5)
+    print(f"    |D| additive {len(add)}, multiplicative {len(mul)}; "
+          f"grown {ga}, {gm}; the cells mod 3: {sorted(c % 3 for c in cells)}")
+    check("both bindings name the same primes", na == nm,
+          f"{sorted(na - {None})}")
+    check("and grow one substrate, without 2", ga == gm and 2 not in ga)
+    check("the additive difference set is smaller", len(add) < len(mul))
+
+
+def section_layer(grown):
+    section("THE LAYER")
+    parts = []
+    for a, b in combinations(sorted(grown), 2):
+        ga, gb = grown[a], grown[b]
+        i = next((i for i in range(min(len(ga), len(gb)))
+                  if ga[i] != gb[i]), None)
+        parts.append(ga[:i] if i is not None else None)
+        if i is not None:
+            print(f"    q = {a}, {b}: common {ga[:i]}, then {ga[i]} and "
+                  f"{gb[i]}")
+    check("the sublattice growers part at [2], [2] and [2, 3]",
+          parts == [[2], [2], [2, 3]], str(parts))
+
+
+def main():
+    section_controls()
+    if not all(CHECKS):
+        print("\nA CONTROL FAILED: nothing below is read.")
+        sys.exit(1)
+    fam = random_family(20000, 1)
+    section_reading(fam)
+    section_depth()
+    grown = section_skips()
+    section_witness()
+    section_encoding()
+    section_compression()
+    section_sole_resolver()
+    section_worst()
+    section_layer(grown)
+    section_least_non_divisor(fam)
+    section_binding()
+    print()
+    print(f"{sum(CHECKS)} of {len(CHECKS)} checks pass")
+    sys.exit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

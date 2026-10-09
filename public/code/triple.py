@@ -1,0 +1,852 @@
+"""triple.py -- what a cubic field's split primes carry: the triple of
+classes over a totally split prime, the subgroup those triples fill, and
+the class of the one degree-1 place over a partially split prime.
+
+QUESTION. K a complex cubic field, discriminant d_K < 0, class group Cl
+of order h. A totally split prime p = P1 P2 P3 carries a TRIPLE of
+classes ([P1], [P2], [P3]), and since P1 P2 P3 = (p) the triple lies in
+M = {(a, b, c) in Cl^3 : a + b + c = 0}, a group of order h^2. A
+partially split p = P1 P2 (degrees 1 and 2) carries one degree-1 class.
+  (a) Which triples do the split primes realize? The uniform model says
+      all of M. When is it less, and by how much?
+  (b) At what share is the partial place principal, and does that share
+      see whatever sorts (a)?
+  (c) At a finite cut the degree-1 places run short on some classes, as
+      over a quadratic field (principal.py). Is the shortfall again the
+      prime-ideal powers a degree-1 count omits?
+
+THE ARGUMENT (written before the engine).
+  (1) THE TRIPLE IS A HOMOMORPHISM. N the Galois closure of K (group S3
+      unless K is cyclic), H the Hilbert class field of K, Ht the Galois
+      closure of H over Q. p splits totally in K iff Frob_p in Gal(Ht/Q)
+      lies in Gal(Ht/N). Let K1, K2, K3 be the conjugates of K in N and
+      H1, H2, H3 the matching conjugates of H; on Gal(Ht/N) restriction
+      to H_i is a homomorphism onto Gal(H_i/K_i) = Cl (Artin), and the
+      place P_i is the one Frob fixes in K_i [read: P_i = P cap K_i for
+      the prime P of Ht whose Frobenius is read]. So the triple is the image
+      of Frob under a homomorphism Gal(Ht/N) -> Cl^3 landing in M.
+      Chebotarev fills Gal(Ht/N), so the realized set R is a SUBGROUP of
+      M; conjugation by Gal(Ht/Q) permutes the copies, so R is stable
+      under S3 acting on coordinates; and each coordinate map is onto
+      Cl, so every projection of R is onto Cl.
+  (2) FORCED. Let R be an S3-stable subgroup of M with every projection
+      onto Cl. For (a, b, c) in R, the transposition (12) gives (b, a,
+      c) in R, so (a - b, b - a, 0) in R; permuting, (a - c, c - a, 0)
+      in R; their sum over the triple is (2a - b - c, ...) = (3a, -3a,
+      0) using b + c = -a. As a ranges over Cl (projection onto), R
+      contains every (3a, -3a, 0), and with its permutations the
+      whole of M n (3Cl)^3. So R is the preimage of a stable subgroup of
+      M / (M n (3Cl)^3) = the sum-zero triples of V = Cl/3Cl, an
+      F3-space of dimension r (the 3-rank). The sum-zero permutation
+      module of S3 over F3 is not semisimple: its only stable line is
+      the diagonal D = {(lam, lam, lam)}, as 3 lam = 0 in F3, and a
+      stable subspace of V (x) St projecting onto V is W (x) St +
+      V (x) D for a subspace W of V, of codimension r - dim W. So R has
+      index 3^(r - dim W) in M; off 3 (r = 0) R = M at every h; at r = 1
+      R is M or Delta = {a = b = c mod 3Cl}, of index 3; at h = 3 the
+      three candidates 0, D, M are the smallest case, 0 excluded by the
+      projection.
+  (3) THE GENUS INDEX LAW (the claim the fields test). Write d_K = f^2
+      d0 with d0 the fundamental discriminant of k = Q(sqrt d_K) and f
+      the conductor, and let t be the number of primes q = 1 (mod 3)
+      dividing f, plus one when 9 | f and 3 splits in k. Then
+      [M : R] = 3^t. BELOW: each such q (or the 9) names a cyclic cubic
+      field F of conductor q (or 9) with KF/K unramified (at q by
+      Abhyankar's lemma, q being totally and tamely ramified in K; at
+      the 9, wild, by local class field theory: 3 splits in k and N/k
+      ramifies over it, so 3 is the cube of one prime of K, whose
+      completion is a ramified cyclic cubic extension of Q_3, and the
+      cubic characters of Z_3* form one group of order 3, so F's local
+      character there is the completion's or its inverse times an
+      unramified one), and the t fields give an unramified extension
+      of K of degree 3^t, cutting out a subgroup G of index 3^t in Cl;
+      F is Galois over Q, so a Frobenius restricts to F identically
+      from all three copies and R lies in {a = b = c
+      mod G}, index at least 3^t. ABOVE: a second cubic character of k
+      that the triple could see independently must be fixed by the
+      conjugation of k/Q and unramified over N, and the fixed part of a
+      ray class group mod f is local: a usable fixed line is exactly a
+      prime of k over a split q | f with a nontrivial local 3-part, so
+      the index is at most 3^t. That half is proved at 3-rank 1, and
+      at t = 0 quotient by quotient at every 3-rank; at 3-rank 2 or
+      more with t >= 1 the census carries it. The argument never
+      consults the signature. Its consequence the fields read first:
+      t <= r at every field, since Cl/G = (Z/3)^t is the Galois group
+      of the t fields' compositum over K.
+  (4) THE PARTIAL PLACE. A partially split p has Frob a transposition s
+      fixing one copy, say K1: an element of Gal(Ht/K1) outside
+      Gal(Ht/N). Restriction maps Gal(Ht/N) onto Gal(H1/(H1 n N)), a
+      subgroup S of index [H1 n N : K1] in Cl. [H1 n N : K1] divides
+      [N : K1] = 2 and
+      H1/K1 is unramified at every place, while N/K1 is ramified at the
+      real place over a complex cubic field (K1 real embedding, N
+      totally complex). So H1 n N = K1, S = Cl, the other coset of
+      Gal(Ht/N) in Gal(Ht/K1) maps onto Cl too, and [P1] is equidistributed
+      on Cl: the partial place is principal at share 1/h whatever R
+      is, and a single place cannot see which R the field has; (3) is a correlation among the coordinates of a triple.
+  (5) THE CLASSES OF THE PRIME POWERS, IN Gal(Ht/Q) = M x| S3 (full
+      image, order 6h^2).
+      The extension of S3 by R splits: complex conjugation lifts a
+      transposition with order 2, a lift g of a 3-cycle is by
+      Chebotarev the Frobenius of a prime p inert in K, so g^3 restricts
+      on each Hi to the Artin symbol of the principal pO_Ki and g^3 = e,
+      and R is abelian, so Gaschutz's theorem gives a complement.
+      (v, s)^2 = e: s = 1 needs 2v = 0 (|Cl[2]|^2 of them); s a
+      transposition, say (12), needs v + sv = 0, i.e. v = (a, -a, 0) (h
+      each); a 3-cycle never. Total 3h + |Cl[2]|^2. (v, s)^3 = e: s = 1
+      needs 3v = 0 (|Cl[3]|^2); s a 3-cycle gives v + sv + s^2 v = (a +
+      b + c)(1, 1, 1) = 0 always (h^2 each); a transposition never. Total
+      2h^2 + |Cl[3]|^2: every inert prime's cube is the identity, i.e.
+      carries the all-principal triple.
+  (6) THE PRIME POWERS (principal.py's accounting, one degree up).
+      Chebotarev in H/K speaks of PI_C(x), all prime-ideal powers P^k of
+      K with N(P)^k < x in class C, weight 1/k; main term Li(x)/h. A
+      count of degree-1 places omits: the degree-2 place over a partial
+      p, norm p^2, class -[P1] (uniform with P1, so it biases no class
+      once a field is normalized); the inert (p), norm p^3, trivial; the
+      squares of degree-1 places, norm p^2, on 2Cl; the cubes, norm p^3,
+      on 3Cl. The ramified places have degree 1 and are counted, on
+      known classes: 2[P] + [Q] = 0 at p = P^2 Q and 3[P] = 0 at
+      p = P^3. So the trivial class and the squares lose
+      weight a degree-1 count forgets, and the classes outside 2Cl lose
+      only cube weight. Over a population, where the oscillating
+      remainders average out, the counted-in-powers levels should read
+      flat where the degree-1 levels do not.
+
+THE ENGINE (cubic.py). Fields from Hunter's theorem (Cohen, A Course in
+Computational Algebraic Number Theory, Thm 6.4.2): every cubic field is
+Q(theta) with theta integral, Tr theta in {0, 1}, and T2(theta) <=
+Tr^2/3 + (2/3) sqrt|d_K|. Each polynomial is turned into its binary cubic
+form and made maximal at every p by the form-level step (Davenport and
+Heilbronn; Delone and Faddeev): a form whose ring is not maximal at p is
+either 0 mod p or equivalent to (a, b, c, d) with p^2 | a, p | b, and
+then (a/p^2, b/p, c, pd) is the form of the overorder. The maximal form's
+ring is O_K, with basis 1, w, v and w v = -ad, w^2 = -ac + bw - av,
+v^2 = -bd + dw - cv (Delone-Faddeev), and p factors in O_K as the form
+factors mod p. Fields are deduplicated by (d_K, splitting types at the
+primes below 600). The class group is Z^B / relations over the prime
+ideals of norm up to B >= the Minkowski bound (4/pi)(2/9) sqrt|d_K|,
+relations from small elements whose norms are B-smooth, valuations EXACT
+(Hensel-lifted roots at unramified degree-1 places, the rest by the norm).
+The relation lattice's quotient maps onto Cl and its kernel vectors give
+units; h_found R_found = h R m with m a positive integer, and the
+analytic class number formula hR = sqrt|d| L / (2 pi), L the Euler
+product of zeta_K / zeta to 3 * 10^4, puts m = 1 when the ratio
+lies in [0.5, 1.5], and K2 holds every field to [0.75, 1.33]:
+numerical evidence, since the truncation carries
+no proved error bound. A place above B is placed by a small element of its
+own ideal lattice (LLL-reduced) whose norm is p times a B-smooth number.
+
+PREDICTIONS, fixed before the engine. The population is every complex
+cubic field with |d_K| <= CAP = 50000.
+  K  CONTROLS, read before anything else.
+     K1 ENUMERATION: 888 complex fields with |d_K| <= 6000 and 4868 with
+        |d_K| <= 24000 (the counts a Round-2 enumeration by an
+        independent engine recorded); the least is d_K = -23.
+     K2 CERTIFICATE: every field certified, the ratio in [0.75, 1.33];
+        its extremes printed.
+     K3 CLASS GROUPS against the independent engine's record (fields with
+        h > 1 to 50000 and their invariants; every other field h = 1):
+        agreement at every field, disagreements listed if any.
+     K4 VALUATIONS: at every relation, the sum over places above p of
+        f_P v_P equals v_p of the norm.
+     K5 CLOSURE, each place mapped on its own: [P1] + [P2] + [P3] = 0 at
+        every mapped split prime; 2[P] + [Q] = 0 and 3[P] = 0 at the
+        mapped ramified ones.
+  G  GROUPS, by enumeration (no field).
+     G1 At Cl = Z/2, Z/3, Z/4, Z/2^2, Z/5, Z/6, Z/7, Z/8, Z/9, Z/3^2,
+        Z/12, Z/2 x Z/6, Z/3 x Z/6: the S3-stable subgroups of M
+        projecting onto Cl number exactly the subspaces of F3^r, each
+        contains M n (3Cl)^3, and those of index 3^j number the
+        subspaces of dimension r - j.
+     G2 At the same groups, in M x| S3: 3h + |Cl[2]|^2 elements square to
+        e and 2h^2 + |Cl[3]|^2 cube to e.
+  F  THE GENUS INDEX LAW.
+     F1 t <= r at every field with h > 1.
+     F2 At every field with 3 | h and at least ten mapped split primes,
+        the subgroup the triples (with their permutations) generate has
+        index exactly 3^t in M; at every field with 3 not dividing h and
+        ten mapped split primes it is all of M.
+     F3 At h = 3, |d_K| <= 6000: 83 fields, 38 at index 3 (R = Delta)
+        and 45 at index 1 (TRANSPLANT: the record's counts, read under a
+        relation class number).
+     F4 3-rank 2 to 50000: exactly the fields at |d_K| = 24843 and 47628,
+        with t = 2 and t = 1.
+  P  THE PARTIAL PLACE.
+     P1 At h = 3, |d_K| <= 24000, split primes and partial primes below
+        1000: the partial place's principal share at the index-3 fields
+        over its share at the index-1 fields is within 2 standard errors
+        of 1.
+     P2 THE PRIME POWERS, fields with h >= 2 and |d_K| <= PI_CAP = 12000,
+        every degree-1 place with p < X = 1000 mapped: the trivial
+        class's degree-1 level (count over the field's total / h, pooled
+        over fields) is below 1 by 5 standard errors or more; counted in
+        prime powers it is within 0.03 of 1 or 3 standard errors of it.
+        The classes outside 2Cl read above 1 in degree-1 places and
+        within 0.02 of 1 in powers. TRANSPLANT: 0.03 is principal.py's
+        P2 band at its cut 10^4, and 0.02 lies between it and that
+        script's 0.01.
+     P3 At every field the summed PI_C over the classes equals the
+        prime-power weight read off the splitting types alone, to 1e-9.
+  L  COVERAGE. Every complex field with |d_K| <= 6000 has a principal
+     degree-1 place over an odd unramified p < 250 (TRANSPLANT: the
+     record's bound); the largest such least prime to CAP printed.
+  [CORRECTIONS, made before triple.py ran, the slate above left as
+  frozen. K1: the record's 4868 counts BOTH signatures (its base of 1103
+  fields is 888 complex and 215 totally real); an engine rehearsal
+  printed 3849 complex fields to 24000 before the misreading was
+  caught. K1 keeps 888 and reads instead the record's count of complex
+  fields with h > 1: 3133 to |d_K| <= 50000. K3: a carried script reads
+  no workshop file, so the field-by-field comparison with the
+  independent engine's saved readings runs outside this file and its
+  count is entered in the run record; K3 is not a check here.]
+KILLS, as printed observables: any K line off (nothing below is read);
+a G count off; an F1 violation; an F2 field at the wrong index; F4's
+pair off; P1's ratio beyond 2 se; P2's corrected trivial level beyond
+both bands; any P3 field off by more than 1e-9; an L field without a
+principal place below 250.
+
+FINDINGS. 11/14 checks PASS; K1, P1 and P2 fail as frozen. The run
+exits 0 when exactly these three fail, so a rerun is held to the
+record's set of misses, not to their values.
+  K  K1 FAILS AS FROZEN by one field: 888 to 6000 and least -23 as
+     predicted, but 3134 fields with h > 1 to 50000 against 3133. The
+     field is d_K = -14087, h = 2, certified at ratio 1.0017; the
+     independent reader's own record names it as the one field it could
+     not resolve. Compared outside this file, field by field, the other
+     3133 class groups agree with that reader's, invariants included.
+     The engine's own controls hold everywhere, so the lines below are
+     read, and that reading is a judgment made in the open.
+     K2 8336 of 8336 fields certified, ratio 0.9962 .. 1.0027, unit-log
+     drift 7.9e-46. K4 0 inconsistent valuations. K5 0 closure and 0
+     ramified failures over 37608 kept triples, 0 primes unplaced.
+  G  G1 and G2 hold at all 13 groups.
+  F  F1 t <= r at all 8336 fields. F2 the index is 3^t at all 3134
+     fields with h > 1: 1767 at 3 !| h; 1018 at 3-rank 1, t = 0; 347 at
+     3-rank 1, t = 1; one each at 3-rank 2 with t = 1 and t = 2. F3 83
+     fields at h = 3 to 6000, 38 at index 3 and 45 at index 1. F4 the
+     3-rank 2 fields are exactly -24843 (t = 2, index 9) and -47628
+     (t = 1, index 3).
+  P  P1 FAILS AS FROZEN: at h = 3 to 24000 the partial place is
+     principal at 3609/11115 = 0.3247 at index 3 against 7248/23227 =
+     0.3121 at index 1, ratio 1.0405 +- 0.0175 (2.3 se); the split
+     places' per-place shares are 0.3216 and 0.3224. The derivation (4)
+     is asymptotic and untouched; below 1000 the degenerate half's
+     partial places run nearer their share.
+     P2 FAILS AS FROZEN: over 535 fields with h >= 2 to 12000,
+       cell  fields  raw              in prime powers
+       T     535     0.9244 +- 0.0032  0.9489 +- 0.0029
+       S     313     1.0176 +- 0.0025  1.0226 +- 0.0019
+       N     291     1.0570 +- 0.0021  1.0196 +- 0.0019
+     so the prime powers remove 32% of the trivial class's deficit and
+     66% of the non-squares' excess; T in powers runs 0.9805, 0.9572,
+     0.9371, 0.9076, 0.9044, 0.8235 at h = 2 .. 7 against raw 0.9429,
+     0.9430, 0.8978, 0.9071, 0.8743, 0.8308. Over a quadratic field the
+     same accounting flattened every class (principal.py); at degree 3
+     most of the trivial class's shortfall is something else, and it
+     deepens with h. P3 worst 2.8e-14.
+  L  largest least principal prime 131 (at -2856) to 6000; 823 (at
+     -42888) to 50000.
+  Tiers: (1), (4) and (5) properties or theorems by proof; (2) a
+  theorem, G1 its enumeration control; (3) a rule verified at every
+  complex cubic field with |d_K| <= 50000, its two halves argued; the
+  P2 table an observation at one cut.
+
+RUN RECORD. 11/14, 301 s wall (the population 296 s, checkpointed),
+peak working set 43.3 MB under a memory guard. A rehearsal at --cap 6000 ran
+first (36.6 s). Later G1 counts every onto subgroup, K5 asserts every
+prime placed (a placement failure counts once, apart from K4's
+valuations), the checkpoint is keyed by the code of triple.py and
+cubic.py, and the removed shares are printed: 11/14 as recorded, 304 s,
+peak commit 38 MB under a memory guard.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import hashlib
+import json
+import sys
+import tempfile
+import time
+from itertools import permutations
+from math import gcd, isqrt, sqrt
+
+import cubic as C
+from module_law import check, section, CHECKS, NAMES
+
+MISSED = ("K1", "P1", "P2")   # the predictions FINDINGS records as failing
+
+def _flag(name, default):
+    if name in sys.argv:
+        return sys.argv[sys.argv.index(name) + 1]
+    return default
+
+
+CAP = int(_flag("--cap", 50000))   # the population: |d_K| <= CAP
+PI_CAP = 12000       # P2's population
+P1_CAP = 24000       # P1's population (h = 3)
+X = 1000             # the cut: places with p < X
+SPLIT_MAPPED = 12    # split primes mapped per field for the index
+MIN_SPLIT = 10       # F2 reads a field with at least this many
+_SRC = hashlib.sha1(b"".join(   # the code of triple.py and cubic.py,
+    open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f),
+         "rb").read().split(b'"""', 2)[2]      # docstrings left out
+    for f in ("triple.py", "cubic.py"))).hexdigest()[:12]
+CKPT = os.path.join(tempfile.gettempdir(),
+                    "triple_%d_%s.json" % (CAP, _SRC))
+FRESH = "--fresh" in sys.argv
+
+
+# ---------------------------------------------------------------------------
+# finite abelian groups as tuples under invariants
+
+def g_add(x, y, inv):
+    return tuple((a + b) % d for a, b, d in zip(x, y, inv))
+
+
+def g_neg(x, inv):
+    return tuple((-a) % d for a, d in zip(x, inv))
+
+
+def g_mul(k, x, inv):
+    return tuple((k * a) % d for a, d in zip(x, inv))
+
+
+def g_order(x, inv):
+    o = 1
+    for a, d in zip(x, inv):
+        e = d // gcd(d, a)
+        o = o * e // gcd(o, e)
+    return o
+
+
+def elements(inv):
+    out = [()]
+    for d in inv:
+        out = [e + (a,) for e in out for a in range(d)]
+    return out
+
+
+def closure(gens, inv, start=None):
+    """The subgroup generated by gens (with start) in the group inv."""
+    zero = tuple(0 for _ in inv)
+    S = set(start) if start else {zero}
+    frontier = list(S)
+    while frontier:
+        new = []
+        for s in frontier:
+            for g in gens:
+                t = g_add(s, g, inv)
+                if t not in S:
+                    S.add(t)
+                    new.append(t)
+        frontier = new
+    return frozenset(S)
+
+
+def three_rank(inv):
+    return sum(1 for d in inv if d % 3 == 0)
+
+
+def gauss_binom(r, k, q=3):
+    if k < 0 or k > r:
+        return 0
+    num = den = 1
+    for i in range(k):
+        num *= q ** (r - i) - 1
+        den *= q ** (i + 1) - 1
+    return num // den
+
+
+# ---------------------------------------------------------------------------
+# G: the groups
+
+GROUPS = [(2,), (3,), (4,), (2, 2), (5,), (6,), (7,), (8,), (9,), (3, 3),
+          (12,), (2, 6), (3, 6)]
+
+
+def stable_subgroups(inv):
+    """Every S3-stable subgroup of M (as pairs (a, b), c = -a - b)."""
+    inv2 = inv + inv
+    Mel = [x + y for x in elements(inv) for y in elements(inv)]
+
+    def orbit(v):
+        a, b = v[:len(inv)], v[len(inv):]
+        c = g_neg(g_add(a, b, inv), inv)
+        return [p[0] + p[1] for p in permutations((a, b, c), 3)]
+
+    zero = tuple(0 for _ in inv2)
+    found = {frozenset([zero])}
+    frontier = list(found)
+    while frontier:
+        new = []
+        for G in frontier:
+            for v in Mel:
+                if v in G:
+                    continue
+                H = closure(orbit(v), inv2, G)
+                if H not in found:
+                    found.add(H)
+                    new.append(H)
+        frontier = new
+    return found
+
+
+def section_groups():
+    section("G  THE GROUPS: stable subgroups of M and the classes of the "
+            "prime powers")
+    ok1 = ok2 = True
+    for inv in GROUPS:
+        h = 1
+        for d in inv:
+            h *= d
+        r = three_rank(inv)
+        Cl = elements(inv)
+        subs = stable_subgroups(inv)
+        onto = [G for G in subs
+                if {v[:len(inv)] for v in G} == set(Cl)]
+        zero = tuple(0 for _ in inv)
+        forced = closure([g_mul(3, x, inv) + zero for x in Cl]
+                         + [zero + g_mul(3, x, inv) for x in Cl], inv + inv)
+        contain = all(forced <= G for G in onto)
+        by_j = {}
+        for G in onto:
+            idx = h * h // len(G)
+            j = 0
+            while 3 ** j < idx:
+                j += 1
+            by_j[j] = by_j.get(j, 0) + (3 ** j == idx)
+        want = {j: gauss_binom(r, r - j) for j in range(r + 1)}
+        good = contain and by_j == want and \
+            len(onto) == sum(want.values())
+        ok1 &= good
+        # G2: squares and cubes to e in M x| S3
+        n2 = n3 = 0
+        Mel = [(a, b, g_neg(g_add(a, b, inv), inv)) for a in Cl for b in Cl]
+        for v in Mel:
+            for s in permutations(range(3)):
+                def act(w, s=s):
+                    return tuple(w[s[i]] for i in range(3))
+                sv = act(v)
+                s2 = tuple(s[s[i]] for i in range(3))
+                v2 = tuple(g_add(v[i], sv[i], inv) for i in range(3))
+                zero = tuple(0 for _ in inv)
+                if s2 == (0, 1, 2) and all(x == zero for x in v2):
+                    n2 += 1
+                s3 = tuple(s[s2[i]] for i in range(3))
+                s2v = act(sv)
+                v3 = tuple(g_add(v2[i], s2v[i], inv) for i in range(3))
+                if s3 == (0, 1, 2) and all(x == zero for x in v3):
+                    n3 += 1
+        c2 = sum(1 for x in Cl if g_mul(2, x, inv) == tuple(0 for _ in inv))
+        c3 = sum(1 for x in Cl if g_mul(3, x, inv) == tuple(0 for _ in inv))
+        g2 = n2 == 3 * h + c2 * c2 and n3 == 2 * h * h + c3 * c3
+        ok2 &= g2
+        print("  Cl = %-9s h %2d r %d: %3d stable, %2d onto, by index %s "
+              "(want %s), forced %s; squares %d, cubes %d"
+              % ("x".join("Z/%d" % d for d in inv), h, r, len(subs),
+                 len(onto), dict(sorted(by_j.items())), want, contain,
+                 n2, n3))
+    check("G1 onto-subgroups are the subspaces of F3^r, forced part in "
+          "each, at all %d groups" % len(GROUPS), ok1)
+    check("G2 3h + |Cl[2]|^2 squares and 2h^2 + |Cl[3]|^2 cubes to e",
+          ok2)
+
+
+# ---------------------------------------------------------------------------
+# F, P, L: the fields
+
+def fund_disc(dk):
+    """(d0, f) with dk = f^2 d0, d0 the fundamental discriminant of
+    Q(sqrt dk)."""
+    n = -dk
+    q = 2
+    while q * q <= n:
+        while n % (q * q) == 0:
+            n //= q * q
+        q += 1
+    s = n                                 # squarefree part of -dk
+    d0 = -s if (-s) % 4 == 1 else -4 * s
+    f2 = dk // d0
+    f = isqrt(f2)
+    assert f * f == f2 and dk % d0 == 0
+    return d0, f
+
+
+def lines(d0, f):
+    """t: the primes q = 1 mod 3 dividing f, and one more when 9 | f and 3
+    splits in k = Q(sqrt d0)."""
+    t = sum(1 for q in C.PRIMES if q <= f and f % q == 0 and q % 3 == 1)
+    if f % 9 == 0 and d0 % 3 == 1:
+        t += 1
+    return t
+
+
+def type_weight(K, x):
+    """The prime-power weight sum_{P, k: N(P)^k < x} 1/k, from the splitting
+    types by the fast route (Legendre and x^p mod g), not from places."""
+    w = 0.0
+    for p in C.PRIMES:
+        if p >= x:
+            break
+        if K.dk % p == 0 or p == 2:
+            norms = [p ** pl.deg for pl in K.places(p)]
+        elif C.legendre(K.dk, p) == -1:
+            norms = [p, p * p]
+        elif K._splits(p):
+            norms = [p, p, p]
+        else:
+            norms = [p ** 3]
+        for q in norms:
+            k = 1
+            while q ** k < x:
+                w += 1 / k
+                k += 1
+    return w
+
+
+def read_field(key, dk):
+    K = C.Field(key, dk)
+    rec = {"d": dk, "form": list(key)}
+    ok = K.class_group(always_cert=True)
+    rec["ok"] = ok
+    rec["valbad"] = K.val_bad
+    if not ok:
+        return rec
+    inv = list(K.cl)
+    h = K.h
+    rec.update(inv=inv, h=h, cert=K.cert, R=float(K.R),
+               drift=K.unit_drift())
+    d0, f = fund_disc(dk)
+    rec.update(d0=d0, f=f, t=lines(d0, f), r=three_rank(inv))
+    zero = tuple(0 for _ in inv)
+    cache = {}
+    bad = [0]
+
+    def cls(pl):
+        k_ = (pl.p, pl.kind, pl.r)
+        if k_ not in cache:
+            try:
+                cache[k_] = K.place_class(pl) if h > 1 else zero
+            except ValueError:
+                bad[0] += 1
+                cache[k_] = None
+        return cache[k_]
+
+    full = h > 1 and (-dk <= PI_CAP or (h == 3 and -dk <= P1_CAP))
+    triples, closure_bad, unmapped = [], 0, 0
+    L1 = None
+    raw, pi = {}, {}
+    p1 = [0, 0, 0, 0]          # partial places, principal; split, principal
+    ram_bad = 0
+    for p in C.PRIMES:
+        if not full and L1 is not None and (h == 1 or
+                                            len(triples) >= SPLIT_MAPPED):
+            break
+        if full and p >= X and len(triples) >= SPLIT_MAPPED and \
+                L1 is not None:
+            break
+        if p > 20000:
+            break
+        pls = K.places(p)
+        deg1 = [pl for pl in pls if pl.deg == 1]
+        unram = all(pl.e == 1 for pl in pls)
+        split = len(deg1) == 3 and unram
+        need = full and p < X
+        want_L1 = L1 is None and p > 2 and unram and deg1
+        want_tr = split and h > 1 and len(triples) < SPLIT_MAPPED
+        if not (need or want_L1 or want_tr):
+            continue
+        cs = [cls(pl) for pl in deg1]
+        if any(c is None for c in cs):
+            unmapped += 1
+            continue
+        if want_L1 and any(c == zero for c in cs):
+            L1 = p
+        if split:
+            if want_tr:
+                triples.append([list(c) for c in cs])
+            s = g_add(g_add(cs[0], cs[1], inv), cs[2], inv)
+            closure_bad += s != zero
+        if need:
+            if not unram:
+                if len(pls) == 2:           # P^2 Q
+                    P = [c for pl, c in zip(deg1, cs) if pl.e == 2][0]
+                    Q = [c for pl, c in zip(deg1, cs) if pl.e == 1][0]
+                    ram_bad += g_add(g_mul(2, P, inv), Q, inv) != zero
+                else:                        # P^3
+                    ram_bad += g_mul(3, cs[0], inv) != zero
+            for c in cs:
+                raw[c] = raw.get(c, 0) + 1
+            if len(deg1) == 1 and unram:     # partial
+                p1[0] += 1
+                p1[1] += cs[0] == zero
+            if split:
+                p1[2] += 3
+                p1[3] += sum(c == zero for c in cs)
+            for pl in pls:
+                if pl.deg == 1:
+                    cP = cs[deg1.index(pl)]
+                elif pl.deg == 2:
+                    cP = g_neg(cs[0], inv)
+                else:
+                    cP = zero
+                q = p ** pl.deg
+                k = 1
+                while q ** k < X:
+                    c = g_mul(k, cP, inv)
+                    pi[c] = pi.get(c, 0.0) + 1 / k
+                    k += 1
+    rec.update(triples=triples, closure_bad=closure_bad, L1=L1,
+               unmapped=unmapped, ram_bad=ram_bad)
+    if full:
+        rec["p1"] = p1
+        if unmapped == 0:
+            rec["pi"] = levels(raw, pi, inv, h)
+            rec["wdiff"] = abs(sum(pi.values()) - type_weight(K, X))
+    rec["valbad"] = K.val_bad
+    return rec
+
+
+def levels(raw, pi, inv, h):
+    """Per field: the level of each cell and each order, raw and in
+    prime powers."""
+    Cl = elements(inv)
+    tot_r = sum(raw.values())
+    tot_p = sum(pi.values())
+    sq = {g_mul(2, x, inv) for x in Cl}
+    zero = tuple(0 for _ in inv)
+    out = {}
+    cells = {"T": [zero], "S": [c for c in Cl if c in sq and c != zero],
+             "N": [c for c in Cl if c not in sq]}
+    for name, cs in cells.items():
+        if cs:
+            out[name] = (sum(raw.get(c, 0) for c in cs) / len(cs)
+                         / (tot_r / h),
+                         sum(pi.get(c, 0.0) for c in cs) / len(cs)
+                         / (tot_p / h))
+    byo = {}
+    for c in Cl:
+        byo.setdefault(g_order(c, inv), []).append(c)
+    out["ord"] = {str(o): (sum(raw.get(c, 0) for c in cs) / len(cs)
+                           / (tot_r / h),
+                           sum(pi.get(c, 0.0) for c in cs) / len(cs)
+                           / (tot_p / h)) for o, cs in byo.items()}
+    return out
+
+
+def population():
+    if not FRESH and os.path.exists(CKPT):
+        with open(CKPT) as fh:
+            data = json.load(fh)
+        print("  read from the checkpoint %s" % CKPT)
+        return data
+    t0 = time.time()
+    F = C.enumerate_fields(CAP)
+    print("  %d complex cubic fields with |d_K| <= %d in %.1f s"
+          % (len(F), CAP, time.time() - t0))
+    recs = []
+    for i, (key, dk) in enumerate(sorted(F.items(),
+                                         key=lambda kv: (-kv[1], kv[0]))):
+        recs.append(read_field(key, dk))
+        if (i + 1) % 1000 == 0:
+            print("    %d fields read, %.0f s" % (i + 1, time.time() - t0),
+                  flush=True)
+    data = {"cap": CAP, "recs": recs}
+    with open(CKPT, "w") as fh:
+        json.dump(data, fh)
+    print("  read in %.1f s, checkpointed to %s" % (time.time() - t0, CKPT))
+    return data
+
+
+def pooled(v):
+    n = len(v)
+    m = sum(v) / n
+    if n < 2:
+        return m, float("nan")
+    var = sum((x - m) ** 2 for x in v) / (n - 1)
+    return m, sqrt(var / n)
+
+
+def triple_index(rec):
+    inv = tuple(rec["inv"])
+    gens = []
+    for tr in rec["triples"]:
+        cs = [tuple(c) for c in tr]
+        for a, b, _ in permutations(cs, 3):
+            gens.append(a + b)
+    S = closure(gens, inv + inv)
+    return rec["h"] ** 2 // len(S)
+
+
+def section_controls(recs):
+    section("K  CONTROLS")
+    n6 = sum(1 for r in recs if -r["d"] <= 6000)
+    ok = [r for r in recs if r["ok"]]
+    nh = sum(1 for r in ok if r["h"] > 1)
+    least = max(r["d"] for r in recs)
+    check("K1 888 fields to 6000, 3133 with h > 1 to %d, least -23" % CAP,
+          n6 == 888 and nh == 3133 and least == -23,
+          "%d to 6000, %d with h > 1, least %d" % (n6, nh, least))
+    certs = [r["cert"] for r in ok]
+    drift = max(r["drift"] for r in ok)
+    check("K2 every field certified, the ratio in [0.75, 1.33]",
+          len(ok) == len(recs) and min(certs) >= 0.75 and
+          max(certs) <= 1.33,
+          "%d of %d, ratio %.4f .. %.4f, unit-log drift %.1e"
+          % (len(ok), len(recs), min(certs), max(certs), drift))
+    vb = sum(r["valbad"] for r in recs)
+    check("K4 every valuation sums to the norm's", vb == 0,
+          "%d inconsistent" % vb)
+    cb = sum(r["closure_bad"] for r in ok)
+    rb = sum(r["ram_bad"] for r in ok)
+    nt = sum(len(r["triples"]) for r in ok)
+    um = sum(r["unmapped"] for r in ok)
+    check("K5 [P1] + [P2] + [P3] = 0, 2[P] + [Q] = 0, 3[P] = 0; every "
+          "prime placed", cb == 0 and rb == 0 and um == 0,
+          "%d closure and %d ramified failures; %d triples kept, %d "
+          "primes left unplaced" % (cb, rb, nt, um))
+    return ok
+
+
+def section_genus(ok):
+    section("F  THE GENUS INDEX LAW")
+    viol = [r["d"] for r in ok if r["t"] > r["r"]]
+    check("F1 t <= r at every field", not viol,
+          "%d fields, %d violations" % (len(ok), len(viol)))
+    table, off, thin = {}, [], 0
+    for r in ok:
+        if r["h"] == 1:
+            continue
+        if len(r["triples"]) < MIN_SPLIT:
+            thin += 1
+            continue
+        idx = triple_index(r)
+        r["idx"] = idx
+        key = (r["h"] % 3 == 0, r["r"], r["t"])
+        cell = table.setdefault(key, [0, 0])
+        cell[0] += 1
+        if idx != 3 ** r["t"]:
+            cell[1] += 1
+            off.append((r["d"], r["h"], r["inv"], r["t"], idx))
+    for (div3, rr, t), (n, nb) in sorted(table.items()):
+        print("  %s  3-rank %d  t = %d : %5d fields, index 3^t at %d"
+              % ("3 | h   " if div3 else "3 !| h  ", rr, t, n, n - nb))
+    check("F2 the index is 3^t at every field with %d mapped split primes"
+          % MIN_SPLIT, not off,
+          "%d fields read, %d with fewer primes, off: %s"
+          % (sum(n for n, _ in table.values()), thin, off[:5]))
+    h3 = [r for r in ok if r["h"] == 3 and -r["d"] <= 6000]
+    d3 = sum(1 for r in h3 if r.get("idx") == 3)
+    check("F3 h = 3 to 6000: 83 fields, 38 at index 3",
+          len(h3) == 83 and d3 == 38,
+          "%d fields, %d at index 3, %d at index 1"
+          % (len(h3), d3, sum(1 for r in h3 if r.get("idx") == 1)))
+    r2 = [(r["d"], r["t"], r.get("idx")) for r in ok if r["r"] == 2]
+    check("F4 3-rank 2: -24843 at t = 2, -47628 at t = 1",
+          sorted(r2) == [(-47628, 1, 3), (-24843, 2, 9)], str(r2))
+
+
+def section_partial(ok):
+    section("P  THE PARTIAL PLACE AND THE PRIME POWERS")
+    groups = {1: [0, 0, 0, 0], 3: [0, 0, 0, 0]}
+    for r in ok:
+        if r["h"] == 3 and -r["d"] <= P1_CAP and "p1" in r and "idx" in r:
+            g = groups[r["idx"]]
+            for i in range(4):
+                g[i] += r["p1"][i]
+    sh = {}
+    for idx, g in groups.items():
+        q = g[1] / g[0]
+        sh[idx] = (q, sqrt(q * (1 - q) / g[0]))
+        print("  h = 3, index %d: partial %d/%d = %.4f, split per place "
+              "%d/%d = %.4f" % (idx, g[1], g[0], q, g[3], g[2],
+                                g[3] / g[2]))
+    ratio = sh[3][0] / sh[1][0]
+    se = ratio * sqrt((sh[3][1] / sh[3][0]) ** 2 + (sh[1][1] / sh[1][0])
+                      ** 2)
+    check("P1 the partial share at index 3 over index 1 is within 2 se of 1",
+          abs(ratio - 1) <= 2 * se, "ratio %.4f +- %.4f" % (ratio, se))
+    pis = [r for r in ok if "pi" in r and -r["d"] <= PI_CAP]
+    print("  %d fields with h >= 2 and |d_K| <= %d, every degree-1 place "
+          "with p < %d placed" % (len(pis), PI_CAP, X))
+    res = {}
+    for cell in ("T", "S", "N"):
+        vals = [r["pi"][cell] for r in pis if cell in r["pi"]]
+        raw = pooled([v[0] for v in vals])
+        cor = pooled([v[1] for v in vals])
+        res[cell] = (raw, cor)
+        print("  %s  %4d fields  raw %.4f +- %.4f   in powers %.4f +- %.4f"
+              % (cell, len(vals), raw[0], raw[1], cor[0], cor[1]))
+    byo = {}
+    for r in pis:
+        for o, v in r["pi"]["ord"].items():
+            byo.setdefault(int(o), []).append(v)
+    for o in sorted(byo):
+        raw = pooled([v[0] for v in byo[o]])
+        cor = pooled([v[1] for v in byo[o]])
+        print("  order %2d  %4d fields  raw %.4f +- %.4f   in powers "
+              "%.4f +- %.4f" % (o, len(byo[o]), raw[0], raw[1], cor[0],
+                                cor[1]))
+    byh = {}
+    for r in pis:
+        byh.setdefault(r["h"], []).append(r["pi"]["T"])
+    for h in sorted(byh):
+        if len(byh[h]) >= 10:
+            raw = pooled([v[0] for v in byh[h]])
+            cor = pooled([v[1] for v in byh[h]])
+            print("  T at h = %2d  %4d fields  raw %.4f   in powers %.4f"
+                  % (h, len(byh[h]), raw[0], cor[0]))
+    (tr, tc), (nr, nc) = res["T"], res["N"]
+    print("  the prime powers remove %.0f%% of T's deficit and %.0f%% of N's "
+          "excess" % (100 * (tc[0] - tr[0]) / (1 - tr[0]),
+                      100 * (nr[0] - nc[0]) / (nr[0] - 1)))
+    check("P2 T raw below 1 by 5 se; in powers within 0.03 or 3 se; "
+          "outside 2Cl raw above 1, in powers within 0.02",
+          (1 - tr[0]) >= 5 * tr[1] and
+          (abs(tc[0] - 1) <= 0.03 or abs(tc[0] - 1) <= 3 * tc[1]) and
+          nr[0] > 1 and abs(nc[0] - 1) <= 0.02,
+          "T %.4f -> %.4f, N %.4f -> %.4f" % (tr[0], tc[0], nr[0], nc[0]))
+    wd = max(r["wdiff"] for r in pis)
+    check("P3 the summed weight equals the types' weight", wd <= 1e-9,
+          "worst %.1e" % wd)
+
+
+def section_coverage(ok):
+    section("L  COVERAGE")
+    small = [r for r in ok if -r["d"] <= 6000]
+    worst = max(small, key=lambda r: r["L1"] or 10 ** 9)
+    allw = max(ok, key=lambda r: r["L1"] or 10 ** 9)
+    check("L every field to 6000 has a principal place below 250",
+          all(r["L1"] is not None and r["L1"] < 250 for r in small),
+          "largest least prime %s at %d; to %d, %s at %d"
+          % (worst["L1"], worst["d"], CAP, allw["L1"], allw["d"]))
+
+
+def main():
+    t0 = time.time()
+    section_groups()
+    section("S  THE POPULATION")
+    data = population()
+    ok = section_controls(data["recs"])
+    section_genus(ok)
+    section_partial(ok)
+    section_coverage(ok)
+    print()
+    print("%d/%d checks PASS, %.1f s" % (sum(CHECKS), len(CHECKS),
+                                         time.time() - t0))
+    raise SystemExit(as_recorded(MISSED))
+
+
+def as_recorded(missed):
+    """0 iff the checks that failed are exactly the record's misses."""
+    got = {n.split()[0] for n, ok in zip(NAMES, CHECKS) if not ok}
+    print("misses %s, the record's %s: %s" % (
+        ", ".join(sorted(got)) or "none", ", ".join(sorted(missed)) or "none",
+        "as recorded" if got == set(missed) else "NOT AS RECORDED"))
+    return 0 if got == set(missed) else 1
+
+
+if __name__ == "__main__":
+    main()

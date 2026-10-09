@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>carrier.py | Numbers read one place at a time</title>
+<meta name="description" content="carrier.py">
+<link rel="alternate" type="text/x-python" href="/code/carrier.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>carrier.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/clock/#a-ramified-quadratic-place-over-2-reads-its-width-off-δ-mod-8">CLOCK: A ramified quadratic place over 2 reads its width off δ mod 8</a> (known); <a href="/clock/#a-carrier-bears-on-a-place-down-to-a-ladder-member">CLOCK: A carrier bears on a place down to a ladder member</a> (theorem).</p><p>Cited on: <a href="/clock/">CLOCK</a>.</p><p>To run it: <a href="/code/clock.py">clock.py</a>, <a href="/code/module_law.py">module_law.py</a> beside it; standard library only.</p></div>
+<pre>"""carrier.py -- what a place over another prime does to a place's door:
+how deep a carrier's jump of the count reaches down a ladder, what it
+moves the door to there, and the ramified quadratic place over 2 read
+through it, whose width is a function of delta mod 8.
+
+QUESTION. A place P over p, seated at depth a, has door m(V + 1) - a,
+where V = v_p(L) is the COUNT and m(j) = x_j + 1 is the least depth
+whose column reaches j, x_1 &lt; x_2 &lt; ... being P's ladder
+(door.py; clock.py). A CARRIER is a place G over another prime whose
+opening lifts the count: it puts N(G) - 1 into L, so the count becomes
+at least j = v_p(N(G) - 1), whatever G's own depth. Three questions.
+  (a) At which depths of P does a carrier move P's door, when the rest
+      of L's p-part is P's own column, and to what?
+  (b) What does that read at the ramified place over 2 of a quadratic
+      field Q(sqrt delta), against a carrier jumping the count to 2?
+  (c) What is the least norm of a carrier jumping the count to j, and
+      what does a residue degree of 3 change about it?
+
+THE OBJECTS. c(a) = v_p(E(a)) is P's column: the number of ladder
+members below a, since E jumps by exactly p at each member (clock.py).
+The state is {P at depth a} with, or without, a carrier supplying j; the
+carrier's prime-to-p part never touches P's door, whose prime-to-p part
+N(P) - 1 is paid while P is seated. So with the carrier L's p-part is
+max(c(a), j) and without it c(a).
+
+THE ARGUMENT (written before the engine).
+  (1) THE DEPTHS A CARRIER BEARS ON. Without the carrier the count is
+      c(a) and the door m(c(a) + 1) - a; with it the count is
+      max(c(a), j). The two differ iff j &gt; c(a), m being strictly
+      increasing, and c(a) &lt; j iff fewer than j members lie below a iff
+      a &lt;= x_j. So a carrier jumping the count to j moves P's door at
+      exactly the depths 1..x_j, the j-th LADDER MEMBER, and there moves
+      it from m(c(a) + 1) - a to m(j + 1) - a = x_(j+1) + 1 - a. At
+      depth 1 the door goes from 1 to x_(j+1).
+  (2) THE STAIRCASE IS ONE LADDER SHAPE. The form a &lt;= e (j - 1) + 1
+      is the case x_j = 1 + (j - 1) e: the ladder 1, 1 + e, 1 + 2e, ...
+      By the ladder theorem (clock.py) that is psi's orbit exactly when
+      psi(1) = 1 + e, i.e. p &gt;= 1 + e, AND no step overshoots, which
+      fails only at a head. So the staircase holds iff e &lt;= p - 1 and
+      the place has no head; at e = p - 1 the head criterion decides
+      (f = 1 and u_bar = -1, n = 0). Everywhere else the depths and the
+      door are read off the ladder's other shape: at Z_2 (e = 1, a
+      head, w = 1) the ladder is 1, 3, 4, 5, ..., so x_j = j + 1 for
+      j &gt;= 2, one deeper than the staircase; at Q_2(i) it is 1, 2, 7, 9,
+      so x_2 = 2 against the staircase's 3, then 7 against 5; at x^3 + 2
+      over 2 (e = 3 &gt;= p, no head) it is 1, 2, 4, 7, so x_2 = 2 against
+      4.
+  (3) THE RAMIFIED PLACE OVER 2, READ AS A DOOR. Let P be the place
+      over 2 of Q(sqrt delta), delta squarefree, 2 ramified: e = 2,
+      f = 1, bend s = 2 = 2^1, so the ladder is 1, 2, A, A + 2, ... with
+      A = s + e + w = 4 + w (clock.py), and by (1) its door at depth 1
+      against a carrier jumping the count to 2 is x_3 = 4 + w.
+      Independently, the column of P at depth b is v_2 of the exponent of
+      a 2-group of order 2^(b-1), and the count 2 means 4 | L, so the
+      door is the least r with some unit eta having eta^4 != 1 mod
+      P^(1+r): the door is MIN over units eta with eta^4 != 1 of
+      v_P(eta^4 - 1). For a ramified place of a quadratic field,
+      v_P = v_2 o N, and
+          N(eta^4 - 1) = (N - Tr + 1)(N + Tr + 1)((N - 1)^2 + Tr^2),
+      N = N(eta), Tr = Tr(eta), from N(eta - 1), N(eta + 1) and
+      N(eta^2 + 1). Write eta = sigma + tau sqrt delta and i =
+      v_P(eta - 1), its level.
+        i &gt;= 3: v_P(eta + 1) = v_P(2) = 2, and eta^2 + 1 = (eta^2 - 1)
+          + 2 with v_P(eta^2 - 1) &gt;= 5, so v_P(eta^2 + 1) = 2: total
+          i + 4 &gt;= 7.
+        i = 2: v_P(eta + 1) &gt;= 3 (eta + 1 = (eta - 1) + 2, two terms of
+          valuation 2), v_P(eta^2 + 1) = 2: total &gt;= 7.
+        i = 1, delta = 2 gamma with gamma odd: a unit has sigma odd, and
+          level 1 needs tau odd. Both outer factors are (sigma -+ 1)^2 -
+          2 gamma tau^2, valuation 1; N - 1 = (sigma^2 - 1) - 2 gamma
+          tau^2 has valuation 1, so the third factor is
+          4 (((N - 1)/2)^2 + sigma^2), two odd squares, whose sum is
+          2 mod 8: valuation 3. Total 5, for every odd gamma.
+        i = 1, delta = 3 mod 4: a unit has sigma + tau odd, and level 1
+          needs sigma even, tau odd. Both outer factors are odd^2 -
+          delta odd^2 = 1 - delta mod 8, valuation 1. With sigma =
+          2 sigma', N - 1 = 4 sigma'^2 - (delta tau^2 + 1), and the
+          third factor is 16 (((N - 1)/4)^2 + sigma'^2).
+          delta = 3 mod 8: (delta tau^2 + 1)/4 is odd, so (N - 1)/4 and
+            sigma' have opposite parities: one odd and one even square,
+            valuation 4, total 6.
+          delta = 7 mod 8: (delta tau^2 + 1)/4 is even, so (N - 1)/4
+            has sigma''s parity. sigma' odd gives two odd squares,
+            valuation 4 + 1, total 7; sigma' even gives two even ones,
+            valuation &gt;= 6, total &gt;= 8. The least is 7.
+      So the door is 5 at delta = 2, 6 mod 8, 6 at delta = 3 mod 8 and
+      7 at delta = 7 mod 8, and w = door - 4 is 1, 2, 3: THE WIDTH IS A
+      FUNCTION OF delta mod 8. It reads delta through 1 - delta mod 8
+      and delta tau^2 + 1 mod 8, and of gamma only that it is odd,
+      which is why the six ramified quadratic extensions of Q_2 give
+      four residues' worth of widths: Q_2(sqrt 2) and Q_2(sqrt 10) share
+      w = 1 as clock.py measured.
+  (4) THE CARRIER'S NORM. A carrier jumping the count to j has
+      p^j | N(G) - 1 and N(G) &gt; 1, so N(G) &gt;= p^j + 1, the FLOOR,
+      attained iff p^j + 1 is a prime power. At p = 2 that is 3, 5, 9,
+      17 at j = 1..4 (9 = 3^2) and not 33 at j = 5. A residue degree of
+      3 over ell has N(G) - 1 = (ell - 1)(ell^2 + ell + 1), so it carries
+      the primes p = 1 mod 3 dividing ell^2 + ell + 1 from a small
+      ell: 7 from norm 8, where residue degree &lt;= 2 first carries 7 at
+      norm 29. Since ell^2 + ell + 1 is odd, it never cheapens a carrier
+      for p = 2, though ell - 1 supplies 2 as at any odd ell.
+
+TRANSPLANTS. The door m(V + 1) - a is door.py's theorem and the ladder's
+shape clock.py's; both are imported rather than restated, and (1)'s
+depths are measured below from a WHOLE-GROUP column (module_law.py's
+E_full), not from the ladder they are compared with. The unit brute of
+(3) is written here from nothing and reads no ladder at all.
+
+REPRESENTATIVES. In (3) units are sigma + tau sqrt delta with
+(sigma, tau) mod 2^K. Moving sigma or tau by 2^K moves eta^4 - 1 by a
+multiple of 2^K, of valuation at least 2K at P, so any valuation below
+2K read off a representative is true; a reading at or above 2K is
+CENSORED and counted, never used.
+
+PREDICTIONS, fixed before the run.
+  C  CONTROL. E_gen equals E_full (the whole group) at every place of
+     the consumer set to its depth; v_P(x) = v_2(N(x)) on a sample at
+     every ramified field of |delta| &lt;= 60; the norm identity of (3) holds
+     as integers at every sample; the unit brute's column of Q(i)'s
+     place over 2 is v_2 = 0, 1, 2, 2, 2, 2, 2, 3, 3 at b = 1..9, which
+     is c(b) off the ladder 1, 2, 7, 9.
+  B  At every place of the consumer set and j = 1..4, the depths where
+     seating a carrier supplying j moves the door (brute lcm doors off
+     the whole-group column) are exactly 1..x_j, and the moved door is
+     x_(j+1) + 1 - a, wherever x_(j+1) lies inside the column read.
+  S  The staircase x_j = 1 + (j - 1) e holds at every j read exactly at
+     the places with e &lt;= p - 1 and no head: Z_3, Z_7, the unramified
+     place of degree 2 over 2, x^2 - 3 over 3 (e = 2 = p - 1, no mu_3);
+     and departs at some j &lt;= 4 at Z_2, x^2 + 2, x^2 - 2, Q_2(i),
+     Q_2(sqrt -5), x^2 + 3 (headed) and x^3 + 2 (e &gt;= p).
+  D  Over every squarefree delta, |delta| &lt;= 2000, with 2 ramified: the unit
+     brute's least v_P(eta^4 - 1) is 5, 6, 7 at delta = 2 or 6, 3, 7 mod 8,
+     none censored [ruled: no door censored]; it equals x_3 of the Eisenstein
+     place built from delta (x^2 - delta, or x^2 + 2x + 1 - delta at delta = 3
+     mod 4); and the least over units of level &gt;= 2 is at least 7 at every
+     field.
+  F  The least prime power q = 1 mod p^j, for p &lt; 24 and j &lt;= 6, read to
+     2 000 000: at p = 2 it is 3, 5, 9, 17 at j = 1..4, each the floor,
+     and 97 at j = 5. Of the nine primes p &lt; 24, residue degree 3
+     carries p more cheaply than residue degree &lt;= 2 at exactly 7
+     (8 against 29) and 13 (27 against 53).
+KILLS, as printed observables: any C line off (the instruments fail,
+nothing below is read); a place and j where B's printed depths or door
+differ from the ladder's; an S place on the wrong side; a D field off
+its residue, censored, or off x_3, or a level &gt;= 2 minimum below 7 (the
+case analysis missed a seat); an F row off. [Ruled on audit: B reads
+(1)'s corollary back off the whole group, so it fires only on an engine
+fault.]
+
+FINDINGS. Every prediction landed: 11/11 checks PASS, no kill fired.
+  C  E_gen equals the whole group's E_full at all 11 consumer places to
+     depth x_5 + 1; v_P = v_2(N) at 8232 elements over the ramified
+     fields of |delta| &lt;= 60, 0 off; the norm identity at 2888 samples, 0
+     off; the unit brute reads Q(i)'s column 0, 1, 2, 2, 2, 2, 2, 3, 3.
+  B  At all 11 places and j = 1..4 a carrier moves the door at exactly
+     depths 1..x_j and sets it to x_(j+1) + 1 - a, 0 (place, j) off, 0
+     depths censored. This is (1)'s arithmetic read back off a
+     whole-group column, a check of the corollary and not separate
+     evidence: the content is the ladder theorem's. The depths reach
+     x_j = 3 at Z_2 for j = 2, 7 at Q_2(i) for j = 3, 4 at x^2 + 3 for
+     j = 2, and 2 at x^3 + 2 for j = 2. The staircase holds at Z_3, Z_7,
+     the unramified place of degree 2 over 2 and x^2 - 3, and departs at
+     the six headed places and at x^3 + 2, whose ladder is 1, 2, 4, 7
+     against 1, 4, 7, 10.
+  D  Over the 1619 squarefree delta, |delta| &lt;= 2000, with 2 ramified:
+     the door is 5 at all 404 fields with delta = 2 mod 8 and all 404
+     with delta = 6, 6 at all 405 with delta = 3 and 7 at all 406 with
+     delta = 7; it equals the ladder's x_3 at all 1619; units of level
+     &gt;= 2 never go below 7. So w = 1, 1, 2, 3 by residue. 64800 unit
+     readings, eta^4 = 1 exactly among them, sat at or above v = 10 and
+     were set aside; every door is below it.
+  F  At p = 2 the least carrier norms for j = 1..6 are 3, 5, 9, 17, 97, 193:
+     the floor p^j + 1 at j = 1..4, not at 5. At p = 3 they are 4, 19, 109,
+     163, ..., at p = 7 they are 8, 197, ...; eleven cells, at p &gt;= 11 and the
+     top j, print None, no prime power below 2 000 000 qualifying. Of the nine
+     primes below 24, residue degree 3 is cheaper at exactly 7
+     (norm 8 against 29) and 13 (27 against 53); at 19 it first carries at 343
+     against 191.
+  Tiers: (1) and (2) a theorem, corollaries of the door theorem and the
+  ladder theorem, their proof the argument; (3) a theorem, its proof the
+  case analysis, which is finite and complete for every delta; (4) a
+  property for the floor, the table a rule in range.
+
+RUN RECORD. 11/11, 12.6 s wall, peak commit 21.9 MB under a memory guard.
+After the run the proof's letters were traded into ones the clock
+family leaves free (delta for the field, eta = sigma + tau sqrt delta
+for a unit, i for its level, gamma, ell), since d, r, c, T, u and x_j
+are spent there; the rerun printed the same 11/11 and no number moved.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+from math import isqrt
+
+from module_law import Local, check, section, CHECKS, vp
+from clock import criterion, ladder
+
+K = 5                  # units sigma + tau sqrt delta, (sigma, tau) mod 2^K
+CENSOR = 2 * K
+BOUND = 2000           # the range of d in section_door
+SMALL = 60             # the range of d in the valuation control
+SCAN = 2_000_000       # the prime-power scan of section_floor
+JMAX = 4               # counts a carrier is read at
+
+CONSUMERS = [
+    Local(2, [0, 1], "unr", "Z_2"),
+    Local(3, [0, 1], "unr", "Z_3"),
+    Local(7, [0, 1], "unr", "Z_7"),
+    Local(2, [1, 1, 1], "unr", "unramified f=2 at 2"),
+    Local(2, [2, 0, 1], "eis", "x^2 + 2"),
+    Local(2, [-2, 0, 1], "eis", "x^2 - 2"),
+    Local(2, [2, -2, 1], "eis", "Q_2(i)"),
+    Local(2, [6, -2, 1], "eis", "Q_2(sqrt -5)"),
+    Local(3, [3, 0, 1], "eis", "x^2 + 3"),
+    Local(3, [-3, 0, 1], "eis", "x^2 - 3"),
+    Local(2, [2, 0, 0, 1], "eis", "x^3 + 2"),
+]
+STAIRCASE = {"Z_3", "Z_7", "unramified f=2 at 2", "x^2 - 3"}
+DOOR_BY_RESIDUE = {2: 5, 6: 5, 3: 6, 7: 7}
+QI_COLUMN = [0, 1, 2, 2, 2, 2, 2, 3, 3]
+
+
+# ------------------------------------------------------------- a place's door
+<span id="members"></span>def members(loc, need):
+    """The first `need` ladder members x_1 &lt; x_2 &lt; ... (clock.py)."""
+    D = 8
+    while True:
+        lad = ladder(loc, D)
+        if len(lad) &gt;= need:
+            return lad[:need]
+        D *= 2
+
+
+<span id="full_column"></span>def full_column(loc, D):
+    """lambda(P^b) for b = 0..D off the WHOLE group U_1/U_b."""
+    lam = [1]
+    for b in range(1, D + 1):
+        lam.append((loc.q - 1) * loc.E_full(b))
+    return lam
+
+
+<span id="door"></span>def door(lam, a, L):
+    """Least r &gt;= 1 with lambda(P^(a + r)) not dividing L, or None past
+    the column read."""
+    for b in range(a + 1, len(lam)):
+        if L % lam[b]:
+            return b - a
+    return None
+
+
+<span id="section_control"></span>def section_control():
+    section("C. CONTROL: the column off the whole group, v_P, the identity")
+    off = 0
+    for loc in CONSUMERS:
+        D = members(loc, JMAX + 1)[-1] + 1
+        for b in range(1, D + 1):
+            if loc.E_gen(b) != loc.E_full(b):
+                off += 1
+    check("E_gen = E_full at every consumer place to its depth", off == 0,
+          f"{off} off over {len(CONSUMERS)} places")
+    bad = seen = 0
+    for d in ramified(SMALL):
+        loc = eisenstein(d)
+        for x in range(-6, 7):
+            for y in range(-6, 7):
+                n = x * x - d * y * y
+                if n == 0 or vp(n, 2) &gt;= 12:
+                    continue
+                z = [x, y] if d % 4 == 2 else [x + y, y]
+                seen += 1
+                if loc.val(z, 8) != vp(n, 2):
+                    bad += 1
+    check("v_P = v_2(N) at every sampled element, |delta| &lt;= 60",
+          bad == 0,
+          f"{seen} elements, {bad} off")
+    bad = seen = 0
+    for d in (-1, 2, 3, -5, 7, -6, 10, -21):
+        for x in range(-9, 10):
+            for y in range(-9, 10):
+                a, b = x, y
+                for _ in range(2):
+                    a, b = a * a + d * b * b, 2 * a * b
+                n4 = (a - 1) ** 2 - d * b * b
+                N, T = x * x - d * y * y, 2 * x
+                seen += 1
+                if n4 != (N - T + 1) * (N + T + 1) * ((N - 1) ** 2 + T * T):
+                    bad += 1
+    check("N(eta^4 - 1) = (N - Tr + 1)(N + Tr + 1)((N - 1)^2 + Tr^2)",
+          bad == 0, f"{seen} samples, {bad} off")
+    col = unit_column(-1, 9)
+    print(f"  unit brute column of Q(i) over 2, b = 1..9: {col}")
+    check("Q(i)'s column is 0, 1, 2, 2, 2, 2, 2, 3, 3", col == QI_COLUMN)
+
+
+<span id="section_bears"></span>def section_bears():
+    section("B. THE DEPTHS A CARRIER BEARS ON, AND THE DOOR IT SETS")
+    wrong = censored = 0
+    for loc in CONSUMERS:
+        x = members(loc, JMAX + 1)
+        D = x[-1] + 2
+        lam = full_column(loc, D)
+        p = loc.p
+        rows = []
+        for j in range(1, JMAX + 1):
+            bears, doors = [], []
+            for a in range(1, x[j - 1] + 3):
+                own = door(lam, a, lam[a])
+                with_q = door(lam, a, lam[a] * p ** j // gcd_p(lam[a], p, j))
+                if own is None or with_q is None:
+                    censored += 1
+                    continue
+                if own != with_q:
+                    bears.append(a)
+                    doors.append(with_q)
+            want = list(range(1, x[j - 1] + 1))
+            want_doors = [x[j] + 1 - a for a in want]
+            ok = bears == want and doors == want_doors
+            wrong += not ok
+            rows.append(f"j={j}: 1..{max(bears) if bears else 0}"
+                        f"{'' if ok else ' OFF'}")
+        print(f"  {loc.name:22s} ladder {x}  " + "  ".join(rows))
+    check("the carrier bears on exactly 1..x_j, door x_(j+1) + 1 - a",
+          wrong == 0, f"{wrong} (place, j) off, {censored} depths censored")
+    print()
+    print("  the staircase x_j = 1 + (j - 1) e against the ladder:")
+    off = 0
+    for loc in CONSUMERS:
+        x = members(loc, JMAX)
+        stair = [1 + (j - 1) * loc.e for j in range(1, JMAX + 1)]
+        holds = x == stair
+        print(f"    {loc.name:22s} e={loc.e} p={loc.p}  ladder {x}  "
+              f"staircase {stair}  {'holds' if holds else 'departs'}")
+        want = loc.e &lt;= loc.p - 1 and not criterion(loc)
+        off += holds != want or want != (loc.name in STAIRCASE)
+    check("the staircase holds exactly at e &lt;= p - 1 without a head",
+          off == 0, f"{off} places on the wrong side")
+
+
+<span id="gcd_p"></span>def gcd_p(n, p, j):
+    """The p-part of n that p^j already covers, so lcm(n, p^j) is exact."""
+    return p ** min(vp(n, p), j)
+
+
+# --------------------------------------------- the ramified place over 2
+<span id="squarefree"></span>def squarefree(n):
+    n = abs(n)
+    for f in range(2, isqrt(n) + 1):
+        if n % (f * f) == 0:
+            return False
+    return True
+
+
+<span id="ramified"></span>def ramified(bound):
+    """Squarefree delta != 1, |delta| &lt;= bound, 2 ramified in Q(sqrt delta)."""
+    return [d for d in range(-bound, bound + 1)
+            if d not in (0, 1) and d % 4 in (2, 3) and squarefree(d)]
+
+
+<span id="eisenstein"></span>def eisenstein(d):
+    """The place over 2 of Q(sqrt delta): pi = sqrt delta at delta = 2
+    mod 4, pi = sqrt delta - 1 at delta = 3 mod 4."""
+    g = [-d, 0, 1] if d % 4 == 2 else [1 - d, 2, 1]
+    return Local(2, g, "eis", f"Q_2(sqrt {d})")
+
+
+<span id="unit_readings"></span>def unit_readings(d):
+    """(least v_P(eta^4 - 1), least of it over level &gt;= 2, censored)
+    over units eta = sigma + tau sqrt delta, (sigma, tau) mod 2^K."""
+    best = best2 = None
+    cens = 0
+    for x in range(2 ** K):
+        for y in range(2 ** K):
+            N, T = x * x - d * y * y, 2 * x
+            if N % 2 == 0:
+                continue
+            j_num = (x - 1) ** 2 - d * y * y
+            n4 = (N - T + 1) * (N + T + 1) * ((N - 1) ** 2 + T * T)
+            if n4 == 0:
+                cens += 1
+                continue
+            v = vp(n4, 2)
+            if v &gt;= CENSOR:
+                cens += 1
+                continue
+            best = v if best is None else min(best, v)
+            if vp(j_num, 2) &gt;= 2:
+                best2 = v if best2 is None else min(best2, v)
+    return best, best2, cens
+
+
+<span id="unit_column"></span>def unit_column(d, D):
+    """c(b) for b = 1..D: the least t with v_P(eta^(2^t) - 1) &gt;= b at
+    every unit eta, off exact powers of representatives mod 2^6."""
+    need = [0] * (D + 1)
+    for x in range(64):
+        for y in range(64):
+            if (x * x - d * y * y) % 2 == 0:
+                continue
+            vals, a, b = [], x, y
+            for _ in range(5):
+                n = (a - 1) ** 2 - d * b * b
+                vals.append(12 if n == 0 else min(12, vp(n, 2)))
+                a, b = a * a + d * b * b, 2 * a * b
+            for bb in range(1, D + 1):
+                t = next(t for t, v in enumerate(vals) if v &gt;= bb)
+                need[bb] = max(need[bb], t)
+    return need[1:]
+
+
+<span id="section_door"></span>def section_door():
+    section("D. THE RAMIFIED PLACE OVER 2: THE DOOR IS x_3 = 4 + w")
+    fields = ramified(BOUND)
+    tally = {r: [] for r in DOOR_BY_RESIDUE}
+    off_res = off_x3 = cens = low_seat = 0
+    for d in fields:
+        best, best2, c = unit_readings(d)
+        cens += c
+        r = d % 8
+        tally[r].append(best)
+        off_res += best != DOOR_BY_RESIDUE[r]
+        x3 = members(eisenstein(d), 3)[2]
+        off_x3 += best != x3
+        low_seat += best2 is not None and best2 &lt; 7
+    for r in (2, 6, 3, 7):
+        vals = sorted(set(tally[r]))
+        print(f"  delta = {r} mod 8: {len(tally[r]):4d} fields, doors {vals}")
+    top = max(v for vs in tally.values() for v in vs)
+    print(f"  {len(fields)} fields, {cens} unit readings censored at "
+          f"v &gt;= {CENSOR}; every door below it: {top &lt; CENSOR}")
+    check("the door is 5, 6, 7 at delta = 2 or 6, 3, 7 mod 8", off_res == 0,
+          f"{off_res} of {len(fields)} off")
+    check("the unit brute's door equals the ladder's x_3", off_x3 == 0,
+          f"{off_x3} of {len(fields)} off")
+    check("units of level &gt;= 2 never go below 7", low_seat == 0,
+          f"{low_seat} fields below")
+    widths = {}
+    for d in fields:
+        x = members(eisenstein(d), 3)
+        widths.setdefault(d % 8, set()).add(x[2] - 4)
+    print("  w = x_3 - 4 by residue: "
+          + ", ".join(f"{r}: {sorted(widths[r])}" for r in (2, 6, 3, 7)))
+
+
+# ------------------------------------------------------ the carrier's norm
+<span id="prime_powers"></span>def prime_powers(n):
+    sieve = bytearray([1]) * (n + 1)
+    sieve[0] = sieve[1] = 0
+    for i in range(2, isqrt(n) + 1):
+        if sieve[i]:
+            sieve[i * i::i] = bytearray(len(sieve[i * i::i]))
+    primes = [i for i in range(n + 1) if sieve[i]]
+    out = set()
+    for r in primes:
+        q = r
+        while q &lt;= n:
+            out.add(q)
+            q *= r
+    return primes, sorted(out)
+
+
+<span id="section_floor"></span>def section_floor():
+    section("F. THE CARRIER'S NORM: THE FLOOR, AND RESIDUE DEGREE 3")
+    primes, pps = prime_powers(SCAN)
+    small = [p for p in primes if p &lt; 24]
+    least = {}
+    for p in small:
+        for j in range(1, 7):
+            m = p ** j
+            least[p, j] = next((q for q in pps if q % m == 1), None)
+    for p in small:
+        print(f"  p = {p:2d}: least carrier norm at j = 1..6: "
+              + ", ".join(str(least[p, j]) for j in range(1, 7)))
+    floors = [least[2, j] for j in range(1, 6)]
+    check("p = 2: 3, 5, 9, 17 at j = 1..4, each p^j + 1, then 97",
+          floors == [3, 5, 9, 17, 97])
+    cheaper = []
+    for p in small:
+        lo = min(r ** f for r in primes[:2000] for f in (1, 2)
+                 if (r ** f - 1) % p == 0)
+        three = min(r ** 3 for r in primes[:200] if (r ** 3 - 1) % p == 0)
+        tag = "degree 3 cheaper" if three &lt; lo else ""
+        print(f"  p = {p:2d}: residue degree &lt;= 2 from {lo}, "
+              f"degree 3 from {three}  {tag}")
+        if three &lt; lo:
+            cheaper.append((p, three, lo))
+    check("degree 3 is cheaper exactly at 7 (8 &lt; 29) and 13 (27 &lt; 53)",
+          cheaper == [(7, 8, 29), (13, 27, 53)], f"{cheaper}")
+
+
+<span id="main"></span>def main():
+    section_control()
+    if not all(CHECKS):
+        print("  control failed: run stopped")
+        raise SystemExit(1)
+    section_bears()
+    section_door()
+    section_floor()
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks PASS")
+    if not all(CHECKS):
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/carrier.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

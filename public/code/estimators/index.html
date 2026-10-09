@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>estimators.py | Numbers read one place at a time</title>
+<meta name="description" content="estimators.py">
+<link rel="alternate" type="text/x-python" href="/code/estimators.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>estimators.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/ruler/#the-knife-a-consistent-point-inside-an-inconsistent-interval">RULER: The knife: a consistent point inside an inconsistent interval</a> (observation); <a href="/ruler/#more-data-a-worse-held-out-interval">RULER: More data, a worse held-out interval</a> (observation); <a href="/ruler/#one-bound-at-two-statistics">RULER: One bound at two statistics</a> (theorem); <a href="/ruler/#the-spanning-tree-is-not-identified">RULER: The spanning tree is not identified</a> (property).</p><p>Cited on: <a href="/ruler/">RULER</a>.</p><p>To run it: no other script; standard library only.</p></div>
+<pre>"""estimators.py -- standard Bayes-error estimators scored against an
+exact Bayes error, on the threshold family of ceiling.py.
+
+QUESTION. ceiling.py derives the Bayes error of [x &gt;= t] read through
+x mod M as a Fraction. That makes the family a RULER: any estimator of
+the Bayes error can be scored on its BIAS against the truth and on the
+COVERAGE of the 95% interval it states for itself, the fraction of
+trials whose interval contains the truth. Where do the textbook
+estimators fail, is the failure the ring's or the estimator's, and
+what do the distribution-free brackets actually certify?
+
+THE ESTIMATORS. A sample is n pairs (bin r, label y).
+  RESUBSTITUTION  (1/n) sum_r min(n_r0, n_r1).
+  HELD-OUT        fit the majority label per bin on half the sample
+                  (an empty or tied bin guesses 1), score its 0-1
+                  error on the other half.
+  1-NN            the nearest-neighbour error R_NN; on a categorical
+                  channel with every bin populated, a test point's
+                  neighbours are its own bin, so R_NN is the rate at
+                  which a random same-bin training label disagrees.
+  COVER-HART      the bracket [(1 - sqrt(1 - 2 R_NN))/2, R_NN].
+  DIVERGENCE      the Friedman-Rafsky count R of cross-label edges of a
+                  minimum spanning tree of the pooled sample, u =
+                  1 - 2R/n, and the bracket [(1 - sqrt u)/2, (1 - u)/2]
+                  of Berisha, Wisler, Hero and Spanias (IEEE Trans.
+                  Signal Process. 2016, Theorem 2, whose D~_p is u).
+Each states the binomial bar 1.96 sqrt(p(1 - p)/m) on the m points
+its rate is computed from; a bracket pushes each end out by it.
+
+THE ARGUMENT (written before the engine).
+  (A) THE RING IS A MIXTURE OF BERNOULLIS (property). Drawing x
+      uniform on Z/N and reading (x mod M, [x &gt;= t]) draws r uniform
+      and y ~ Bernoulli(eta_r), eta_r = (c - J(r))/c with J(r) the
+      below-count. So whatever an estimator does on the ring it does
+      on bare Bernoulli bins with those eta_r; the ring supplies
+      the placement, eta_r = 1/2 exactly at a knife slice (a modulus
+      pair (N, M) of ceiling.py with its threshold t, here c = N/M even
+      and t = N/2) with the truth in exact rational arithmetic.
+  (B) THE KNIFE. At eta_r = 1/2 on every bin, E min(n_r0, n_r1) =
+      n_r/2 - E|n_r1 - n_r/2|, and the mean absolute deviation of a
+      fair binomial is sqrt(n_r/2pi) asymptotically; with n_r = n/M
+      the resubstitution deficit is (1/2) sqrt(2M/(pi n)), while the
+      stated half-bar is 1.96/(2 sqrt n). Both are 1/sqrt n, their
+      ratio sqrt(2M/pi)/1.96 is free of n (1.5766 at M = 15), and
+      the interval never covers at any n.
+  (C) THE TRANSIENT. Held-out scores a fitted RULE, whose excess over
+      the optimum is sum_r P(r)|2 eta_r - 1| P(flip at n_r/2 training
+      points); at |eta_r - 1/2| = delta that decays like
+      exp(-2 delta^2 n_r) only once n_r passes 1/delta^2, while the
+      bar decays as 1/sqrt n from the start. So coverage FALLS with n
+      until n_r ~ 1/delta^2 and recovers after: at M = 105,
+      eta = 6/11, 1/delta^2 = 484 per bin, n ~ 50,000.
+  (D) ONE BOUND AT TWO STATISTICS. On a categorical channel with n &gt;&gt;
+      M, R_NN -&gt; E[2 eta (1 - eta)] and 2R/n -&gt; the same quantity for
+      any spanning tree that ignores the labels (C). The population u
+      is E[(2 eta - 1)^2], and (1 - u)/2 = E[2 eta (1 - eta)]
+      identically, so the Cover-Hart and divergence brackets are one
+      bound read through two statistics. R* = 1/2 - E|2 eta - 1|/2, so
+      the lower end's gap is the Jensen gap of |2 eta - 1|: zero iff
+      |c - 2J(r)| is constant over r, iff s = 0 or (c odd and
+      Q = (c-1)/2), the odd-c middle range of ceiling.py.
+  (E) THE BOUND IS EMPTY ON THE RANGE. At N = 105, M = 15 the range
+      holds t = 46..59 with R* = 3/7 flat, the exact bracket is
+      [3/7, 24/49], and the no-evidence value min(t, N - t)/N exceeds
+      24/49 only at t = 52, 53: the exact bound certifies a lift at 2
+      of the 14 thresholds, and with a sampling bar at fewer.
+  (F) THE MST IS NOT IDENTIFIED. Two points of one bin sit at distance
+      0, so any spanning tree of a bin's clique is part of a minimum
+      spanning tree, every one genuine, and the source's estimator
+      assumes a unique tree. A class-ordered chain puts one cross edge
+      in each two-label bin, so 2R/n &lt;= 2(2M - 1)/n -&gt; 0 and the
+      bracket collapses to [0, 0]; a spanning tree of the bipartite
+      graph between a bin's two label classes makes all n_r - 1 edges
+      cross, 2R/n -&gt; 2 and u -&gt; -1, the bracket at [1/2, 1/2] after
+      clipping. A tree whose shape ignores the labels has the labels
+      exchangeable on its n_r - 1 edges, expected cross count
+      2 n_r0 n_r1 / n_r, the population quantity: label-blindness is
+      the repair, randomness buys nothing beyond it.
+
+DESIGN. Slices of the threshold family (ceiling.py's notation):
+  KNIFE   N = 210,  M = 15,  t = 105, R* = 1/2
+  ODD     N = 105,  M = 15,  t = 45,  R* = 3/7
+  WIDE    N = 1155, M = 105, t = 525, R* = 5/11
+n in {500, 2000, 8000, 32000}, 40 trials (the 1-NN leg 5 draws at
+32,000), fixed seeds. Ring arms draw
+x uniform; bare arms draw per-bin binomial counts. The transient's
+bare arm runs on to n = 512,000. The exact legs are Fractions over
+every threshold cell with N &lt;= 500 and every t.
+
+PREDICTIONS (fixed before the engine).
+  P0 positive control, two equiprobable bins at eta = (0.2, 0.9),
+     R* = 3/20, n = 8000: resubstitution and held-out cover in at
+     least 34 of 40 trials with |bias| &lt; 0.01; the Cover-Hart bracket
+     excludes the no-evidence 0.45 in at least 34 of 40.
+  P1 (B) resubstitution at KNIFE, ring and bare: coverage &lt;= 0.10 at
+     every n, the mean deficit over the mean half-bar in
+     [-2.0, -1.2] at every n.
+  P2 (C) held-out at WIDE, ring and bare: coverage &gt;= 0.70 at n = 500,
+     &lt;= 0.35 at n = 32000; the bare arm &gt;= 0.85 at n = 512,000.
+  P3 (D) exact: (1 - u)/2 = E[2 eta (1 - eta)] on every slice; the
+     lower end equals R* iff s = 0 or t in the odd-c middle range.
+     Sampled: |R_NN - E[2 eta (1 - eta)]| &lt; 0.005 at n = 32000 on
+     KNIFE, ODD, WIDE.
+  P4 (E) the exact bracket contains the no-evidence value at 12 of
+     the 14 thresholds in the range, excluding t = 52, 53.
+  P5 (F) at n = 8000 on ODD: the class-ordered chain gives
+     2R/n &lt; 4M/n, the bipartite trees 2R/n &gt; 1.9, a chain in draw
+     order within 0.02 of 24/49 over 40 trials.
+
+KILL. Any print off its prediction. Only the printed value decides.
+
+FINDINGS. No kill fired. One frozen statement was wrong in its
+normalization: (D) and P5 said 2R/n tends to E[2 eta (1 - eta)] under
+a label-blind tree; it is R/n (expected cross count 2 n_r0 n_r1 / n_r
+per bin sums to n E[2 eta (1 - eta)]), and 2R/n = 1 - u tends to
+1 - E[(2 eta - 1)^2]. Also in (C): the rule is fit on n_r/2
+points, so the flip probability decays like exp(-delta^2 n_r), not
+exp(-2 delta^2 n_r); the crossover scale 1/delta^2 stands. The
+tree leg counts within-bin edges only; the at most M - 1 edges
+between bins move R/n by at most M/n. The first run printed 2R/n = 0.9769 and FAILED
+that check; the check was rewritten to R/n, which printed 0.4885
+against 24/49 = 0.4898, and the bracket from the same count,
+[0.4241, 0.4885], sits on the exact [3/7, 24/49].
+  controls   eta = (0.2, 0.9): bias +0.0010 and -0.0006, coverage 0.95
+             and 0.93; Cover-Hart covers 40/40 and excludes 0.45 40/40.
+  knife      ratio -1.605, -1.606, -1.623, -1.612 on the ring and
+             -1.682, -1.644, -1.462, -1.544 bare, against 1.5766;
+             coverage 0.00 to 0.03 at every n in both ((B)'s never).
+  transient  held-out at WIDE: ring 0.72, 0.60, 0.12, 0.30 over the
+             four n, bare 0.88, 0.57, 0.17, 0.17, then 0.95 at 128,000
+             and 0.90 at 512,000. Resubstitution at M = 15, n = 8000
+             covers 0.03 at delta = 0, 0.90 at 1/64 (offset 0.72), 0.97 at
+             1/32 and 0.93 at 1/8.
+  bound      the identity on 40,914 slices; 7,296 tight slices, exactly
+             s = 0 or the range; the exact range bracket excludes the
+             no-evidence value only at t = 52, 53; R_NN within 0.0003
+             of its limit at KNIFE, ODD and WIDE.
+  tree       class-ordered 2R/n = 0.0038 (bracket [0.0009, 0.0019]),
+             bipartite 1.9963 ([1/2, 1/2]), draw order R/n = 0.4885.
+Coverage over 40 trials reads to about a tenth; the directions and the
+ratio's constancy are the finding, never the rates.
+
+RUN RECORD. python estimators.py: 17 of 17 checks, 9.2 s, peak commit
+9.2 MB; after an audit (the two tree checks that held by construction
+cut, the range bracket's ends checked, the control gating), 16 of 16,
+9.1 s, 9.3 MB.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import random
+import sys
+import time
+from fractions import Fraction
+from math import sqrt, prod
+from itertools import combinations
+
+Z = 1.96
+TRIALS = 40
+NS = (500, 2000, 8000, 32000)
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f"  ({detail})" if detail else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+# ------------------------------------------------------------ samplers
+
+<span id="ring_etas"></span>def ring_etas(N, M, t):
+    """eta_r = P(x &gt;= t | x mod M = r), exact."""
+    c = N // M
+    return [Fraction(sum(1 for j in range(c) if r + j * M &gt;= t), c)
+            for r in range(M)]
+
+
+<span id="ring_sample"></span>def ring_sample(rng, N, M, t, n):
+    """Per-bin label counts [n_r0, n_r1] from n uniform draws of x."""
+    counts = [[0, 0] for _ in range(M)]
+    for _ in range(n):
+        x = rng.randrange(N)
+        counts[x % M][x &gt;= t] += 1
+    return counts
+
+
+<span id="bare_sample"></span>def bare_sample(rng, etas, n):
+    """Per-bin label counts: a multinomial over equiprobable bins, then
+    a binomial label count in each."""
+    M = len(etas)
+    counts = []
+    left = n
+    for r in range(M):
+        nr = left if r == M - 1 else rng.binomialvariate(left, 1 / (M - r))
+        left -= nr
+        n1 = rng.binomialvariate(nr, float(etas[r])) if nr else 0
+        counts.append([nr - n1, n1])
+    return counts
+
+
+<span id="bayes"></span>def bayes(etas):
+    return sum(min(e, 1 - e) for e in etas) / len(etas)
+
+
+<span id="nn_limit"></span>def nn_limit(etas):
+    return sum(2 * e * (1 - e) for e in etas) / len(etas)
+
+
+<span id="bar"></span>def bar(p, m):
+    return Z * sqrt(max(p * (1 - p), 0.0) / m)
+
+
+# ---------------------------------------------------------- estimators
+
+<span id="resub"></span>def resub(counts, n):
+    est = sum(min(a, b) for a, b in counts) / n
+    return est, bar(est, n)
+
+
+<span id="held_out"></span>def held_out(train, test):
+    m = sum(a + b for a, b in test)
+    wrong = 0
+    for (ta, tb), (a, b) in zip(train, test):
+        guess_one = tb &gt;= ta          # empty or tied guesses 1
+        wrong += a if guess_one else b
+    est = wrong / m
+    return est, bar(est, m)
+
+
+<span id="one_nn"></span>def one_nn(train, test):
+    """Expected error of 'a random same-bin training label'."""
+    m = sum(a + b for a, b in test)
+    err = 0.0
+    for (ta, tb), (a, b) in zip(train, test):
+        tr = ta + tb
+        if tr == 0:
+            err += (a + b) / 2
+            continue
+        err += a * tb / tr + b * ta / tr
+    return err / m, m
+
+
+<span id="cover_hart"></span>def cover_hart(rnn, m):
+    b = bar(rnn, m)
+    lo_r = max(rnn - b, 0.0)
+    lo = (1 - sqrt(max(1 - 2 * lo_r, 0.0))) / 2
+    hi = min(rnn + b, 0.5)
+    return lo, hi
+
+
+<span id="split"></span>def split(rng, counts):
+    """Split per-bin counts into two halves, each point a fair coin."""
+    train, test = [], []
+    for a, b in counts:
+        a1 = sum(1 for _ in range(a) if rng.random() &lt; 0.5)
+        b1 = sum(1 for _ in range(b) if rng.random() &lt; 0.5)
+        train.append([a1, b1])
+        test.append([a - a1, b - b1])
+    return train, test
+
+
+<span id="run"></span>def run(arm, n, trials, seed, estimator, truth):
+    rng = random.Random(seed)
+    est_sum = bar_sum = 0.0
+    hits = 0
+    for _ in range(trials):
+        est, b = estimator(rng, arm(rng, n), n)
+        est_sum += est
+        bar_sum += b
+        hits += abs(est - truth) &lt;= b
+    return est_sum / trials - truth, bar_sum / trials, hits / trials
+
+
+<span id="est_resub"></span>def est_resub(rng, counts, n):
+    return resub(counts, n)
+
+
+<span id="est_held"></span>def est_held(rng, counts, n):
+    train, test = split(rng, counts)
+    return held_out(train, test)
+
+
+# ------------------------------------------------------------ sections
+
+<span id="section_controls"></span>def section_controls():
+    section("CONTROLS")
+    etas = [Fraction(1, 5), Fraction(9, 10)]
+    truth = float(bayes(etas))
+    arm = lambda rng, n: bare_sample(rng, etas, n)
+    b1, _, c1 = run(arm, 8000, TRIALS, 11, est_resub, truth)
+    b2, _, c2 = run(arm, 8000, TRIALS, 12, est_held, truth)
+    check("two bins at eta = (0.2, 0.9): resubstitution and held-out "
+          "cover, unbiased",
+          c1 &gt;= 0.85 and c2 &gt;= 0.85 and abs(b1) &lt; 0.01 and abs(b2) &lt; 0.01,
+          f"bias {b1:+.4f}, {b2:+.4f}; coverage {c1:.2f}, {c2:.2f}")
+    rng = random.Random(13)
+    excl = cov = 0
+    for _ in range(TRIALS):
+        train, test = split(rng, bare_sample(rng, etas, 8000))
+        lo, hi = cover_hart(*one_nn(train, test))
+        excl += not (lo &lt;= 0.45 &lt;= hi)
+        cov += lo &lt;= truth &lt;= hi
+    check("Cover-Hart covers and excludes the no-evidence 0.45",
+          excl &gt;= 34 and cov &gt;= 34, f"{cov}/40 cover, {excl}/40 exclude")
+    etas = ring_etas(210, 15, 105)
+    check("the knife slice's eta_r is 1/2 at every bin",
+          set(etas) == {Fraction(1, 2)})
+    rng = random.Random(14)
+    counts = ring_sample(rng, 1155, 105, 525, 200000)
+    worst = max(abs(a + b - 200000 / 105) / sqrt(200000 / 105)
+                for a, b in counts)
+    rate = sum(b for _, b in counts) / 200000
+    check("ring sampler: bin frequencies and label rate",
+          worst &lt; 4.5 and abs(rate - 630 / 1155) &lt; 4 * sqrt(0.25 / 200000),
+          f"worst bin {worst:.2f} sd, label rate {rate:.5f} against "
+          f"{630 / 1155:.5f}")
+
+
+<span id="section_knife"></span>def section_knife():
+    section("THE KNIFE: a consistent point inside an inconsistent interval")
+    etas = ring_etas(210, 15, 105)
+    const = sqrt(2 * 15 / 3.141592653589793) / Z
+    print(f"  sqrt(2M/pi)/Z = {const:.4f}")
+    ok = True
+    for name, arm in (("ring", lambda rng, n: ring_sample(rng, 210, 15,
+                                                          105, n)),
+                      ("bare", lambda rng, n: bare_sample(rng, etas, n))):
+        for i, n in enumerate(NS):
+            bias, hb, cov = run(arm, n, TRIALS, 100 + i, est_resub, 0.5)
+            ratio = bias / hb
+            print(f"  {name} n = {n:5d}: bias {bias:+.4f}, half-bar "
+                  f"{hb:.4f}, ratio {ratio:+.3f}, coverage {cov:.2f}")
+            ok &amp;= cov &lt;= 0.10 and -2.0 &lt;= ratio &lt;= -1.2
+    check("coverage &lt;= 0.10 and ratio in [-2.0, -1.2] at every n, ring "
+          "and bare", ok)
+
+
+<span id="section_transient"></span>def section_transient():
+    section("THE TRANSIENT: more data, a worse held-out interval, then not")
+    etas = ring_etas(1155, 105, 525)
+    truth = float(bayes(etas))
+    series = {}
+    for name, arm, ns in (
+            ("ring", lambda rng, n: ring_sample(rng, 1155, 105, 525, n),
+             NS),
+            ("bare", lambda rng, n: bare_sample(rng, etas, n),
+             NS + (128000, 512000))):
+        row = []
+        for i, n in enumerate(ns):
+            bias, hb, cov = run(arm, n, TRIALS, 200 + i, est_held, truth)
+            row.append(cov)
+            print(f"  {name} n = {n:6d}: bias {bias:+.4f}, half-bar "
+                  f"{hb:.4f}, coverage {cov:.2f}")
+        series[name] = row
+    check("coverage &gt;= 0.70 at n = 500 and &lt;= 0.35 at n = 32000, ring and "
+          "bare", all(s[0] &gt;= 0.70 and s[3] &lt;= 0.35
+                      for s in series.values()))
+    check("the bare arm recovers, &gt;= 0.85 at n = 512,000",
+          series["bare"][-1] &gt;= 0.85)
+    rng_etas = lambda d: [Fraction(1, 2) + d] * 15
+    row = []
+    for d in (Fraction(0), Fraction(1, 64), Fraction(1, 32),
+              Fraction(1, 8)):
+        e = rng_etas(d)
+        arm = lambda rng, n, e=e: bare_sample(rng, e, n)
+        bias, hb, cov = run(arm, 8000, TRIALS, 300, est_resub,
+                            float(bayes(e)))
+        u = 2 * float(d) * sqrt(8000 / 15)
+        row.append(cov)
+        print(f"  knife dial delta = {str(d):5s}, scaled offset {u:.2f}: "
+              f"coverage {cov:.2f}")
+    check("the knife's failure is a band near 1/2: none at delta = 0, "
+          "nominal by delta = 1/8", row[0] &lt;= 0.10 and row[-1] &gt;= 0.85)
+
+
+<span id="threshold_family"></span>def threshold_family(cap):
+    PR = (2, 3, 5, 7, 11, 13)
+    out = []
+    for k in range(2, 7):
+        for ps in combinations(PR, k):
+            N = prod(ps)
+            if N &gt; cap:
+                continue
+            for m in range(1, k):
+                for S in combinations(ps, m):
+                    out.append((N, prod(S)))
+    return out
+
+
+<span id="section_bound"></span>def section_bound():
+    section("ONE BOUND AT TWO STATISTICS")
+    bad_id = bad_tight = slices = tight = 0
+    for N, M in threshold_family(500):
+        c = N // M
+        for t in range(1, N):
+            etas = ring_etas(N, M, t)
+            u = sum((2 * e - 1) ** 2 for e in etas) / M
+            rstar = bayes(etas)
+            slices += 1
+            bad_id += (1 - u) / 2 != nn_limit(etas)
+            Q, s = divmod(t, M)
+            is_tight = (1 - 2 * rstar) ** 2 == u
+            tight += is_tight
+            bad_tight += is_tight != (s == 0 or (c % 2 == 1
+                                                 and Q == (c - 1) // 2))
+    check("(1 - u)/2 = E[2 eta (1 - eta)] on every slice", bad_id == 0,
+          f"{slices} slices")
+    check("the lower end equals R* iff s = 0 or the odd-c middle range",
+          bad_tight == 0, f"{tight} tight slices")
+    inside, ends = [], []
+    for t in range(46, 60):
+        etas = ring_etas(105, 15, t)
+        u = sum((2 * e - 1) ** 2 for e in etas) / 15
+        hi = (1 - u) / 2
+        naive = Fraction(min(t, 105 - t), 105)
+        inside.append((t, naive &lt;= hi))
+        # u = 1/49 puts the lower end (1 - sqrt u)/2 at 3/7 = R*
+        ends.append(u == Fraction(1, 49) and bayes(etas) == Fraction(3, 7))
+    check("the range's exact bracket is [3/7, 24/49] at every t in it",
+          all(ends))
+    excluded = [t for t, c in inside if not c]
+    check("the exact bracket [3/7, 24/49] contains the no-evidence value "
+          "at 12 of the 14 thresholds in the range", excluded == [52, 53],
+          f"excluded at {excluded}")
+    rng = random.Random(400)
+    for name, (N, M, t) in (("KNIFE", (210, 15, 105)),
+                            ("ODD", (105, 15, 45)),
+                            ("WIDE", (1155, 105, 525))):
+        etas = ring_etas(N, M, t)
+        gaps = []
+        for _ in range(5):
+            train, test = split(rng, bare_sample(rng, etas, 32000))
+            gaps.append(one_nn(train, test)[0] - float(nn_limit(etas)))
+        g = sum(gaps) / len(gaps)
+        print(f"  {name}: R_NN - E[2 eta (1 - eta)] = {g:+.4f} "
+              f"(limit {nn_limit(etas)})")
+        check(f"1-NN reaches its limit at {name}", abs(g) &lt; 0.005)
+
+
+<span id="chain_cross"></span>def chain_cross(labels):
+    return sum(1 for a, b in zip(labels, labels[1:]) if a != b)
+
+
+<span id="section_mst"></span>def section_mst():
+    section("THE SPANNING TREE IS NOT IDENTIFIED")
+    etas = ring_etas(105, 15, 45)
+    target = float(nn_limit(etas))
+    rng = random.Random(500)
+    n = 8000
+    grouped = bipart = drawn = 0.0
+    for _ in range(TRIALS):
+        cells = [[] for _ in range(15)]
+        for _ in range(n):
+            r = rng.randrange(15)
+            cells[r].append(int(rng.random() &lt; etas[r]))
+        g = b = d = 0
+        for lab in cells:
+            g += chain_cross(sorted(lab))
+            d += chain_cross(lab)
+            if 0 &lt; sum(lab) &lt; len(lab):
+                b += len(lab) - 1
+        grouped += 2 * g / n / TRIALS
+        bipart += 2 * b / n / TRIALS
+        drawn += 2 * d / n / TRIALS
+    def bracket(two_r):
+        u = 1 - two_r
+        return (1 - sqrt(max(u, 0.0))) / 2, (1 - max(u, 0.0)) / 2
+    for name, v in (("class-ordered chain", grouped),
+                    ("bipartite trees", bipart),
+                    ("chain in draw order", drawn)):
+        lo, hi = bracket(v)
+        print(f"  {name}: 2R/n = {v:.4f}, bracket [{lo:.4f}, {hi:.4f}]")
+    check("draw order, label-blind: R/n within 0.02 of E[2 eta (1 - eta)]"
+          " = 24/49", abs(drawn / 2 - target) &lt; 0.02, f"{drawn / 2:.4f}")
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_controls()
+    if not all(CHECKS):
+        print("\nCONTROL FAILED: nothing below is read.")
+        return 1
+    section_knife()
+    section_transient()
+    section_bound()
+    section_mst()
+    print()
+    n, ok = len(CHECKS), sum(CHECKS)
+    print(f"{ok} of {n} checks pass, {time.time() - t0:.1f} s")
+    return 0 if ok == n else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/estimators.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

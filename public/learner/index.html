@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LEARNER — a reader that learns by exact comparisons of its price | Numbers read one place at a time</title>
+<meta name="description" content="LEARNER — a reader that learns by exact comparisons of its price">
+<link rel="alternate" type="text/markdown" href="/learner.md">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a> › <a href="/machines/">Machines and learning</a></nav></header>
+<main><article>
+<h1>LEARNER — a reader that learns by exact comparisons of its price</h1>
+<p class="lead">The object: a reader of a continued-fraction stream. At step n it knows
+the image J_n = f(I_n), I_n the input's <a href="/reading/#t-tiles">tile</a> of depth n + 1
+(<a href="/reading/">READING</a>, <a href="/rates/">RATES</a>), so that step 0 already reads a₀, and f a
+monotone map, and it commits a member of the <dfn id="t-straddle-cover">straddle cover</dfn> holding
+J_n, never undoing a commitment. The cover's members are the
+Stern–Brocot tiles and the <a href="/rates/#t-straddle">straddles</a> S_k(v) of <a href="/rates/#the-ladder-law">RATES: The ladder law</a>,
+written out in <a href="/learner/#the-straddle-cover-and-its-readers">The straddle cover and its readers</a>. A member
+holds an interval when it contains the interval's closure. The <a href="/rates/#t-deficit">deficit</a>
+of a step is the image's scale less the committed interval's, scale
+being ln(1/length), the price <a href="/rates/#the-commitment-bound">RATES: The commitment bound</a> bounds for a
+tile reader. Learning here is strict descent on a finite set of
+policies, every comparison an exact cross-multiplication of big
+integers. The question is what that descent finds and what the optimum
+it finds depends on; then the <a href="/learner/#t-substrate">substrate</a> itself grows, on the collisions
+a labelled set of integers presents.</p>
+<nav class="toc" aria-label="Contents" data-generated="toc"><ol><li><a href="#the-straddle-cover-and-its-readers">The straddle cover and its readers</a> <span>property; observation</span></li><li><a href="#the-bottom-lemma">The bottom lemma</a> <span>theorem</span></li><li><a href="#greedy-patience-dominates-every-sound-reader">Greedy patience dominates every sound reader</a> <span>theorem</span></li><li><a href="#the-partition-valley">The partition valley</a> <span>theorem</span></li><li><a href="#the-funnel-with-one-blind-corner">The funnel with one blind corner</a> <span>rule</span></li><li><a href="#the-layers-of-a-holding-set">The layers of a holding set</a> <span>theorem</span></li><li><a href="#under-an-income-the-rank-is-common">Under an income the rank is common</a> <span>theorem</span></li><li><a href="#on-the-eights-row-patience-with-no-bank-lags-for-the-whole-run">On the eights row, patience with no bank lags for the whole run</a> <span>rule</span></li><li><a href="#destination-universality">Destination universality</a> <span>rule</span></li><li><a href="#a-density-forecast-is-a-length-loss">A density forecast is a length loss</a> <span>theorem</span></li><li><a href="#the-side-loss-makes-the-best-reader-depend-on-the-stream">The side loss makes the best reader depend on the stream</a> <span>rule</span></li><li><a href="#the-stream-enters-at-a-reversal">The stream enters at a reversal</a> <span>theorem</span></li><li><a href="#the-two-poles">The two poles</a> <span>theorem</span></li><li><a href="#breaking-needs-no-stream-and-keeping-needs-no-pole">Breaking needs no stream and keeping needs no pole</a> <span>rule</span></li><li><a href="#the-collision-grower">The collision grower</a> <span>property</span></li><li><a href="#the-rung-reading">The rung reading</a> <span>theorem</span></li><li><a href="#how-fine-and-what">How fine, and what</a> <span>theorem</span></li><li><a href="#the-encoding-bound">The encoding bound</a> <span>theorem</span></li><li><a href="#the-substrate-parts-by-depth-or-inside-a-layer">The substrate parts by depth or inside a layer</a> <span>theorem</span></li><li><a href="#the-growers-worst-case">The grower's worst case</a> <span>theorem</span></li><li><a href="#exact-readout-reads-the-subdominant">Exact readout reads the subdominant</a> <span>criterion</span></li><li><a href="#the-grown-depth-is-the-readable-depth">The grown depth is the readable depth</a> <span>theorem</span></li><li><a href="#open-fronts">Open fronts</a></li></ol></nav>
+<p>The answer, as far as it is carried: with no resource limit, under every
+loss monotone in the committed intervals, the optimum at a step whose
+image is a bounded interval of positive length held by the root depends
+on nothing but the image. The members holding an image have a least one,
+its bottom (<a href="/learner/#the-bottom-lemma">The bottom lemma</a>), though they seldom form a
+chain, and every reader that commits soundly
+(<a href="/learner/#greedy-patience-dominates-every-sound-reader">Greedy patience dominates every sound reader</a>) commits a
+member containing the bottom at every such step. So the best reader
+commits the bottom and reads nothing from the stream that J_n does not
+already say. No step that picks it reads a magnitude: the moves test
+containment, which compares endpoints in the order of the real line, and
+the deficit's lengths only price a choice that containment has already
+made. On the eight (map, stream) rows read
+(<a href="/learner/#the-straddle-cover-and-its-readers">The straddle cover and its readers</a>), descent finds that
+optimum from every start but the four policies that refuse every move,
+which never leave the root.</p>
+<p>With an income of rank per step
+(rank as in <a href="/learner/#the-straddle-cover-and-its-readers">The straddle cover and its readers</a>) the bottom
+can fall out of reach, wherever the images deepen faster than the
+income, and the members holding an image fall into layers by rank, each
+layer an antichain.
+Every greedy reader that spends all it has sits at one rank fixed by the
+images and the resources alone, so two of them can differ only by
+committing incomparable members of one layer. That is where the policy
+enters. On the nine rows read, their best choices are not all the same,
+but at every income and bank tried some choice is best on every row at
+once, and which one depends on the income and the bank, no policy being
+best at all sixteen: a reader taking it learns its resources and not
+its data.</p>
+<p>Scored on forecasting the stream, the reader's optimum does come to
+depend on it, by a route the cover fixes. A forecast read as a density
+at the outcome is a length loss and changes nothing. A forecast of which
+side of a cut the image point, f of the stream's point, falls on leaves
+the nine rows' best readers with no member in common, one scored step
+being enough. With no resource limit, at every step where a reader
+forecasts better than the greedy one, it commits an interval containing
+the greedy one's: the stream enters at a reversal, a nested pair the
+loss orders against containment, never inside a layer
+(<a href="/learner/#the-stream-enters-at-a-reversal">The stream enters at a reversal</a>). So for every
+reader without a limit and every greedy spend-all reader under an
+income, a choice escapes the image at two places only, a layer the
+income leaves open and a reversal the loss makes; readers patient under
+an income are not covered. The reversal is what breaks the common
+optimum, and the stream is not: a loss reading only the committed
+lengths breaks it as well.</p>
+<p>Grown on a labelled set's collisions, a substrate of primes is the tower
+(<a href="/tower/">TOWER</a>) read by the data: the least-new grower
+(<a href="/learner/#the-collision-grower">The collision grower</a>) takes exactly the primes at which the
+chain of unresolved differences drops, which are the least primes not
+dividing the differences. The labelled set fixes how fine it is by the
+largest of them, and which primes it takes only by a skip, a prime below
+that no difference names; the 24 random labelled sets tried, 0 … 209 in
+eight classes, all have the primorials 1, 2, 6 and 30 among their
+differences and every difference below 210, which leaves no skip.
+Collisions only fall as a substrate grows, so no loss that counts them
+alone orders two nested substrates against inclusion: under such a loss
+two labelled sets' substrates part either by depth, one grower stopping
+where the other goes on, which the loss orders with inclusion and which
+reads the data itself as the image does, or inside a layer of the order
+by inclusion, the substrates of one size, the counterpart of the
+reader's layer and the only one of the two places where a choice
+escapes that it can reach. The prime a
+difference names is p_(α + 1), α the tower's agreement on the pair
+(<a href="/learner/#the-grown-depth-is-the-readable-depth">The grown depth is the readable depth</a>), so while the
+separated pairs agree below the pool's end the grown depth is the level
+at which the labels first read exactly off the tower's residue classes.
+Exact reading is tree-shaped in every world, the line's distance
+included: it is the readout, not the size the tower deletes, that forces
+the tree, and the tower is a world that loses nothing to it.</p>
+<h2 id="the-straddle-cover-and-its-readers">The straddle cover and its readers</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>; observation (the 38 behaviour classes).<br>
+Verifier: proof; <a href="/code/learner/#section_cover">learner.py::section_cover</a>, <a href="/code/learner/#section_landscape">learner.py::section_landscape</a>,
+<a href="/code/forecast/#section_controls">forecast.py::section_controls</a>.</p>
+<p>Write a member as (l, r, k): (l, r) a unimodular pair of integer
+points, the tile with vertex v = l + r, and k ≥ 0, the member being
+the interval (l + kv, r + kv), so k = 0 is the tile and k ≥ 1 the
+straddle S_k(v). Its rank is v's <dfn id="t-tree-depth">tree depth</dfn> plus k, the tree depth
+counting Stern–Brocot steps from the root tile (0/1, 1/0) at 0: a
+quotient a spans a tree steps, so the tree depth is not the
+continued-fraction depth that indexes I_n. Two moves leave a
+member: the tree move to the child tile (l + kv, v) or (v, r + kv)
+holding a reference, the image J_(n − p), p set by the policy below,
+and the chain move to the largest index whose straddle at the same
+tile holds a reference, taken when it exceeds k.
+Since det(l + kv, v) = det(l, r), every member a move reaches is again
+a tile with an index. S_(k+1)(v) lies inside S_k(v), and S_1(v) inside
+v's tile.</p>
+<p>A policy has four coordinates: which move it prefers at a tile, which at
+a straddle, and two <dfn id="t-patiences">patiences</dfn> p_tree and p_chain in 0, 1, 2, 3 and ∞,
+so 2·2·5·5 = 100 policies. A move of a kind with patience p must hold
+J_(n − p), and ∞ refuses the kind. At each step the reader moves, in
+its preferred order, until no move is legal. Two policies are
+neighbours when one flipped preference or one patience step separates
+them. The loss
+on a row, the <dfn id="t-deficit-loss">deficit loss</dfn>, is the product of the committed lengths over
+the counted steps, infinite when a committed interval is unbounded, and
+a set of rows' loss multiplies its rows'.</p>
+<p>Two policies whose committed intervals agree at every counted step
+cannot be ordered by any loss read off those steps, so a tie between
+them is the design's and not the landscape's: the 100 policies fall into
+38 such behaviour classes over the eight rows below, and the ninth row
+(<a href="/learner/#destination-universality">Destination universality</a>) splits none of them.</p>
+<p>The <dfn id="t-slate">slate</dfn> is eight (map, stream) rows: the identity on the golden
+ratio, √2, √3 and [0; 8, 8, …], the eights; y ↦ y² on √2 and on the
+golden ratio; y ↦ 2y on the golden ratio and on √2. The row y ↦ y² on
+√2 is the wall row: its images close on the rational 2, the vertex of
+the tile (1, ∞), so no tile below (1, ∞) holds them. A row is read over
+the 120 steps 0 to 119, and loss counts steps 8 to 119.</p>
+<h2 id="the-bottom-lemma">The bottom lemma</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/learner/#section_cover">learner.py::section_cover</a>.</p>
+<p>Let J be a bounded interval of positive length held by the root tile, I*
+the deepest tile holding J, and k* the largest index whose straddle at
+I* holds J, or 0. Then (I*, k*), the bottom of J, lies inside
+every member of the cover holding J.</p>
+<p>Proof. Two tiles are nested or disjoint, so the tiles holding J form a
+chain, finite because J is bounded and has positive length, and I*
+exists. Let
+C = (I, k) hold J. S_1 of I's vertex lies inside I, so I holds J and I*
+lies inside I. If I = I*, then k ≤ k* and the member (I*, k*) lies
+inside C. If I* lies strictly inside I, then J's closure misses I's
+vertex v, since otherwise no tile below I would hold J; so, with
+I = (l, r), J lies inside one of C's two child tiles (l + kv, v) and
+(v, r + kv), that child holds J, and I* lies inside it and so inside C.</p>
+<p>The members holding J are not a chain in general. S_1 of the root is
+(1/2, 2) and S_1 of the tile (0, 1) is (1/3, 2/3), and an image whose
+closure lies inside (1/2, 2/3) is held by both. On the slate, over the
+120 steps, the holding set has two members neither inside the other at
+826 of 959 row-steps at least, counting only crossings among the path
+tiles and their outermost and innermost straddles, and the bottom lies
+inside every holding member:
+the script checks each path tile with its outermost and innermost
+straddle, which bound the rest since straddles at one vertex nest,
+193,362 distinct member-steps. The containment test can fail: the
+bottom with its index lowered by one, a strictly larger member, fails
+at the 219 row-steps whose bottom has index 1 or more.</p>
+<h2 id="greedy-patience-dominates-every-sound-reader">Greedy patience dominates every sound reader</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/learner/#section_readers">learner.py::section_readers</a>, <a href="/code/learner/#section_tight">learner.py::section_tight</a>.</p>
+<p>Call a reader <dfn id="t-sound">sound</dfn> when its committed interval holds J_n at every
+step whose image is a bounded interval of positive length held by the
+root. At every such step, every sound reader's interval contains
+bottom(J_n); the sequence bottom(J_n) is itself sound and never undone;
+and every policy with both patiences 0 commits it, whatever its
+preferences. So greedy patience minimizes every loss that is monotone in
+the committed intervals over such steps, on every stream at once; the
+deficit loss is among them on every stream whose counted images are all
+bounded intervals of positive length held by the root.</p>
+<p>Proof. A committed interval holds J_n, so by the bottom lemma
+bottom(J_n) lies inside it. J_(n+1) lies inside J_n, so bottom(J_n)
+holds J_(n+1) and contains bottom(J_(n+1)). At both patiences 0 every
+legal move holds J_n, the loop starts from its last commitment, which
+holds J_(n − 1) and so J_n, or from the root, which holds J_n, and it
+stops only where neither move is legal, which is at the bottom: at a
+member (I, k) above it, either I* lies strictly inside I and the bottom
+lemma's proof hands a child tile holding J_n, or I = I* and k &lt; k*.</p>
+<p>With no resource limit, then, the optimum is a function of the image
+alone, the same function on every stream: descent that finds it has
+learned nothing about the data. Every policy has a floor, the policy
+with its preferences and both patiences 0, which at every step whose
+image is a bounded interval of positive length held by the root commits
+inside it and, since distinct nested intervals differ in length when the
+outer is bounded, strictly shorter wherever the two differ and the
+policy's member is bounded; the bottom itself can be unbounded, as
+(1, ∞) is for the image (3/2, 5/2). Preferences are free at both
+patiences 0, where every move holds the one reference J_n; with two
+references they can matter: at patiences (7, 6), outside the policies'
+range, on
+the golden ratio at step 8 the tree reference is (3/2, 2) and the chain
+reference (3/2, 5/3); tree first commits the tile (1, ∞) and is stuck,
+chain first commits (1/2, 2). All 95,900 policy-steps of the 100
+policies on the slate contain the bottom, and the four greedy policies
+commit it at every step.</p>
+<h2 id="the-partition-valley">The partition valley</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/learner/#section_valley">learner.py::section_valley</a>.</p>
+<p>With tiles alone the holding members are the chain of I*, so the greedy
+tile reader commits I*(J_n) and a tile reader of patience p commits
+I*(J_(n − p)), which contains I*(J_n). The loss is monotone in patience
+on every stream, strictly where the compared losses are finite and the
+committed tile deepens, and refusing every tile is worst. On the seven
+rows off the wall the loss rises strictly along patience 0, 1, 2, 3 and
+is infinite at ∞.</p>
+<h2 id="the-funnel-with-one-blind-corner">The funnel with one blind corner</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (verified over the 100 policies on the slate over the
+120 steps; the minimum and the policies with no better neighbour again
+over 240 steps).<br>
+Verifier: <a href="/code/learner/#section_landscape">learner.py::section_landscape</a>.</p>
+<p>Strict descent over neighbours reaches the greedy optimum from every
+policy outside the <dfn id="t-refusal-corner">refusal corner</dfn>, the four policies with both
+patiences ∞. The minimum set is the four greedy policies, tied exactly;
+36 policies have infinite loss; and the only policies above the minimum
+with no strictly better neighbour are the refusal corner's four. First-
+and best- improvement descent from all 100 starts reach the minimum in
+192 of 200 runs, the other eight being the corner started in itself.</p>
+<p>The corner is blind because every neighbour's loss is infinite too. The
+tree-only reader is infinite on the wall row, where it stops at the
+unbounded tile (1, ∞) above the image 2; the chain-only reader, read
+at chain patience 0, never leaves the root on five rows, since a
+straddle at the root holds only images around 1 and every deeper
+straddle needs a tree move first, and every policy refusing tree moves
+is among the 36 infinite ones. So
+single moves out of the corner compare infinity with infinity. The
+corner commits the unbounded root at every step, so no finite loss
+separates it from its neighbours.</p>
+<h2 id="the-layers-of-a-holding-set">The layers of a holding set</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/rationed/#section_layers">rationed.py::section_layers</a>.</p>
+<p>Let J be an image that is a bounded interval of positive length held by
+the root, with path tiles T_0 … T_h at tree depths 0 … h and k_i* the
+largest index whose straddle at T_i holds J, or 0. The members holding J
+are the (T_i, k) with k ≤ k_i*, of rank i + k. If one holding member
+lies strictly inside another, its rank is higher. So the members of one
+rank, a layer, are pairwise incomparable, and the bottom, inside every
+other member, is alone in the top layer. Every rank R from 0 to the
+bottom's carries a member: T_R for R ≤ h, and (I*, R − h) above.</p>
+<p>Proof. Let M′ = (T_j, k′) lie strictly inside M = (T_i, k). If j = i
+the straddles nest and k′ &gt; k. If j &lt; i, M lies inside a child tile of
+T_j, which misses T_j's vertex, while M′ is T_j or straddles its vertex,
+so M′ is not inside M; hence j &gt; i, and the rank rises if k = 0. If
+k ≥ 1, write T_i = (l, r)
+with vertex v_i = l + r; J's closure misses v_i, since T_j lies below
+T_i, so J lies in a child tile of S_k(v_i), say (l + k v_i, v_i),
+and the path below T_i runs
+T_(i+m) = (l + (m − 1) v_i, v_i) for m ≤ k + 1. For j ≤ i + k the tile
+T_j reaches left of S_k's end l + k v_i, and a straddle at T_j holds
+its vertex l + (j − i) v_i, at or left of that end, in its interior;
+so M′ is not inside M. Hence j ≥ i + k + 1, and the rank of M′ exceeds
+i + k.</p>
+<p>On the nine rows (the slate and the ninth row of
+<a href="/learner/#destination-universality">Destination universality</a>) over steps 0 to 20, with indices up
+to 40 and each tile's top two, 927,384 ordered pairs break none of this,
+and 152 of the 188 row-steps have a layer of two or more.</p>
+<h2 id="under-an-income-the-rank-is-common">Under an income the rank is common</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/rationed/#section_common_rank">rationed.py::section_common_rank</a>.</p>
+<p>A <dfn id="t-rationed">rationed</dfn> reader receives an income of B rank units a step. A move
+costs the rank it gains, and a chain move truncates to what is left,
+which stays sound because the straddles at one vertex nest. Unspent
+units go to a bank of cap W, overflow lost, and a drawdown coordinate
+caps a step's spending at B + δ, δ = ∞ drawing whatever is banked. Let
+the reader have both patiences 0 and δ = ∞, a greedy spend-all reader.
+Then from ρ_(−1) = b_(−1) = 0 its rank follows ρ_n = min(ρ*(J_n),
+ρ_(n−1) + B + b_(n−1)), ρ* the bottom's rank and 0 while no member holds
+the image, with the bank b_n = min(W, B + b_(n−1) − (ρ_n − ρ_(n−1))),
+whatever its route preferences. So the four such readers share one rank
+trace and one bank trace, and at every step their committed intervals
+are equal or incomparable.</p>
+<p>Proof. Every legal move holds J_n. Above the bottom a move is legal,
+by the dominance proof, and affordable, a tree move costing 1 and a
+chain move truncating. So the loop stops exactly when the rank reaches
+ρ*(J_n) or the units run out, and the rank gained does not depend on
+the route. Two members of one rank holding J_n are equal or
+incomparable by the layers.</p>
+<p>The recursion, run with no reader, reproduces the rank and bank traces
+at all 16 settings (B = 1, 2, 3, 4; W = 0, 2, 4, 8) on all nine rows,
+and the four readers' intervals differ at 11,904 pair-steps, every one
+incomparable.</p>
+<h2 id="on-the-eights-row-patience-with-no-bank-lags-for-the-whole-run">On the eights row, patience with no bank lags for the whole run</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (verified on (identity, eights) at B = 1, 2, 4, p ≤ 3, with
+no bank, W = 0, chains refused, at every counted step to n = 119; the
+loss at B = 1 also at chain patience 0 to 3).<br>
+Verifier: <a href="/code/rationed/#section_start_delay">rationed.py::section_start_delay</a>.</p>
+<p>On (identity, eights) no member holds the first image (0, 1), whose
+closure meets 0, so the greedy reader first moves at step 1 and a reader
+of tree patience p, chains refused, at step p + 1. The demand there is
+about eight ranks a step, so both spend their whole income every step
+and the gap is B p ranks at every counted step, from step 8, where the
+run reads it. With no bank it does not close
+over the run: the catch-up that makes patience cheap without a limit was
+the unlimited loop. A bank lets the patient reader spend income it saved
+while idle, so with a bank the gap can shrink, and this rule does not
+read it. With tiles alone the holding members are a chain, so the
+patient tile reader's tile contains the greedy tile reader's. With
+chains allowed at chain patience 0 to 3, the loss at B = 1 still rises
+strictly with tree patience 0 to 3, 58.6 in ln-loss per unit of tree
+patience, at every fixed pair of preferences.</p>
+<h2 id="destination-universality">Destination universality</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (verified at 16 settings on nine rows, two orders).<br>
+Verifier: <a href="/code/rationed/#section_universality">rationed.py::section_universality</a>,
+<a href="/code/rationed/#section_inversion">rationed.py::section_inversion</a>.</p>
+<p>A ninth row is read beside the slate, y ↦ 2y on the stream whose digits
+are the Fibonacci word over {1, 2}, bounded and never periodic. The
+policy space is the 100 policies crossed with the drawdowns 0, 1, 2
+and 4 below W, and ∞, which stands for every δ ≥ W since δ ≥ W draws
+what ∞ draws: a sample of the drawdown axis, δ = 3, 5, 6 and 7 not run.
+Two losses are read: the
+deficit loss, and the <dfn id="t-lag-loss">lag loss</dfn>, which sums the <dfn id="t-image-lag">image lag</dfn>
+n + 1 − τ(n), τ(n) counting the steps m ≤ n with |J_m| ≥ |C_n|, C_n the
+interval committed at step n: the steps the committed interval sits
+behind the stream. The sum of scale shortfalls would be no new loss, its
+image term being the same for every policy; the image lag quantizes the
+shortfall by the stream's own rate. The composite order compares lag
+losses and breaks ties by the deficit loss.</p>
+<p>At every setting, under the deficit loss and under the composite
+order, the nine rows' argmin sets over that space have a common member,
+and a greedy spend-all policy is always among the common members, while
+no policy is common at all sixteen settings under either order. The
+per-row argmin
+sets differ at all 32 setting-orders, so this is a policy that is best
+on nine different rows, and a zero transfer gap from training on some
+rows and testing on others follows from it and adds nothing. The greedy
+spend-all policy chain first at tiles and tree first at straddles is
+common at 15 settings. At (B, W) = (4, 2) the common set is instead
+tree first at tiles, either preference at straddles, greedy, with δ = 1
+or ∞, the same under both orders. There two greedy spend-all
+readers, U chain first at tiles and tree first at straddles and V tree
+first at tiles and chain first at straddles, tie on eight rows and part
+on (identity, eights), U at −14909.08 against V at −14920.56 in ln-loss,
+at 56 counted steps, every one a choice inside one layer. The first is
+step 8 at rank 34, where the straddle of index 3 has length 7/222732060
+and the tile 1/39055634. The rank trace is fixed by the images and
+(B, W) alone, so a route's advantage is a comparison of two members at a
+rank the resources chose.</p>
+<p>Read as forgetting (<a href="/forget/#two-witnesses-buy-the-robust-grade">FORGET: Two witnesses buy the robust grade</a>), a
+reader that takes one common member on every row is a state constant
+across the rows, a factoring, so it holds nothing of its row under any
+prior. That is a
+fact about the selection: the argmin sets themselves differ at every
+setting, so a reader ranking each row's set on its own may read the
+row. A state picked among co-optima is graded by the rule that picks it.</p>
+<h2 id="a-density-forecast-is-a-length-loss">A density forecast is a length loss</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof.</p>
+<p>Let the reader forecast the image point, f of the stream's point, at
+step n by the uniform density on its committed interval C_n, and let
+a score, read as a loss so that more is worse, read that forecast only
+through its density at the outcome, a lower density scoring worse and
+an unbounded interval worst. Then the score is a function of |C_n|
+that rises with it, whatever the stream, so the greedy reader is optimal
+under it on every stream. The log score of the next image is the
+instance: its sum is the logarithm of the deficit loss less a sum no
+policy moves.</p>
+<p>Proof. The image point, f of the stream's point, lies in J_(n+1), inside
+J_n, which the sound reader's C_n holds (the root when no member does),
+so its density is 1/|C_n|; a loss rising with every committed length is
+monotone in the committed intervals, and greedy patience minimizes every
+such loss. The log score of J_(n+1) is ln|C_n| − ln|J_(n+1)|.</p>
+<p>A forecast read from the image J_n instead is the same for every
+reader. So a score under which the stream chooses the reader must read
+the committed interval for something its length does not say, such as
+its position; a discrete decision, the side of a cut, is the instance
+read below.</p>
+<h2 id="the-side-loss-makes-the-best-reader-depend-on-the-stream">The side loss makes the best reader depend on the stream</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (verified on the nine rows over 120 steps, steps 8 to 119
+counted).<br>
+Verifier: <a href="/code/forecast/#section_side">forecast.py::section_side</a>, <a href="/code/forecast/#section_one_bit">forecast.py::section_one_bit</a>.</p>
+<p>The cut at step n is the mediant of J_n's endpoints, interior to J_n,
+so which side of it the image point, f of the stream's point, falls on
+is decided only by later images, which read it off. The reader's
+forecast is the wider side of C_n at the cut, an unbounded side being
+wider and a tie forecasting left, and the <dfn id="t-side-loss">side loss</dfn> counts the
+counted steps it misses. Under the identity the cut divides the next
+digit 1 from the rest, so the forecast is of whether the stream's own
+next digit is 1.</p>
+<p>The ninth row splits no class: the 100 policies still fall into 38
+behaviour classes over all nine rows' counted steps. Over those classes
+the nine rows' argmin sets have no common member, under the side loss
+and with the deficit loss breaking its ties. The greedy class is out of
+the argmin on six rows. On the eight rows whose stream's point is a
+quadratic irrational some class never misses, a different set of classes
+on each, and the nine argmin sets are pairwise distinct, so the set of
+best readers is a state that reads its row
+(<a href="/forget/#the-four-grades">FORGET: The four grades</a>). Scoring a single step is
+enough: at each of the 112 counted steps, the side forecast there alone
+leaves no common member, with or without the deficit loss beneath it.</p>
+<h2 id="the-stream-enters-at-a-reversal">The stream enters at a reversal</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/forecast/#section_reversal">forecast.py::section_reversal</a>.</p>
+<p>With no resource limit, if a class scores below the greedy class on some
+row under any loss, the loss orders two traces against containment: the
+lower one's committed intervals contain the higher one's at every step
+whose image is a bounded interval of positive length held by the root.
+Call such a pair a <dfn id="t-reversal">reversal</dfn>. Under the side loss, at every step
+where a class hits and the greedy class misses, the class commits a
+member strictly containing the greedy one's. So the stream enters the
+unlimited reader's optimum only at a reversal and never inside a layer.</p>
+<p>Proof. Every sound reader's committed interval contains the bottom of
+J_n, which the greedy reader commits. A different forecast needs a
+different member, and a member containing the bottom other than the
+bottom contains it strictly. The bottom is alone in its layer, so no
+such pair lies inside one.</p>
+<p>On the nine rows a class hits where the greedy class misses at 8,018
+(row, step, class) sites, every one strictly containing, and the greedy
+class hits where some class misses at 6,792: the side loss is monotone
+in neither direction.</p>
+<h2 id="the-two-poles">The two poles</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof.</p>
+<p>On rows whose counted images are bounded intervals of positive length
+held by the root, a loss that never rises as the committed intervals
+shrink has the greedy class in every row's argmin, and one that never
+falls has the refuser in every row's argmin, the class of both patiences
+infinite, which commits the root at every step. Sort the distinct
+deficit-loss values over every class and row into positions, and let a
+band loss be 0 when a class's deficit loss on a row sits in an interval
+of positions and 1 otherwise, the same interval on every row. A band is
+clean when every row has a class in it and a class out of it. Then a
+clean band's nine argmin sets share a class exactly when the band
+contains some class's position hull, the positions from its least to its
+greatest over the rows.</p>
+<p>Proof. The first pole is dominance. For the second, the root contains
+every member. For a clean band each row's argmin is its in-band set,
+so a common member is a class in the band on all nine rows, which for
+an interval is a class whose hull the band contains.</p>
+<h2 id="breaking-needs-no-stream-and-keeping-needs-no-pole">Breaking needs no stream and keeping needs no pole</h2>
+<p class="tag">Tier: <a href="/key/#rule">rule</a> (verified over all bands of the 117 positions on the nine
+rows).<br>
+Verifier: <a href="/code/forecast/#section_bands">forecast.py::section_bands</a>.</p>
+<p>A band loss reads nothing but the committed lengths, and 146 of the 403
+clean bands leave no common member, the first the positions 1 to 85: a
+reversal breaks the common optimum with no stream in it. The greedy
+class's hull is 0 to 85, so that band misses it at position 0 alone. The
+other way, take two positions a &lt; b − 1 consecutive in one class's
+sorted positions and score 0 on the union of the bands from its least
+position to a and from b to its greatest. Of these (class, gap) choices,
+213 give a clean union band, each keeping its own class common by
+construction, and in 201 neither pole is common: the first keeps, on
+every row, the three classes
+containing the policies that take the tree move first at a tile and the
+chain move first at a straddle, with tree patience 0 and chain patience
+1, 2 or 3. A loss need not be monotone to keep a reader common to every
+row.</p>
+<h2 id="the-collision-grower">The collision grower</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: proof; <a href="/code/collision/#section_controls">collision.py::section_controls</a>.</p>
+<p>Let the substrate grow instead of the committed member. A labelled set
+is a finite set of integers with a label on each member; a <dfn id="t-substrate">substrate</dfn>
+is a set P of primes from a pool, the first K primes, reading x as its
+residues mod each p in P. Two inputs with different labels must be
+separated, and P resolves them when some p in P tells them apart; an
+unresolved pair is a collision. P resolves (x, y) iff some p in P does
+not divide x − y, iff, the primes being distinct, their product does
+not. So a labelled set asks nothing but its difference set D, the
+|x − y| over pairs to be separated, a prime resolving d iff it does not
+divide d, and growth is a hitting set over D. The <dfn id="t-least-new">least-new</dfn> grower
+adds, while a collision remains, the smallest pool prime not yet taken
+that resolves one, and stops when none remains or no prime resolves one.</p>
+<h2 id="the-rung-reading">The rung reading</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/collision/#section_reading">collision.py::section_reading</a>,
+<a href="/code/collision/#section_least_non_divisor">collision.py::section_least_non_divisor</a>.</p>
+<p>Write p_t# for the product of the first t pool primes, p_0# = 1, and
+D_t for the multiples of p_t# in D: the differences rung t of the
+tower leaves unresolved. The grower passes the pool once, upward,
+takes p_(t+1) exactly when D_(t+1) ≠ D_t, and stops at the first t
+with D_t empty or at the pool's end; once it has passed p_t, its
+collisions are exactly D_t. So the grown substrate is the set of least
+non-divisors ℓ(d), the least prime not dividing d, over the members of
+D, a member the whole pool divides being left a collision. Each
+difference names one prime, and the grower takes the primes named.</p>
+<p>Proof. The collisions U are the members of D divisible by the product of
+P. A prime not taken is legal iff it fails to divide some member of U.
+When a legal prime is taken, every smaller prime not taken divides every
+member of U; U only shrinks, so such a prime stays illegal and the
+grower never turns back. After p_t is passed, every member of U is
+divisible by every prime passed, taken or not, so U lies in D_t, and D_t
+lies in U because the product of P divides p_t#. So p_(t+1) is legal iff
+some d in D_t escapes it, which is ℓ(d) = p_(t+1).</p>
+<p>Both forms equal the grower on 20,000 random difference sets, 5,144
+of them skipping a pool prime below their last take.</p>
+<h2 id="how-fine-and-what">How fine, and what</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/collision/#section_depth">collision.py::section_depth</a>,
+<a href="/code/collision/#section_skips">collision.py::section_skips</a>, <a href="/code/collision/#section_witness">collision.py::section_witness</a>.</p>
+<p>The labelled set fixes how fine the substrate is by its depth, the index
+in the pool of its largest least non-divisor, and which primes it takes
+only by its skips: a pool prime below that one which no difference
+names. The primorial p_t# names p_(t+1), so a labelled set whose
+differences include p_t# for every t below the depth skips nothing and
+grows the first depth-many primes.</p>
+<p>Proof. The rung reading.</p>
+<p>The labelled set 0 … M − 1 with every label distinct has every
+difference below M, so it grows the first t primes for the least t with
+p_t# ≥ M: 3, 4, 5, 6 primes at M = 30, 210, 2310, 30030. On the
+multiples of 3, of 5 or of 7 below 630 every difference is a multiple
+of that prime, so none names it, and the substrate is [2, 5, 7, 11],
+[2, 3, 7, 11], [2, 3, 5, 11] in turn. Labelling 0 … 209 at random from eight
+classes, 24 labelled sets out of 24 have 1, 2, 6 and 30 among their
+differences, and every difference lies below 210, so all grow the first
+four primes: these labelled sets take no skip, and their depth is set by
+the interval's length.</p>
+<h2 id="the-encoding-bound">The encoding bound</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/collision/#section_encoding">collision.py::section_encoding</a>,
+<a href="/code/collision/#section_compression">collision.py::section_compression</a>, <a href="/code/collision/#section_binding">collision.py::section_binding</a>.</p>
+<p>If a squarefree m whose prime factors all lie in the pool divides no
+member of D, the grower stops by the time it passes m's largest prime
+factor. Under place value in base Q, a form with a one-symbol suffix is
+its stem's value times Q plus the suffix. Two forms with different
+suffixes differ by a number congruent mod Q to the suffix difference,
+which is nonzero and below Q in size. So when the suffix is the label, Q
+divides no difference, and for squarefree Q the substrate lies among the
+primes up to Q's largest factor.</p>
+<p>Proof. Let p_t be m's largest prime factor; then p_t# is a multiple of
+m, so D_t is empty.</p>
+<p>The bound is not containment in Q's factors: the pool below them is
+walked first. On the pool 2 … 11 the grower on a suffix-labelled set
+grows [2, 3, 5] at Q = 30, [2, 3, 5, 7] at Q = 35, and the whole pool at
+the prime Q = 29. What the grown set tracks is the encoding. Take the
+words of morphology: a <dfn id="t-paradigm">paradigm</dfn> is a table of forms, one per
+<dfn id="t-lexeme">lexeme</dfn> (a word's stem, here an integer) and cell (a slot such as a
+tense, the label being the cell), each entry a form. A paradigm whose
+forms are a lexeme plus a fixed offset per cell compresses the
+difference set, since one lexeme's forms differ only by offset
+differences, but it grows the same whole pool as a control whose forms
+are drawn at random (431 differences against 644): here compression
+moves no rung. Nor, over same-lexeme pairs, does joining lexeme and cell
+by addition, the form L + c, rather than by binding (<a href="/binding/">BINDING</a>),
+multiplication by a unit. With lexemes L units of a squarefree N that
+every pool prime divides, a bound form L · c mod N differs from its
+same-lexeme sibling by a number congruent to L times the cell
+difference, which has the cell difference's least non-divisor, so over
+same-lexeme pairs the sum and the binding grow one substrate; pairs
+across lexemes are not covered. When the cells are units of an even N
+their differences are even and 2 is never named: at N = 510510 twelve
+unit lexemes and five unit cells give 10 additive and 119 multiplicative
+same-lexeme differences, and both grow [5, 7]; 3 is never named because
+the five sampled cells all happen to be 2 mod 3, a feature of the
+sample.</p>
+<h2 id="the-substrate-parts-by-depth-or-inside-a-layer">The substrate parts by depth or inside a layer</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/collision/#section_layer">collision.py::section_layer</a>,
+<a href="/code/collision/#section_sole_resolver">collision.py::section_sole_resolver</a>.</p>
+<p>If P lies inside P′, P′ resolves every pair P does, so every count of
+collisions is antitone in inclusion and no loss counting collisions
+orders two nested substrates against it, though a loss that also
+charges a substrate's size can. The grower takes one prime a step, so
+two labelled sets' growers first part either where one stops and the
+other takes a prime, nested substrates the loss orders with inclusion,
+or where both hold one set and take different primes, two incomparable
+members of one layer of the order by inclusion. So the data enters the
+substrate by its depth or inside a layer, and in a layer it chooses the
+member through a skip, where the reader's layer was the resources'
+choice and its member the policy's.</p>
+<p>Proof. The first sentence is the definition of resolving; the second is
+the rung reading, the grower taking one prime at a time until it stops.</p>
+<p>When p is the one pool prime not dividing a difference, its sole
+resolver, the difference fails every substrate lacking p, whatever else
+that substrate holds. On the pool 2 … 11, 770 = 2 · 5 · 7 · 11 grows
+[3], while the multiples of 3 below 300 grow [2, 5, 7, 11] and leave 770
+a collision. The growers on the multiples of 3, 5 and 7 below 630 part
+at [2] and at [2, 3].</p>
+<h2 id="the-growers-worst-case">The grower's worst case</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/collision/#section_worst">collision.py::section_worst</a>,
+<a href="/code/collision/#section_reading">collision.py::section_reading</a>.</p>
+<p>When every member of D has a non-divisor in the pool, so that a
+resolving substrate exists, the grower's can exceed the least one by
+the factor |D|, and no more. The greedy that ranks primes by how many
+differences they resolve stays within the harmonic number H(|D|) of
+the least cover (Chvátal, "A greedy heuristic for the set-covering
+problem", Math. Oper. Res. 4 (1979) 233–235, which reduces at unit
+cost to Johnson's and Lovász's bound). The least-new grower ranks by
+size.</p>
+<p>Proof. Each difference names one prime, so the grower takes at most |D|.
+On D = {p_0#, …, p_(T−1)#} it takes the first T primes, while the pool's
+T-th prime, the grower's own last pick, already divides none of them and
+resolves all alone, so the coverage greedy, which takes a prime
+resolving all of them first, stops at one. On {1, 2, 6, 30, 210} with
+the pool 2 … 13 the grower takes [2, 3, 5, 7, 11] and the coverage
+greedy [11].</p>
+<h2 id="exact-readout-reads-the-subdominant">Exact readout reads the subdominant</h2>
+<p class="tag">Tier: <a href="/key/#criterion">criterion</a>.<br>
+Verifier: proof; <a href="/code/readout/#section_criterion">readout.py::section_criterion</a>,
+<a href="/code/readout/#section_subdominant">readout.py::section_subdominant</a>, <a href="/code/readout/#section_line">readout.py::section_line</a>,
+<a href="/code/readout/#section_controls">readout.py::section_controls</a>.</p>
+<p>Let s be a symmetric grading of a finite world X into any totally
+ordered set, and give X a label. A reader handed a query q and a store
+of other members reads q's label off a most similar member; at a
+threshold t the store is admissible when that member has s ≥ t, and the
+readout is exact when every most similar member carries q's label. A
+label is <dfn id="t-readable">readable</dfn> at t when the readout is exact at every query and
+admissible store, and that holds iff the label is constant on the
+components of the graph G_t joining x and y when s(x, y) ≥ t. The
+components nest as t rises, so u(x, y), the largest t joining x and y,
+is the least grading above s with u(x, z) ≥ min(u(x, y), u(y, z)): the
+subdominant ultrametric of cluster analysis in its dual form, the one
+single linkage builds. Chierchia and Perret, "Ultrametric fitting by
+gradient descent", NeurIPS 2019, state it as the largest ultrametric
+below a dissimilarity and cite Gower and Ross, Appl. Stat. 18 (1969)
+54–64, for its minimum-spanning-tree form. A label is readable at t iff
+it is constant on the balls of u at t, however the store breaks ties
+between equally similar members.</p>
+<p>Proof. If the label is constant, a most similar member of an
+admissible store is joined to q at s ≥ t and shares its component. If
+not, it differs across an edge x ~ y, and the query x with the store
+{y} reads wrong. The components of G_t are the balls of u at t. A
+single edge is a path, so u ≥ s, and joining a path from x to y to one
+from y to z gives u(x, z) ≥ min(u(x, y), u(y, z)). A grading above s
+with the strong triangle is, along a path realizing u, at least its
+least edge, so it is at least u.</p>
+<p>Nothing in the proof reads what the world is, only the order of s. On
+the line, s(x, y) = −|x − y|, the points 0, 1, 2 at t = −1 are an open
+triangle, 0 and 2 joined through 1 but not adjacent, and a label
+splitting 0 from 2 is unreadable: the query 1 ties them. So the line's
+distance, the size the tower deletes, reads no finer than its
+subdominant either, and a reading finer than a tree is bought by a
+different readout, never by a different world. The count of the primes
+2, 3, 5 at which two residues agree opens the same triangle on 0, 6, 16
+in Z/30. Brute readout over every query, store and label map in up to
+three labels matches the criterion at 88,938 cases on random, tower and
+line worlds.</p>
+<h2 id="the-grown-depth-is-the-readable-depth">The grown depth is the readable depth</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/readout/#section_weld">readout.py::section_weld</a>,
+<a href="/code/readout/#section_controls">readout.py::section_controls</a>.</p>
+<p>Write the agreement α(x, y) of two integers for the largest t with p_t#
+dividing x − y. Its balls are the residue classes mod p_t#, and
+congruences compose, so α keeps the strong triangle and is its own
+subdominant. When α(x, y) &lt; K, the least non-divisor of x − y is
+p_(α(x, y) + 1). So on a labelled set whose separated pairs all agree
+below K, no separated difference divisible by p_K#, the least-new grower
+takes exactly the primes p_(α + 1) over the pairs to be separated: the
+levels at which a residue class carrying two labels splits them. Its
+depth, 1 + the largest such agreement, is the least threshold at which
+the label is readable by agreement: at the grown depth t, every store
+containing a member of q's class mod p_t# reads q's label exactly off
+its most-agreeing member.</p>
+<p>Proof. The least non-divisor is the first prime past the leading run
+of divisors, which is the agreement's successor; the rest is the rung
+reading with the criterion above, the components of α at t being the
+classes mod p_t#.</p>
+<p>What agreement cannot carry is the open triangle: the strong triangle
+forbids it for every assignment of integers, and under α none of the
+27,000 triples of Z/30 realizes one, whereas the count of agreeing primes
+in the section above opens one on 0, 6, 16. On 600 labelled sets of
+seven integers below 2310, the grown depth equals the least readable
+threshold, at every depth from 0 to 5, and the grown set equals the
+successors of the separated pairs' agreements.</p>
+<h2 id="open-fronts">Open fronts</h2>
+<p>Whether the bottom lemma is the straddle cover's subdominant reading. A
+choice escapes the image at two places for every reader without a limit
+and every greedy spend-all reader under an income; whether a reader
+patient under an income lets the stream in by a third way, and whether a
+cover whose move costs differ from its rank grading breaks the common
+rank. Which losses keep a common member past the two poles and the
+band's hull, as an algebra of keepers.</p>
+</article></main>
+<footer>Previous: <a href="/collide/">COLLIDE — when two products of weighted sets are one polynomial</a> · <a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/learner.md">Source text</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>quarantine.py | Numbers read one place at a time</title>
+<meta name="description" content="quarantine.py">
+<link rel="alternate" type="text/x-python" href="/code/quarantine.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>quarantine.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/collide/#a-witness-free-tie-is-a-regrouping-or-passes-a-seed">COLLIDE: A witness-free tie is a regrouping or passes a seed</a> (property); <a href="/forget/#the-quarantine-theorem">FORGET: The quarantine theorem</a> (theorem); <a href="/forget/#recycled-worlds-need-no-witness">FORGET: Recycled worlds need no witness</a> (property).</p><p>Cited on: <a href="/collide/">COLLIDE</a>, <a href="/forget/">FORGET</a>.</p><p>To run it: no other script; standard library only.</p></div>
+<pre>"""quarantine.py -- which grown worlds can hide their route at every
+temperature, and what the answer needs of the menus.
+
+QUESTION. A grown world (forget.py's convention) moves from state N to
+N*m with probability m^-beta / Psi, Psi the sum of n^-beta over the
+menu's moves n; a history is a ROUTE from seed 1 and a DATED FIBER
+fixes the endpoint and the age. A fiber is ROBUST for the route when every route in it
+carries the same posterior at every beta. A world is COPRIME when
+every menu is coprime to its state: no menu along a route offers a
+prime the route has already used. Is a coprime world ever robust on a
+fiber holding two routes or more? Which hypothesis does the answer
+use: that menus are functions of the state, or that they are coprime
+to the whole state rather than to the last move? And what does a
+world that RECYCLES primes buy instead?
+
+THE ARGUMENT (written before the engine).
+  (A) ROUTE WEIGHTS. On a dated fiber every route's numerators
+      multiply to N^-beta, so the route posterior is proportional to
+      1 / D, D the product of the normalizers at the states the route
+      passes before each move, seed included (the route-weight
+      cancellation). Each Psi is a Dirichlet polynomial with one
+      coefficient 1 per menu element, so Psi determines its menu, and
+      two routes tie at every beta iff their D are equal as formal
+      Dirichlet polynomials: finite sums of n^-beta over distinct n
+      are linearly independent functions on any interval of beta.
+  (B) THE QUARANTINE THEOREM. In a coprime world two distinct routes
+      of one dated fiber never tie at every beta. Proof by induction
+      on the age t. At t = 1 the endpoint is the move. At t &gt;= 2 let
+      the routes tie. Both D share the seed's Psi; the Dirichlet
+      polynomials form a domain, so the products over the later
+      states agree. Their coefficients are nonnegative, so nothing
+      cancels, and the support is the set of products of one element
+      per menu, whose primes are the union of the menus' primes: both
+      routes' later menus use one prime set S. QUARANTINE: every later
+      state is divisible by the first move m, and a coprime menu shares
+      no prime with its state, so m has no prime in S; so does the
+      other route's first move m'. VALUATION: every move after the
+      first is drawn from a later menu, so its primes lie in S; the
+      endpoint N is m times those moves, so m is the part of N off S,
+      and so is m'. So m = m', the routes share their first state and
+      its menu, that factor cancels, and the induction runs on from
+      the common state. Hence a coprime world holds no dated fiber
+      robust for the route at any age, and, a block of a cure being a
+      fiber piece whose routes tie, no refinement of the dated state
+      cures the route robustly either.
+  (C) WHAT THE PROOF USES. The valuation step reads only the endpoint
+      and the prime set of the later menus; it never asks where a menu
+      came from. The cancellation step needs the two routes' menus to
+      agree once their prefixes do, which holds for any menu that is a
+      function of the route so far. So the theorem holds verbatim with
+      HISTORY menus, a function of the prefix and coprime to the
+      state. Coprimality to the whole state is the load: the
+      quarantine step needs the first move barred from every later
+      menu, not only the next. A LAST-MOVE world, each menu coprime to
+      the last move only, escapes by hand: menu() = {2, 3},
+      menu(2) = {3, 5}, menu(3) = {2, 5}, menu(2, 3) = {2, 5},
+      menu(3, 2) = {3, 5}, menu(2, 5) = menu(3, 5) = {7}. Its fiber
+      (30, 3) holds exactly 2,3,5 and 3,2,5, whose later menus are
+      {3, 5}, {2, 5} against {2, 5}, {3, 5}: equal multisets, robust,
+      and the menu at state 6 depends on the route, since the last
+      move does.
+  (D) THE ROGUE WORLD, recycled and witness-free. menu(1) = {2, 32},
+      menu(2) = {2, 4, 8}, menu(16) = {2, 16}, menu(32) = {2, 4},
+      menu(128) = {2, 8, 32}. The fiber (256, 3) closes at 2,8,16 and
+      32,4,2 (hand closure: a first move 2 then 2 or 4 lands on states
+      with no menu toward 256 at age 3; 8 then 16 is the one way). With
+      x = 2^-beta, Psi(2) Psi(16) = (x + x^2 + x^3)(x + x^4) and
+      Psi(32) Psi(128) = (x + x^2)(x + x^3 + x^5); both are
+      x^2 + x^3 + ... + x^7, so the fiber is robust, while the
+      normalizer multisets differ: the symmetry witness is absent.
+      The identity is the two pairings of (1 + x)(1 + x + x^2)
+      (1 - x + x^2), whose last factor has a negative coefficient.
+      AGE 3 IS LEAST: at age 2 each route has one later state, so a
+      tie is one Psi equal to another, the same menu, the witness.
+  (E) THE COARSE WORLD, a witness-free tie put to work. Every move a
+      power of 2: menu(1) = {2, 4, 8, 16}, menu(2) = menu(4) = {4, 8},
+      menu(8) = {8}, menu(16) = {8, 16}, menu(64) = {2, 4},
+      menu(128) = {2}. The fiber (256, 3) holds P = 2,8,16,
+      Q = 4,4,16, A = 8,8,4 and B = 16,8,2. P and Q tie with equal
+      multisets (Psi(2) = Psi(4)); A and B tie witness-free, x^3 (x + x^2)
+      = (x^3 + x^4) x. P's product is A's times x (1 + x), which is 1
+      only at x = (sqrt 5 - 1) / 2, beta = log2 of the golden ratio.
+      So the dated state leaks the route at every other beta, and the
+      blocks {P, Q} and {A, B} are spread and flat at every beta: a
+      strict cure bought by menu design in an order-carrying world.
+  (F) THE TUNED WORLD of forget.py is coprime and flat for the route
+      at (6, 2) at beta = 1 only: tuning is the one way a coprime
+      world hides a route.
+
+DESIGN. A world is a function menu(prefix, state). Routes to a given
+age are walked breadth first, each carrying the menus it passed; D is
+formed as an exact integer Dirichlet polynomial {n: coefficient}, and
+two routes TIE when their D agree, WITNESSED when their multisets of
+menus agree as well. Fraction weights at beta = 1, 2, 3 cross-check the
+formal ties on the hand worlds. The ARMS, menus drawn at random at each
+state (STATE) or each prefix (HISTORY) as 1 or 2 elements of the
+allowed moves, dated fibers of age 2 and 3, 3000 worlds per arm, fixed
+seeds, on the small universe US = {2, 3, 4, 5, 6, 8, 9, 10, 12, 15}:
+  COPRIME-STATE and COPRIME-HISTORY, menus coprime to the state;
+  LAST-HISTORY, menus coprime to the last move (the removed
+  ingredient); FREE-STATE, no demand (the scan's own control).
+Two larger coprime arms run on the 7-smooth moves 2 .. 36, menus of 1
+to 3 elements, ages 2 to 4, 1000 worlds each. The EXHAUSTIVE arm takes
+every coprime world on {2, 3, 4, 5, 6} with a nonempty menu wherever
+one is allowed, at ages 2 and 3: menus read the state, at the ten
+states those moves reach with a nonempty allowed menu, and two tables differing only at a state one
+of them never reaches count as two worlds, their fibers counted
+apart. A FIRST-MOVE print reads, on the
+coprime arms' fibers of at most eight routes meeting two first moves
+or more, whether the first move's class masses agree at every beta,
+by the exact identity sum over a class of L / D, L the product of all
+D.
+
+PREDICTIONS (fixed before the engine).
+  P1 controls: the tuned world is coprime, flat at (6, 2) at beta = 1
+     and at odds 117/70 at beta = 2; the perturbed rogue world,
+     menu(128) = {2, 8, 16}, keeps two routes at (256, 3) and ties at
+     no grid beta.
+  P2 the rogue world: fiber (256, 3) is exactly the two routes, their
+     D agree formally and their Fraction posteriors are 1/2 at
+     beta = 1, 2, 3, and the multisets differ.
+  P3 the coarse world: fiber (256, 3) is exactly P, Q, A, B; P, Q
+     witnessed, A, B witness-free; P's D equals A's times x (1 + x);
+     the dated state is not flat at beta = 1, 2, 3 and both blocks are.
+  P4 the last-move world: fiber (30, 3) is exactly 2,3,5 and 3,2,5,
+     tied and witnessed; the world is last-move coprime and not
+     coprime.
+  P5 zero ties in the exhaustive arm and in all four coprime random
+     arms, STATE and HISTORY alike.
+  P6 at least one tie in FREE-STATE and in LAST-HISTORY.
+  P7 [TRANSPLANT from the two-route case] no coprime fiber hides its
+     first move at every beta. A hit kills nothing: the theorem is
+     about the route, and a hit would be flatness failing to pass up
+     under coarsening, printed as a specimen.
+
+KILLS. A tie in the exhaustive arm's or a coprime random arm's check
+kills the quarantine theorem, STATE, or its history form, HISTORY. P6's
+two tie controls gate the arms: if one fails the scan cannot see what
+it looks for and no coprime arm is checked, though every arm's totals
+still print. P1 to P4 are controls on the hand worlds, read first.
+
+FINDINGS. Every prediction held and no kill fired.
+  P1 the tuned world is coprime, flat at (6, 2) at beta = 1 and at odds
+     117/70 at beta = 2; the perturbed rogue fiber keeps 2,8,16 and
+     32,4,2 and ties at no grid beta.
+  P2 the rogue fiber is exactly its two routes; both later-state
+     products are x^2 + ... + x^7 (the terms 4, 8, ..., 128), the
+     multisets differ, and the posterior is 1/2 at beta = 1, 2, 3.
+  P3 the coarse fiber is exactly P, Q, A, B; P, Q witnessed, A, B
+     witness-free, P's D is A's times x (1 + x), the dated state leaks
+     at every grid beta and both blocks are flat.
+  P4 the last-move fiber (30, 3) is exactly 2,3,5 and 3,2,5, tied with
+     the witness, in a world last-move coprime and not coprime.
+  P5 no tie: COPRIME-STATE 575 multi-route fibers, COPRIME-HISTORY 548,
+     the large arms 1030 each, an equal count from distinct draws
+     (the two keyed and seeded differently), 3183 in the four,
+     EXHAUSTIVE 141216 fibers over 87885 worlds.
+  P6 LAST-HISTORY ties once, FREE-STATE twice, every tie witnessed: a
+     random draw makes equal menus, never a witness-free tie, which
+     only the designed worlds of (D) and (E) carry.
+  P7 no coprime fiber hides its first move at every beta: 0 of 313,
+     312, 277 and 252 reads in the random arms and 0 of 119232 in the
+     exhaustive one, 0 of 120386 in all, so no specimen prints.
+
+RUN RECORD. python quarantine.py: 20 of 20 checks, 7.5 s, peak commit
+14.0 MB. The first-move hit count is printed beside its totals, and the coprime
+arms are read only after the two tie controls pass, both added on
+review.
+"""
+
+import itertools
+import random
+import sys
+from collections import defaultdict
+from fractions import Fraction
+from math import gcd
+
+BETAS = (1, 2, 3)
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tag = "ok  " if ok else "FAIL"
+    print(f"  [{tag}] {name}" + (f"  ({detail})" if detail else ""))
+
+
+<span id="section"></span>def section(title):
+    print()
+    print(title)
+
+
+# ------------------------------------------------- Dirichlet polynomials
+
+<span id="dmul"></span>def dmul(a, b):
+    out = defaultdict(int)
+    for n, c in a.items():
+        for m, d in b.items():
+            out[n * m] += c * d
+    return dict(out)
+
+
+<span id="dadd"></span>def dadd(a, b):
+    out = defaultdict(int, a)
+    for n, c in b.items():
+        out[n] += c
+    return {n: c for n, c in out.items() if c}
+
+
+<span id="dkey"></span>def dkey(a):
+    return tuple(sorted(a.items()))
+
+
+<span id="zpoly"></span>def zpoly(menu):
+    return {m: 1 for m in menu}
+
+
+<span id="product"></span>def product(menus):
+    d = {1: 1}
+    for mu in menus:
+        d = dmul(d, zpoly(mu))
+    return d
+
+
+# ----------------------------------------------------------- the worlds
+
+<span id="walk"></span>def walk(menu, age):
+    """Every route of the given age: (moves, endpoint, menus passed)."""
+    out = [((), 1, ())]
+    for _ in range(age):
+        nxt = []
+        for r, n, ms in out:
+            mu = menu(r, n)
+            for m in mu:
+                nxt.append((r + (m,), n * m, ms + (mu,)))
+        out = nxt
+    return out
+
+
+<span id="fibers"></span>def fibers(menu, age):
+    fib = defaultdict(list)
+    for r, n, ms in walk(menu, age):
+        fib[n].append((r, ms))
+    return fib
+
+
+<span id="by_state"></span>def by_state(table):
+    return lambda prefix, n: table.get(n, ())
+
+
+<span id="by_prefix"></span>def by_prefix(table):
+    return lambda prefix, n: table.get(prefix, ())
+
+
+<span id="weight"></span>def weight(route, menus, beta):
+    w = Fraction(1)
+    for m, mu in zip(route, menus):
+        w *= Fraction(1, m ** beta) / sum(Fraction(1, k ** beta)
+                                          for k in mu)
+    return w
+
+
+<span id="masses"></span>def masses(items, beta):
+    return [weight(r, ms, beta) for r, ms in items]
+
+
+<span id="ties"></span>def ties(items):
+    """Tied pairs in a fiber: (witnessed, witness-free)."""
+    wit = free = 0
+    keyed = [(dkey(product(ms)), tuple(sorted(ms))) for _, ms in items]
+    for (k1, s1), (k2, s2) in itertools.combinations(keyed, 2):
+        if k1 == k2:
+            if s1 == s2:
+                wit += 1
+            else:
+                free += 1
+    return wit, free
+
+
+<span id="first_move_robust"></span>def first_move_robust(items):
+    """Whether the first move's class masses agree at every beta."""
+    ds = [product(ms) for _, ms in items]
+    classes = defaultdict(list)
+    for i, (r, _) in enumerate(items):
+        classes[r[0]].append(i)
+    sums = []
+    for idx in classes.values():
+        s = {}
+        for i in idx:
+            rest = {1: 1}
+            for j, d in enumerate(ds):
+                if j != i:
+                    rest = dmul(rest, d)
+            s = dadd(s, rest)
+        sums.append(dkey(s))
+    return len(set(sums)) == 1
+
+
+<span id="is_coprime"></span>def is_coprime(menu, age):
+    return all(gcd(m, n) == 1 for r, n, ms in walk(menu, age - 1)
+               for m in menu(r, n))
+
+
+TUNED = by_state({1: (2, 3), 2: (3, 5, 15), 3: (2, 10)})
+ROGUE_TABLE = {1: (2, 32), 2: (2, 4, 8), 16: (2, 16), 32: (2, 4),
+               128: (2, 8, 32)}
+ROGUE = by_state(ROGUE_TABLE)
+PERTURBED = by_state({**ROGUE_TABLE, 128: (2, 8, 16)})
+COARSE = by_state({1: (2, 4, 8, 16), 2: (4, 8), 4: (4, 8), 8: (8,),
+                   16: (8, 16), 64: (2, 4), 128: (2,)})
+LAST = by_prefix({(): (2, 3), (2,): (3, 5), (3,): (2, 5),
+                  (2, 3): (2, 5), (3, 2): (3, 5), (2, 5): (7,),
+                  (3, 5): (7,)})
+
+
+# ------------------------------------------------------------- sections
+
+<span id="section_controls"></span>def section_controls():
+    section("CONTROLS: the tuned world and the perturbed rogue world")
+    fib = fibers(TUNED, 2)[6]
+    w1, w2 = masses(fib, 1), masses(fib, 2)
+    check("the tuned world is coprime", is_coprime(TUNED, 3))
+    check("tuned fiber (6, 2) flat at beta = 1, odds 117/70 at 2",
+          w1[0] == w1[1] and max(w2) / min(w2) == Fraction(117, 70),
+          f"beta 2 odds {max(w2) / min(w2)}")
+    fib = fibers(PERTURBED, 3)[256]
+    flat = [len(set(masses(fib, b))) == 1 for b in BETAS]
+    check("perturbed rogue: two routes, tied at no grid beta",
+          len(fib) == 2 and not any(flat) and ties(fib) == (0, 0),
+          f"routes {[r for r, _ in fib]}")
+
+
+<span id="section_rogue"></span>def section_rogue():
+    section("THE ROGUE WORLD: a robust fiber with no witness")
+    fib = fibers(ROGUE, 3)[256]
+    routes = sorted(r for r, _ in fib)
+    check("fiber (256, 3) is exactly 2,8,16 and 32,4,2",
+          routes == [(2, 8, 16), (32, 4, 2)])
+    d = [product(ms[1:]) for _, ms in fib]
+    print("    later-state products:", [dkey(x) for x in d])
+    check("the two D agree formally, multisets differ",
+          ties(fib) == (0, 1))
+    post = [masses(fib, b) for b in BETAS]
+    check("posterior 1/2 at beta = 1, 2, 3",
+          all(p[0] == p[1] for p in post))
+
+
+<span id="section_coarse"></span>def section_coarse():
+    section("THE COARSE WORLD: a witness-free tie funds a strict cure")
+    fib = dict(fibers(COARSE, 3)[256])
+    names = {"P": (2, 8, 16), "Q": (4, 4, 16), "A": (8, 8, 4),
+             "B": (16, 8, 2)}
+    check("fiber (256, 3) is exactly P, Q, A, B",
+          sorted(fib) == sorted(names.values()),
+          f"routes {sorted(fib)}")
+    get = {k: (v, fib[v]) for k, v in names.items() if v in fib}
+    if len(get) &lt; 4:
+        return
+    check("P, Q witnessed; A, B witness-free",
+          ties([get["P"], get["Q"]]) == (1, 0)
+          and ties([get["A"], get["B"]]) == (0, 1))
+    dp, da = product(get["P"][1]), product(get["A"][1])
+    check("P's D is A's times x (1 + x)",
+          dkey(dp) == dkey(dmul(da, {2: 1, 4: 1})))
+    items = list(get.values())
+    whole = [len(set(masses(items, b))) == 1 for b in BETAS]
+    blocks = [len(set(masses([get[a], get[b]], beta))) == 1
+              for a, b in (("P", "Q"), ("A", "B")) for beta in BETAS]
+    check("the dated state leaks at every grid beta, both blocks flat",
+          not any(whole) and all(blocks))
+
+
+<span id="section_last"></span>def section_last():
+    section("THE LAST-MOVE WORLD: coprime to the last move is not enough")
+    fib = fibers(LAST, 3)[30]
+    check("fiber (30, 3) is exactly 2,3,5 and 3,2,5",
+          sorted(r for r, _ in fib) == [(2, 3, 5), (3, 2, 5)])
+    check("the two routes tie with the witness", ties(fib) == (1, 0))
+    last_ok = all(not r or gcd(m, r[-1]) == 1
+                  for r, n, ms in walk(LAST, 2) for m in LAST(r, n))
+    check("last-move coprime, not coprime",
+          last_ok and not is_coprime(LAST, 3))
+
+
+<span id="random_world"></span>def random_world(rng, universe, allowed, keyed, sizes):
+    cache = {}
+
+    def menu(prefix, n):
+        k = prefix if keyed == "prefix" else n
+        if k not in cache:
+            opts = [m for m in universe if allowed(m, n, prefix)]
+            size = min(rng.randint(*sizes), len(opts))
+            cache[k] = tuple(sorted(rng.sample(opts, size)))
+        return cache[k]
+    return menu
+
+
+<span id="coprime"></span>def coprime(m, n, prefix):
+    return gcd(m, n) == 1
+
+
+<span id="last_move"></span>def last_move(m, n, prefix):
+    return not prefix or gcd(m, prefix[-1]) == 1
+
+
+<span id="free"></span>def free(m, n, prefix):
+    return True
+
+
+<span id="scan"></span>def scan(menus, ages, first_move=False):
+    """Totals over worlds: multi-route fibers, witnessed and
+    witness-free tied pairs, robust fibers, first-move reads."""
+    t = defaultdict(int)
+    for menu in menus:
+        t["worlds"] += 1
+        for age in ages:
+            for items in fibers(menu, age).values():
+                if len(items) &lt; 2:
+                    continue
+                t["fibers"] += 1
+                wit, fr = ties(items)
+                t["witnessed"] += wit
+                t["free"] += fr
+                if len({dkey(product(ms)) for _, ms in items}) == 1:
+                    t["robust"] += 1
+                if first_move and len(items) &lt;= 8 and \
+                        len({r[0] for r, _ in items}) &gt;= 2:
+                    t["first read"] += 1
+                    if first_move_robust(items):
+                        t["first robust"] += 1
+                        print(f"    SPECIMEN first move hidden: "
+                              f"{[r for r, _ in items]}")
+    return dict(t)
+
+
+US = (2, 3, 4, 5, 6, 8, 9, 10, 12, 15)
+UL = tuple(m for m in range(2, 37)
+           if all(p in (2, 3, 5, 7) for p in
+                  [q for q in range(2, m + 1) if m % q == 0
+                   and all(q % s for s in range(2, q))]))
+
+
+<span id="exhaustive_worlds"></span>def exhaustive_worlds():
+    universe = (2, 3, 4, 5, 6)
+    states = (1, 2, 3, 4, 5, 6, 10, 12, 15, 20)
+    options = []
+    for n in states:
+        allowed = [m for m in universe if gcd(m, n) == 1]
+        options.append([c for k in range(1, len(allowed) + 1)
+                        for c in itertools.combinations(allowed, k)])
+    for choice in itertools.product(*options):
+        yield by_state(dict(zip(states, choice)))
+
+
+<span id="section_arms"></span>def section_arms():
+    section("THE ARMS: ties by demand on the menus")
+    arms = [("COPRIME-STATE", US, coprime, "state", (1, 2), (2, 3), 3000),
+            ("COPRIME-HISTORY", US, coprime, "prefix", (1, 2), (2, 3),
+             3000),
+            ("LAST-HISTORY", US, last_move, "prefix", (1, 2), (2, 3), 3000),
+            ("FREE-STATE", US, free, "state", (1, 2), (2, 3), 3000),
+            ("COPRIME-STATE large", UL, coprime, "state", (1, 3),
+             (2, 3, 4), 1000),
+            ("COPRIME-HISTORY large", UL, coprime, "prefix", (1, 3),
+             (2, 3, 4), 1000)]
+    out = {}
+    for seed, (name, uni, allowed, keyed, sizes, ages, count) in \
+            enumerate(arms):
+        rng = random.Random(seed)
+        menus = (random_world(rng, uni, allowed, keyed, sizes)
+                 for _ in range(count))
+        t = scan(menus, ages, first_move=allowed is coprime)
+        out[name] = t
+        print(f"    {name}: {t}")
+    t = scan(exhaustive_worlds(), (2, 3), first_move=True)
+    out["EXHAUSTIVE"] = t
+    print(f"    EXHAUSTIVE: {t}")
+    controls = ("LAST-HISTORY", "FREE-STATE")
+    seen = []
+    for name in controls:
+        t = out[name]
+        seen.append(t.get("witnessed", 0) + t.get("free", 0) &gt; 0)
+        check(f"{name} finds a tie", seen[-1])
+    if not all(seen):
+        print("    a positive control failed: the coprime arms are not read")
+        return
+    for name, t in out.items():
+        if name in controls:
+            continue
+        tied = t.get("witnessed", 0) + t.get("free", 0)
+        check(f"{name}: no tie in {t.get('fibers', 0)} multi-route "
+              "fibers", tied == 0 and t.get("fibers", 0) &gt; 0)
+    rand = [t for name, t in out.items()
+            if name not in controls and name != "EXHAUSTIVE"]
+    print(f"    the four coprime random arms: "
+          f"{sum(t.get('fibers', 0) for t in rand)} multi-route fibers")
+    co = rand + [out["EXHAUSTIVE"]]
+    print(f"    first move hidden at every beta: "
+          f"{sum(t.get('first robust', 0) for t in co)} of "
+          f"{sum(t.get('first read', 0) for t in co)} reads over the "
+          f"coprime arms")
+
+
+<span id="main"></span>def main():
+    section_controls()
+    section_rogue()
+    section_coarse()
+    section_last()
+    section_arms()
+    print()
+    n, ok = len(CHECKS), sum(CHECKS)
+    print(f"{ok} of {n} checks pass")
+    return 0 if ok == n else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/quarantine.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

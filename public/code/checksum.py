@@ -1,0 +1,379 @@
+"""checksum.py -- the Internet checksum read one prime at a time.
+
+QUESTION. The Internet checksum of RFC 1071 sums a message's 16-bit
+words in ones' complement, folding every carry out of the top bit back
+into the bottom, and sends the complement. Its appendix (IEN 45) reads
+that sum as the remainder mod 2^16 - 1, the digit sum that casts out
+radix-minus-ones. The modulus factors as 65535 = 3 * 5 * 17 * 257, the
+Fermat primes F_0 .. F_3, so by the Chinese remainder theorem the
+checksum is four checksums at once. What does each prime read of a
+message, and what do the standard's own properties -- the byte-order
+independence of RFC 1071, the incremental update of RFC 1624, the
+errors it misses -- look like one prime at a time?
+
+THE ARGUMENT (written before this script).
+  (1) THE RING. With 2^16 = 1 mod 65535, a sum s = hi 2^16 + lo is
+      congruent to hi + lo, so the end-around carry is reduction mod
+      65535, landing in 0 .. 0xFFFF; 0x0000 and 0xFFFF, the ones'
+      complement +0 and -0, are the two representatives of the class
+      0. The complement ~x = 0xFFFF - x is negation. So the sent field
+      is -(sum of words) mod 65535 and a receiver's check is that the
+      sum including the field is 0.
+  (2) THE CHANNEL ORDERS. At F_j = 2^(2^j) + 1, 2^(2^j) = -1, so the
+      order of 2 is 2^(j+1): 2, 4, 8, 16 at 3, 5, 17, 257. A bit at
+      position a of any word adds 2^a, and channel F_j reads 2^a as
+      +-2^(a mod 2^j), sign (-1)^floor(a / 2^j): it sees the bit
+      position mod 2^(j+1) and nothing of which word holds it.
+  (3) THE BYTE SWAP. Swapping the two bytes of every word rotates each
+      word by 8 bits, which mod 65535 is multiplication by 2^8. As 2^8
+      = 1 mod 3, 5 and 17 and = -1 mod 257, the swap leaves three
+      channels alone and negates the fourth: RFC 1071's byte-order
+      independence, read per prime.
+  (4) THE INCREMENTAL UPDATE. Changing one word from m to m' changes
+      the sum by m' - m, so the field becomes HC + m - m' in the ring,
+      channel by channel. RFC 1141's update, HC + m + ~m', is that
+      identity too; the defect RFC 1624 corrects is only a choice of
+      representative: it can return 0xFFFF where recomputation gives
+      0x0000, the same element 0. (Added on review: from a field
+      recomputation wrote, RFC 1624 returns 0xFFFF only if ~HC, ~m and
+      m' are all 0, a ones' complement sum being 0x0000 only when every
+      term is; ~HC = 0 forces an all-zero message, so m = 0 and
+      ~m = 0xFFFF, a contradiction. Recomputation returns 0xFFFF only
+      on an all-zero message, so the two agree byte for byte wherever
+      the update leaves a nonzero word.)
+  (5) THE TWO-BIT ERRORS. Flipping bits at positions a and b changes
+      the sum by e_a 2^a + e_b 2^b, e = +1 for a 0 -> 1 flip and -1
+      for 1 -> 0. Channel F_j misses it iff that is 0 mod F_j: for
+      opposite flips iff a = b mod 2^(j+1), for equal flips iff
+      a - b = 2^j mod 2^(j+1). The checksum misses it iff every
+      channel does. Equal flips: a - b odd at 3 and a - b = 2 mod 4
+      at 5 contradict, so none is missed. Opposite flips: missed iff
+      a = b mod 16, the same position in two different words. So the
+      channel 257 alone decides every opposite-flip pair, while the
+      equal-flip pairs it misses (a - b = +-8) the channel 3 catches.
+      Over two distinct bit positions drawn uniformly from k words,
+      with the two flipped bits of uniform value, the missed fraction
+      is (k - 1) / (2 (16 k - 1)), tending to 1/32, the 3.125 percent
+      IEN 45 quotes for large messages.
+
+DESIGN. Five sections of PASS/FAIL checks.
+  R  the ring: the fold equals reduction mod 65535 at every sum of two
+     words, 0 .. 2^17 - 2, one fold always enough; the sender's field
+     and the receiver's check on 500 random messages; RFC 1624's own
+     example (other octets 0xCD7A, m = 0x5555 -> m' = 0x3285): HC =
+     0xDD2F, recomputation 0x0000, RFC 1141's update 0xFFFF, RFC
+     1624's update 0x0000, the last three one class.
+  C  the channels: the order of 2 at each Fermat prime; channel F_j's
+     reading of every bit position 0 .. 15 against the formula; the
+     four channel sums of 500 random messages against the sum's
+     residues.
+  B  the byte swap: on 500 random messages the byte-swapped sum equals
+     2^8 times the sum mod 65535, and its residues equal the sum's at
+     3, 5, 17 and their negatives at 257.
+  U  the update: 500 random one-word changes, one in five steered so
+     the new word brings the sum to zero; RFC 1624's update =
+     recomputation byte for byte; RFC 1141's = recomputation mod 65535,
+     and the bytes differ only where recomputation gives 0x0000. Two
+     edges, every update computed both ways: the other words summing
+     to -0 with m = 0 -> m' = 0xFFFF, and [5, 0] updated to [0, 0].
+  W  the two-bit errors: every pair of positions 0 .. 15 and both flip
+     signs, each channel's miss set against (5); for k = 1 .. 4 words,
+     every pair of distinct bit positions and every value of the two
+     bits, flipped on a random background message, the checksum
+     compared before and after, the missed fraction against the
+     formula.
+  POSITIVE CONTROLS. With 2^16 + 1 in place of 65535 the fold law
+  must fail; the claim "no two-bit error is missed" must fail; the
+  claim "the swap fixes every channel" must fail at 257.
+
+PREDICTIONS, fixed before the run.
+  R1 the fold law holds at all 131,071 sums with one fold; every
+     message checks to 0; the RFC 1624 example prints 0xDD2F, 0x0000,
+     0xFFFF, 0x0000.
+  C1 orders 2, 4, 8, 16; the bit-position reading exact at every
+     channel and position; the channel sums agree on every message.
+  B1 swapped = 256 * sum on every message; residues equal at 3, 5, 17,
+     negated at 257.
+  U1 RFC 1624 = recomputation on all 500; RFC 1141 agrees mod 65535
+     on all 500 and differs in bytes only where recomputation is 0.
+  W1 each channel's miss set is as in (5); the checksum misses exactly
+     the opposite flips at one position; missed fractions 0, 1/62,
+     1/47, 3/126 at k = 1, 2, 3, 4.
+  The controls fail as stated.
+
+FINDINGS, entered after the run from its print. Every prediction held,
+18 of 18 checks, the two edge checks among them.
+  R1 the fold law at all 131,071 sums, one fold at most; every message
+     checks to 0; RFC 1624's example prints HC 0xdd2f, recomputed
+     0x0000, RFC 1141 0xffff, RFC 1624 0x0000. The 2^16 + 1 control
+     fails at 65,535 sums.
+  C1 orders 2, 4, 8, 16; the bit-position reading exact; the channel
+     sums agree on all 500 messages.
+  B1 the swapped sum is 2^8 times the sum on all 500 messages, fixed
+     at 3, 5, 17 and negated at 257; the control fails.
+  U1 RFC 1624 = recomputation on all 500 updates. RFC 1141 agrees
+     mod 65535 on all 500, and its bytes differ at 100 updates, the
+     100 the design steers to a zero sum, where recomputation gives
+     0x0000: the defect is the other representative of 0 and appears
+     nowhere else. It does not appear at every zero: from a field
+     recomputation wrote, with the other words summing to -0, m = 0
+     and m' = 0xFFFF, RFC 1141, RFC 1624 and recomputation all give
+     0x0000. RFC 1624's byte law holds from a field recomputation
+     wrote where the update leaves a nonzero word, which every IP
+     header's update does: updating [5, 0] to [0, 0], RFC 1141 and
+     recomputation give 0xFFFF and RFC 1624 gives 0x0000.
+  W1 the miss sets are as derived; the checksum misses exactly the
+     opposite flips at one position; 0 of 480, 32 of 1984 (1/62), 96
+     of 4512 (1/47) and 192 of 8064 (1/42) missed at k = 1..4, the
+     formula exactly.
+  Tiers: the ring reading is IEN 45's and RFC 1071's; the channel
+  orders, the byte swap, the update (byte for byte from a field
+  recomputation wrote, where the update leaves a nonzero word) and the
+  two-bit law are theorems, the last checked exhaustively over
+  positions at k <= 4.
+
+RUN RECORD. `python checksum.py`: 18/18 PASS, 0.3 s, seed 1071.
+
+Standard library only.
+
+    python checksum.py
+"""
+
+import random
+
+M = 0xFFFF
+FERMAT = (3, 5, 17, 257)
+CHECKS = []
+RNG = random.Random(1071)
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  [{'PASS' if ok else 'FAIL'}] {name}" + (f" -- {detail}"
+                                                      if detail else ""))
+
+
+def fold(s, width=16):
+    mask = (1 << width) - 1
+    folds = 0
+    while s >> width:
+        s = (s & mask) + (s >> width)
+        folds += 1
+    return s, folds
+
+
+def ones_sum(words):
+    s = 0
+    for w in words:
+        s, _ = fold(s + w)
+    return s
+
+
+def field(words):
+    return ~ones_sum(words) & M
+
+
+def message(n):
+    return [RNG.randrange(1 << 16) for _ in range(n)]
+
+
+def swap(w):
+    return ((w & 0xFF) << 8) | (w >> 8)
+
+
+# ------------------------------------------------------------------ R
+
+def section_r():
+    print("R -- the ring")
+    ok, most = True, 0
+    for s in range(2 ** 17 - 1):
+        r, f = fold(s)
+        ok &= r <= M and r % M == s % M
+        most = max(most, f)
+    check("R1 fold = reduction mod 65535 at every two-word sum",
+          ok and most == 1, f"at most {most} fold")
+    bad = [s for s in range(2 ** 17 - 1)
+           if fold(s)[0] % 0x10001 != s % 0x10001]
+    check("R1 control: 2^16 + 1 in place of 65535 fails", bool(bad),
+          f"{len(bad)} sums")
+    ok = True
+    for _ in range(500):
+        words = message(RNG.randrange(1, 65))
+        f = field(words)
+        ok &= f == (-sum(words)) % M or (f == M and sum(words) % M == 0) \
+            or (f == 0 and sum(words) % M == 0)
+        ok &= ones_sum(words + [f]) % M == 0
+    check("R1 field = -(sum) mod 65535 and the check sums to 0", ok)
+    rest, m, m2 = 0xCD7A, 0x5555, 0x3285
+    HC = ~fold(rest + m)[0] & M
+    scratch = ~fold(rest + m2)[0] & M
+    eq2 = fold(fold(HC + m)[0] + (~m2 & M))[0]
+    C = ~HC & M
+    eq3 = ~fold(fold(C + (~m & M))[0] + m2)[0] & M
+    print(f"  HC {HC:#06x}, recomputed {scratch:#06x}, RFC 1141 "
+          f"{eq2:#06x}, RFC 1624 {eq3:#06x}")
+    check("R1 RFC 1624's example: 0xDD2F, 0x0000, 0xFFFF, 0x0000, one "
+          "class", (HC, scratch, eq2, eq3) == (0xDD2F, 0, 0xFFFF, 0)
+          and scratch % M == eq2 % M == eq3 % M)
+
+
+# ------------------------------------------------------------------ C
+
+def order2(p):
+    x, k = 2, 1
+    while x != 1:
+        x, k = x * 2 % p, k + 1
+    return k
+
+
+def section_c():
+    print("C -- the channels")
+    orders = [order2(p) for p in FERMAT]
+    check("C1 order of 2 at 3, 5, 17, 257 is 2, 4, 8, 16", orders ==
+          [2, 4, 8, 16], f"{orders}")
+    ok = True
+    for j, p in enumerate(FERMAT):
+        h = 1 << j
+        for a in range(16):
+            want = (-1) ** (a // h % 2) * 2 ** (a % h)
+            ok &= pow(2, a, p) == want % p
+    check("C1 channel F_j reads 2^a as +-2^(a mod 2^j)", ok)
+    ok = True
+    for _ in range(500):
+        words = message(RNG.randrange(1, 65))
+        s = ones_sum(words)
+        ok &= all(sum(w % p for w in words) % p == s % p for p in FERMAT)
+    check("C1 four channel sums = the sum's residues, 500 messages", ok)
+
+
+# ------------------------------------------------------------------ B
+
+def section_b():
+    print("B -- the byte swap")
+    ok = ok_ch = True
+    fixed_all = True
+    for _ in range(500):
+        words = message(RNG.randrange(1, 65))
+        s = ones_sum(words) % M
+        t = ones_sum([swap(w) for w in words]) % M
+        ok &= t == 256 * s % M
+        ok_ch &= all(t % p == s % p for p in (3, 5, 17)) and \
+            t % 257 == (-s) % 257
+        fixed_all &= t % 257 == s % 257
+    check("B1 swapped sum = 2^8 * sum mod 65535, 500 messages", ok)
+    check("B1 residues fixed at 3, 5, 17, negated at 257", ok_ch)
+    check("B1 control: 'the swap fixes every channel' fails",
+          not fixed_all)
+
+
+# ------------------------------------------------------------------ U
+
+def section_u():
+    print("U -- the incremental update")
+    ok24 = ok41 = ok_where = True
+    zeros = differ = 0
+    for i in range(500):
+        words = message(RNG.randrange(2, 33))
+        pos = RNG.randrange(len(words))
+        if i % 5 == 0:                   # steer some to a zero sum
+            others = ones_sum(words[:pos] + words[pos + 1:])
+            m2 = (M - others) % M or M
+        else:
+            m2 = RNG.randrange(1 << 16)
+        m = words[pos]
+        HC = field(words)
+        new = words[:pos] + [m2] + words[pos + 1:]
+        scratch = field(new)
+        C = ~HC & M
+        eq3 = ~fold(fold(C + (~m & M))[0] + m2)[0] & M
+        eq2 = fold(fold(HC + m)[0] + (~m2 & M))[0]
+        ok24 &= eq3 == scratch
+        ok41 &= eq2 % M == scratch % M
+        zeros += scratch == 0
+        differ += eq2 != scratch
+        ok_where &= (eq2 != scratch) <= (scratch == 0)
+    print(f"  recomputation 0x0000 at {zeros} updates; RFC 1141's bytes "
+          f"differ at {differ}")
+    check("U1 RFC 1624 = recomputation byte for byte, 500 updates", ok24)
+    check("U1 RFC 1141 = recomputation mod 65535; bytes differ only at "
+          "0x0000", ok41 and ok_where and differ > 0)
+    def both(words, pos, m2):
+        HC, m = field(words), words[pos]
+        return (fold(fold(HC + m)[0] + (~m2 & M))[0],
+                ~fold(fold((~HC & M) + (~m & M))[0] + m2)[0] & M)
+    e41, e24 = both([0xFFFF, 0], 1, 0xFFFF)
+    check("U1 edge: RFC 1141 = RFC 1624 = recomputation = 0x0000 at a "
+          "zero", e41 == e24 == field([0xFFFF, 0xFFFF]) == 0,
+          f"RFC 1141 {e41:#06x}, RFC 1624 {e24:#06x}")
+    e41, e24 = both([5, 0], 0, 0)
+    check("U1 edge: updated to all zero, RFC 1141 = recomputation = "
+          "0xFFFF and RFC 1624 0x0000",
+          e41 == field([0, 0]) == 0xFFFF and e24 == 0,
+          f"RFC 1141 {e41:#06x}, RFC 1624 {e24:#06x}")
+
+
+# ------------------------------------------------------------------ W
+
+def channel_misses(p, j, a, b, same):
+    h = 1 << j
+    if same:
+        return (a - b) % (2 * h) == h
+    return (a - b) % (2 * h) == 0
+
+
+def section_w():
+    print("W -- the two-bit errors")
+    ok, whole = True, set()
+    for a in range(16):
+        for b in range(16):
+            for same in (True, False):
+                d = 2 ** a + (2 ** b if same else -2 ** b)
+                miss = [d % p == 0 for p in FERMAT]
+                ok &= miss == [channel_misses(p, j, a, b, same)
+                               for j, p in enumerate(FERMAT)]
+                if all(miss):
+                    whole.add((a, b, same))
+    check("W1 each channel's miss set as derived, every position pair",
+          ok)
+    check("W1 the checksum misses exactly opposite flips at one position",
+          whole == {(a, a, False) for a in range(16)})
+    fracs, ok, none_missed = {}, True, True
+    for k in range(1, 5):
+        base = message(k)
+        before = field(base)
+        bits = 16 * k
+        missed = total = 0
+        for x in range(bits):
+            for y in range(x + 1, bits):
+                for vx in (0, 1):
+                    for vy in (0, 1):
+                        w = base[:]
+                        for pos, v in ((x, vx), (y, vy)):
+                            i, a = divmod(pos, 16)
+                            w[i] = (w[i] & ~(1 << a)) | (v << a)
+                        start = field(w)
+                        for pos in (x, y):
+                            i, a = divmod(pos, 16)
+                            w[i] ^= 1 << a
+                        total += 1
+                        missed += field(w) % M == start % M
+        fracs[k] = (missed, total)
+        from fractions import Fraction
+        ok &= Fraction(missed, total) == Fraction(k - 1, 2 * (16 * k - 1))
+        none_missed &= missed == 0
+        print(f"  k = {k}: {missed} of {total} missed = "
+              f"{Fraction(missed, total)}")
+    check("W1 missed fraction = (k - 1)/(2(16k - 1)), k = 1..4", ok)
+    check("W1 control: 'no two-bit error is missed' fails",
+          not none_missed)
+
+
+def main():
+    for section in (section_r, section_c, section_b, section_u, section_w):
+        section()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

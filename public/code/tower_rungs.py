@@ -1,0 +1,955 @@
+"""tower_rungs.py -- the primorial rungs one by one: the table, the
+transparency criterion, the fate rule, the birthday formula, the
+residue code's distance, the Hamming spectrum, the escape law and
+the unitary spectrum.
+
+QUESTION. The rung R_k = Z/p_k# is built from the first k primes, and
+R_0 = Z/1. Rung k + 1 is rung k with one channel added and none removed.
+What does that accumulation decide about which properties a rung has,
+and when each property first appears or last holds?
+
+DESIGN. Eight sections, each a set of checks that print PASS or FAIL.
+  T  the table: N, phi and lambda for k = 1..14, computed with crt.py,
+     against the values written below; lambda read to k = 50.
+  C  the transparency criterion: lambda(k) = lambda(k - 1) iff
+     (p_k - 1) | lambda(k - 1), lcm's definition and so not checked; the
+     transparent rungs among the first 14 checked against the list.
+  F  the fate rule. A property of a rung that holds as soon as SOME
+     channel (or channel set) carries it can only be gained as channels
+     accumulate; one that needs EVERY channel to carry it can only be
+     lost. Each row of the chart is computed per rung -- by brute force
+     over the ring's elements where the ring is small enough (k <= 6;
+     the zero-divisor row reads gcd(a, N) > 1 for each a, since a * N/g
+     = 0 with g = gcd(a, N), rather than searching every pair),
+     and by the row's criterion to k = 12. A criterion row is monotone
+     as written, so monotonicity is checked on the brute rows (k <= 6)
+     and on the code's row, read by the sieve below to k = 10. POSITIVE
+     CONTROL: the monotonicity checker
+     must flag a planted row that is neither ("k is even"). DESIGNED
+     TOWER CONTROL: on the rungs built from 2, 5, 13, 17, 29 (3 skipped,
+     every odd prime 1 mod 4) the square root of -1 must exist at every
+     rung, so the veto is the prime 3 and not the rule.
+  B  the birthday formula: an element of multiplicative order m exists
+     in R_k iff m | lambda(k), so the first rung with one is the largest,
+     over the prime powers q^a exactly dividing m, of the rung of the
+     least prime = 1 mod q^a. Checked against a direct scan of lambda for
+     every m <= 200, and the achievable orders of R_k's units checked to
+     be exactly the divisors of lambda(k) by brute force, k <= 6.
+  D  the residue code's distance: with r parity channels on rung k the
+     codewords are 0 .. p_{k-r}# - 1 (the range crt.py's code_range
+     gives, which D2 uses). Two
+     codewords agreeing on a channel set S differ by a multiple of the
+     product of S, so the distance is k minus the most channels any
+     difference d in 1 .. p_{k-r}# - 1 is divisible by. Computed
+     exhaustively by a multiples sieve over every d, k = 4..10 for
+     r = 2, 3 and k = 4..8 for r = 1 (one byte per d, so the range
+     p_{k-r}# is the footprint: p_9# = 223,092,870 is past it).
+     POSITIVE CONTROL: with the data put on the LARGEST
+     k - 3 primes instead, the sieve must find distance 2 (k = 5..8,
+     where 30 > p_k; at k = 10 that range would need a 215 MB sieve),
+     and with r = 1 (k = 3..7) or r = 2 (k = 4..8) on the largest, where
+     p_r# < p_k, distance 1.
+     THE SYNDROME'S SHAPE (crt.py code_syndrome): every codeword with
+     every single channel set to every wrong value, k = 4..7 and
+     r = 1..3, and the number of parity channels whose check fails.
+     A wrong data channel i moves the integer the data channels read
+     by (p_{k-r}# / p_i) t with 0 < |t| < p_i; every parity prime is
+     coprime to that product and larger than p_i, so it divides no such
+     move, and every parity check fails. A wrong parity channel fails
+     only its own check.
+     POSITIVE CONTROL: with the data on the LARGEST k - 3 channels
+     (k = 5, 6), some single data error must pass a parity check; it
+     computes its syndrome inline, since code_syndrome puts the data on
+     the smallest moduli, so it controls the argument, not that function.
+  H  the Hamming spectrum. The rung's Hamming graph joins two residues
+     that differ in exactly one channel: the Cartesian product of the
+     complete graphs K_p. K_p has eigenvalue p - 1 once (the constant
+     vector) and -1 on the p - 1 dimensions summing to zero, and a
+     Cartesian product's eigenvalues are sums, one term per factor. So
+     each subset S of the channels gives the eigenvalue
+         D - sigma(S),   D = sum of (p - 1),  sigma(S) = sum of S,
+     with multiplicity the product of p - 1 over S, and the distinct
+     eigenvalues are the distinct subset sums of the first k primes.
+     THE DEFICIT, proved before the run. Let T_k be the sum of the
+     first k primes and W_k the set of their subset sums. W_k is closed
+     under v -> T_k - v (take the complement). Claim: for k >= 4, W_k is
+     [0, T_k] minus {1, 4, 6} and their reflections. Checked directly
+     at k = 4 and k = 5. Step k -> k + 1 for k >= 5, with p = p_{k+1}:
+     W_{k+1} = W_k u (W_k + p). By induction W_k holds [7, T_k - 7], so
+     W_{k+1} holds [7, T_k - 7] u [p + 7, p + T_k - 7], which is all of
+     [7, T_{k+1} - 7] once p + 7 <= T_k - 6, that is p <= T_k - 13
+     (the STEP INEQUALITY). Below 7, W_{k+1} agrees with W_k, since
+     p >= 13; the top end follows by the reflection. The step
+     inequality holds at k = 5 (13 <= 15), and if it holds at k then
+     T_{k+1} - 2 p_{k+1} = T_k - p_{k+1} >= 13, so by Bertrand
+     p_{k+2} <= 2 p_{k+1} - 1 <= T_{k+1} - 14: it holds at every
+     k >= 5. So the rung's Hamming graph has exactly T_k - 5 distinct
+     eigenvalues at every k >= 4. At k = 4 the step inequality fails
+     (11 > 17 - 13), which is why k = 5 is a base case and not a step.
+     The checks: every eigenvector v_S (the product over S of the
+     vector 1 at 0, -1 at 1, 0 elsewhere, constant off S) satisfies
+     A v_S = (D - sigma(S)) v_S exactly, k = 3, 4, with the adjacency
+     read off the residue tuples and never off the formula; the whole
+     spectrum with its multiplicities at k = 3, 4 by closed walks: N
+     times the walks of length j from 0 back to 0 is the trace of A^j,
+     equal for every j <= N to the sum of multiplicity times
+     eigenvalue^j, and the power sums 0..N (the 0th the count N) fix
+     the N eigenvalues; the missing sums are computed by a bitset for
+     k = 3..60; the step inequality for k = 5..1999.
+     POSITIVE CONTROL: the set {2, 3, 5, 7, 11, 97}, whose last prime
+     breaks the step inequality, must show a missing sum in its middle.
+  E  the escape law. A non-unit n of the rung has a NULL SET S, the
+     channels where n = 0; its CLASS is every residue with that null
+     set, prod of (p - 1) over the channels off S by CRT. A signed
+     generator step sends n to n + g or n - g, g one of the rung's
+     primes. Proved before the run: if g is in S no member escapes to
+     a unit (g | n + g). If g is off S, exactly
+         (g - 1) * prod over p off S, p != g, of (p - 2)
+     members land on a unit: off S the residues range over every tuple
+     of nonzero values once; a channel in S reads n + g = g, nonzero;
+     the channel g reads n + g = n, nonzero since g is off S, free
+     (g - 1 values); every other channel off S must avoid -g, p - 2 of
+     its p - 1 values. The step -g is the image under n -> -n. The
+     escape probability is one factor per channel,
+         prod over p off S, p != g, of (p - 2)/(p - 1).
+     Corollaries: the channel 2 contributes 2 - 2 = 0 whenever 2 is off
+     S and g is odd, so an odd non-unit escapes only by +-2 and an even
+     one never by +-2; the class {0} has no escape at all, and every
+     other class has one. From S = {q}, q odd, the +-2 probability is
+     the product over the odd channels but q; over all odd channels it
+     is A(k) = prod over 3 <= p <= p_k of (p - 2)/(p - 1), the chance
+     that z + 2 is a unit given z is. Since
+         (p - 2)/(p - 1) = (1 - 1/(p - 1)^2)(1 - 1/p),
+     A(k) is a partial product of the twin prime constant C2 times
+     prod over odd p of (1 - 1/p), which Mertens' theorem puts at
+     2 e^(-gamma) / ln p_k; so A(k) ln p_k / (2 C2 e^(-gamma)) -> 1.
+     The checks: every class and signed step, k = 3..7, counted from a
+     unit table and never from the formula; the corollaries; the stuck
+     non-units at k = 5 (a class-level law, not a per-element one);
+     the twin-unit count prod of (p - 2) at k = 7 by direct count,
+     which is the same escape count at S empty, the units, with g = 2,
+     the only check of that case; the ratio at k = 10, 100, 1000, 2000.
+     POSITIVE CONTROL: the formula with p - 1 in place of p - 2 must fail
+     somewhere.
+  U  the unitary spectrum. The rung's UNITARY GRAPH joins two residues
+     whose difference is a unit, that is, that differ in EVERY channel:
+     the tensor product of the complete graphs K_p, whose eigenvalues
+     are products, one factor per channel, where H's were sums. The
+     same vectors v_S serve, with eigenvalue
+         e(S) = (-1)^|S| * prod over p off S of (p - 1),
+     multiplicity the product of p - 1 over S. Read as a character's
+     eigenvalue, with m = 0 exactly on the channels off S, e(S) is the
+     Ramanujan sum c_N(m), the sum of exp(2 pi i u m / N) over the units
+     u, and with g = gcd(m, N) it is mu(N/g) phi(g).
+     THE FIBRES, proved before the run. e(S) = e(S') iff |S| = |S'|
+     mod 2 and the products of p - 1 off S and off S' agree. The
+     channel 2 contributes p - 1 = 1, so moving 2 across S flips the
+     sign and keeps the size: the spectrum is +-U_k, where U_k is the
+     set of phi(d) over the squarefree d built from the odd primes to
+     p_k, and there are exactly 2 |U_k| distinct eigenvalues against
+     2^k sets S. Adding the next prime, p = p_k, gives U_k = U_(k-1) u
+     (p - 1) U_(k-1), so
+         |U_k| = 2 |U_(k-1)| - |U_(k-1) n (p - 1) U_(k-1)|,
+     and each value in that intersection is a COLLISION, a relation
+     phi(a) = (p - 1) phi(b) with a, b coprime and built from older
+     odd primes (common primes cancel, phi being multiplicative).
+     Where H's count is kept full by the primes' SIZE, this one is
+     thinned by the FACTORING of p - 1.
+     The checks: every v_S satisfies A v_S = e(S) v_S exactly, k = 3,
+     4, the adjacency read off gcd(n - n', N) = 1 and never off the
+     formula, and the multiplicities by closed walks as in H; c_N(m)
+     summed over the units in floats and rounded
+     equals mu(N/g) phi(g) at every m of Z/2310 and at every divisor
+     of 30030, with the rounding error printed; the distinct values
+     e(S) of all 2^k sets S number 2 |U_k|, k = 1..16 (read off the
+     formula the first checks test; the fibre criterion restates that
+     formula and is not checked); |U_k| by listing every subset
+     product, k = 1..20, with the collisions per rung and the least
+     relation of each printed (the recursion is an identity of sets).
+     POSITIVE CONTROL: the rule "distinct gcd, distinct eigenvalue",
+     which the fibre criterion denies, must fail at some k <= 16.
+     THE DOUBLING RUNG, added after the first print of U, which showed
+     rungs with no collision at all. Proved before its check: if p - 1
+     has a prime factor ell that divides no q - 1 over the older odd
+     primes q, that is, ell does not divide lambda(k - 1), then ell divides
+     every element of (p - 1) U_(k-1) and none of U_(k-1), so the
+     rung has no collision and |U_k| = 2 |U_(k-1)| exactly. The check
+     reads the collisions per rung by the recursion alone to k = 24,
+     against lambda kept as a running lcm, never against the rule. The
+     CONVERSE, no collision only at such a rung, is not proved; it is read off
+     the same column. It fails at k = 3, where 4 = 2^2 finds no partner
+     in U_2 = {1, 2}: the 2-adic valuation, not the prime, blocks it.
+
+PREDICTIONS, fixed before the run.
+  T1 lambda for k = 1..10 is 1, 2, 4, 12, 60, 60, 240, 720, 7920, 55440
+     and stays 55440 through k = 14.
+  C1 the criterion holds at every k = 2..2000 (it is a property of lcm;
+     the check tests the implementation). Transparent rungs among the
+     first 14: k = 6 (13) and k = 11..14 (31, 37, 41, 43); k = 6 first.
+  F1 every row monotone in its direction; births and deaths: a field
+     dies at 2, the square root of -1 dies at 2, a cyclic unit group
+     dies at 3; zero divisors and idempotents beyond {0, 1} are born at
+     2, an element of order 4 at 3, of order 3 at 4, the distance-4
+     code at 4, a code rate above 1/2 at 7. The planted row is flagged.
+     The designed tower keeps its square root of -1 at all five rungs.
+  F2 the i pair: Z/30 has elements of order 4 and none squares to -1.
+  B1 formula = scan for every m <= 200; order 19 first at rung 43,
+     order 23 at rung 15, and the latest birthday for m <= 200 is
+     order 197's, at the prime 3547, rung 497. Unit orders = divisors of
+     lambda at every k <= 6.
+  D1 distance exactly r + 1 at every k in each r's range; the
+     control split has distance below 4 at every k = 5..8.
+  D2 a single wrong data channel fails all r parity checks and a single
+     wrong parity channel fails exactly its own, in every case.
+     The control finds a missed data error at k = 5 and at k = 6.
+  H1 every v_S is an eigenvector with eigenvalue D - sigma(S) at k = 3
+     and 4; the multiplicities sum to N; the least eigenvalue is -k,
+     with multiplicity phi(N) (92160 at k = 7).
+  H2 the missing subset sums are exactly {1, 4, 6, T - 6, T - 4, T - 1}
+     at every k = 4..60, so the distinct-eigenvalue count is T_k - 5
+     (53 at k = 7); at k = 3 the count is 7, not 10 - 5.
+  H3 the step inequality holds at every k = 5..2000 and fails at k = 4.
+     The control shows a missing sum strictly between 6 and its own
+     total less 6.
+  E1 the law is exact at every class and signed step, k = 3..7 (127
+     classes x 14 steps at k = 7); the control fails.
+  E2 odd class, odd step: 0 escapes; only the class {0} has no step
+     that escapes; at k = 5 some single non-units are stuck (every one
+     of their 2k neighbours a non-unit), 119 among them.
+  E3 22275 residues z of Z/510510 have z and z + 2 both units, and
+     A(7) = 22275/92160 = 0.2417.
+  E4 the ratio is within 2% of 1 at k = 1000 and k = 2000.
+  U1 every v_S is an eigenvector with eigenvalue e(S) at k = 3, 4;
+     the float Ramanujan sums round to mu(N/g) phi(g) everywhere, error
+     below 1e-6.
+  U2 no collision before p = 13: |U_k| = 2^(k-1) for k = 1..5, then
+     |U_6| = 26 (six relations, the least phi(21) = 12 * phi(1)), so
+     52 distinct eigenvalues at k = 6 against 64 sets. The brute
+     grouping agrees with 2 |U_k| and the criterion at every k <= 16;
+     the recursion agrees with the listing at every k <= 20.
+  U3 |U_k| / 2^(k-1) is nonincreasing (a property: |U_k| <=
+     2 |U_(k-1)|). Directional, a guess and not a derivation: it is
+     below 1/2 by k = 20. The observable is the printed ratio column.
+  U4 the control rule fails first at k = 6.
+  U5 (fixed after the first print of U, before its own run) every
+     rung whose p - 1 brings a new prime into lambda has no collision,
+     k = 2..24; the converse holds on k = 4..24 and fails at k = 3;
+     the doubling rungs to k = 24 are p = 3, 7, 11, 23, 29, 47, 53, 59
+     and 83.
+
+FINDINGS. Every prediction landed; the audit in RUN RECORD replaced
+the checks that held by construction, and the lines below are the
+current run's (39/39).
+  T1 the table matches at k = 1..14; lambda is 55440 on k = 10..14 and
+     reads 1275120 at k = 15.
+  C1 1531 of the rungs 2..2000 are transparent; the transparent rungs
+     to 14 are 6, 11, 12, 13, 14, the primes 13, 31, 37, 41, 43.
+  F1 brute force agrees with every row's criterion at k <= 6; the brute
+     rows are monotone there and the code's sieved row to k = 10, each
+     row dying or born at the predicted rung; the planted row is
+     flagged; the designed tower keeps sqrt(-1) at all five
+     rungs. F2 the order-4 elements of Z/30 are 7, 13, 17, 23, and none
+     squares to 29.
+  B1 formula = scan at every m <= 200; order 19 at rung 43, order 23
+     at 15; the latest is order 197, prime 3547, rung 497; unit orders
+     are the divisors of lambda at k <= 6.
+  D1 distance 2, 3, 4 for r = 1, 2, 3 at every k checked; the control
+     split has distance 2 at k = 5..8; with the data on the largest
+     primes the distance is 1 at r = 1, k = 3..7 and r = 2, k = 4..8.
+  D2 every one of 223,922 single-channel errors has the predicted
+     syndrome: all r checks fail on a data error, one on a parity
+     error. The control misses 904 data errors at k = 5 and 20,684 at
+     k = 6 with the data on the largest primes.
+  H1 every v_S is an eigenvector with eigenvalue D - sigma(S) at k = 3
+     and 4, and the closed walks there give the whole spectrum with its
+     multiplicities; at k = 7 the formula gives 53 distinct
+     eigenvalues, the least -7 with multiplicity 92160.
+  H2 the missing sums are {1, 4, 6} and their reflections at every
+     k = 4..60 (k = 60: T = 7699, 7694 distinct). At k = 3 the missing
+     set is {1, 4, 6, 9}: the same union, the reflection of 4 being 6,
+     so the SET law holds from k = 3 and only the count T - 5 needs
+     k >= 4.
+  H3 the step inequality holds at k = 5..1999 and fails at k = 4; the
+     control misses 74 middle sums, the first 22.
+  E1 the law is exact at every class and signed step, k = 3..7 (127
+     classes x 14 steps at k = 7); the p - 1 control is wrong at 1428
+     class-steps.
+  E2 no odd step lifts an odd non-unit, and {0} is the one class with
+     no escape; at k = 5, 122 nonzero non-units are stuck, 119 among
+     them (117 = 3^2 13 and 121 = 11^2).
+  E3 22275 twin-unit residues at k = 7, A(7) = 0.241699.
+  E4 the ratio reads 0.9544, 0.9951, 0.9988, 0.9993 at k = 10, 100,
+     1000, 2000.
+  U1 every v_S is an eigenvector with eigenvalue e(S) at k = 3 and 4,
+     the closed walks giving the multiplicities there; the float
+     Ramanujan sums round to mu(N/g) phi(g) at every m of Z/2310 and
+     every divisor of 30030, worst error 5.6e-11.
+  U2 no collision to k = 5; |U_6| = 26, six collisions, the least
+     12 = 12 * 1; the distinct values of e(S) number 2 |U_k| to k = 16.
+     |U_k| by listing, for k = 6..20: 26, 50, 88, 176, 352, 576, 824,
+     1248, 2040, 4080, 8160, 16320, 21728, 34480, 53520.
+  U3 the share reads 0.1021 at k = 20: the directional guess (below
+     1/2) landed, first at k = 12 (0.4023; 0.5625 at k = 11).
+  U4 the control fails first at k = 6.
+  U5 every rung bringing a new prime into lambda has no collision,
+     k = 2..24; the rungs with none are p = 3, 5, 7, 11, 23, 29, 47, 53,
+     59, 83, and the converse fails only at k = 3; |U_24| = 326464,
+     share 0.0389.
+  Tiers: the table and the transparency criterion are properties; the
+  fate rule is a rule, proved, each row's fate read at its rungs by
+  brute force for k <= 6 and by the row's criterion to k = 12; the
+  birthday formula is a theorem, checked m <= 200; the code's distance
+  r + 1 is a theorem, checked exhaustively over the ranges above. The
+  deficit is a rule, proved for every k >= 4, its base cases k = 4, 5
+  computed. The escape law is a theorem, checked exhaustively at
+  k = 3..7; its limit is Mertens' theorem, read through one identity.
+  The unitary eigenvalues are Klotz and Sander's (Electron. J. Combin.
+  14 (2007) #R45); the fibre criterion, the recursion and the doubling
+  rung are theorems; the converse is an observation to k = 24, and the
+  share's fall one at k = 2..20, its value printed at k = 24.
+
+RUN RECORD. The first run sieved r = 1 to k = 10 and peaked at 564 MB
+commit (the 223 MB range at k = 10 and its slice copies), over the
+512 MB line; r = 1 was cut to k = 8 and the increment moved to
+bytes.translate. The recorded run: 16/16 PASS, 27 MB peak commit,
+under a second. D2 was added later. Its first run covered r = 1 at
+k = 7 as well (1,755,452 errors, all with the predicted shape, 4.8 s);
+that row was dropped to keep the gate fast. The control was added
+after that first D2 print had been read. The recorded run: 18/18 PASS,
+27 MB peak commit, 0.8 s. H was added later, designed and proved
+before its first run: 25/25 PASS, 27 MB peak commit, 1.0 s. E was
+added after it the same way: 31/31 PASS, 29 MB peak commit, 2.0 s.
+U was added after E, designed before its first run: 37/37 PASS, 29 MB
+peak commit, 2.8 s. Its print showed rungs with no collision, and the
+doubling rung was designed and predicted from it before its own run:
+39/39 PASS, 74 MB peak commit, 2.8 s. An audit then cut the checks
+that held by construction (C1's iff, the D1 witness pair, the fibre
+criterion, the recursion's equality, U3's monotonicity, H1's k = 7
+multiplicities, all now printed or proved) and added what tests the
+graphs and the code: the spectra with their multiplicities by closed
+walks at k = 3, 4, the distance-1 arms with the data on the largest
+primes, distance exactly 2 in the control, monotonicity read on the
+brute rows, the designed tower's criteria at k = 5, and each control
+reported before its verdict: 38/38 PASS, 74 MB peak commit, 3.3 s,
+under a memory guard. A second audit made the closed walks read the
+power sums j = 0..N, since j < N leaves the last symmetric function
+free, made each control (F1's planted row and designed tower, D1's
+two, D2's, H3's, E1's, U4's) run before its verdict and stop the run
+when it fails, and split U4's first failure at k = 6 into a verdict:
+39/39 PASS, 2.6 s, 74 MB peak commit under a memory guard.
+
+Standard library and crt.py.
+
+    python tower_rungs.py
+"""
+
+from fractions import Fraction
+from math import cos, exp, gcd, lcm, log, pi, prod
+
+from crt import (code_channels, code_range, code_syndrome, decode_from, encode,
+                 first_primes, is_prime, multiplicative_order, primorial_ring)
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  [{'PASS' if ok else 'FAIL'}] {name}" + (f" -- {detail}" if detail else ""))
+
+
+def control(name, ok, detail=""):
+    """A control: checked, and the run stops when it fails."""
+    check(name, ok, detail)
+    if not ok:
+        raise SystemExit(1)
+
+
+PRIMES = first_primes(2000)
+RUNG = {p: i + 1 for i, p in enumerate(PRIMES)}      # prime -> its rung
+LAM = [1]                                            # LAM[k] = lambda(R_k)
+for _p in PRIMES:
+    LAM.append(lcm(LAM[-1], _p - 1))
+
+
+def primorial(k, primes=PRIMES):
+    return prod(primes[:k])
+
+
+# ------------------------------------------------------------------ T
+
+TABLE = {  # k: (N, phi, lambda)
+    1: (2, 1, 1), 2: (6, 2, 2), 3: (30, 8, 4), 4: (210, 48, 12),
+    5: (2310, 480, 60), 6: (30030, 5760, 60), 7: (510510, 92160, 240),
+    8: (9699690, 1658880, 720), 9: (223092870, 36495360, 7920),
+    10: (6469693230, 1021870080, 55440),
+    11: (200560490130, 30656102400, 55440),
+    12: (7420738134810, 1103619686400, 55440),
+    13: (304250263527210, 44144787456000, 55440),
+    14: (13082761331670030, 1854081073152000, 55440),
+}
+
+
+def section_t():
+    print("T -- the first fourteen rungs")
+    print(f"  {'k':>2} {'p_k':>4} {'N':>18} {'phi':>17} {'lambda':>7}")
+    ok = True
+    for k in range(1, 15):
+        R = primorial_ring(k)
+        print(f"  {k:>2} {PRIMES[k - 1]:>4} {R.N:>18} {R.phi:>17} {R.lam:>7}")
+        ok &= (R.N, R.phi, R.lam) == TABLE[k] and R.lam == LAM[k]
+    check("T1 N, phi, lambda match the table, k = 1..14", ok)
+    print("  lambda, k = 1..50:", LAM[1:51])
+
+
+# ------------------------------------------------------------------ C
+
+def section_c():
+    print("C -- the transparency criterion")
+    # the iff is lcm's definition (a property): printed, not checked
+    n_trans = sum(LAM[k] == LAM[k - 1] for k in range(2, 2001))
+    print(f"  transparent rungs among k = 2..2000: {n_trans}")
+    trans = [k for k in range(2, 15) if LAM[k] == LAM[k - 1]]
+    check("C1 transparent rungs k <= 14 are 6, 11, 12, 13, 14",
+          trans == [6, 11, 12, 13, 14],
+          "primes " + str([PRIMES[k - 1] for k in trans]))
+
+
+# ------------------------------------------------------------------ F
+
+def monotone(row, direction):
+    """direction +1: never True then False; -1: never False then True."""
+    pairs = zip(row, row[1:])
+    if direction > 0:
+        return all(not (a and not b) for a, b in pairs)
+    return all(not (b and not a) for a, b in pairs)
+
+
+def first(row, value):
+    """1-based rung of the first entry equal to value, or None."""
+    return next((k for k, v in enumerate(row, 1) if v == value), None)
+
+
+def brute(k, primes=PRIMES):
+    """Element-by-element facts about the ring built from primes[:k]."""
+    N = primorial(k, primes)
+    units = [x for x in range(1, N) if gcd(x, N) == 1] if N > 1 else []
+    orders = {multiplicative_order(x, N) for x in units} if N > 2 else {1}
+    return {
+        "field": is_prime(N),
+        "sqrt(-1)": any(x * x % N == (N - 1) for x in range(N)),
+        "cyclic units": max(orders) == len(units) if units else True,
+        "zero divisors": any(gcd(a, N) > 1 for a in range(1, N)),
+        "idempotents beyond {0, 1}": sum(x * x % N == x for x in range(N)) > 2,
+        "order 4": 4 in orders,
+        "order 3": 3 in orders,
+    }
+
+
+def criterion(k, primes=PRIMES):
+    """The same rows by criterion, for any k."""
+    ps = primes[:k]
+    lam = lcm(*(p - 1 for p in ps)) if ps else 1
+    return {
+        "field": k == 1,
+        "sqrt(-1)": all(p == 2 or p % 4 == 1 for p in ps),
+        "cyclic units": lam == prod(p - 1 for p in ps),
+        "zero divisors": k >= 2,
+        "idempotents beyond {0, 1}": k >= 2,
+        "order 4": lam % 4 == 0,
+        "order 3": lam % 3 == 0,
+    }
+
+
+def code_distance(k, r, data_primes=None):
+    """Exhaustive minimum distance of the residue code on rung k with r
+    parity channels: k minus the most channels any difference d with
+    1 <= d < (data range) is divisible by, by a multiples sieve."""
+    ps = PRIMES[:k]
+    L = prod(data_primes) if data_primes else prod(ps[:k - r])
+    agree = bytearray(L)
+    for p in ps:
+        agree[p::p] = agree[p::p].translate(INCREMENT)
+    return k - max(agree[1:]) if L > 1 else None
+
+
+INCREMENT = bytes(range(1, 256)) + bytes([255])   # saturates at 255
+
+DIRECTION = {"field": -1, "sqrt(-1)": -1, "cyclic units": -1,
+             "zero divisors": 1, "idempotents beyond {0, 1}": 1,
+             "order 4": 1, "order 3": 1, "distance-4 code": 1,
+             "rate above 1/2": 1}
+
+
+def section_f():
+    print("F -- the fate rule")
+    K = 12
+    bruted = [brute(k) for k in range(1, 7)]
+    crit = [criterion(k) for k in range(1, K + 1)]
+    agree = all(bruted[k - 1] == crit[k - 1] for k in range(1, 7))
+    check("F1 brute force equals the criteria, every row, k <= 6", agree)
+    rows = {name: [c[name] for c in crit] for name in crit[0]}
+    rows["distance-4 code"] = [k >= 4 and code_distance(k, 3) == 4
+                               for k in range(1, 11)]
+    rows["rate above 1/2"] = [(k - 3) / k > 1 / 2 for k in range(1, K + 1)]
+    fates = {}
+    for name, row in rows.items():
+        d = DIRECTION[name]
+        fates[name] = ("born", first(row, True)) if d > 0 else ("dies", first(row, False))
+        print(f"  {name:28} {fates[name][0]} at rung {fates[name][1]}")
+    # a criterion row is monotone as written (a prefix's all, an lcm's
+    # divisor); the rows that can fail are the brute ones and the sieve's
+    planted = [k % 2 == 0 for k in range(1, K + 1)]
+    control("F1 control: the planted row 'k is even' is flagged both ways",
+            not monotone(planted, 1) and not monotone(planted, -1))
+    ok = all(monotone([b[name] for b in bruted], DIRECTION[name])
+             for name in bruted[0])
+    ok &= monotone(rows["distance-4 code"], 1)
+    check("F1 the brute rows monotone in their direction, k <= 6, and the "
+          "code's sieved row, k <= 10", ok)
+    expected = {"field": 2, "sqrt(-1)": 2, "cyclic units": 3,
+                "zero divisors": 2, "idempotents beyond {0, 1}": 2,
+                "order 4": 3, "order 3": 4, "distance-4 code": 4,
+                "rate above 1/2": 7}
+    designed = (2, 5, 13, 17, 29)
+    dbrute = [brute(k, designed) for k in range(1, 6)]
+    ok = all(b["sqrt(-1)"] for b in dbrute)
+    ok &= all(dbrute[k - 1][n] == criterion(k, designed)[n]
+              for k in range(1, 6) for n in DIRECTION if n in crit[0])
+    control("F1 designed tower 2, 5, 13, 17, 29: sqrt(-1) at all five rungs, "
+            "brute force equal to the criteria there", ok)
+    check("F1 births and deaths at the predicted rungs",
+          all(fates[n][1] == r for n, r in expected.items()))
+    order4 = [x for x in range(30) if multiplicative_order(x, 30) == 4]
+    check("F2 the i pair: Z/30 has order-4 elements, none squares to -1",
+          order4 and all(x * x % 30 != 29 for x in order4), str(order4))
+
+
+# ------------------------------------------------------------------ B
+
+def prime_powers(m):
+    out, q = [], 2
+    while m > 1:
+        if m % q == 0:
+            qa = 1
+            while m % q == 0:
+                qa, m = qa * q, m // q
+            out.append(qa)
+        q += 1
+    return out
+
+
+def least_prime_1_mod(n):
+    return next(p for p in PRIMES if p % n == 1)
+
+
+def birthday_formula(m):
+    return max((RUNG[least_prime_1_mod(qa)] for qa in prime_powers(m)), default=0)
+
+
+def birthday_scan(m):
+    return next(k for k, v in enumerate(LAM) if v % m == 0)
+
+
+def section_b():
+    print("B -- the birthday formula")
+    ok = all(birthday_formula(m) == birthday_scan(m) for m in range(1, 201))
+    check("B1 formula = direct scan of lambda, every m <= 200", ok)
+    latest = max(range(1, 201), key=birthday_formula)
+    check("B1 order 19 at rung 43, order 23 at rung 15",
+          birthday_formula(19) == 43 and birthday_formula(23) == 15)
+    check("B1 latest birthday for m <= 200",
+          (latest, PRIMES[birthday_formula(latest) - 1], birthday_formula(latest))
+          == (197, 3547, 497),
+          f"order {latest}, prime {PRIMES[birthday_formula(latest) - 1]}, "
+          f"rung {birthday_formula(latest)}")
+    ok = True
+    for k in range(1, 7):
+        N = primorial(k)
+        orders = {multiplicative_order(x, N) for x in range(1, N) if gcd(x, N) == 1} \
+            if N > 2 else {1}
+        ok &= orders == {d for d in range(1, LAM[k] + 1) if LAM[k] % d == 0}
+    check("B1 unit orders = divisors of lambda, brute force, k <= 6", ok)
+
+
+# ------------------------------------------------------------------ D
+
+def section_d():
+    print("D -- the residue code's distance")
+    top = {1: 8, 2: 10, 3: 10}
+    dist = {r: {k: code_distance(k, r) for k in range(4, top[r] + 1)} for r in top}
+    for r in (1, 2, 3):
+        print(f"  r = {r}: {dist[r]}")
+    ctrl = {k: code_distance(k, 3, PRIMES[3:k]) for k in range(5, 9)}
+    control("D1 control: data on the largest k - 3 primes, distance 2 at "
+            "k = 5..8, where 30 > p_k", all(d == 2 for d in ctrl.values()),
+            str(ctrl))
+    # the distance falls to 1 exactly when p_r# < p_k: r = 1 from k = 2,
+    # r = 2 from k = 4 (6 < 7), each read by the sieve
+    low = {(r, k): code_distance(k, r, PRIMES[r:k])
+           for r, ks in ((1, range(3, 8)), (2, range(4, 9))) for k in ks}
+    control("D1 data on the largest primes, r = 1 at k = 3..7 and r = 2 at "
+            "k = 4..8: distance 1", all(d == 1 for d in low.values()),
+            str(sorted(set(low.values()))))
+    check("D1 distance exactly r + 1, k = 4..10 (r = 1: k = 4..8)",
+          all(d == r + 1 for r in dist for d in dist[r].values()))
+    missed = {}
+    for k in (5, 6):                    # control: data on the LARGEST primes
+        ring, r = primorial_ring(k), 3
+        data, parity = tuple(range(3, k)), (0, 1, 2)
+        span = prod(ring.moduli[i] for i in data)
+        missed[k] = 0
+        for n in range(span):
+            word = list(encode(n, ring))
+            for i in data:
+                for v in range(ring.moduli[i]):
+                    if v != word[i]:
+                        bad = word[:i] + [v] + word[i + 1:]
+                        x = decode_from(bad, ring, data)
+                        missed[k] += any((bad[j] - x) % ring.moduli[j] == 0
+                                         for j in parity)
+    control("D2 control: data on the largest primes, some data error "
+            "passes a parity check", all(missed.values()), str(missed))
+    shape, cases = True, 0
+    for k in range(4, 8):
+        ring = primorial_ring(k)
+        for r in ((1, 2, 3) if k < 7 else (2, 3)):
+            data, parity = code_channels(ring, r)
+            for n in range(code_range(ring, r)):
+                word = list(encode(n, ring))
+                for i, q in enumerate(ring.moduli):
+                    for v in range(q):
+                        if v == word[i]:
+                            continue
+                        bad = word[:i] + [v] + word[i + 1:]
+                        fails = [j for j, s in zip(parity,
+                                 code_syndrome(bad, ring, r)) if s]
+                        shape &= fails == (list(parity) if i in data
+                                           else [i])
+                        cases += 1
+    check("D2 a wrong data channel fails every parity check, a wrong "
+          "parity channel only its own, k = 4..7, r = 1..3 (r = 1 to "
+          "k = 6)", shape,
+          f"{cases} single-channel errors")
+
+
+# ------------------------------------------------------------------ H
+
+def subset_sums(primes):
+    bits = 1
+    for p in primes:
+        bits |= bits << p
+    return {v for v in range(sum(primes) + 1) if bits >> v & 1}
+
+
+def hamming_eigen_check(k):
+    """A v_S = (D - sigma(S)) v_S for every S, adjacency off the tuples."""
+    from itertools import product
+    ps = PRIMES[:k]
+    D = sum(p - 1 for p in ps)
+    verts = list(product(*(range(p) for p in ps)))
+    ok = True
+    for mask in range(1 << k):
+        S = [i for i in range(k) if mask >> i & 1]
+
+        def v(t):
+            out = 1
+            for i in S:
+                out *= (1 if t[i] == 0 else -1 if t[i] == 1 else 0)
+            return out
+        lam = D - sum(ps[i] for i in S)
+        for t in verts:
+            av = sum(v(t[:i] + (u,) + t[i + 1:])
+                     for i, p in enumerate(ps) for u in range(p) if u != t[i])
+            ok &= av == lam * v(t)
+    return ok
+
+
+def formula_spectrum(k, value):
+    """{eigenvalue: multiplicity} with value(S) per channel set S and
+    multiplicity the product of p - 1 over S."""
+    ps = PRIMES[:k]
+    mult = {}
+    for mask in range(1 << k):
+        S = [p for i, p in enumerate(ps) if mask >> i & 1]
+        lam = value(ps, S)
+        mult[lam] = mult.get(lam, 0) + prod(p - 1 for p in S)
+    return mult
+
+
+def walk_spectrum_check(k, conn, mult):
+    """The Cayley graph on Z/N with connection set conn: N times the
+    closed walks of length j at 0 is the trace of A^j, against the sum of
+    multiplicity times eigenvalue^j, for j <= N. Power sums 0..N (the
+    0th the count) fix a multiset of N values, so equality is the whole
+    spectrum."""
+    N = primorial(k)
+    v = [1] + [0] * (N - 1)
+    ok = True
+    for j in range(N + 1):
+        ok &= N * v[0] == sum(m * lam ** j for lam, m in mult.items())
+        v = [sum(v[(x - c) % N] for c in conn) for x in range(N)]
+    return ok
+
+
+def hamming_value(ps, S):
+    return sum(p - 1 for p in ps) - sum(S)
+
+
+def section_h():
+    print("H -- the Hamming spectrum")
+    check("H1 v_S has eigenvalue D - sigma(S), every S, k = 3, 4",
+          all(hamming_eigen_check(k) for k in (3, 4)))
+    ok = True
+    for k in (3, 4):
+        ps, N = PRIMES[:k], primorial(k)
+        conn = [c for c in range(1, N)
+                if sum(c % p != 0 for p in ps) == 1]
+        ok &= walk_spectrum_check(k, conn, formula_spectrum(k, hamming_value))
+    check("H1 the spectrum with its multiplicities, by closed walks, "
+          "k = 3, 4", ok)
+    mult = formula_spectrum(7, hamming_value)
+    print(f"  k = 7 by the formula: {len(mult)} distinct, least "
+          f"{min(mult)} x {mult[min(mult)]}")
+    rows, ok = {}, True
+    for k in range(3, 61):
+        ps = PRIMES[:k]
+        T = sum(ps)
+        missing = sorted(set(range(T + 1)) - subset_sums(ps))
+        rows[k] = (T, T + 1 - len(missing), missing)
+        if k >= 4:
+            ok &= missing == [1, 4, 6, T - 6, T - 4, T - 1]
+    for k in (3, 4, 5, 7, 10, 60):
+        T, n, miss = rows[k]
+        print(f"  k = {k:>2}: T = {T:>5}, distinct {n:>5}, missing {miss}")
+    check("H2 missing sums are {1, 4, 6} and reflections, k = 4..60",
+          ok and rows[7][1] == 53)
+    check("H2 k = 3 is outside: 7 distinct sums, not T - 5",
+          rows[3][1] == 7)
+    ctrl = [2, 3, 5, 7, 11, 97]
+    Tc = sum(ctrl)
+    gap = sorted(set(range(7, Tc - 6)) - subset_sums(ctrl))
+    control("H3 control {2, 3, 5, 7, 11, 97}: a middle sum is missing",
+            bool(gap), f"{len(gap)} middle sums missing, first {gap[:3]}")
+    step = [PRIMES[k] <= sum(PRIMES[:k]) - 13 for k in range(5, 2000)]
+    check("H3 step inequality p_{k+1} <= T_k - 13, k = 5..1999",
+          all(step))
+    check("H3 the step inequality fails at k = 4",
+          PRIMES[4] > sum(PRIMES[:4]) - 13)
+
+
+# ------------------------------------------------------------------ E
+
+def escape_predicted(ps, S, g):
+    if g in S:
+        return 0
+    return (g - 1) * prod(p - 2 for p in ps if p not in S and p != g)
+
+
+def escape_counts(k):
+    """{(S, step): members of class S that the step sends to a unit}."""
+    ps = PRIMES[:k]
+    N = prod(ps)
+    unit = bytearray(gcd(n, N) == 1 for n in range(N))
+    counts, sizes = {}, {}
+    for n in range(N):
+        if unit[n]:
+            continue
+        S = frozenset(p for p in ps if n % p == 0)
+        sizes[S] = sizes.get(S, 0) + 1
+        for g in ps:
+            for step in (g, -g):
+                key = (S, step)
+                counts[key] = counts.get(key, 0) + unit[(n + step) % N]
+    return ps, counts, sizes, unit
+
+
+def section_e():
+    print("E -- the escape law")
+    ok, ctrl_fails, par, zero_only = True, 0, True, True
+    for k in range(3, 8):
+        ps, counts, sizes, unit = escape_counts(k)
+        for S, size in sizes.items():
+            ok &= size == prod(p - 1 for p in ps if p not in S)
+            for g in ps:
+                for step in (g, -g):
+                    got = counts[(S, step)]
+                    ok &= got == escape_predicted(ps, S, g)
+                    ctrl = (0 if g in S else (g - 1) *
+                            prod(p - 1 for p in ps if p not in S and p != g))
+                    ctrl_fails += got != ctrl
+                    if 2 not in S and g != 2:
+                        par &= got == 0
+            any_escape = any(counts[(S, st)] for g in ps for st in (g, -g))
+            zero_only &= any_escape == (S != frozenset(ps))
+        print(f"  k = {k}: {len(sizes)} classes x {2 * k} steps")
+    control("E1 control: p - 1 in place of p - 2 fails", ctrl_fails > 0,
+            f"{ctrl_fails} class-steps wrong")
+    check("E1 the escape law is exact, every class and signed step, "
+          "k = 3..7", ok)
+    check("E2 an odd step never lifts an odd non-unit; only {0} is "
+          "escape-free", par and zero_only)
+    ps, counts, sizes, unit = escape_counts(5)
+    N = prod(ps)
+    stuck = [n for n in range(N) if not unit[n] and n and
+             not any(unit[(n + st) % N] for g in ps for st in (g, -g))]
+    check("E2 k = 5: single non-units are stuck, 119 among them",
+          119 in stuck, f"{len(stuck)} stuck besides 0")
+    N7 = primorial(7)
+    unit7 = bytearray(gcd(n, N7) == 1 for n in range(N7))
+    twins = sum(unit7[n] and unit7[(n + 2) % N7] for n in range(N7))
+    A7 = Fraction(twins, 92160)
+    check("E3 k = 7: n, n + 2 both units for prod (p - 2) residues",
+          twins == prod(p - 2 for p in PRIMES[1:7]) == 22275,
+          f"{twins}, A(7) = {float(A7):.6f}")
+    C2 = 0.6601618158468696
+    ratios = {}
+    for k in (10, 100, 1000, 2000):
+        A = 1.0
+        for p in PRIMES[1:k]:
+            A *= (p - 2) / (p - 1)
+        ratios[k] = A * log(PRIMES[k - 1]) / (2 * C2 * exp(-0.5772156649015329))
+    print("  A(k) ln p_k / (2 C2 e^-gamma): "
+          + ", ".join(f"k = {k}: {r:.4f}" for k, r in ratios.items()))
+    check("E4 the ratio is within 2% of 1 at k = 1000 and 2000",
+          all(abs(ratios[k] - 1) < 0.02 for k in (1000, 2000)))
+
+
+# ------------------------------------------------------------------ U
+
+def unitary_eigen_check(k):
+    """A v_S = e(S) v_S for every S, adjacency off gcd(n - n', N) = 1."""
+    from itertools import product
+    ps = PRIMES[:k]
+    N = prod(ps)
+    verts = list(product(*(range(p) for p in ps)))
+    units = [u for u in range(N) if gcd(u, N) == 1]
+    tup = {n: tuple(n % p for p in ps) for n in range(N)}
+    index = {t: n for n, t in tup.items()}
+    ok = True
+    for mask in range(1 << k):
+        S = [i for i in range(k) if mask >> i & 1]
+
+        def v(t):
+            out = 1
+            for i in S:
+                out *= (1 if t[i] == 0 else -1 if t[i] == 1 else 0)
+            return out
+        e = (-1) ** len(S) * prod(p - 1 for i, p in enumerate(ps)
+                                  if i not in S)
+        vec = [v(t) for t in verts]
+        at = {index[t]: x for t, x in zip(verts, vec)}
+        for t, x in zip(verts, vec):
+            n = index[t]
+            ok &= sum(at[(n + u) % N] for u in units) == e * x
+    return ok
+
+
+def mobius_phi(N, g):
+    """mu(N/g) phi(g) for squarefree N and g | N."""
+    ps = [p for p in PRIMES if N % p == 0]
+    return prod(p - 1 if g % p == 0 else -1 for p in ps)
+
+
+def ramanujan_float(N, m, units):
+    return sum(cos(2 * pi * u * m / N) for u in units)
+
+
+def odd_values(k):
+    """U_k by listing every subset product of p - 1, p odd, p <= p_k."""
+    vals = {1}
+    for p in PRIMES[1:k]:
+        vals |= {v * (p - 1) for v in vals}
+    return vals
+
+
+def unitary_value(ps, S):
+    return (-1) ** len(S) * prod(p - 1 for p in ps if p not in S)
+
+
+def section_u():
+    print("U -- the unitary spectrum")
+    check("U1 v_S has eigenvalue e(S), every S, k = 3, 4",
+          all(unitary_eigen_check(k) for k in (3, 4)))
+    ok = True
+    for k in (3, 4):
+        N = primorial(k)
+        conn = [u for u in range(N) if gcd(u, N) == 1]
+        ok &= walk_spectrum_check(k, conn, formula_spectrum(k, unitary_value))
+    check("U1 the spectrum with its multiplicities, by closed walks, "
+          "k = 3, 4", ok)
+    worst, ok = 0.0, True
+    for N, ms in ((2310, range(2310)),
+                  (30030, [d for d in range(1, 30031) if 30030 % d == 0])):
+        units = [u for u in range(N) if gcd(u, N) == 1]
+        for m in ms:
+            x = ramanujan_float(N, m, units)
+            want = mobius_phi(N, gcd(m, N))
+            worst = max(worst, abs(x - want))
+            ok &= round(x) == want
+    check("U1 float Ramanujan sums = mu(N/g) phi(g), Z/2310 all m, "
+          "Z/30030 divisors", ok and worst < 1e-6, f"worst error {worst:.1e}")
+    # the fibre criterion restates the formula e(S), so it is not checked
+    # here; the count of distinct values against 2|U_k| is
+    ok_brute, first_fail = True, None
+    for k in range(1, 17):
+        ps = PRIMES[:k]
+        spec = {}
+        for mask in range(1 << k):
+            S = [p for i, p in enumerate(ps) if mask >> i & 1]
+            spec.setdefault(unitary_value(ps, S), []).append(mask)
+        ok_brute &= len(spec) == 2 * len(odd_values(k))
+        if first_fail is None and len(spec) < 1 << k:
+            first_fail = k
+    control("U4 control 'distinct gcd, distinct eigenvalue' fails at some "
+            "k <= 16", first_fail is not None,
+            f"first failure k = {first_fail}")
+    check("U4 the control fails first at k = 6", first_fail == 6)
+    check("U2 the distinct values of e(S) over all 2^k sets number "
+          "2|U_k|, k = 1..16", ok_brute)
+    # the recursion is |A u cA| = 2|A| - |A n cA|, an identity of sets:
+    # it prints the collisions, and the listing's sizes are the check
+    ratios = {}
+    prev = {1}
+    print("   k   p   |U_k|   ratio  collisions  least relation")
+    for k in range(2, 21):
+        p = PRIMES[k - 1]
+        hit = prev & {v * (p - 1) for v in prev}
+        cur = odd_values(k)
+        ratios[k] = len(cur) / 2 ** (k - 1)
+        least = (f"{min(hit)} = {p - 1} * {min(hit) // (p - 1)}" if hit
+                 else "-")
+        print(f"  {k:>2} {p:>3} {len(cur):>7} {ratios[k]:>7.4f} "
+              f"{len(hit):>11}  {least}")
+        prev = cur
+    check("U2 no collision to k = 5, |U_6| = 26",
+          len(odd_values(5)) == 16 and len(odd_values(6)) == 26)
+    print(f"  U3 (directional): ratio at k = 20 is {ratios[20]:.4f}")
+    vals, lam, rows = {1}, 1, {}                 # U_1 and lambda(Z/2)
+    for k in range(2, 25):
+        p = PRIMES[k - 1]
+        hit = len(vals & {v * (p - 1) for v in vals})
+        new = any(lam % r for r in PRIMES[:k] if (p - 1) % r == 0)
+        rows[k] = (p, hit, new)
+        vals |= {v * (p - 1) for v in vals}
+        lam = lcm(lam, p - 1)
+    check("U5 a new prime in lambda means no collision, k = 2..24",
+          all(hit == 0 for p, hit, new in rows.values() if new))
+    quiet = [p for p, hit, new in rows.values() if hit == 0]
+    odd_ones = [k for k, (p, hit, new) in rows.items() if (hit == 0) != new]
+    print(f"  no collision at p = {quiet}; converse fails at k = "
+          f"{odd_ones}; |U_24| = {len(vals)}, ratio "
+          f"{len(vals) / 2 ** 23:.4f}")
+    check("U5 converse holds on k = 2..24 but at k = 3",
+          odd_ones == [3])
+
+
+def main():
+    for section in (section_t, section_c, section_f, section_b, section_d,
+                    section_h, section_e, section_u):
+        section()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

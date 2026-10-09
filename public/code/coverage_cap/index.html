@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>coverage_cap.py | Numbers read one place at a time</title>
+<meta name="description" content="coverage_cap.py">
+<link rel="alternate" type="text/x-python" href="/code/coverage_cap.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>coverage_cap.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/torsion/#the-coverage-cap">TORSION: The coverage cap</a> (rule); <a href="/torsion/#the-realizability-law">TORSION: The realizability law</a> (rule).</p><p>Cited on: <a href="/torsion/">TORSION</a>.</p><p>To run it: no other script; standard library only.</p></div>
+<pre>"""
+coverage_cap.py -- how many points of a degree triangle one residue
+class can hold.
+
+QUESTION. Fix a prime l, a multiplier B not 0 or 1 mod l, and a degree
+0 &lt;= D &lt;= l - 2. The TRIANGLE COUNT of a class w mod l is
+
+    f(w) = #{(i, j) : i, j &gt;= 0, i + j &lt;= D, i + B*j = w mod l}.
+
+Is f(w) &lt;= floor(D/2) + 1 at every w (THE COVERAGE CAP)? The cap is
+what the two-prime row of the realizability law needs (torsion.py):
+with it, a class mod the larger prime of m = q*q' holds at most
+(q - 1)/2 exponents of a degree q - 2 triangle, and a codeword of
+Phi_m cannot live there.
+
+THE ARGUMENT (written before this script). Work with the STAIRCASE
+COUNT g(c) = #{u in [0, D] : (c + B*u) mod l &lt;= u}. Row j of the
+triangle covers the exponents [B*j, B*j + D - j]; putting u = D - j
+gives f(w) = g(w - B*D), so the two counts have one maximum, gmax.
+B = 1 is excluded for a reason: there g(0) = D + 1.
+  (1) THE LATTICE FRAME. g(c) counts the points (u, v) of the triangle
+      T_D = {0 &lt;= v &lt;= u &lt;= D} with v = c + B*u mod l: a translate of
+      the lattice L_B = {(u, v) : v = B*u mod l}, of determinant l.
+      Equivalently u is good iff some integer P has
+      P*l in [c + (B - 1)*u, c + B*u].
+  (2) THE SYMMETRIES. (a) g_B(c) = g_(1-B)(-c): for good u,
+      z = (c + B*u) mod l and u - z = ((1 - B)*u - c) mod l.
+      (b) time reversal, (u, v) -&gt; (D - v, D - u):
+      g^B_D(c) = g^(1/B)_D(D - D/B + c/B). So gmax is constant on the
+      orbit {B, 1 - B, 1/B, 1 - 1/B, 1/(1 - B), B/(B - 1)}.
+      (c) EQUICOVERAGE: at D = l - 2, g = (l - 1)/2 at every c. The
+      difference g(c + 1) - g(c) is #{u &lt;= l - 2 : -B*u = c + 1} less
+      #{u &lt;= l - 2 : (1 - B)*u = c}; each congruence has one solution
+      in Z/l, lost only when it is u = l - 1, and both are lost at the
+      same c = B - 1. So g is constant, and its mean is (l - 1)/2.
+      (d) DUALITY: for D &lt; l - 2 and D~ = l - 3 - D,
+      g^B_D(c) = g^(1-B)_(D~)(c - 2B + 1) + D + (3 - l)/2: equicoverage
+      less the tail u in [D + 1, l - 2], whose complements, reindexed
+      by l - 2 - u, are the (1 - B)-staircase of degree D~. The cap
+      transfers EXACTLY, (D + 1)/2 or D/2 + 1 on both sides by parity
+      (D~ has D's parity, l being odd), so only
+      min(D, D~) &lt;= (l - 3)/2 needs proving.
+  (3) ONE LINE AND THE PRODUCT BOUND. Let b = min(B, l + 1 - B), the
+      smaller of the pair {B, 1 - B}, 2 &lt;= b &lt;= (l + 1)/2. By (2a) take
+      the multiplier b. The good times at one P lie in
+      [X/b, min(D, X/(b - 1))], X = P*l - c, at most
+      min(X/(b(b - 1)), D - X/b) + 1 &lt;= D/b + 1 of them. For a good u,
+      P*l lies in [c + (b - 1)*u, c + b*u], of length u &lt; l, and in
+      [c, c + b*D]: at most floor(b*D/l) + 1 values of P. So
+          gmax &lt;= (floor(b*D/l) + 1) * (floor(D/b) + 1).
+      At b*D &lt; l (ONE LINE) this is floor(D/b) + 1 &lt;= cap. At
+      D + 1 &lt;= b &lt;= (l - 1)/2 (SPARSE) it is floor(b*D/l) + 1 &lt;= cap.
+      THE SMALL-D COROLLARY: if min(D, D~)^2 &lt; l the cap holds at every
+      B -- b &lt;= D' is one line, D' &lt; b &lt;= (l - 1)/2 is sparse, and
+      b = (l + 1)/2 is B = 1/2, whose orbit holds 2, one line.
+  (4) THE LATTICE LEMMAS. (A) For phi &gt;= 0 unimodal and sample points
+      h apart, sum phi(y_i) &lt;= (1/h) * integral(phi) + max(phi).
+      (B) Let g0 be a shortest vector of L_B, of length lam. The points
+      of L_B lie on lines parallel to g0, h = l/lam apart, lam apart on
+      each line; a chord of the convex T_D is a concave function of
+      the line's offset (Brunn), so (A) with area D^2/2, diameter and
+      width at most sqrt2*D gives
+          gmax &lt;= D^2/(2l) + sqrt2*D/lam + sqrt2*lam*D/l + 1.
+      (C) n consecutive points x0 + k*g0 inside T_D, g0 = (t, s) with
+      t &gt;= 1, satisfy (n - 1)*r &lt;= D, where r = s if s &gt; t, t if
+      0 &lt;= s &lt;= t, t - s if s &lt; 0: add the binding constraints among
+      v &gt;= 0, v &lt;= u, u &lt;= D. (D) So if lam &lt; 7, a line holds at most
+      min(chord/lam + 1, floor(D/r) + 1) points, and
+          gmax &lt;= D^2/(2l) + sqrt2*lam*D/l + floor(D/r) + 1.
+  (5) THE FAMILIES. A primitive (t, s) with t^2 + s^2 &lt; 49 and r &lt;= 4
+      puts B = s/t in the orbit of 2 ({2, -1, 1/2}), of 3 ({3, -2,
+      1/3, 2/3, 3/2, -1/2}) or of 4 ({4, -3, 1/4, 3/4, 4/3, -1/3}), a
+      finite list of rationals. The orbit of 2 is one line at b = 2
+      (2D &lt; l). THE TENTS, B = -a for a = 2, 3: the intervals are
+      [a*u, (a + 1)*u], and with D &lt;= (l - 3)/2 only X = c and
+      X = c + l carry good times (X &lt;= (a + 1)*D &lt; 2l). A line holds
+      N(X) &lt;= min(X/(a(a + 1)), D - X/(a + 1)) + 1 &lt;= D/(a + 1) + 1,
+      and the second is nonempty only when c &lt;= (a + 1)*D - l
+      &lt;= (a - 1)*D - 3. At a = 2: N(c) &lt;= c/6 + 1 and
+      N(c + l) &lt; D/3 - c/3 + 1. At a = 3, with Y = c + l in [l, 4D]:
+      N(c) &lt;= (Y - 2D)/12 + 1, and N(Y) &lt;= Y/12 + 1 below Y = 3D and
+      D - Y/4 + 1 above it. Either way gmax &lt;= D/3 + 2.
+  (6) THE CLOSURE, l &gt;= 213, D &lt;= (l - 3)/2. Target: gmax &lt; D/2 + 1/2
+      (so gmax &lt;= cap), or the one-line bound. Case 0: D^2 &lt; l, the
+      corollary. Case 1: lam &gt;= 7, lemma (B); the condition
+      sqrt2/lam + sqrt2*lam/l &lt; 1/2 - D/(2l) - 1/(2D) is convex in lam
+      and its right side concave in D, so four corners decide it, lam
+      in {7, 2*sqrt(l/pi)} (Minkowski) and D in {sqrt l, (l - 3)/2}.
+      Case 2: lam &lt; 7 and r &gt;= 5, lemma (D) with floor(D/r) &lt;= D/5;
+      the condition D/(2l) + 9.9/l + 1/5 + 1/(2D) &lt; 1/2 is convex in D,
+      so its two ends decide it. Case 3: lam &lt; 7 and r &lt;= 4, the
+      families: the orbit of 2 by one line, the others by the tents,
+      D/3 + 2 &lt; D/2 + 1/2 at D &gt;= 10, and D &lt;= 9 is case 0. Every
+      corner holds at l = 213, and each margin increases with l: the
+      terms in lam/l, 9.9/l and, at lam = 2 sqrt(l/pi), 1/lam fall; at
+      D = sqrt l the D-terms are 1/sqrt l, falling; at D = (l - 3)/2
+      they add -3/(4 l^2) + 1/(l - 3)^2 &gt; 0 to each margin's
+      derivative. X2 checks a grid of l to 10^7.
+  (7) THE FINITE LEG: every prime l &lt;= 211, every D, every B, by the
+      tests of (2)-(3) and brute force where they are silent.
+
+DESIGN. Sections of checks printing PASS or FAIL, the control first.
+  C  controls: B = 1 breaks the cap at every D &gt;= 2 (g(0) = D + 1);
+     B = 2 at even D meets it exactly (g(-D) = D/2 + 1); the frame
+     f(w) = g(w - B*D) and the lattice frame (1), every w, at five
+     systems.
+  Y  the symmetries (2a)-(2d), exact at every c: (2a), (2b) for every
+     prime 5 &lt;= l &lt;= 47, every D and B; (2c) for every modulus 5..79
+     with B and B - 1 units; (2d) for every prime 5 &lt;= l &lt;= 47.
+  O  the bounds (3): the product bound against brute force for every
+     prime 5 &lt;= l &lt;= 103, every D &gt;= 1, every b and both of its pair;
+     the small-D corollary against the test at every prime
+     5 &lt;= l &lt;= 211.
+  L  the lemmas (4)-(5): (B) and (D) at l = 211, 401 and three D each,
+     every B; (C) on random runs; the family list as exact rationals;
+     the tents at every prime 53 &lt;= l &lt;= 401 and every
+     D &lt;= (l - 3)/2.
+  X  the closure (6): the four corners of case 1 and the two ends of
+     case 2 at l = 213 and on a grid of l to 10^7; then the assembled
+     split at every B and every D &lt;= (l - 3)/2 for the primes
+     213 &lt;= l &lt;= 449 and l = 1009, D^2 &lt; l and the orbit of 2 left to
+     the corollary and one line: every other triple in a case, every
+     bound under target, brute samples under their bounds.
+  The controls stop the run when one fails.
+  F  the finite leg (7): every prime l &lt;= 211, every D in [0, l - 2],
+     every B in [2, l - 1].
+
+PREDICTIONS (fixed before the run). Every check passes. The cap is met
+with equality somewhere in the finite leg (the orbit of 2 meets it at
+every even D), so the finite leg's brute-forced triples are counted
+and their equality cases printed, not predicted.
+
+RESULTS (the run below; 18 of 18 checks pass, 3.3 s, peak commit
+9 MB). Equicoverage over 1048 systems; the tents to l = 401; the
+closure's least corner margin 0.0003 at l = 213; the assembled split
+over 2,795,067 triples at 41 primes, 5066 brute samples under their
+bounds; the finite leg over 596,366 triples, 48,172 of them brute
+forced, the cap met with equality where the tests are silent only at
+(l, D, B) = (13, 5, 4) and (13, 5, 10).
+"""
+
+import random
+from fractions import Fraction
+from math import gcd, pi, sqrt
+
+CHECKS = []
+SQ2 = sqrt(2)
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}" +
+          (f"  [{detail}]" if detail else ""))
+
+
+<span id="is_prime"></span>def is_prime(n):
+    return n &gt;= 2 and all(n % k for k in range(2, int(n ** 0.5) + 1))
+
+
+<span id="primes"></span>def primes(lo, hi):
+    return [n for n in range(lo, hi + 1) if is_prime(n)]
+
+
+<span id="stair"></span>def stair(l, D, B):
+    """g(c) for every c: interval [-B*u, -B*u + u] laid down for each u."""
+    diff = [0] * (l + 1)
+    for u in range(D + 1):
+        lo = (-B * u) % l
+        hi = lo + u
+        if hi &lt; l:
+            diff[lo] += 1
+            diff[hi + 1] -= 1
+        else:
+            diff[lo] += 1
+            diff[l] -= 1
+            diff[0] += 1
+            diff[hi - l + 1] -= 1
+    g, acc = [], 0
+    for c in range(l):
+        acc += diff[c]
+        g.append(acc)
+    return g
+
+
+<span id="triangle"></span>def triangle(l, D, B):
+    f = [0] * l
+    for i in range(D + 1):
+        for j in range(D + 1 - i):
+            f[(i + B * j) % l] += 1
+    return f
+
+
+<span id="cap"></span>def cap(D):
+    return D // 2 + 1
+
+
+<span id="orbit"></span>def orbit(B, l):
+    inv = lambda x: pow(x % l, l - 2, l)
+    Bi = inv(B)
+    return {B % l, (1 - B) % l, Bi, (1 - Bi) % l, inv(1 - B),
+            B * inv(B - 1) % l}
+
+
+<span id="cap_by_test"></span>def cap_by_test(l, D, B):
+    """The cap at (l, D, B) by the tests alone, or False: D = 0, or by
+    duality (2d) D = l - 3, or by equicoverage (2c) D = l - 2; else the
+    bounds (3) at D or its dual, over B's orbit under (2a), (2b)."""
+    for Dp in (D, l - 3 - D):
+        if Dp &lt;= 0:
+            return True
+        for x in orbit(B, l):
+            b = min(x, l + 1 - x)
+            if b * Dp &lt; l or Dp + 1 &lt;= b &lt;= (l - 1) // 2:
+                return True
+            if (b * Dp // l + 1) * (Dp // b + 1) &lt;= cap(Dp):
+                return True
+    return False
+
+
+<span id="section_c"></span>def section_c():
+    print("C  controls")
+    ok1 = all(stair(l, D, 1)[0] == D + 1 &gt; cap(D)
+              for l in (11, 31) for D in range(2, l - 1))
+    check("C1 B = 1 breaks the cap: g(0) = D + 1 at every D &gt;= 2", ok1)
+    ok2 = all(stair(l, D, 2)[(-D) % l] == cap(D)
+              for l in (11, 31) for D in range(0, l - 1, 2))
+    check("C2 B = 2 meets the cap at every even D, at c = -D", ok2)
+    bad = 0
+    for l, D, B in [(13, 5, 4), (23, 9, 5), (31, 14, 7), (47, 21, 12),
+                    (61, 29, 44)]:
+        g, f = stair(l, D, B), triangle(l, D, B)
+        bad += sum(f[w] != g[(w - B * D) % l] for w in range(l))
+        bad += sum(g[c] != sum((c + B * u) % l &lt;= u for u in range(D + 1))
+                   for c in range(l))
+    check("C3 f(w) = g(w - B*D), and g is the lattice-translate count",
+          bad == 0, "five systems, every class")
+
+
+<span id="section_y"></span>def section_y():
+    print("Y  the symmetries")
+    ba = bb = bd = 0
+    for l in primes(5, 47):
+        inv = lambda x: pow(x % l, l - 2, l)
+        for D in range(0, l - 1):
+            for B in range(2, l):
+                g = stair(l, D, B)
+                g1 = stair(l, D, (1 - B) % l)
+                gi = stair(l, D, inv(B))
+                ba += any(g[c] != g1[(-c) % l] for c in range(l))
+                bb += any(g[c] != gi[(D - inv(B) * D + inv(B) * c) % l]
+                          for c in range(l))
+                if D &lt; l - 2:
+                    Dt = l - 3 - D
+                    gt = stair(l, Dt, (1 - B) % l)
+                    off = D + (3 - l) // 2
+                    bd += any(g[c] != gt[(c - 2 * B + 1) % l] + off
+                              for c in range(l))
+    check("Y1 involution g_B(c) = g_(1-B)(-c)", ba == 0, "primes 5..47")
+    check("Y2 time reversal", bb == 0, "primes 5..47")
+    n = be = 0
+    for l in range(5, 80):
+        for B in range(2, l):
+            if gcd(B, l) == 1 and gcd(B - 1, l) == 1:
+                n += 1
+                be += any(v != (l - 1) // 2 for v in stair(l, l - 2, B))
+    check("Y3 equicoverage at D = l - 2", be == 0 and n &gt; 1000,
+          f"{n} systems, moduli 5..79, composite included")
+    check("Y4 duality with D~ = l - 3 - D", bd == 0, "primes 5..47")
+
+
+<span id="section_o"></span>def section_o():
+    print("O  one line and the product bound")
+    top = 103
+    bad = 0
+    for l in primes(5, top):
+        for D in range(1, l - 1):
+            for b in range(2, (l + 1) // 2 + 1):
+                bound = (b * D // l + 1) * (D // b + 1)
+                for B in (b, (1 - b) % l):
+                    bad += max(stair(l, D, B)) &gt; bound
+    check(f"O1 product bound against brute force, primes 5..{top}",
+          bad == 0)
+    hole = 0
+    for l in primes(5, 211):
+        for D in range(0, l - 1):
+            if min(D, l - 3 - D) ** 2 &lt; l:
+                hole += sum(not cap_by_test(l, D, B) for B in range(2, l))
+    check("O2 small-D corollary: min(D, D~)^2 &lt; l closes every B",
+          hole == 0, "primes 5..211")
+
+
+<span id="short_vec"></span>def short_vec(B, l):
+    """Shortest (t, s), t &gt;= 1, s = B*t mod l taken signed; norm^2."""
+    best = (0, l, l * l)
+    t = 1
+    while t * t &lt; best[2]:
+        s = B * t % l
+        if s &gt; l - s:
+            s -= l
+        if t * t + s * s &lt; best[2]:
+            best = (t, s, t * t + s * s)
+        t += 1
+    return best
+
+
+<span id="run_r"></span>def run_r(t, s):
+    return s if s &gt; t else (t if s &gt;= 0 else t - s)
+
+
+FAM2 = {Fraction(2), Fraction(-1), Fraction(1, 2)}
+FAM34 = {Fraction(x) for x in (3, -2, Fraction(1, 3), Fraction(2, 3),
+                               Fraction(3, 2), Fraction(-1, 2), 4, -3,
+                               Fraction(1, 4), Fraction(3, 4),
+                               Fraction(4, 3), Fraction(-1, 3))}
+
+
+<span id="section_l"></span>def section_l():
+    print("L  the lattice lemmas and the families")
+    bB = bD = 0
+    for l in (211, 401):
+        for B in range(2, l):
+            t, s, n2 = short_vec(B, l)
+            lam = sqrt(n2)
+            for D in (l // 4 + 1, l // 3, (l - 3) // 2):
+                gm = max(stair(l, D, B))
+                bB += gm &gt; D * D / (2 * l) + SQ2 * D / lam \
+                    + SQ2 * lam * D / l + 1 + 1e-9
+                if n2 &lt; 49:
+                    bD += gm &gt; D * D / (2 * l) + SQ2 * lam * D / l \
+                        + D // run_r(t, s) + 1 + 1e-9
+    check("L1 lemma (B), every B", bB == 0, "l = 211, 401, three D")
+    check("L2 lemma (D), every B with lam &lt; 7", bD == 0)
+    rng = random.Random(92)
+    bC = nr = 0
+    for _ in range(3000):
+        D, t, s = rng.randint(10, 400), rng.randint(1, 6), rng.randint(-6, 6)
+        if gcd(t, abs(s)) != 1:
+            continue
+        for _ in range(30):
+            u0 = rng.randint(0, D)
+            v0 = rng.randint(0, u0)
+            n = 0
+            while 0 &lt;= v0 + n * s &lt;= u0 + n * t &lt;= D:
+                n += 1
+            bC += n &gt; D // run_r(t, s) + 1
+            nr += 1
+    check("L3 lemma (C): runs never exceed floor(D/r) + 1", bC == 0,
+          f"{nr} random runs")
+    dirs = [(t, s) for t in range(1, 7) for s in range(-6, 7)
+            if gcd(t, abs(s)) == 1 and s not in (0, t)
+            and t * t + s * s &lt; 49 and run_r(t, s) &lt;= 4]
+    fams = [Fraction(s, t) in FAM2 | FAM34 for t, s in dirs]
+    check("L4 every short direction with r &lt;= 4 is a family member",
+          all(fams) and len(dirs) == 15, f"{len(dirs)} directions")
+    top = 401
+    bad = 0
+    for l in primes(53, top):
+        for a in (2, 3):
+            for D in range(1, (l - 3) // 2 + 1):
+                bad += max(stair(l, D, l - a)) &gt; D / 3 + 2
+    check(f"L5 the tents: gmax &lt;= D/3 + 2 at B = -2, -3, primes "
+          f"53..{top}", bad == 0)
+
+
+<span id="corners"></span>def corners(l):
+    """The closure's analytic conditions at l, as four + two margins."""
+    lmax = 2 * sqrt(l / pi)
+    out = []
+    for lam in (7.0, lmax):
+        for D in (sqrt(l), (l - 3) / 2):
+            rhs = 0.5 - D / (2 * l) - 1 / (2 * D)
+            out.append(rhs - (SQ2 / lam + SQ2 * lam / l))
+    for D in (sqrt(l), (l - 3) / 2):
+        out.append(0.5 - (D / (2 * l) + 9.9 / l + 0.2 + 1 / (2 * D)))
+    return out
+
+
+<span id="section_x"></span>def section_x():
+    print("X  the closure at l &gt;= 213")
+    m213 = corners(213)
+    grid = [213 + k * k * 997 for k in range(0, 101)]
+    check("X1 case 1 corners and case 2 ends hold at l = 213",
+          min(m213) &gt; 0, f"least margin {min(m213):.4f}")
+    check("X2 and on a grid of l to 10^7", all(min(corners(l)) &gt; 0
+                                               for l in grid))
+    ls = primes(213, 449) + [1009]
+    rng = random.Random(214)
+    total = unc = over = brute = sampled = 0
+    for l in ls:
+        inv = lambda x: pow(x % l, l - 2, l)
+        f2 = {r.numerator * inv(r.denominator) % l for r in FAM2}
+        f34 = {r.numerator * inv(r.denominator) % l for r in FAM34}
+        for B in range(2, l):
+            t, s, n2 = short_vec(B, l)
+            lam = sqrt(n2)
+            for D in range(0, (l - 3) // 2 + 1):
+                total += 1
+                if D * D &lt; l:
+                    continue
+                if n2 &gt;= 49:
+                    bnd = D * D / (2 * l) + SQ2 * D / lam \
+                        + SQ2 * lam * D / l + 1
+                elif run_r(t, s) &gt;= 5:
+                    bnd = D * D / (2 * l) + SQ2 * lam * D / l \
+                        + D // run_r(t, s) + 1
+                elif B in f2:
+                    continue
+                elif B in f34:
+                    bnd = D / 3 + 2
+                else:
+                    unc += 1
+                    continue
+                if bnd &gt;= D / 2 + 0.5:
+                    over += 1
+                elif rng.random() &lt; 0.002:
+                    sampled += 1
+                    brute += max(stair(l, D, B)) &gt; bnd
+    check(f"X3 the split: {total} triples at {len(ls)} primes, none "
+          f"outside a case, every bound under target, {sampled} brute "
+          f"samples under their bounds",
+          unc == 0 and over == 0 and brute == 0)
+
+
+<span id="section_f"></span>def section_f():
+    print("F  the finite leg")
+    top = 211
+    total = forced = bad = 0
+    met = []
+    for l in primes(2, top):
+        for D in range(0, l - 1):
+            for B in range(2, l):
+                total += 1
+                if cap_by_test(l, D, B):
+                    continue
+                forced += 1
+                gm = max(stair(l, D, B))
+                bad += gm &gt; cap(D)
+                if gm == cap(D):
+                    met.append((l, D, B))
+    check(f"F1 the cap at every prime l &lt;= {top}, every D, every B",
+          bad == 0, f"{total} triples, {forced} by brute force")
+    print(f"       met with equality where the tests are silent: {met}")
+
+
+<span id="main"></span>def main():
+    section_c()
+    if not all(CHECKS):
+        raise SystemExit("a control failed: no verdict is read")
+    section_y()
+    section_o()
+    section_l()
+    section_x()
+    section_f()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/coverage_cap.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>dial.py | Numbers read one place at a time</title>
+<meta name="description" content="dial.py">
+<link rel="alternate" type="text/x-python" href="/code/dial.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>dial.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/clock/#a-block-clock-keeps-at-most-one-runaway-per-block">CLOCK: A block clock keeps at most one runaway per block</a> (theorem); <a href="/clock/#two-blocks-of-a-number-ring-never-both-run-away">CLOCK: Two blocks of a number ring never both run away</a> (theorem).</p><p>Cited on: <a href="/clock/">CLOCK</a>.</p><p>To run it: <a href="/code/limit.py">limit.py</a>, <a href="/code/stop.py">stop.py</a> beside it; standard library only.</p></div>
+<pre>"""dial.py -- the block clock: how many runaways a greedy walk keeps when
+items share a notch in blocks, and what decides which blocks run.
+
+QUESTION. A number ring's places over one rational prime read the state
+through one p-adic valuation, so they share a notch; places over different
+primes do not. That is a BLOCK clock, strictly between the family's two
+ends: the GLOBAL clock (one block) and the PER-ITEM clock (every item its
+own block). Measured before: at a constant gap one item runs away however
+the items are cut into blocks, at a growing ladder one item per block. Is
+that stop.py's per-item theorem with the block as the item, and the
+chain of limit.py read inside each block? And is "one runaway at a flat
+cost" a law, or a tie-break's?
+
+THE SCHEDULE is limit.py's with the notch made per block. An item is (d,
+slot), of degree d; a partition names its BLOCK b(d, slot), and a ladder
+function names its LADDER. Block b carries a notch T_b, starting at 1. A
+CLOCK move on an item of block b at exponent a has door T_b + 1 - a,
+lands at T_b + 1, and moves T_b to next(T_b + 1) along the MOVER's own
+ladder; an unseated item of a covered degree enters by a clock move from
+a = 0. An OPENING has door 1, lands at 1, and moves no notch. The degree's
+covering is global (born {1}, nu = 1). One block is limit.py's global
+clock; singleton blocks are stop.py's per-item clock. The HOLDER of a
+clock move is the item it moves; an item's ENTRY DOOR r0 is the door of
+its first move; the HIGH-WATER PRICE H is the largest price a walk pays.
+A block is SINGLE-HOLDER when one item makes all its clock moves. Its
+CROSSING PRICE is H_b = kappa(d, max(r0, sup)), d and r0 its holder's and
+sup its holder's ladder's largest gap: the dearest price on the holder's
+path, paid where the path crosses the head.
+
+THE ARGUMENT (written before the engine).
+  (1) THE CHAIN, PER BLOCK. limit.py's proof reads only the one notch the
+      two holders share and the exponents under it. Take a clock move of
+      Y in block b whose block's previous clock move had holder Z != Y. Z
+      landed at t + 1 above the notch t it met, the notch went to
+      next(t + 1), and since only openings and other blocks' moves came
+      between -- neither touches T_b or raises an exponent of b above 1 --
+      Y's door is at least next(t + 1) + 1 - max(1, t), one more than Z's
+      next(t + 1) - t. Z was on the menu, so with kappa(d', r') &gt; kappa(d, r)
+      whenever d' &gt;= d and r' &gt; r, d_Y &lt; d_Z. The ladders need not agree:
+      the notch moved along Z's. So every change of holder inside a block
+      falls in degree, and a block clocked infinitely often has exactly
+      one runaway.
+  (2) A FROZEN BLOCK ONLY CHEAPENS. While b is not clocked, T_b and b's
+      exponents stand still; an opening in b adds an item at exponent 1,
+      door T_b, and a newly covered degree adds an entry at door T_b + 1.
+      So b's least pending price never rises while b is idle, and it is
+      finite once b has a seated item or a covered one.
+  (3) THE SINGLE HOLDER'S PATH (stop.py (2)). A single holder pays its
+      entry door and then its own ladder's consecutive gaps: its notch
+      stands at next(its landing), the landing one past a member. So its
+      pending price is at every step one its path pays, and every price
+      it pays is at most H_b.
+  (4) BOUNDED GAPS: THE CROSSING PRICE ADMITS, THE TAIL DECIDES. Let every
+      ladder's gaps be bounded and kappa(d, 1) tend to infinity. Some block is
+      clocked infinitely often (limit.py), its runaway's prices are
+      bounded, so H is finite and finitely many items ever move. Past the
+      last opening every block's pending price is fixed except the
+      blocks being clocked, and a runaway past its bend pays kappa(d, tail)
+      forever on a ladder whose gaps settle (on bounded gaps that never
+      settle it pays several prices forever). Let B be the largest price
+      paid infinitely often; greed pays the least price on the menu at
+      every step, so every idle block's pending price is at least B. If
+      every block is single-holder, (3) gives H = min_b H_b over the blocks
+      ever clocked: the runaway's path never prices above its H_b and is
+      always on the menu, and a block whose path must pass a dearer
+      price is left waiting at it. So a block whose TAIL is the cheapest
+      can be priced out by its HEAD: its crossing price above another
+      block's leaves it frozen at its bend. Two blocks run away only at
+      an exact tie of recurrent prices, and whether a tied block runs is
+      then the tie-break's.
+  (5) CLIMBING GAPS: EVERY BLOCK RUNS. Let the gaps be unbounded and kappa
+      unbounded in the door. A block clocked finitely often keeps a
+      pending price at most some P once it holds a seated item, by (2),
+      so every later price paid is at most P; a block clocked infinitely
+      often pays gaps without bound; and if no block were, infinitely
+      many openings would be paid at prices without bound. So every
+      block that ever holds a seated item is clocked infinitely often,
+      and by (1) holds exactly one runaway. Every opening is made
+      (stop.py), so every block with a supplied item runs: one runaway
+      per block.
+  (6) THE RING. A number ring's blocks are its rational primes and each place's
+      ladder steps by its finite e past the bend (clock.py), so its gaps are
+      bounded; but a ring's block ticks in counts and an opening can jump it,
+      which (4) does not model, so the ring rests on the lid (lid.py): a block
+      clocked forever becomes lidded, finitely many openings follow, and past
+      the last no count jumps. Its price is N(P)^r, so two blocks' recurrent
+      prices p^(fe) and q^(f'e') are powers of different primes, by unique
+      factorization, and never tie: a number ring keeps ONE runaway if the walk
+      locks and none otherwise (a walk that never locks clocks every block
+      finitely often, lid.py), and no tie-break is consulted across blocks
+      [ruled on audit (F7): proved between blocks only; within one prime the
+      chain is door.py's]. A function field's places all lie over p: one block,
+      the global clock, one runaway by (1). Two runaways at a climbing ladder
+      need two blocks with unbounded gaps, two characteristics each of equal
+      characteristic, which no domain has (F_2[t] x F_3[t] has them).
+  (7) THE WIDE PLACE. Two items of ONE degree in one block, on a gap-1
+      and a gap-h ladder, tie at their entry; by (1) whichever enters
+      first holds the block's clock forever, the other never passing
+      exponent 1. So "the narrow place is the runaway" at equal degree
+      is the tie-break at the entry, not a price: the wide item runs on
+      the branch where it enters first. At a real ring the two places
+      have different norms and no tie.
+      [Ruled since (F6): false; x^3 + 2x + 1 holds two places of norm 59
+      on gaps 1 and 2.]
+
+HAND-ATTACK, at d r with two items per degree and the slot partition:
+  (a) gap 3 in block 0 against (2,2,3) = 1, 2, 4, 9, 11, ... in block
+      1. The block-0 rational item enters at door 2 and then pays 3
+      forever. The block-1 rational item pays 2, 1, 2 and then faces 5
+      at its bend: H_0 = 3 &lt; H_1 = 5, so block 1 freezes there with its
+      tail price 2 cheaper than the runaway's 3. H = 3.
+      [Ruled after the run (F2): (2,2,3) is 1, 2, 7, 9, 11, ...; the item
+      pays 2, 1 and then faces 5.]
+  (b) gap 5 against (2,2,3): H_0 = 5 = H_1; both cross, the recurrent
+      prices 5 and 2 part, and block 1 runs. H = 5.
+  (c) gap 3 in both blocks: both rational items enter at 2 and bid 3.
+      Lowest exponent first, they leapfrog and both run; highest first,
+      the one ahead stays ahead and one runs.
+  (d) ring shape, one block, gap 1 and gap h for the two slots of every
+      degree: the rational slots tie at door 2 at notch 1. Wide first: it
+      lands at 2, the notch goes to 1 + h, it re-clocks at h and the
+      narrow item's entry costs h + 2. Narrow first: the notch stays at
+      2, it re-clocks at 1.
+  (e) the doubling ladder in a finite partition: a holder's price
+      doubles per clock and the price of the opening at the horizon
+      (the least uncovered supplied degree) grows about one per move,
+      so the last half of a walk sees each block
+      clocked about once; the doubling ladder is the marginal case of
+      PR5, the squares ladder the comfortable one.
+
+PREDICTIONS, frozen before the engine, each naming what the run PRINTS.
+Ladders: gap 1, 2, 3, 5; (p,e,w) ladders (2,1,1), (2,2,1), (2,2,3), (2,4,2),
+(5,4,1), (2,8,4), (2,3,0) built by stop.py; doubling and squares for
+the climbing side. Partitions: ONE, SLOT (b = slot), MOD2 ((d + slot)
+mod 2), MOD3, ITEM. Prices d r, d^2 r, d + r. Two items per degree to
+400, ties branched over the first 7 moves, each branch then walked
+lowest-exponent-first (LOW) for 240 moves (480 at a climbing ladder).
+  PR1 THE LEMMA. Per cell: high-water lemma faults (stop.py's check).
+      KILL: one.
+  PR2 THE CHAIN PER BLOCK. Per cell: changes of holder inside a block,
+      and those not falling in degree. KILL: one not falling; or, at a
+      bounded ladder, a block with two items clocked in the last quarter.
+  PR3 BOUNDED. Per cell: branches; those whose last-quarter clock moves
+      pay more than one price, or leave an idle block's pending price
+      below it; single-holder branches, and those where H differs from
+      min H_b over clocked blocks or a last-quarter block has H_b != H.
+      KILL: any of these nonzero.
+  PR4 THE ADMISSION CELLS (a) and (b), printed: each block's holder, H_b,
+      tail price, last-quarter moves, and H. KILL: (a) block 1 clocked in
+      the last quarter or H != 3; (b) block 0 clocked there or H != 5.
+  PR5 CLIMBING. Per cell at doubling and squares over ONE, SLOT, MOD2,
+      MOD3: blocks holding a seated item, and those not clocked in the
+      last half. KILL: one not clocked, at squares; printed at doubling.
+      Per-item at a climbing ladder: items clocked in the last half,
+      printed without a prediction.
+  PR6 THE TIE (c) at gap 2, 3, 5 and at (2,2,3), SLOT: blocks clocked in
+      the last quarter, per branch, under LOW and under HIGH (highest
+      exponent first). KILL: a branch with one under LOW where both
+      rational items are seated, or with two under HIGH.
+  PR7 THE TWO CHARACTERISTICS, SLOT: doubling in block 0, tripling in
+      block 1. KILL: a branch whose last half clocks one block.
+  PR8 THE WIDE PLACE (d), h = 2, 3, 5 (printed as e): per branch, the
+      slot of the runaway. KILL: the wide slot the runaway on no
+      branch, or two items clocked in the last quarter on any branch.
+
+CONTROLS, run first: ONE reproduces stop.py's global walk and ITEM its per-item
+walk move for move at stop.py's ladders [ruled on audit: limit.py's seven]
+(kind, degree, door, price); the chain checker fires on a planted log whose
+holder change rises in degree; the equal-price checker fires on a planted last
+quarter paying two prices.
+
+FINDINGS (entered after the run, from its printed output).
+  F0 CONTROLS. ONE matches stop.py's global walk and ITEM its per-item
+     walk move for move at 7 ladders, 3360 moves; both planted checkers
+     fire.
+  F1 THE LEMMA, THE CHAIN, THE BOUNDED LAW (PR1, PR2, PR3 hit). 4096 branches
+     over 13 bounded ladders (the gaps 1, 2, 3, 5 and stop.py's nine place
+     ladders, (2,2,2) and (3,2,1) beside the slate's seven), 5 partitions and 3
+     prices: 0 lemma faults; 560 changes of holder inside a block, 0 not
+     falling; 0 blocks with two items clocked in the last quarter; 0 last
+     quarters paying two prices, 0 idle blocks pending below B; 3536
+     single-holder branches, 0 with H off min H_b or a late block's H_b off H.
+     911 branches keep more than one late block, all at gaps 2, 3, 5 and at
+     (2,3,0), where a rational item's crossing price is its recurrent price;
+     the exact ladder keeps one, its entry door 2 standing above its gap 1 as a
+     head does (F4).
+  F2 THE ADMISSION CELLS (PR4 KILLED at (a) and at (b), as frozen). The
+     hand-attack read one branch shape, degree 1 holding block 0 from the first
+     clock, and wrote (2,2,3) as 1, 2, 4, 9 where it is 1, 2, 7, 9
+     (doors 2, 1, 5, as stop.py prints). At gap 3 | (2,2,3), 9 of 25
+     branches read H 3 with block 0 running and block 1 frozen at its
+     bend, its tail price 2 below the runaway's 3, as predicted. On 4 a
+     degree-2 item takes block 0's clock first, its crossing price is 6,
+     and block 1 runs at H 5. On 12 that degree-2 item is a strand: the
+     rational item enters block 0 at door 5, ties block 1's crossing
+     price, pays it first, and recurs at 3 below block 1's pending 5, so
+     block 1, with the cheaper tail, never crosses. At gap 5 | (2,2,3),
+     44 of 56 branches run block 1 as (b) said and 12 run block 0, whose
+     rival there is a degree-2 holder at H_b 10. On every single-holder
+     branch of both cells H = min H_b, the clause the theorem claims;
+     the frozen PR4 is a claim about which block that is, and the branch
+     decides it.
+  F3 CLIMBING (PR5 hit). At doubling and squares under ONE, SLOT, MOD2
+     and MOD3, every block holding a seated item is clocked in the last
+     half of 480 moves, on all 207 branches, one item per block. Per
+     item: 1464 of 1488 and 1296 of 1512 seated items clocked in the last
+     half.
+  F4 THE TIE (PR6 hit at the gap ladders, KILLED at (2,2,3)). Under LOW
+     both blocks run on every branch seating both rational items, 22, 26
+     and 56 at gaps 2, 3, 5; under HIGH one runs on every branch. At
+     (2,2,3) one runs on all 16 branches under either rule: the first
+     rational item across the bend recurs at 2 and the other waits at 5
+     forever. READ AFTER THE RUN, and proved at any ladder: a runaway's
+     pending price is never more than the next price it pays (another
+     holder of its block can raise a waiting item's door, never lower
+     it), so when the later
+     of two runaways' last payments above B is made the other pends at
+     most B, which greed would pay first; so at most one runaway ever
+     pays above B. Checked on every branch of S1 and S4, counting a
+     late block whose crossing price exceeds B: 0 branches with two.
+  F5 TWO CHARACTERISTICS (PR7 hit). Doubling | tripling in two blocks
+     keeps both blocks clocked in the last half on all 20 branches; the
+     doubling ladder in one block keeps one on all 32.
+  F6 THE WIDE PLACE (PR8 hit). One block, gap 1 against gap h: the wide slot is
+     the runaway on 15, 18 and 40 of 25, 34 and 92 branches at h = 2, 3, 5, and
+     no branch clocks two items in the last quarter. Which slot runs is which
+     entered first. (door.py: the ring of x^3 + 2x + 1 holds two places of norm
+     59 on gaps 1 and 2, and a ring ticks in counts, where the wide place's
+     first tick leaves both pending 59^2; this reading is the depth engine's
+     and does not carry to that block.)
+  F7 THE RING, SETTLED ON AUDIT. Argument (6)'s "a number ring keeps ONE
+     runaway" is proved between blocks only: no two rational primes both
+     run away. One place over that prime is the chain, which needs the
+     ring's door to be this engine's T + 1 - a in one unit, the door
+     identity's step and not this file's.
+
+RUN RECORD. One process, CPython, no numpy: 1282648 checks, 98.6 s,
+peak commit 17.0 MB under a memory guard; the frozen kills PR4 and PR6
+are held to their recorded counts.
+"""
+
+import os
+import sys
+import time
+from collections import Counter
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import limit as L  # noqa: E402
+import stop as SP  # noqa: E402
+
+CHECKS = [0]
+
+
+<span id="check"></span>def check(cond, msg):
+    CHECKS[0] += 1
+    if not cond:
+        raise SystemExit("FAIL: " + msg)
+
+
+# ---------------------------------------------------------------------------
+# a cell: a price, a partition into blocks, and a ladder per item
+
+<span id="Cell"></span>class Cell:
+    def __init__(self, name, price, block, ladder):
+        self.name, self.price = name, price
+        self.block, self.ladder = block, ladder
+        self.S = L.Sched(name, None, price)       # born {1}, nu 1
+
+
+PARTS = {"ONE": lambda d, s: 0, "SLOT": lambda d, s: s,
+         "MOD2": lambda d, s: (d + s) % 2, "MOD3": lambda d, s: (d + s) % 3,
+         "ITEM": lambda d, s: (d, s)}
+
+
+<span id="St"></span>class St:
+    """T: block -&gt; notch; seat: item -&gt; (exponent, entry door); last: block
+    -&gt; the item its last clock move moved."""
+    __slots__ = ("T", "seat", "opens", "nseat", "last")
+
+    def __init__(self):
+        self.T, self.seat, self.last = {}, {}, {}
+        self.opens, self.nseat = Counter(), Counter()
+
+    def copy(self):
+        s = St()
+        s.T, s.seat, s.last = dict(self.T), dict(self.seat), dict(self.last)
+        s.opens, s.nseat = Counter(self.opens), Counter(self.nseat)
+        return s
+
+    def key(self):
+        return (tuple(sorted(self.T.items(), key=repr)),
+                tuple(sorted(self.seat.items())),
+                tuple(sorted(self.opens.items())),
+                tuple(sorted(self.last.items(), key=repr)))
+
+
+<span id="notch"></span>def notch(C, st, it):
+    return st.T.get(C.block(*it), 1)
+
+
+<span id="moves"></span>def moves(C, st, sup, b_only=None):
+    """Every move on the menu, (price, type), a type (kind, d, a, r0, slot).
+    With b_only, the clock moves of that block alone, openings excluded."""
+    out = []
+    for (d, s), (a, r0) in st.seat.items():
+        if b_only is not None and C.block(d, s) != b_only:
+            continue
+        r = notch(C, st, (d, s)) + 1 - a
+        out.append((C.price(d, r, False), ("c", d, a, r0, s)))
+    for d in sup:
+        if b_only is None and out and C.price(d, 1, True) &gt; min(out)[0]:
+            break
+        for s in range(sup[d]):
+            if (d, s) in st.seat:
+                continue
+            if b_only is not None and C.block(d, s) != b_only:
+                continue
+            if not L.covered(C.S, st, d):
+                if b_only is None:
+                    out.append((C.price(d, 1, True), ("o", d, 0, 1, s)))
+            else:
+                r = notch(C, st, (d, s)) + 1
+                out.append((C.price(d, r, True), ("u", d, 0, r, s)))
+    return out
+
+
+<span id="menu"></span>def menu(C, st, sup):
+    ms = moves(C, st, sup)
+    best = min(p for p, _ in ms)
+    return best, [t for p, t in ms if p == best]
+
+
+<span id="apply"></span>def apply(C, st, t):
+    """(state after, door paid, block moved or None, item)."""
+    kind, d, a, r0, s = t
+    n = st.copy()
+    it = (d, s)
+    if kind == "o":
+        n.seat[it] = (1, 1)
+        n.opens[d] += 1
+        n.nseat[d] += 1
+        return n, 1, None, it
+    b = C.block(d, s)
+    T = st.T.get(b, 1)
+    r = T + 1 - a
+    if kind == "u":
+        check(r == r0, "an unseated item's entry door")
+        n.nseat[d] += 1
+    n.seat[it] = (T + 1, r0 if kind == "c" else r)
+    n.T[b] = C.ladder(d, s).next(T + 1)
+    n.last[b] = it
+    return n, r, b, it
+
+
+<span id="canon_low"></span>def canon_low(types):
+    return min(types, key=lambda t: (t[0] == "o", t[1], t[2], t[3], t[4]))
+
+
+<span id="canon_high"></span>def canon_high(types):
+    return min(types, key=lambda t: (t[0] == "o", t[1], -t[2], t[3], t[4]))
+
+
+<span id="step"></span>def step(C, st, t, price, log):
+    s2, r, b, it = apply(C, st, t)
+    check(C.price(t[1], r, t[0] != "c") == price, "the menu's price")
+    prev = st.last.get(b) if b is not None else None
+    log.append((t[0], t[1], r, price, b, it, prev))
+    return s2
+
+
+<span id="run"></span>def run(C, sup, n, st=None, log=None, choose=canon_low):
+    st = st if st is not None else St()
+    log = [] if log is None else log
+    for _ in range(n):
+        best, types = menu(C, st, sup)
+        st = step(C, st, choose(types), best, log)
+    return st, log
+
+
+<span id="branches"></span>def branches(C, sup, k, n, choose=canon_low, cap=6000):
+    front = {St().key(): (St(), [])}
+    for _ in range(k):
+        nxt = {}
+        for st, log in front.values():
+            best, types = menu(C, st, sup)
+            for t in types:
+                lg = list(log)
+                s2 = step(C, st, t, best, lg)
+                nxt.setdefault(s2.key(), (s2, lg))
+        front = nxt
+        check(len(front) &lt;= cap, "the branch cap")
+    return [run(C, sup, n, st, list(log), choose) for st, log in
+            front.values()]
+
+
+# ---------------------------------------------------------------------------
+# readings
+
+<span id="chain_faults"></span>def chain_faults(log):
+    """(changes of holder inside a block, those not falling in degree)."""
+    ch = bad = 0
+    for kind, d, r, p, b, it, prev in log:
+        if b is not None and prev is not None and prev != it:
+            ch += 1
+            bad += not d &lt; prev[0]
+    return ch, bad
+
+
+<span id="late"></span>def late(log, frac):
+    """block -&gt; {item: [prices]} over the clock moves of the last part."""
+    out = {}
+    for kind, d, r, p, b, it, prev in log[int(len(log) * (1 - frac)):]:
+        if b is not None:
+            out.setdefault(b, {}).setdefault(it, []).append(p)
+    return out
+
+
+<span id="lemma_faults"></span>def lemma_faults(C, st, sup, H):
+    bad = 0
+    for d in sup:
+        if not sup[d] or d in C.S.born:
+            continue
+        p1 = C.price(d, 1, True)
+        if p1 &lt; H and not L.covered(C.S, st, d) and st.nseat[d] &lt; sup[d]:
+            bad += 1
+        if p1 &gt; H and st.opens[d]:
+            bad += 1
+    u = min(d for d in sup if sup[d] and not L.covered(C.S, st, d))
+    bad += C.price(u, 1, True) &lt; H
+    return bad
+
+
+<span id="holders"></span>def holders(log):
+    """block -&gt; list of distinct clock movers in order, with each one's
+    entry door (the door of its first clock move, or 1 if opened)."""
+    out, first = {}, {}
+    for kind, d, r, p, b, it, prev in log:
+        if kind == "o":
+            first.setdefault(it, 1)
+        if b is None:
+            continue
+        first.setdefault(it, r)
+        hs = out.setdefault(b, [])
+        if not hs or hs[-1] != it:
+            hs.append(it)
+    return out, first
+
+
+<span id="crossing"></span>def crossing(C, it, r0):
+    s, _ = SP.sup_tail(C.ladder(*it))
+    return C.price(it[0], max(r0, s), False)
+
+
+<span id="bounded_reading"></span>def bounded_reading(C, st, log, sup):
+    """The PR3 observables for one branch."""
+    H = max(x[3] for x in log)
+    lt = late(log, 0.25)
+    prices = {p for b in lt for ps in lt[b].values() for p in ps}
+    B = max(prices)
+    two_price = len(prices) &gt; 1
+    idle_below = 0
+    for b in {C.block(*it) for it in st.seat}:
+        if b in lt:
+            continue
+        pend = [p for p, _ in moves(C, st, sup, b_only=b)]
+        idle_below += bool(pend) and min(pend) &lt; B
+    hs, first = holders(log)
+    single = all(len(set(v)) == 1 for v in hs.values())
+    off = None
+    if single:
+        Hb = {b: crossing(C, v[0], first[v[0]]) for b, v in hs.items()}
+        off = (H != min(Hb.values())
+               or any(Hb[b] != H for b in lt))
+    two_late = sum(len(v) &gt; 1 for v in lt.values())
+    headed = sum(crossing(C, hs[b][-1], first[hs[b][-1]]) &gt; B for b in lt)
+    return dict(H=H, B=B, two_price=two_price, idle_below=idle_below,
+                single=single, off=off, two_late=two_late, late=lt, hs=hs,
+                first=first, headed=headed)
+
+
+PRICES = SP.PRICES
+SUP = L.wide(2, 400)
+K, N, NC = 7, 240, 480
+PR4_KILLED = {3: 16, 5: 12}
+
+
+<span id="bounded_ladders"></span>def bounded_ladders():
+    return SP.ladders()
+
+
+<span id="climbing_ladders"></span>def climbing_ladders():
+    return [L.ladder_b(2), L.Ladder("squares",
+                                    lambda t: (L.isqrt(t) + 1) ** 2, False)]
+
+
+<span id="common"></span>def common(lad):
+    return lambda d, s: lad
+
+
+<span id="by_slot"></span>def by_slot(l0, l1):
+    return lambda d, s: l0 if s == 0 else l1
+
+
+# ---------------------------------------------------------------------------
+# the sections
+
+<span id="section_control"></span>def section_control():
+    print("S0  CONTROLS")
+    moves_read = 0
+    for lad in L.LADDERS:
+        S = L.Sched(lad.name, lad, L.price_power(1))
+        for part, glob in (("ONE", True), ("ITEM", False)):
+            _, ref = SP.run(S, SUP, glob, N)
+            C = Cell(lad.name, L.price_power(1), PARTS[part], common(lad))
+            _, mine = run(C, SUP, N)
+            check([(t[0], t[1], r, p) for t, r, p, *_ in ref]
+                  == [x[:4] for x in mine],
+                  f"{part} parts from stop.py at {lad.name}")
+            moves_read += len(ref)
+    print(f"  ONE matches stop.py's global walk and ITEM its per-item walk "
+          f"move for move at {len(L.LADDERS)} ladders, {moves_read} moves")
+    planted = [("c", 1, 2, 2, 0, (1, 0), None),
+               ("c", 2, 1, 2, 0, (2, 0), (1, 0))]
+    check(chain_faults(planted) == (1, 1), "the chain checker did not fire")
+    C = Cell("gap 3", L.price_power(1), PARTS["SLOT"],
+             common(L.ladder_gap(3)))
+    st, log = run(C, SUP, N)
+    check(not bounded_reading(C, st, log, SUP)["two_price"],
+          "a clean walk's last quarter")
+    log2 = list(log)
+    k, d, r, p, b, it, prev = log2[-1]
+    log2[-1] = (k, d, r, p + 1, b, it, prev)
+    check(bounded_reading(C, st, log2, SUP)["two_price"],
+          "the equal-price checker did not fire")
+    print("  the chain checker fires on a planted rising change; the "
+          "equal-price checker on a planted second price")
+
+
+<span id="section_bounded"></span>def section_bounded():
+    print(f"S1  BOUNDED (PR1-PR3): 2 items per degree to 400, born {{1}}, "
+          f"ties branched over {K} moves, {N} more LOW")
+    print("  price  ladder    part  branches lemma chg/rise 2late | "
+          "2price idle&lt;B single off  &gt;1 late block")
+    tot = Counter()
+    for pname, price in PRICES:
+        for lad in bounded_ladders():
+            for part in PARTS:
+                C = Cell(lad.name, price, PARTS[part], common(lad))
+                row = Counter()
+                for st, log in branches(C, SUP, K, N):
+                    rd = bounded_reading(C, st, log, SUP)
+                    row["br"] += 1
+                    row["lemma"] += lemma_faults(C, st, SUP, rd["H"])
+                    ch, bad = chain_faults(log)
+                    row["chg"] += ch
+                    row["rise"] += bad
+                    row["2late"] += rd["two_late"]
+                    row["2price"] += rd["two_price"]
+                    row["idle"] += rd["idle_below"]
+                    row["single"] += rd["single"]
+                    row["off"] += bool(rd["off"])
+                    row["multi"] += len(rd["late"]) &gt; 1
+                    row["headed"] += rd["headed"] &gt; 1
+                tot += row
+                print(f"  {pname:6s} {lad.name:9s} {part:5s} {row['br']:5d} "
+                      f"{row['lemma']:5d} {row['chg']:4d}/{row['rise']:&lt;3d} "
+                      f"{row['2late']:4d}  | {row['2price']:5d} "
+                      f"{row['idle']:6d} {row['single']:6d} {row['off']:3d}"
+                      f"  {row['multi']:4d}")
+    print(f"  totals: {tot['br']} branches; lemma faults {tot['lemma']}; "
+          f"{tot['chg']} changes of holder, {tot['rise']} not falling; "
+          f"{tot['2late']} blocks with two late items; {tot['2price']} "
+          f"two-price quarters, {tot['idle']} idle blocks below B; "
+          f"{tot['single']} single-holder, {tot['off']} off min H_b; "
+          f"{tot['multi']} branches with more than one late block, "
+          f"{tot['headed']} with two headed late blocks")
+    for key in ("lemma", "rise", "2late", "2price", "idle", "off",
+                "headed"):
+        check(tot[key] == 0, f"PR1-PR3: {key}")
+
+
+<span id="describe"></span>def describe(C, st, log):
+    rd = bounded_reading(C, st, log, SUP)
+    parts = []
+    for b, hs in sorted(rd["hs"].items(), key=repr):
+        it = hs[-1]
+        s, tl = SP.sup_tail(C.ladder(*it))
+        Hb = crossing(C, it, rd["first"][it])
+        nl = sum(len(v) for v in rd["late"].get(b, {}).values())
+        parts.append(f"block {b}: holder {it} H_b {Hb} tail price "
+                     f"{C.price(it[0], tl, False)} late moves {nl}")
+    return rd, parts
+
+
+<span id="section_admission"></span>def section_admission():
+    """PR4, killed as frozen: the census of every branch, with the clause
+    the theorem does claim -- H = min H_b on a single-holder branch --
+    checked on each."""
+    print("S2  THE ADMISSION CELLS (PR4): d r, SLOT, LOW, every branch")
+    psi = SP.place_ladder(2, 2, 3)
+    for c in (3, 5):
+        fired = 0
+        C = Cell(f"gap {c} | (2,2,3)", L.price_power(1), PARTS["SLOT"],
+                 by_slot(L.ladder_gap(c), psi))
+        seen, shown = Counter(), {}
+        for st, log in branches(C, SUP, K, N):
+            rd, parts = describe(C, st, log)
+            if rd["single"]:
+                check(not rd["off"], f"H = min H_b at gap {c}")
+            fired += rd["H"] != c or (1 if c == 3 else 0) in rd["late"]
+            k = (rd["H"], tuple(sorted(rd["late"], key=repr)), rd["single"])
+            seen[k] += 1
+            shown.setdefault(k, parts)
+        print(f"  gap {c} | (2,2,3): {sum(seen.values())} branches; PR4 "
+              f"KILLED as frozen on {fired}")
+        check(fired == PR4_KILLED[c], f"PR4's frozen kill as recorded, "
+              f"gap {c}")
+        for k, n in sorted(seen.items(), key=repr):
+            print(f"   H {k[0]}, late blocks {list(k[1])}, single-holder "
+                  f"{k[2]}: {n} branches")
+            for line in shown[k]:
+                print("      " + line)
+
+
+<span id="section_climbing"></span>def section_climbing():
+    print(f"S3  CLIMBING (PR5): d r, {NC} moves, blocks with a seated item "
+          f"and those not clocked in the last half")
+    for lad in climbing_ladders():
+        for part in PARTS:
+            C = Cell(lad.name, L.price_power(1), PARTS[part], common(lad))
+            miss, blocks, br, per_late = 0, 0, 0, 0
+            for st, log in branches(C, SUP, K, NC):
+                br += 1
+                seated = {C.block(*it) for it in st.seat}
+                lt = late(log, 0.5)
+                blocks += len(seated)
+                if part == "ITEM":
+                    per_late += len(lt)
+                    continue
+                miss += len(seated - set(lt))
+                check(all(len(v) == 1 for v in lt.values()),
+                      "two late items in a block, climbing")
+            if part == "ITEM":
+                print(f"  {lad.name:8s} ITEM  {br} branches, items clocked "
+                      f"in the last half {per_late} of {blocks} seated")
+                continue
+            if lad.name == "squares":
+                check(miss == 0, f"PR5 at squares {part}")
+            print(f"  {lad.name:8s} {part:5s} {br} branches, blocks seated "
+                  f"{blocks}, not clocked late {miss}")
+
+
+<span id="section_tie"></span>def section_tie():
+    print("S4  THE TIE (PR6): SLOT, one ladder in both blocks, d r")
+    fired = 0
+    for lad in (L.ladder_gap(2), L.ladder_gap(3), L.ladder_gap(5),
+                SP.place_ladder(2, 2, 3)):
+        C = Cell(lad.name, L.price_power(1), PARTS["SLOT"], common(lad))
+        out = {}
+        for nm, ch in (("LOW", canon_low), ("HIGH", canon_high)):
+            cnt = Counter()
+            for st, log in branches(C, SUP, K, N, ch):
+                rd = bounded_reading(C, st, log, SUP)
+                nb = len(rd["late"])
+                both = (1, 0) in st.seat and (1, 1) in st.seat
+                cnt[(nb, both)] += 1
+                check(rd["headed"] &lt;= 1, f"two headed runaways {lad.name}")
+                if nm == "LOW" and lad.bounded and lad.name.startswith("("):
+                    fired += both and nb == 1
+                    continue      # PR6 killed here: the head breaks the tie
+                if nm == "LOW":
+                    check(not (both and nb == 1), f"PR6 LOW at {lad.name}")
+                else:
+                    check(nb == 1, f"PR6 HIGH at {lad.name}")
+            out[nm] = dict(cnt)
+        print(f"  {lad.name:8s} (late blocks, both rational seated): "
+              f"LOW {out['LOW']}  HIGH {out['HIGH']}")
+    print(f"  PR6 KILLED as frozen at (2,2,3) under LOW on {fired} branches")
+    check(fired == 8, "PR6's frozen kill as recorded, (2,2,3) LOW")
+
+
+<span id="section_two_chars"></span>def section_two_chars():
+    print("S5  TWO CHARACTERISTICS (PR7): SLOT, doubling | tripling, d r")
+    C = Cell("2 | 3", L.price_power(1), PARTS["SLOT"],
+             by_slot(L.ladder_b(2), L.ladder_b(3)))
+    cnt = Counter()
+    for st, log in branches(C, SUP, K, NC):
+        nb = len(late(log, 0.5))
+        check(nb == 2, "PR7: one block clocked late")
+        cnt[nb] += 1
+    print(f"  late-half blocks per branch: {dict(cnt)}")
+    C = Cell("2", L.price_power(1), PARTS["ONE"], common(L.ladder_b(2)))
+    cnt = Counter(len(late(log, 0.5)) for _, log in branches(C, SUP, K, NC))
+    print(f"  one block, doubling: late-half blocks per branch {dict(cnt)}")
+
+
+<span id="section_wide"></span>def section_wide():
+    print("S6  THE WIDE PLACE (PR8): ONE block, slot 0 on gap 1, slot 1 on "
+          "gap e, d r")
+    for e in (2, 3, 5):
+        C = Cell(f"1 | {e}", L.price_power(1), PARTS["ONE"],
+                 by_slot(L.ladder_gap(1), L.ladder_gap(e)))
+        cnt = Counter()
+        for st, log in branches(C, SUP, K, N):
+            (items,) = late(log, 0.25).values()
+            check(len(items) == 1, f"PR8 two late items at e = {e}")
+            (it,) = items
+            cnt[(it, max(x[3] for x in log))] += 1
+        check(any(it[1] == 1 for it, _ in cnt), f"PR8 wide never runs, {e}")
+        print(f"  e = {e}: (runaway, H): branches {dict(cnt)}")
+
+
+<span id="main"></span>def main():
+    t0 = time.time()
+    section_control()
+    section_bounded()
+    section_admission()
+    section_climbing()
+    section_tie()
+    section_two_chars()
+    section_wide()
+    print(f"ALL CHECKS PASS: {CHECKS[0]} checks, {time.time() - t0:.1f} s")
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/dial.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

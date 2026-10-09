@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>weld.py | Numbers read one place at a time</title>
+<meta name="description" content="weld.py">
+<link rel="alternate" type="text/x-python" href="/code/weld.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>weld.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/clock/#the-width">CLOCK: The width</a> (theorem); <a href="/observatory/#the-jump-set-as-the-class-maxima">OBSERVATORY: The jump set as the class maxima</a> (theorem).</p><p>Cited on: <a href="/clock/">CLOCK</a>, <a href="/observatory/">OBSERVATORY</a>.</p><p>To run it: <a href="/code/clock.py">clock.py</a>, <a href="/code/module_law.py">module_law.py</a>, <a href="/code/tame.py">tame.py</a>, <a href="/code/triangle.py">triangle.py</a>, <a href="/code/wild.py">wild.py</a> beside it; standard library only.</p></div>
+<pre>"""weld.py -- the second point of a field's jump set, read off the
+digits: Pagano's jump set and the landing readouts are one invariant.
+
+QUESTION. Let K/Q_p be totally ramified of degree e, cut out by F =
+x^e + sum_{i=1}^{e-1} p b_i x^i - p d with root pi and u = p/pi^e
+(triangle.py), and let K contain zeta_p but not zeta_(p^2). Pagano
+(Jump sets in local fields, arXiv:1810.09975, Theorem 1.5) attaches to
+K an extended jump set (I, beta): the principal units U_1 are, as a
+filtered Z_p-module, a free module modulo one relation, and (I, beta)
+is that relation's orbit under the filtered automorphisms. Its points
+(i, beta(i)) have beta strictly decreasing and WEIGHT rho^beta(i)(i)
+strictly increasing, rho(i) = min(p i, i + e). The first point sits at
+weight e* = p e/(p - 1). What is the weight W_2 of the second point,
+and is it the quantity the landing readouts read (tame.py at an odd
+prime, wild.py at 2)?
+
+THE OBJECTS. The bend s = e/(p - 1) is an integer (zeta_p lies in K),
+written s = c_0 p^M with p not dividing c_0. The CLASS (c_0, M) is the
+units of level exactly c_0, whose p^M-th powers reach level s; a unit
+z LANDS at v(z^(p^(M+1)) - 1) (tame.py). The DEPARTURE is l = v(u + 1)
+(tame.py) and, at p = 2 with c_0 = 1, the wild departure lam, the least
+level where a coefficient digit of F leaves the anchor design's
+(wild.py). The CAP X is p^M, except 3e/2 at p = 2 with c_0 = 1.
+
+THE DERIVATION (on paper, before the engine).
+  (1) THE INTRINSIC READING (Pagano, Proposition 3.39, read at source).
+      For zeta a generator of the p-power roots of unity, of order p^N,
+      let g(n) be the weight of zeta in U_1/U_1^(p^n) under the quotient
+      filtration: the largest v(zeta h - 1) over h in U_1^(p^n). Then g
+      changes value exactly at the n = beta(i) - N, and g(beta(i) - N +
+      1) = rho^(beta(i) - N)(i). Here N = 1, so in the presentation the
+      lift of zeta carries the coordinates p^(beta(i) - 1) e_i and g(n)
+      is the least rho^(beta(i) - 1)(i) over the points with beta(i) &lt;=
+      n. Hence g(n) = s for n &gt;= M + 1, the first point is (c_0, M + 1)
+      at weight rho^(M+1)(c_0) = e* (c_0 p^M = s is below the bend, and
+      c_0 is the one pullback of s in T*), and when M &gt;= 1 the second
+      point (i_2, beta_2) has g(M) = rho^(beta_2 - 1)(i_2). Since g(M) &gt;
+      s, rho(g(M)) = g(M) + e, so
+          W_2 = g(M) + e,   W_2 - e* = g(M) - s =: D.
+      D is how far above zeta_p's own level a p^M-th power can push it.
+  (2) D IS THE CLASS MAXIMUM. Let y be a unit of level s. Above the bend
+      the p-th power carries U_j onto U_(j+e) (j &gt; s: the digit moves by
+      ubar, a bijection of F_p, and O_K is complete), and in every field
+      of this scope (totally ramified, zeta_p in K) the level-s digit
+      of y^p - 1 at e* cancels for every digit (it is a(ubar + 1), and
+      zeta_p in K forces ubar = -1). So if v(y^p - 1) = e* + t,
+      t &gt;= 1, then y^p = w^p with w in U_(s+t), and y/w is a p-th root
+      of unity other than 1: y = zeta_p^a w. Hence
+          v(y^p - 1) - e* = v(zeta_p^(-a) y - 1) - s
+      for the one a matching y's leading digit. Put y = z^(p^M), z in the
+      class (c_0, M). Raising z to a power b prime to p multiplies its
+      leading digit by b and leaves v(zeta_p^(-a) y - 1) fixed, and the
+      p^M-th powers of units off the class sit at levels other than s.
+      So the landings of the class run over e* + v(zeta_p x^(p^M) - 1)
+      - s, x over the units whose p^M-th power matches zeta_p^(-1)'s
+      leading digit, and their maximum is e* + D = W_2: THE SECOND POINT
+      IS THE HIGHEST LANDING OF THE SEAT CLASS.
+  (3) THE WELD. The readouts give the LEAST landing of the class, e* +
+      min(dep, X), and say every unit lands there when dep &lt; X (tame.py
+      for every class at odd p; wild.py at p = 2, for c &gt;= 2 and for the
+      top class, dep = lam, X = 3e/2). A rigid class has its maximum at
+      its minimum, so dep &lt; X gives D = dep; dep &gt;= X gives D &gt;= X. So
+          min(W_2 - e*, X) = min(dep, X).
+      At a place with a head (s = p^n, c_0 = 1) the cap is clock.py's, and the second
+      point's excess, capped, is clock.py's width: w = min(W_2 - e*, X).
+  (4) NO SECOND POINT at M = 0 (the relation is one coordinate); and
+      zeta_(p^2) in K makes zeta_p a p-th power, so N &gt;= 2, outside
+      this scope (Q_2(zeta_2e) is such a field).
+
+THE ENGINE, independent of the readouts. U_1/U_L carried in O_K mod
+p^N, eN &gt; L. H_n = U_1^(p^n) is the image of the p^n-th power map, a
+subgroup, generated by the (1 + pi^i)^(p^n): K being totally
+ramified, every graded piece is F_p, so the 1 + pi^i generate U_1 over
+Z_p. A FILTERED ECHELON holds one element of H_n at each level it
+reaches; inserting an element reduces it level by level (the leading
+coefficients' ratio fixes the power that cancels) and files the
+remainder at its new level, then
+inserts that remainder's p-th power. Once every generator and every
+filed element's p-th power reduces to 1, the products of filed elements
+with digit exponents are closed under multiplication by each filed
+element (an exponent reaching p is paid by that element's p-th power,
+filed higher), so they are all of H_n, and the filed levels are exactly
+the levels H_n reaches. Then the largest v(zeta h - 1) over h in H_n is
+the first level at which reducing zeta_p finds nothing filed: that is
+g(n). zeta_p itself is lifted digit by digit from 1 + pi^s, each step
+cancelling the leading digit of y^p - 1 with a unit of level above s.
+The jump set is then rebuilt from g alone by (1): a change of value
+between n - 1 and n is the point beta = n, and i is the pullback of
+g(n) through rho^(n - 1) into T* = {a &lt; e*, p not dividing a} u {e*}.
+
+TRANSPLANTS. The pairing of W_2 - e* with the departure is the record
+this script replaces, which read the second point off a basis of the
+module and the digits of -p/pi^e; nothing of it is used. Pagano's
+Proposition 3.39 is used as stated; the engine reads g directly and
+never builds his presentation.
+
+PREDICTIONS, fixed before the run.
+  C  CONTROL. (a) zeta_p lifted: zeta^p = 1 to precision, level s,
+     at every field read. (b) The echelon's closure: every filed
+     element's p-th power reduces to 1, and a random product of
+     generators' powers reduces to 1, at every (field, n). (c) Six
+     fields whose second weight the replaced record printed from a
+     module basis: x^2 - 2 W_2 = 5; x^4 - 2 W_2 = 10; x^6 + 3x + 3 W_2
+     = 10; x^6 + 3x^3 + 3 and x^6 + 6x^3 + 3 W_2 = 13; x^12 - 2 W_2 =
+     30. (d) x^2 + 3 (M = 0): the jump set is {(1, 1)} alone.
+  J  THE JUMP SET REBUILT FROM g. At every field: g(n) = s for n = M +
+     1 and M + 2; every value change pulls back into T*; beta strictly
+     decreasing, weights strictly increasing, the first point (c_0, M +
+     1) at weight e*, the last point beta = 1 (Pagano, Proposition 3.42:
+     the torsion is Z/p^(beta(max I))).
+  W  THE WELD. min(W_2 - e*, X) = min(dep, X) at every field with M &gt;= 1:
+     odd p over (3, 6), (3, 12), (3, 18), (5, 20), (7, 42) at every
+     departure 1..X + 2 and infinity with random digits above, and
+     random open polynomials; p = 2 over e = 2, 4, 8, 16 (top class,
+     lam from 1 to 3e/2 + 2, the anchor itself) and e = 6, 10, 12
+     (c_0 odd, tame's l). A field with zeta_(p^2) (g(1) at precision)
+     is set aside and counted, never read.
+  X  THE CLASS MAXIMUM. At p^2 e &lt;= 800, every landing of the class
+     (c_0, M) over its units written to two digits is at most W_2, and at the rigid fields
+     (dep &lt; X) every one equals W_2.
+  H  THE HEAD. At the places with a head among them (c_0 = 1) and
+     e &lt;= 16, clock.py's
+     width off the tick ladder (tame.py and wild.py's ladder_width)
+     equals min(W_2 - e*, X).
+KILLS, as printed observables: any C line off (nothing below is read);
+one field whose rebuilt set breaks a J line; one field of W whose
+capped excess differs from its capped departure; one landing above W_2
+or a rigid class with a landing off it; one place with a head whose
+ladder width differs.
+
+THE SECOND SLATE, frozen after the first run and before its own. The
+first run set aside 28 top-class fields over 2 as holding i, all but
+one with lam &gt; e. On paper: at N = 1, g(M) &lt;= g(1), the last point's
+i, which lies in T*, so D &lt;= e* - s = e. Directly: D &gt; e puts zeta_p
+x^(p^M) in U_(e*+1), where every unit is a p-th power, so zeta_p is a
+p-th power (M &gt;= 1) and zeta_(p^2) lies in K. At odd p and at c_0 &gt; 1
+the cap is at most s &lt; e, so this reads nothing new; at the top class
+over 2 the cap is 3e/2 &gt; e. There lam &gt; e gives D &gt; e by the wild
+readout (rigid below 3e/2, at least 3e/2 above), so lam &gt; e FORCES i
+into K, and a field without i has lam &lt;= e, its top class rigid and
+W_2 - e* = lam exactly, the cap never reached.
+  I  (a) At every field read in W, D &lt;= e. (b) A fresh population over
+     2 (seed 1427), e = 4, 8, 16, lam from e + 1 to 3e/2 + 2 and six
+     more at random lam in (e, 2e + 4], digits above lam random: -1 is
+     a square in every one (g(1) at precision). (c) Control: over
+     Q_2(sqrt delta), |delta| &lt;= 400 squarefree and 2 ramified, -1 is a
+     square exactly at delta = 7 mod 8, where lam = 3 &gt; e = 2.
+KILLS: one field in W with D &gt; e; one field of (b) where -1 is not a
+square; one delta of (c) on the wrong side.
+
+FINDINGS. Every prediction landed: 16/16 checks PASS, no kill fired.
+  C  zeta_p lifts and the echelon closes at every field; the six
+     printed weights are reproduced, with the replaced record's points
+     where it printed them: x^6 + 3x^3 + 3 reads (1, 2), (7, 1) and
+     x^12 - 2 reads (3, 3), (9, 2), (21, 1).
+  J  At 106 fields the set rebuilt from g alone is an extended jump set
+     with first point (c_0, M + 1) at e* and last beta = 1, 0 off.
+  W  min(W_2 - e*, X) = min(dep, X) at all 106, 0 off. Below the cap
+     the excess IS the departure; above it the excess varies with the
+     deeper digits (p = 3, e = 12: dep 5 reads 5, dep infinite reads 8;
+     p = 2, e = 10, X = 2: dep 2 reads 7, dep 3 reads 3).
+  X  At 94 fields no landing of the seat class exceeds W_2, and at the
+     66 rigid ones every landing equals it.
+  H  At 45 places with a head clock.py's ladder width is
+     min(W_2 - e*, X).
+  I  D &lt;= e at all 106, attained (the top class at lam = e, e = 2 to
+     16). -1 is a square at all 38 fields with lam &gt; e, and over
+     Q_2(sqrt delta) exactly at delta = 7 mod 8 (324 delta).
+  Tiers: (1)-(3) a theorem, given Pagano's Proposition 3.39; the bound
+  D &lt;= e and the forcing of i a theorem, the bound needing Pagano only
+  to name D.
+
+RUN RECORD. 16/16, 18.0 s wall, peak working set 13.0 MB under
+a memory guard. The first run (13/13) held the first slate; the second slate
+was frozen after it and ran once.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+import random
+
+from module_law import check, section, CHECKS, vp
+from tame import departure, designed, local, landings, INF
+import tame
+import wild
+
+SEED = 1426
+
+
+<span id="Units"></span>class Units:
+    """U_1/U_L of O_K = Z_p[pi]/(F), F Eisenstein, carried mod p^N."""
+
+    def __init__(self, p, e, b, d, L):
+        self.p, self.e, self.L = p, e, L
+        self.N = L // e + 2
+        self.mod = p ** self.N
+        self.loc = local(p, e, b, d)
+        self.one = [1] + [0] * (e - 1)
+
+    def mul(self, x, y):
+        return self.loc.mul(x, y, self.mod)
+
+    def pw(self, x, k):
+        return self.loc.power(x, k, self.mod)
+
+    def lead(self, z):
+        """(level, leading coefficient) of z - 1; level L means z = 1."""
+        w = [(z[0] - 1) % self.mod] + z[1:]
+        best = (self.L, 0)
+        for i, c in enumerate(w):
+            if c:
+                k = vp(c, self.p)
+                r = self.e * k + i
+                if r &lt; best[0]:
+                    best = (r, (c // self.p ** k) % self.p)
+        return best
+
+    def gen(self, i):
+        z = list(self.one)
+        return [(a + x) % self.mod
+                for a, x in zip(z, self.loc.pi_pow(i, self.mod))]
+
+    def inv(self, z):
+        return self.pw(z, self.p ** (self.N * self.e + 1) - 1)
+
+
+<span id="Echelon"></span>class Echelon:
+    """One element of a subgroup of U_1/U_L at each level it reaches."""
+
+    def __init__(self, U):
+        self.U, self.at = U, {}
+
+    def reduce(self, z):
+        U = self.U
+        while True:
+            r, c = U.lead(z)
+            if r &gt;= U.L or r not in self.at:
+                return z, r
+            b, cb, invs = self.at[r]
+            k = c * pow(cb, -1, U.p) % U.p
+            z = U.mul(z, invs[k])
+
+    def insert(self, z):
+        todo = [z]
+        while todo:
+            z, r = self.reduce(todo.pop())
+            if r &lt; self.U.L:
+                U = self.U
+                bi = U.inv(z)
+                invs = [U.one]
+                for _ in range(U.p - 1):
+                    invs.append(U.mul(invs[-1], bi))
+                self.at[r] = (z, U.lead(z)[1], invs)
+                todo.append(U.pw(z, U.p))
+
+    def closed(self, rng, gens):
+        U = self.U
+        ok = all(self.reduce(U.pw(b, U.p))[1] &gt;= U.L
+                 for b, _, _ in self.at.values())
+        for _ in range(4):
+            z = U.one
+            for g in gens:
+                z = U.mul(z, U.pw(g, rng.randrange(U.p ** 2)))
+            ok &amp;= self.reduce(z)[1] &gt;= U.L
+        return ok
+
+
+<span id="power_subgroup"></span>def power_subgroup(U, n):
+    gens = [U.pw(U.gen(i), U.p ** n) for i in range(1, U.L)]
+    E = Echelon(U)
+    for g in gens:
+        E.insert(g)
+    return E, gens
+
+
+<span id="zeta_p"></span>def zeta_p(U, s):
+    """The p-th root of unity with leading digit 1 at level s."""
+    p, e = U.p, U.e
+    y = U.gen(s)
+    while True:
+        r, c = U.lead(U.pw(y, p))
+        if r &gt;= U.L:
+            return y
+        t = r - e
+        assert t &gt; s, "the candidate's p-th power did not cancel at e*"
+        _, cw = U.lead(U.pw(U.gen(t), p))
+        k = (-c * pow(cw, -1, p)) % p
+        y = U.mul(y, U.pw(U.gen(t), k))
+
+
+<span id="rho"></span>def rho(p, e, i):
+    return min(p * i, i + e)
+
+
+<span id="pullback"></span>def pullback(p, e, level, b):
+    """The a in T* with rho^b(a) = level, or None."""
+    es = p * e // (p - 1)
+    for a in list(range(1, es)) + [es]:
+        if a &lt; es and a % p == 0:
+            continue
+        x = a
+        for _ in range(b):
+            x = rho(p, e, x)
+        if x == level:
+            return a
+    return None
+
+
+<span id="read_field"></span>def read_field(p, e, b, d, rng=None):
+    """g(0..M+2), the rebuilt jump set, W_2, and the controls' verdicts."""
+    s = e // (p - 1)
+    M = vp(s, p)
+    c0 = s // p ** M
+    es = p * s
+    X = 3 * e // 2 if (p == 2 and c0 == 1) else p ** M
+    L = max(es, s + X) + 3
+    # zeta_p is found to precision L + e, so its p-th power is read there
+    Z = Units(p, e, b, d, L + e)
+    z = zeta_p(Z, s)
+    U = Units(p, e, b, d, L)
+    z = [c % U.mod for c in z]
+    ok_zeta = U.lead(U.pw(z, p))[0] &gt;= L and U.lead(z)[0] == s
+    g, closed = {}, True
+    for n in range(0, M + 3):
+        if n == 0:
+            g[0] = L
+            continue
+        E, gens = power_subgroup(U, n)
+        if rng is not None:
+            closed &amp;= E.closed(rng, gens[:6])
+        g[n] = E.reduce(z)[1]
+    return dict(s=s, M=M, c0=c0, es=es, X=X, L=L, g=g,
+                ok_zeta=ok_zeta, closed=closed)
+
+
+<span id="jump_set"></span>def jump_set(p, e, g, top):
+    """Points (i, beta) from g: a change of value between n - 1 and n."""
+    pts = []
+    for n in range(1, top + 1):
+        if g[n] != g[n - 1]:
+            i = pullback(p, e, g[n], n - 1)
+            pts.append((i, n))
+    return sorted(pts)
+
+
+<span id="weight"></span>def weight(p, e, i, bt):
+    x = i
+    for _ in range(bt):
+        x = rho(p, e, x)
+    return x
+
+
+<span id="excess"></span>def excess(W, p, e):
+    return None if W is None else W - p * e // (p - 1)
+
+
+<span id="second_weight"></span>def second_weight(p, e, rec):
+    pts = jump_set(p, e, rec["g"], rec["M"] + 2)
+    return pts, (weight(p, e, *pts[1]) if len(pts) &gt; 1 else None)
+
+
+# ------------------------------------------------------------ populations
+
+ODD = [(3, 6), (3, 12), (3, 18), (5, 20), (7, 42)]
+TOP = [2, 4, 8, 16]
+EVEN = [6, 10, 12]
+
+
+<span id="cap"></span>def cap(p, e):
+    s = e // (p - 1)
+    M = vp(s, p)
+    return 3 * e // 2 if (p == 2 and s == 2 ** M) else p ** M
+
+
+<span id="population"></span>def population(rng):
+    """(label, p, e, b, d, dep) over the W scopes."""
+    out = []
+    for (p, e) in ODD:
+        s, X = e // (p - 1), cap(p, e)
+        top = 2 * e + s
+        for l in list(range(1, X + 3)) + [INF]:
+            b, d = designed(rng, p, e, l, top)
+            out.append((f"l={'inf' if l &gt;= INF else l}", p, e, b, d, l))
+        for _ in range(2):
+            b = [0] + [rng.randrange(p ** 3) for _ in range(1, e)]
+            d = -1 + p * rng.randrange(1, p ** 3)
+            out.append(("random", p, e, b, d, departure(p, e, b, d)))
+    for e in TOP:
+        X = cap(2, e)
+        for lam in range(1, X + 3):
+            b, d = wild.designed(rng, e, lam, 2 * e + 4)
+            out.append((f"lam={lam}", 2, e, b, d, lam))
+        b, d = wild.anchor(e)
+        out.append(("anchor", 2, e, b, d, INF))
+        for _ in range(2):
+            b, d = wild.random_poly(rng, e)
+            out.append(("random", 2, e, b, d, wild.wild_departure(e, b, d)))
+    for e in EVEN:
+        X = cap(2, e)
+        for l in list(range(1, X + 3)) + [INF]:
+            b, d = wild.designed_l(rng, e, l, 2 * e + 4)
+            out.append((f"l={'inf' if l &gt;= INF else l}", 2, e, b, d, l))
+    return out
+
+
+<span id="dep_of"></span>def dep_of(p, e, b, d):
+    if p == 2 and cap(2, e) == 3 * e // 2:
+        return wild.wild_departure(e, b, d)
+    return departure(p, e, b, d)
+
+
+CONTROLS = [("x^2 - 2", 2, 2, [0, 0], 1, 5),
+            ("x^4 - 2", 2, 4, [0] * 4, 1, 10),
+            ("x^6 + 3x + 3", 3, 6, [0, 1, 0, 0, 0, 0], -1, 10),
+            ("x^6 + 3x^3 + 3", 3, 6, [0, 0, 0, 1, 0, 0], -1, 13),
+            ("x^6 + 6x^3 + 3", 3, 6, [0, 0, 0, 2, 0, 0], -1, 13),
+            ("x^12 - 2", 2, 12, [0] * 12, 1, 30)]
+
+
+# ------------------------------------------------------------ sections
+
+<span id="section_control"></span>def section_control(rng):
+    section("C  CONTROL: zeta_p, the echelon's closure, printed weights")
+    bad_z = bad_c = 0
+    for name, p, e, b, d, want in CONTROLS:
+        rec = read_field(p, e, b, d, rng)
+        pts, W = second_weight(p, e, rec)
+        bad_z += not rec["ok_zeta"]
+        bad_c += not rec["closed"]
+        check(f"Cc {name}: W_2 = {want}", W == want,
+              f"g = {[rec['g'][n] for n in sorted(rec['g'])]}, "
+              f"points {pts}, W_2 = {W}")
+    rec = read_field(3, 2, [0, 0], -1, rng)
+    pts, W = second_weight(3, 2, rec)
+    bad_z += not rec["ok_zeta"]
+    bad_c += not rec["closed"]
+    check("Cd x^2 + 3 (M = 0): the jump set is {(1, 1)}", pts == [(1, 1)],
+          f"points {pts}")
+    check("Ca zeta_p: zeta^p = 1 to precision, level s", bad_z == 0,
+          f"{bad_z} off")
+    check("Cb the echelon closed under p-th powers and random products",
+          bad_c == 0, f"{bad_c} off")
+
+
+<span id="section_jump_weld"></span>def section_jump_weld(rng, rows):
+    section("J, W  THE JUMP SET REBUILT FROM g; THE WELD")
+    bad_j = bad_w = aside = 0
+    by = {}
+    for label, p, e, b, d, dep in population(rng):
+        assert dep_of(p, e, b, d) == dep
+        rec = read_field(p, e, b, d, rng)
+        g, M, s, L, X = rec["g"], rec["M"], rec["s"], rec["L"], rec["X"]
+        if g[1] &gt;= L:
+            aside += 1
+            print(f"    aside: p={p} e={e} {label}: zeta_p a p-th power "
+                  f"to precision")
+            continue
+        pts, W = second_weight(p, e, rec)
+        ok_j = (rec["ok_zeta"] and rec["closed"]
+                and g[M + 1] == s == g[M + 2]
+                and all(i is not None for i, _ in pts)
+                and pts[0] == (rec["c0"], M + 1)
+                and weight(p, e, *pts[0]) == rec["es"]
+                and pts[-1][1] == 1
+                and all(pts[k][1] &gt; pts[k + 1][1]
+                        and weight(p, e, *pts[k]) &lt; weight(p, e, *pts[k + 1])
+                        for k in range(len(pts) - 1)))
+        bad_j += not ok_j
+        D = excess(W, p, e)
+        ok_w = D is not None and min(D, X) == min(dep, X)
+        bad_w += not ok_w
+        by.setdefault((p, e), []).append((dep, D))
+        rows.append((label, p, e, b, d, dep, W, rec))
+        if not (ok_j and ok_w):
+            print(f"    OFF p={p} e={e} {label} dep={dep} g={g} "
+                  f"points={pts} W_2={W}")
+    for (p, e), v in by.items():
+        X = cap(p, e)
+        shown = ", ".join(f"{'inf' if a &gt;= INF else a}:{D}" for a, D in v)
+        print(f"  p={p} e={e:2d} X={X:2d}  dep:W_2-e* = {shown}")
+    check("J the rebuilt set: g = s past M, first point (c_0, M + 1) at "
+          "e*, last beta = 1, beta down, weights up", bad_j == 0,
+          f"{len(rows)} fields, {bad_j} off")
+    check("W min(W_2 - e*, X) = min(dep, X)", bad_w == 0,
+          f"{len(rows)} fields, {bad_w} off, {aside} set aside "
+          f"(zeta_p^2 in K)")
+
+
+<span id="section_class_max"></span>def section_class_max(rows):
+    section("X  THE CLASS MAXIMUM: every landing of (c_0, M) is at most W_2")
+    bad = seen = rigid = 0
+    for label, p, e, b, d, dep, W, rec in rows:
+        if p ** 2 * e &gt; 800:
+            continue
+        land = landings(local(p, e, b, d), rec["c0"], rec["M"], 2)[0]
+        seen += 1
+        ok = all(x &lt;= W for x in land)
+        if dep &lt; rec["X"]:
+            rigid += 1
+            ok &amp;= set(land) == {W}
+        bad += not ok
+        if not ok:
+            print(f"    OFF p={p} e={e} {label}: W_2={W} "
+                  f"landings {sorted(set(land))}")
+    check("X no landing above W_2, rigid classes all at W_2", bad == 0,
+          f"{seen} fields, {rigid} rigid, {bad} off")
+
+
+<span id="section_head"></span>def section_head(rows):
+    section("H  THE HEAD: clock.py's ladder width = min(W_2 - e*, X)")
+    bad = seen = 0
+    for label, p, e, b, d, dep, W, rec in rows:
+        if rec["c0"] != 1 or e &gt; 16:
+            continue
+        lw = (wild.ladder_width if p == 2 else tame.ladder_width)(
+            local(p, e, b, d))
+        want = min(excess(W, p, e), rec["X"])
+        seen += 1
+        bad += lw != want
+        if lw != want:
+            print(f"    OFF p={p} e={e} {label}: ladder {lw}, weld {want}")
+    check("H the ladder's width is the second point's capped excess",
+          bad == 0, f"{seen} heads, {bad} off")
+
+
+<span id="minus_one_square"></span>def minus_one_square(e, b, d):
+    """-1 in K^(x2): its reduction against the squares mod U_L."""
+    U = Units(2, e, b, d, 2 * e + 3)
+    E, _ = power_subgroup(U, 1)
+    return E.reduce([(-1) % U.mod] + [0] * (e - 1))[1] &gt;= U.L
+
+
+<span id="section_i"></span>def section_i(rows):
+    section("I  AT N = 1 THE EXCESS IS AT MOST e; lam &gt; e FORCES i INTO K")
+    worst = max(excess(W, p, e) - e for _, p, e, _, _, _, W, _ in rows)
+    check("Ia D &lt;= e at every field read in W", worst &lt;= 0,
+          f"{len(rows)} fields, max D - e = {worst}")
+    rng = random.Random(SEED + 1)
+    seen = bad = 0
+    for e in (4, 8, 16):
+        pop = [wild.designed(rng, e, lam, 2 * e + 4)
+               for lam in range(e + 1, 3 * e // 2 + 3)]
+        pop += [wild.designed(rng, e, rng.randrange(e + 1, 2 * e + 5),
+                              2 * e + 4) for _ in range(6)]
+        for b, d in pop:
+            assert wild.wild_departure(e, b, d) &gt; e
+            seen += 1
+            bad += not minus_one_square(e, b, d)
+    check("Ib lam &gt; e: -1 is a square in K", bad == 0,
+          f"{seen} fields over e = 4, 8, 16, {bad} off")
+    seen = bad = 0
+    for delta in range(-400, 401):
+        if delta % 4 in (0, 1) or not wild.squarefree(delta):
+            continue
+        b, d = wild.quadratic(delta)
+        seen += 1
+        bad += minus_one_square(2, b, d) != (delta % 8 == 7)
+    check("Ic over Q_2(sqrt delta): -1 a square iff delta = 7 mod 8",
+          bad == 0, f"{seen} delta, {bad} off")
+
+
+<span id="main"></span>def main():
+    rng = random.Random(SEED)
+    section_control(rng)
+    if not all(CHECKS):
+        print("\ncontrol failed: nothing below is read")
+        raise SystemExit(1)
+    rows = []
+    section_jump_weld(rng, rows)
+    section_class_max(rows)
+    section_head(rows)
+    section_i(rows)
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks PASS")
+    if not all(CHECKS):
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/weld.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

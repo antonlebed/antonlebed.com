@@ -1,0 +1,722 @@
+"""
+gates.py -- what gates on words decide about a tuple of units, and what
+the decision costs.
+
+QUESTION. On a prime channel F_p the units form a cyclic group of order
+n = p - 1. A reader holds L leaves x_1, ..., x_L and builds WORDS from
+them with ring operations; a GATE reads one bit of a word w,
+G_m(w) = [w^m = 1] for m | n, and a READOUT is any Boolean function of
+finitely many gate bits. A reader DECIDES a shadow (a set of tuples) if
+some readout equals membership at every tuple. Which shadows are
+decided, at which alphabet, and at what price in gates and in word
+operations?
+
+THE ARGUMENT (written before this script).
+  (1) THE WORD PROFILE. Over the MONOMIAL alphabet (MUL and the meadow
+      inverse, which on a unit leaf x_i is the power x_i^(n-1)) a word
+      is a monomial x^e = prod x_i^(e_i), e in (Z/n)^L. Fix a generator g
+      and write x_i = g^(alpha_i). The evaluation map ev_x: e -> x^e is
+      a homomorphism (Z/n)^L -> F_p^*, and the bits G_1(x^e) give its
+      kernel. If two tuples x, x' have one kernel, the images are
+      subgroups of one cyclic group of equal order, hence equal, and
+      ev_x' = beta o ev_x for an automorphism beta of that subgroup
+      H. Every automorphism of a cyclic group is a power map y -> y^u
+      with u prime to |H|, and u lifts to a unit mod n (the units mod n
+      map onto the units mod |H|). So x'_i = x_i^u for every i: ONE
+      shared unit. Conversely x -> x^u preserves every order. The
+      word-bit classes are the orbits of the tuple under x -> x^u, the
+      G_1 bits alone already fix them, and a shadow is decided iff it
+      is constant on these orbits (a finite group has finitely many
+      orbits, each cut out by finitely many gates). Three orders do not
+      suffice: in F_17 the dlog pairs (1, 2) and (1, 6) to the base 3,
+      (a, b) = (3, 9) and (3, 15), share (ord a, ord b, ord ab) =
+      (16, 8, 16) and lie in different orbits.
+  (2) THE CRYSTALLOGRAPHIC SKELETON. A tuple is STABLE for a shadow if
+      its whole orbit lies inside it. On the line a + b = c with c != 0,
+      u = -1 gives a^-1 + b^-1 = c, i.e. (a + b)/(ab) = c, so ab = 1 and
+      a + a^-1 = c. Stability under every unit u says every primitive
+      d-th root z (d = ord a) has z + z^-1 = c, so all of them satisfy
+      z^2 - cz + 1 = 0: phi(d) <= 2, d in {1, 2, 3, 4, 6}. Order 4 has
+      trace 0, the line c = 0, which is the coset shadow [ab^-1 = -1]
+      and wholly stable. So for p >= 5 the stable points are (1, 1) on
+      c = 2, (-1, -1) on c = -2, the order-3 pairs on c = -1 (present
+      iff p = 1 mod 3), the order-6 pairs on c = 1 (present iff
+      p = 1 mod 3), and none on any other line. A line c != 0 holds
+      p - 2 unit points and at most two stable ones, so at p >= 5 some
+      orbit straddles it and it is not decided; at p = 3 the unit group
+      has order 2, u = 1 is the only unit, every orbit is a point and
+      every shadow is decided.
+  (3) THE ALPHABET LADDER. Take any finite list of LETTERS, fixed ring
+      words in the leaves (the leaves themselves; or a and 1 - a; or a,
+      b, 1 - a, 1 - b). Monomials in the letters read the letter tuple
+      exactly as (1) reads the leaves: up to one shared unit. So each
+      letter list decides exactly the shadows constant on letter-tuple
+      orbits, and a letter list sees more only by holding more letters.
+      One leaf with {a, 1 - a} refines the pair (ord a, ord(1 - a));
+      the four letters {a, b, 1 - a, 1 - b} make the six lines on which
+      a letter ratio is +-1 into gate shadows (a + b in {0, 1, 2},
+      a - b in {0, 1, -1}); and at p = 7 the tuples (3, 3) and (5, 5)
+      lie in one four-letter orbit (u = 5) while a + b = 3 holds only at
+      the second.
+  (4) THE MEADOW CLOSURE. With NOT applied to words as well as letters
+      the ladder closes: for a unit a != 1,
+          NOT(a^-1) * (NOT a)^-1 * a = ((a - 1)/a) * (1/(1 - a)) * a = -1,
+      then 2 = NOT(-1) and c = NOT(-1 * (c - 1)) by induction, so every
+      constant is a word in one graded leaf and every value set is all
+      of F_p. For graded c, [x = c] = G_1(x * w_c(x)^-1), w_c the word
+      for c ([x = 0] and [x = 1] are the pair's own bits); on
+      {0, 1} every word reads 0 or 1, so at x = 1 the gate misfires iff
+      w_c(1) = 1, and one more gate, NOT G_1(x), masks it. Every
+      shadow is decided: the orbit obstruction of (1) was a fact about
+      alphabets that apply NOT only to letters.
+  (5) THE ORBIT-COST THEOREM. In dlog coordinates the gate shadows of
+      monomials are EXACTLY the kernels of the characters of
+      V = (Z/n)^L. Let C = <v> have order d, O its generators (a stable
+      orbit). Every kernel K either contains C (a CUT gate) or meets it
+      in a proper subgroup (a SEPARATOR, restriction order
+      eps = [C : C cap K] > 1); all of O shares one bit pattern, so a
+      family decides O iff the atom holding O equals O. Let r(C) be
+      the rank of V/C, the least number of characters whose common
+      kernel is C. UPPER: r(C) cut gates, and for each prime q | d the
+      separator (d/q) chi_0, chi_0 a character with chi_0(v) of order
+      d; within C the q-separator fires on u*v iff q | u. Cost
+      r(C) + omega(d). LOWER (proved in general, any finite abelian V):
+      separating the generators from q*v forces, per prime q | d, a
+      separator of restriction order exactly q; cosets of C inside the
+      cut gates' intersection S' must be covered by separator slices;
+      a coset of order prime to d pins every slice through one point
+      (uncoverable); on the socle cosets at a prime q | d the classes
+      that reach unit positions are linear functionals of the coset,
+      and fewer than rank + 1 functionals cannot take every nonzero
+      value at every nonzero point (at q = 2 the even positions need
+      the value 0 as well, or a separator of order 4, itself an extra
+      one). So each rank the cut gates drop
+      costs one separator back, and cost >= r(C) + omega(d). One leaf
+      is the rank-1 case: [ord x = d] costs omega(d) + 1, or omega(n)
+      at d = n; a divisor filter [ord x | m] costs 1. Two leaves:
+      r(C) = 1 iff d = n, else 2.
+  (6) THE HEIGHT FLOOR. At the meadow level one gate (and the mask)
+      decides [x = c], so the price moves into word operations. Let
+      h_p(c) be the least number of operations (MUL, INV, NOT) in a
+      word of one leaf reading c at every unit other than 1. Words of
+      cost exactly t number W(t) = 2W(t - 1) + sum_{i+j=t-1} W(i)W(j),
+      W(0) = 1, whatever p is; each graded constant needs its own word,
+      so max_c h_p(c) >= f_p = min{t : W(0) + ... + W(t) >= p - 2},
+      which grows without bound. The route above spends h_p(c) + 2
+      operations; h_p(-1) <= 6 by the identity in (4).
+
+DESIGN. Five sections of checks printing PASS or FAIL, a hand-checked
+case first in W, X, A and O (O1's 28 and 50 are the counts of cyclic
+subgroups of (Z/10)^2 and (Z/12)^2, 4 * 7 and 10 * 5, a character
+kernel's quotient being cyclic); H has none, its heights read by exact search
+alone. Characters and kernels are computed in dlog
+coordinates on V = Z/n_1 x ... x Z/n_L, a character e acting as
+sum e_i z_i (N / n_i) mod N, N = lcm n_i; a kernel is a bitmask over V.
+  W  the word orbits. CONTROL: the F_17 witness. Then over all of
+     (Z/n)^2 for n in {6, 8, 10, 12, 16, 18, 22, 24} and (Z/n)^3 for
+     n in {6, 8}: the partition by G_1 kernels against the partition
+     by orbits. Then the field dressing by field arithmetic: every
+     unit pair of F_p, p = 5 .. 23, partitioned by the words
+     a^i b^j equal to 1, against the orbits (a^u, b^u).
+  X  the skeleton, every prime 5 <= p <= 97, every c in F_p: the
+     stable points found by walking every orbit, against the five
+     predicted sets. CONTROL: the line c = 0 is wholly stable at every
+     p. Then decidability: every line decided at p = 3, every line
+     c != 0 undecided at every 5 <= p <= 97.
+  A  the ladder and the closure. CONTROL: without NOT the closure of
+     2 in F_7 is {1, 2, 4}. The -1 identity at every unit a != 1,
+     p <= 31; the value closure of every graded start is F_p, p <= 31;
+     the decision route (one gate, the mask exactly when w_c(1) = 1)
+     against [x = c] at every x and graded c, p <= 31. The letter list
+     {a, 1 - a}: its partition of the graded residues by field words
+     against the orbits of (a, 1 - a), p = 5 .. 23, and the first p at
+     which it refines (ord a, ord(1 - a)). The four-letter list: the
+     six lines constant on four-letter orbits over graded pairs,
+     p = 5 .. 19, and the p = 7 witness.
+  O  the orbit-cost theorem. The field check at p = 11, 13: the gate
+     shadows computed by field arithmetic are the dlog kernels. One
+     leaf: every d | n for n in {6, 12, 30, 60, 360}, the least family
+     of divisor filters deciding [ord x = d], by exhaustive search,
+     against the law. Then a battery of orbits, each with r(C) found
+     two ways (the least cut family by search, and max over primes of
+     the q-rank |V| / |C + qV|), the canonical program deciding O at
+     r(C) + omega(d), and every family of fewer gates failing, by
+     exhaustion over all distinct kernels:
+       ord-5 orbit (t, t^2), p = 11      V = (Z/10)^2,   v = (2, 4)
+       order-6 pair, p = 7               V = (Z/6)^2,    v = (1, 5)
+       order-6 pair, p = 13              V = (Z/12)^2,   v = (2, 10)
+       mixed orbit ord 2 x ord 3, p = 13 V = (Z/12)^2,   v = (6, 4)
+       primitive orbit, p = 31           V = (Z/30)^2,   v = (1, 1)
+       three leaves                      V = (Z/6)^3,    v = (1, 1, 1)
+       rank-3 cut                        V = (Z/2)^4,    v = (1, 0, 0, 0)
+       rank-2 socle at 3                 V = Z/6 x (Z/3)^2, v = (1, 1, 1)
+       order 4, the eps = 4 separators   V = Z/12 x (Z/2)^2, v = (3, 0, 0)
+       order 8, eps in {2, 4, 8}         V = Z/24 x (Z/2)^2, v = (3, 0, 0)
+     Then the covering rigidity the lower bound rests on: the least
+     number of linear functionals on F_q^r taking every nonzero value
+     at every nonzero point (both values at q = 2), exhaustively at (q, r) = (2, 1), (2, 2),
+     (2, 3), (3, 1), (3, 2); and the cover bound, that one residue
+     class per distinct prime never covers Z/d, over every class choice
+     at d = 6, 30, 210 and 1722 = 2 * 3 * 7 * 41, whose reciprocal sum
+     exceeds 1.
+  H  the height floor. The counts W(t) and f_p; the exact
+     least-cost search over functions on the units other than 1 at
+     p = 5 and 7, every constant reached, its largest height against
+     f_p, and h_p(-1) against the six-operation word.
+
+PREDICTIONS, fixed before the run.
+  W0 the witness holds. W1 kernel classes = orbits at all ten groups.
+     W2 word classes = orbits at every p = 5 .. 23.
+  X0 the c = 0 line wholly stable at all 23 primes. X1 the census
+     matches the five sets at every (p, c). X2 all lines decided at
+     p = 3; every c != 0 line undecided at all 23 primes.
+  A0 the closure without NOT is {1, 2, 4}. A1 the -1 identity, A2 the
+     closures, A3 the decision route: no exception, p <= 31. A4 the
+     {a, 1 - a} classes are the orbits; the first refinement of
+     (ord a, ord(1 - a)) is at p = 11. A5 the six lines constant on
+     the four-letter orbits; (3, 3) and (5, 5) share an orbit at p = 7
+     and split a + b = 3.
+  O1 28 and 50 distinct gate shadows at p = 11 and 13, equal to the
+     kernels. O2 the one-leaf minimum equals the law at every d | n.
+     O3 r(C) agrees both ways; the canonical program decides at the
+     law and every smaller family fails, at all ten orbits, with laws
+     3, 3, 4, 4, 4, 4, 4, 4, 3, 3. O4 functional minima 2, 3, 4, 2, 4,
+     each at least r + 1; no class choice covers, 1722 included.
+  H1 the heights p = 5: h(2) = 7, h(3) = 7, h(4) = 6; p = 7: h(2) = 7,
+     h(3) = 11, h(4) = 8, h(5) = 11, h(6) = 6; the largest exceeds
+     f_p; h_p(-1) = 6 at both; f_p = 5 at p - 2 = 10^3 and 9 at
+     10^6.
+
+FINDINGS. Every prediction landed: 29/29 checks PASS, the hand cases
+first. (One repair after the first run, in the argument
+and the engine and not in a claim: the covering requirement was
+written as every nonzero value at every nonzero point, which at q = 2
+is met by r functionals and printed minima 1, 2, 3; the proof's step
+at q = 2 needs the value 0 too, at the even positions of the coset,
+and a separator reading 0 on the socle is the zero functional, so both
+were restored and the minima read r + 1. An audit then scoped the
+prose, no print changed: the decision route of (4) is for graded c,
+[x = 0] and [x = 1] being the pair's bits, and A3 is labelled so.)
+  W  the F_17 witness holds; kernel classes = orbits at all ten groups
+     (20, 22, 28, 50, 46, 68, 52, 110 orbits on (Z/n)^2 for
+     n = 6 .. 24, 112 and 148 on (Z/6)^3 and (Z/8)^3); field word
+     classes = orbits at p = 5 .. 23 (10, 20, 28, 50, 46, 68, 52).
+  X  the line c = 0 wholly stable at all 23 primes 5 .. 97; the
+     stable points match the five sets at every (p, c), the order-3
+     and order-6 pairs present at the 11 primes p = 1 mod 3; every line
+     decided at p = 3, every c != 0 line straddled at the 23.
+  A  without NOT the closure of 2 in F_7 is [1, 2, 4]; the -1 identity,
+     the closures and the decision route hold at every p <= 31, the
+     mask needed at all 138 graded constants (the -1 word reads 0 at
+     x = 1, so every w_c built from it reads 1 there); the {a, 1 - a} classes are
+     the orbits and first refine (ord a, ord(1 - a)) at p = 11; the
+     six lines are four-letter shadows at p <= 19, and (3, 3) ~ (5, 5)
+     at p = 7 split a + b = 3.
+  O  28 and 50 field gate shadows at p = 11, 13, equal to the kernels;
+     the one-leaf law at all 54 targets; at the ten orbits r(C) agrees
+     both ways, the canonical program decides at the laws 3, 3, 4, 4,
+     4, 4, 4, 4, 3, 3 (asserted since review), and every smaller
+     family fails (406, 210,
+     20,875, 20,875, 457,450, 234,248, 696, 3,682, 300 and 528 tried);
+     functional minima 2, 3, 4, 2, 4; no class choice covers Z/d at
+     d = 6, 30, 210, 1722.
+  H  heights at p = 5: h(2) = 7, h(3) = 7, h(4) = 6; at p = 7:
+     h(2) = 7, h(3) = 11, h(4) = 8, h(5) = 11, h(6) = 6; the largest,
+     7 and 11, exceed floors 1 and 2; h(-1) = 6 at both; W(0..6) = 1,
+     3, 12, 57, 300, 1686, 9912, and the floor is 5 at p - 2 = 10^3
+     and 9 at 10^6.
+
+RUN RECORD. 1.5 s wall, peak working set 23.0 MB (memory guard, limit
+512 MB).
+
+Run: python gates.py -- seconds, a few MB.
+"""
+
+from itertools import combinations, product
+from math import gcd
+
+CHECKS = []
+
+
+def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    print(f"  [{'PASS' if ok else 'FAIL'}] {name}"
+          + (f" -- {detail}" if detail else ""))
+
+
+def is_prime(n):
+    return n > 1 and all(n % q for q in range(2, int(n ** 0.5) + 1))
+
+
+def prime_factors(n):
+    return [q for q in range(2, n + 1) if n % q == 0 and is_prime(q)]
+
+
+def omega(n):
+    return len(prime_factors(n))
+
+
+def divisors(n):
+    return [m for m in range(1, n + 1) if n % m == 0]
+
+
+def units(n):
+    return [u for u in range(1, n + 1) if gcd(u, n) == 1]
+
+
+def primroot(p):
+    n = p - 1
+    return next(g for g in range(2, p) if all(pow(g, n // q, p) != 1
+                                              for q in prime_factors(n)))
+
+
+def lcm(a, b):
+    return a * b // gcd(a, b)
+
+
+# ------------------------------------------------------------ groups
+class Group:
+    """V = Z/n_1 x ... x Z/n_L with its characters and their kernels."""
+
+    def __init__(self, ns):
+        self.ns = tuple(ns)
+        self.N = 1
+        for m in ns:
+            self.N = lcm(self.N, m)
+        self.pts = list(product(*[range(m) for m in ns]))
+        self.idx = {z: i for i, z in enumerate(self.pts)}
+        self.full = (1 << len(self.pts)) - 1
+
+    def chi(self, e, z):
+        return sum(ei * zi * (self.N // m)
+                   for ei, zi, m in zip(e, z, self.ns)) % self.N
+
+    def kernel(self, e):
+        mask = 0
+        for i, z in enumerate(self.pts):
+            if self.chi(e, z) == 0:
+                mask |= 1 << i
+        return mask
+
+    def kernels(self):
+        """Every distinct character kernel, each with one character."""
+        out = {}
+        for e in self.pts:
+            out.setdefault(self.kernel(e), e)
+        return out
+
+    def mul(self, k, z):
+        return tuple(k * zi % m for zi, m in zip(z, self.ns))
+
+    def add(self, y, z):
+        return tuple((a + b) % m for a, b, m in zip(y, z, self.ns))
+
+    def order(self, z):
+        d = 1
+        for zi, m in zip(z, self.ns):
+            d = lcm(d, m // gcd(zi, m))
+        return d
+
+    def mask(self, pts):
+        return sum(1 << self.idx[z] for z in set(pts))
+
+
+def atom_decides(fam, cbit, Omask, full):
+    """A family decides O iff the Boolean atom holding O is O itself."""
+    atom = full
+    for K in fam:
+        atom &= K if K >> cbit & 1 else ~K
+    return atom & full == Omask
+
+
+# ------------------------------------------------------------ W
+def section_w():
+    print("W  the word orbits")
+    p, g, n = 17, 3, 16                       # F_17, 3 a primitive root
+    order = lambda x: next(k for k in range(1, n + 1) if pow(x, k, p) == 1)
+    a, b, b2 = pow(g, 1, p), pow(g, 2, p), pow(g, 6, p)
+    same = ((order(a), order(b), order(a * b % p))
+            == (order(a), order(b2), order(a * b2 % p)) == (16, 8, 16))
+    apart = not any((u % n, 2 * u % n) == (1, 6) for u in units(n))
+    check("W0 CONTROL (3, 9) and (3, 15) in F_17 share three orders, "
+          "different orbits", same and apart)
+    ok, sizes = True, []
+    for ns in [(m, m) for m in (6, 8, 10, 12, 16, 18, 22, 24)] + \
+              [(6, 6, 6), (8, 8, 8)]:
+        V, m = Group(ns), ns[0]
+        kern, orb = {}, {}
+        for z in V.pts:
+            kern[z] = V.kernel(z)          # the dual of (Z/m)^L is itself
+            orb[z] = min(V.mul(u, z) for u in units(m))
+        pairs = {(kern[z], orb[z]) for z in V.pts}
+        nk, no = len(set(kern.values())), len(set(orb.values()))
+        ok &= len(pairs) == nk == no
+        sizes.append(f"{m}^{len(ns)}:{no}")
+    check("W1 G_1 kernel classes = orbits under x -> x^u", ok,
+          " ".join(sizes))
+    ok, sizes = True, []
+    for p in [q for q in range(5, 24) if is_prime(q)]:
+        n, U = p - 1, range(1, p)
+        pw = {a: [pow(a, i, p) for i in range(n)] for a in U}
+        cls = {}
+        for a in U:
+            for b in U:
+                word = sum(1 << (i * n + j) for i in range(n)
+                           for j in range(n) if pw[a][i] * pw[b][j] % p == 1)
+                orbit = min((pow(a, u, p), pow(b, u, p)) for u in units(n))
+                cls[(a, b)] = (word, orbit)
+        nw = len({w for w, _ in cls.values()})
+        no = len({o for _, o in cls.values()})
+        ok &= len(set(cls.values())) == nw == no
+        sizes.append(f"{p}:{no}")
+    check("W2 field words a^i b^j = 1 classes = orbits, p = 5..23", ok,
+          " ".join(sizes))
+
+
+# ------------------------------------------------------------ X
+def line_orbits(p):
+    """Every orbit of unit pairs under (a, b) -> (a^u, b^u), with the
+    set of sums a + b over it."""
+    n, g = p - 1, primroot(p)
+    ex = [pow(g, k, p) for k in range(n)]
+    seen, out = set(), []
+    for al in range(n):
+        for be in range(n):
+            if (al, be) in seen:
+                continue
+            orbit = {(u * al % n, u * be % n) for u in units(n)}
+            seen |= orbit
+            pts = [(ex[x], ex[y]) for x, y in orbit]
+            out.append((pts, {(a + b) % p for a, b in pts}))
+    return out
+
+
+def predicted_stable(p, c):
+    U = range(1, p)
+    ordr = lambda a: next(k for k in range(1, p) if pow(a, k, p) == 1)
+    if c == 0:
+        return {(a, p - a) for a in U}
+    if c == 2:
+        return {(1, 1)}
+    if c == p - 2:
+        return {(p - 1, p - 1)}
+    if c in (1, p - 1):
+        want = 6 if c == 1 else 3
+        return {(a, pow(a, p - 2, p)) for a in U if ordr(a) == want}
+    return set()
+
+
+def section_x():
+    print("X  the crystallographic skeleton")
+    P = [q for q in range(5, 98) if is_prime(q)]
+    census = {p: line_orbits(p) for p in P}
+    ok0 = all(all(s == {0} for _, s in orbs if 0 in s)
+              and sum(len(pts) for pts, s in orbs if s == {0}) == p - 1
+              for p, orbs in census.items())
+    check("X0 CONTROL the line c = 0 is wholly stable", ok0,
+          f"{len(P)} primes")
+    ok, bad = True, []
+    for p, orbs in census.items():
+        for c in range(p):
+            got = {pt for pts, s in orbs if s == {c} for pt in pts}
+            if got != predicted_stable(p, c):
+                ok = False
+                bad.append((p, c))
+    nz = sum(1 for p in P if p % 3 == 1)
+    check("X1 stable points = the five predicted sets, every (p, c)", ok,
+          f"{len(P)} primes, {nz} with the order-3 and order-6 pairs, "
+          f"off at {bad[:3]}")
+    orbs3 = line_orbits(3)
+    dec3 = all(len(s) == 1 for _, s in orbs3)
+    und = all(any(c in s and len(s) > 1 for _, s in census[p])
+              for p in P for c in range(1, p))
+    check("X2 every line decided at p = 3; every c != 0 line straddled "
+          "at 5 <= p <= 97", dec3 and und)
+
+
+# ------------------------------------------------------------ A
+def inv(x, p):
+    return pow(x, p - 2, p) if x % p else 0
+
+
+def closure(start, p, use_not=True):
+    S = {start}
+    while True:
+        new = {x * y % p for x in S for y in S} | {inv(x, p) for x in S}
+        if use_not:
+            new |= {(1 - x) % p for x in S}
+        if new <= S:
+            return S
+        S |= new
+
+
+def section_a():
+    print("A  the alphabet ladder and the meadow closure")
+    c0 = closure(2, 7, use_not=False)
+    check("A0 CONTROL without NOT the closure of 2 in F_7 is {1, 2, 4}",
+          c0 == {1, 2, 4}, str(sorted(c0)))
+    PR31 = [q for q in range(3, 32) if is_prime(q)]
+    ok = all((1 - inv(a, p)) * inv((1 - a) % p, p) * a % p == p - 1
+             for p in PR31 for a in range(2, p))
+    check("A1 NOT(a^-1) * (NOT a)^-1 * a = -1 at every unit a != 1, "
+          "p <= 31", ok)
+    ok = all(closure(a, p) == set(range(p)) for p in PR31
+             for a in range(2, p))
+    check("A2 the closure of every graded start is F_p, p <= 31", ok)
+    ok, masked = True, 0
+    for p in PR31:
+        X = range(p)
+        m1 = [(1 - inv(x, p)) * inv((1 - x) % p, p) * x % p for x in X]
+        w = [(1 - v) % p for v in m1]                     # the word for 2
+        for c in range(2, p):
+            if c > 2:
+                w = [(1 - m1[x] * w[x]) % p for x in X]   # NOT(-1 * w)
+            assert all(w[x] == c for x in range(2, p))
+            mask = w[1] == 1
+            masked += mask
+            for x in X:
+                bit = pow(x * inv(w[x], p) % p, 1, p) == 1
+                if mask:
+                    bit = bit and x != 1
+                ok &= bit == (x == c)
+    total = sum(p - 2 for p in PR31)
+    check("A3 graded [x = c] by G_1(x * w_c^-1) and the mask at x = 1, "
+          "p <= 31; w_c(1) = 1 at every c", ok and masked == total,
+          f"{masked} of {total} constants needed the mask")
+    ok, first = True, None
+    for p in [q for q in range(5, 24) if is_prime(q)]:
+        n, G = p - 1, range(2, p)
+        pw = {a: [pow(a, i, p) for i in range(n)] for a in range(1, p)}
+        o = lambda a: next(k for k in range(1, p) if pow(a, k, p) == 1)
+        word, orbit = {}, {}
+        for a in G:
+            b = (1 - a) % p
+            word[a] = sum(1 << (i * n + j) for i in range(n)
+                          for j in range(n) if pw[a][i] * pw[b][j] % p == 1)
+            orbit[a] = min((pow(a, u, p), pow(b, u, p)) for u in units(n))
+        nw, no = len(set(word.values())), len(set(orbit.values()))
+        ok &= len({(word[a], orbit[a]) for a in G}) == nw == no
+        npro = len({(o(a), o((1 - a) % p)) for a in G})
+        if first is None and no > npro:
+            first = p
+    check("A4 {a, 1 - a} word classes = orbits of (a, 1 - a); first "
+          "refinement of (ord a, ord(1 - a))", ok and first == 11,
+          f"first at p = {first}")
+    ok = True
+    for p in [q for q in range(5, 20) if is_prime(q)]:
+        n, g, G = p - 1, primroot(p), range(2, p)
+        lg = {pow(g, k, p): k for k in range(n)}
+        cls = {}
+        for a in G:
+            for b in G:
+                t = (lg[a], lg[b], lg[(1 - a) % p], lg[(1 - b) % p])
+                cls[(a, b)] = min(tuple(u * x % n for x in t)
+                                  for u in units(n))
+        for sign, c in ((1, 0), (1, 1), (1, 2), (-1, 0), (-1, 1), (-1, -1)):
+            val = {}
+            for (a, b), k in cls.items():
+                val.setdefault(k, set()).add((a + sign * b - c) % p == 0)
+            ok &= all(len(v) == 1 for v in val.values())
+    lg7 = {pow(3, k, 7): k for k in range(6)}
+    let = lambda a, b: tuple(lg7[v % 7] for v in (a, b, 1 - a, 1 - b))
+    t1, t2 = let(3, 3), let(5, 5)
+    share = any(tuple(u * x % 6 for x in t1) == t2 for u in units(6))
+    split = ((3 + 3) % 7 == 3) != ((5 + 5) % 7 == 3)
+    check("A5 the six +-1-ratio lines are four-letter shadows, p <= 19; "
+          "(3, 3) ~ (5, 5) at p = 7 split a + b = 3", ok and share and split)
+
+
+# ------------------------------------------------------------ O
+def rank_two_ways(V, c):
+    """r(C): the least cut family by search, and the largest q-rank."""
+    C = [V.mul(k, c) for k in range(V.order(c))]
+    Cmask = V.mask(C)
+    cuts = [K for K in V.kernels() if K & Cmask == Cmask]
+    by_search = next(s for s in range(0, len(cuts) + 1)
+                     if any(_meet(f, V.full) == Cmask
+                            for f in combinations(cuts, s)))
+    by_rank = 0
+    for q in prime_factors(V.N):
+        CqV = {V.add(V.mul(q, v), z) for v in V.pts for z in C}
+        size, r = len(V.pts) // len(CqV), 0
+        while size > 1:
+            size //= q
+            r += 1
+        by_rank = max(by_rank, r)
+    return by_search, by_rank, cuts, Cmask
+
+
+def _meet(fam, full):
+    m = full
+    for K in fam:
+        m &= K
+    return m
+
+
+def canonical(V, c, cuts, Cmask, r):
+    d = V.order(c)
+    fam = list(next(f for f in combinations(cuts, r)
+                    if _meet(f, V.full) == Cmask))
+    e0 = next(e for e in V.pts if V.N // gcd(V.chi(e, c), V.N) == d)
+    for q in prime_factors(d):
+        fam.append(V.kernel(V.mul(d // q, e0)))
+    return fam
+
+
+BATTERY = [
+    ("ord-5 orbit (t, t^2), p = 11", (10, 10), (2, 4)),
+    ("order-6 pair, p = 7", (6, 6), (1, 5)),
+    ("order-6 pair, p = 13", (12, 12), (2, 10)),
+    ("mixed ord 2 x ord 3, p = 13", (12, 12), (6, 4)),
+    ("primitive orbit, p = 31", (30, 30), (1, 1)),
+    ("three leaves (Z/6)^3", (6, 6, 6), (1, 1, 1)),
+    ("rank-3 cut (Z/2)^4", (2, 2, 2, 2), (1, 0, 0, 0)),
+    ("rank-2 socle Z/6 x (Z/3)^2", (6, 3, 3), (1, 1, 1)),
+    ("order 4, Z/12 x (Z/2)^2", (12, 2, 2), (3, 0, 0)),
+    ("order 8, Z/24 x (Z/2)^2", (24, 2, 2), (3, 0, 0)),
+]
+
+
+def section_o():
+    print("O  the orbit-cost theorem")
+    counts, ok = [], True
+    for p in (11, 13):
+        n, g = p - 1, primroot(p)
+        ex = [pow(g, k, p) for k in range(n)]
+        V = Group((n, n))
+        field = set()
+        for i, j in V.pts:
+            for m in divisors(n):
+                field.add(V.mask((x, y) for x, y in V.pts
+                                 if pow(pow(ex[x], i, p) * pow(ex[y], j, p),
+                                        m, p) == 1))
+        ok &= field == set(V.kernels())
+        counts.append(len(field))
+    check("O1 field gate shadows = dlog character kernels, p = 11, 13",
+          ok and counts == [28, 50], f"{counts[0]} and {counts[1]}")
+    ok, rows = True, 0
+    for n in (6, 12, 30, 60, 360):
+        D = divisors(n)
+        filt = [sum(1 << D.index(e) for e in D if m % e == 0) for m in D]
+        for d in D:
+            law = omega(n) if d == n else omega(d) + 1
+            me = 1 << D.index(d)
+            full = (1 << len(D)) - 1
+            best = next(s for s in range(0, law + 1)
+                        if any(atom_decides(f, D.index(d), me, full)
+                               for f in combinations(filt, s)))
+            ok &= best == law
+            rows += 1
+    check("O2 one leaf: [ord x = d] costs omega(d) + 1, omega(n) at d = n",
+          ok, f"{rows} targets over n in 6, 12, 30, 60, 360")
+    laws = []
+    for name, ns, c in BATTERY:
+        V = Group(ns)
+        d = V.order(c)
+        r1, r2, cuts, Cmask = rank_two_ways(V, c)
+        law = r1 + omega(d)
+        laws.append(law)
+        O = [V.mul(u, c) for u in units(d)]
+        Omask, cbit = V.mask(O), V.idx[c]
+        fam = canonical(V, c, cuts, Cmask, r1)
+        up = atom_decides(fam, cbit, Omask, V.full)
+        K = list(V.kernels())
+        tried = 0
+        low = True
+        for s in range(1, law):
+            for f in combinations(K, s):
+                tried += 1
+                if atom_decides(f, cbit, Omask, V.full):
+                    low = False
+                    break
+        check(f"O3 {name}: r(C) = {r1} both ways, cost {law} = "
+              f"{r1} + omega({d})", r1 == r2 and up and low,
+              f"{len(K)} kernels, {tried} smaller families fail")
+    check("O3 laws: the predicted 3, 3, 4, 4, 4, 4, 4, 4, 3, 3",
+          laws == [3, 3, 4, 4, 4, 4, 4, 4, 3, 3], f"{laws}")
+    minima = {}
+    for q, r in ((2, 1), (2, 2), (2, 3), (3, 1), (3, 2)):
+        pts = [y for y in product(range(q), repeat=r) if any(y)]
+        fns = list(product(range(q), repeat=r))     # the zero one too
+        need = set(range(1, q)) if q > 2 else {0, 1}
+
+        def serves(fam):
+            return all(need <= {sum(a * b for a, b in zip(f, y)) % q
+                                for f in fam} for y in pts)
+        minima[(q, r)] = next(s for s in range(1, len(fns) + 1)
+                              if any(serves(f)
+                                     for f in combinations(fns, s)))
+    okf = all(m >= r + 1 for (q, r), m in minima.items()) and \
+        list(minima.values()) == [2, 3, 4, 2, 4]
+    okc = True
+    for d in (6, 30, 210, 1722):
+        Q = prime_factors(d)
+        for cl in product(*[range(q) for q in Q]):
+            if all(any(x % q == a for q, a in zip(Q, cl)) for x in range(d)):
+                okc = False
+    check("O4 covering rigidity: functional minima 2, 3, 4, 2, 4, each "
+          ">= r + 1; one class per prime never covers Z/d", okf and okc,
+          " ".join(f"({q},{r}):{m}" for (q, r), m in minima.items()))
+
+
+# ------------------------------------------------------------ H
+def heights(p):
+    """Least operation count of a one-leaf word constant on 2..p-1."""
+    dom = range(2, p)
+    leaf = tuple(dom)
+    best = {leaf: 0}
+    level = {0: [leaf]}
+    want = {tuple(c for _ in dom): c for c in range(2, p)}
+    found = {}
+    t = 0
+    while len(found) < len(want):
+        t += 1
+        new = set()
+        for f in level[t - 1]:
+            new.add(tuple((1 - v) % p for v in f))
+            new.add(tuple(inv(v, p) for v in f))
+        for i in range(t):
+            for f in level[i]:
+                for h in level[t - 1 - i]:
+                    new.add(tuple(x * y % p for x, y in zip(f, h)))
+        level[t] = [f for f in new if f not in best]
+        for f in level[t]:
+            best[f] = t
+            if f in want:
+                found[want[f]] = t
+    return found
+
+
+def section_h():
+    print("H  the height floor")
+    W = [1]
+    for t in range(1, 25):
+        W.append(2 * W[t - 1] + sum(W[i] * W[t - 1 - i] for i in range(t)))
+    cum = [sum(W[:t + 1]) for t in range(25)]
+    floor = lambda size: next(t for t in range(25) if cum[t] >= size)
+    exp = {5: {2: 7, 3: 7, 4: 6},
+           7: {2: 7, 3: 11, 4: 8, 5: 11, 6: 6}}
+    for p in (5, 7):
+        h = heights(p)
+        check(f"H1 p = {p}: exact heights, max {max(h.values())} >= "
+              f"floor {floor(p - 2)}, h(-1) = {h[p - 1]}",
+              h == exp[p] and max(h.values()) >= floor(p - 2)
+              and h[p - 1] == 6,
+              " ".join(f"h({c})={v}" for c, v in sorted(h.items())))
+    check("H2 the floor grows: 5 at p - 2 = 10^3, 9 at 10^6",
+          (floor(10 ** 3), floor(10 ** 6)) == (5, 9),
+          f"W(0..6) = {W[:7]}")
+
+
+def main():
+    section_w()
+    section_x()
+    section_a()
+    section_o()
+    section_h()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()

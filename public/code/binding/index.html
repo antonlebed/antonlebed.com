@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>binding.py | Numbers read one place at a time</title>
+<meta name="description" content="binding.py">
+<link rel="alternate" type="text/x-python" href="/code/binding.py">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a></nav></header>
+<main><article>
+<h1>binding.py</h1>
+<div class="src" data-generated="uses"><p>Checks: <a href="/binding/#the-dictionary-criterion">BINDING: The dictionary criterion</a> (criterion); <a href="/binding/#the-additive-twin">BINDING: The additive twin</a> (theorem); <a href="/binding/#the-superposition-wall">BINDING: The superposition wall</a> (theorem); <a href="/binding/#the-mixing-bound">BINDING: The mixing bound</a> (theorem); <a href="/binding/#the-characteristic-cap">BINDING: The characteristic cap</a> (theorem); <a href="/binding/#the-capacity-sweep">BINDING: The capacity sweep</a> (pattern).</p><p>Cited on: <a href="/binding/">BINDING</a>.</p><p>To run it: no other script; needs numpy.</p></div>
+<pre>"""
+binding.py -- what the ring's multiplication keeps of a code, what its
+addition breaks, and where a superposition's count has to live.
+
+QUESTION. Store symbols in a finite product of fields R = K_1 x ... x K_k
+(a squarefree Z/M, or F_q[x]/f with f squarefree) as words read
+channel by channel, and compute on them with the ring's own operations.
+Multiplying by a unit (BINDING) and adding (BUNDLING, superposition)
+are the two operations a vector-symbolic store needs. Which codes does
+each keep? When the sum breaks a code, what does a store that
+superposes anyway (bipolar vectors added coordinatewise, read back by
+correlation) spend to survive the sum, and is that spend the
+archimedean place's, the characteristic's, or the channel's?
+
+THE ARGUMENT (written before this script).
+  (1) THE DICTIONARY CRITERION. The Hamming distance between words is
+      the number of channels where they differ. A set of units closed
+      under multiplication is a finite monoid of units, so a subgroup of
+      U(R). A primitive root per channel carries U(R) onto the index
+      ring prod Z/(|K_i| - 1), multiplication onto addition, and a
+      differs from b at channel i iff their indices differ there. So
+      a dictionary of units closed under its own products IS a group code in
+      the index ring, its distance is the least index weight of a
+      non-identity word, and any group code there is such a
+      dictionary: the coding theory of group codes imports whole.
+      Multiplication by a unit is a channel-local bijection, so it
+      keeps every distance (and a -&gt; ua + w, u a unit and w any
+      element, is an isometry), and the channels a product gets wrong
+      lie inside the union of its factors' wrong channels.
+  (2) THE ADDITIVE TWIN. Over Z/M the additive group is cyclic, so an
+      additively closed dictionary is a subgroup eZ/M with e | M, an
+      ideal, and one with e &lt; M holds M/l for a prime l dividing M/e,
+      0 at every channel but l's, a word of weight 1: distance 1,
+      correcting nothing. This is Z's and not the product's: over F_q[x]/f the
+      additive group is a vector space, and when f splits into distinct
+      linear factors the polynomials of degree &lt; k read at its n roots
+      are a Reed-Solomon code, additively closed with distance
+      n - k + 1. Degree obeys
+      deg(a + b) &lt;= max(deg a, deg b), the ultrametric inequality at
+      the place at infinity; the integers below B are not closed under
+      the sum, since |a + b| &lt;= |a| + |b| is not a maximum.
+  (3) THE SUPERPOSITION WALL (as frozen; the argument holds at every
+      radius t &lt; d, not only t &lt; d/2). Let C contain 0 with distance
+      d &gt;= 3, and let r_1, r_2 be units. Unbinding the two-item bundle
+      r_1 a_1 + r_2 a_2 by r_1 gives a_1 + u a_2 with u a unit, which
+      differs from a_1 exactly on the support of a_2, of size at least
+      d whenever a_2 != 0 (a_2 and 0 are codewords). A decoder of
+      radius t &lt; d/2 never returns a_1: the distance that guarantees
+      the snap forbids the sum. Nothing here reads a place [read: an
+      absolute value; the channels are places, and they are counted]; it holds
+      over every product of fields. The cure is the direct sum: give
+      the j-th item the idempotent e_{S_j} of a channel set, the S_j
+      disjoint; the bundle sum_j e_{S_j} a_j returns each a_j exactly
+      on S_j, at capacity the channel partition.
+  (4) THE MIXING BOUND (as frozen; even g is settled on audit below). Take a bipolar store: D coordinates, each item a
+      +-1 vector, bound by a +-1 role, bundled by the carrier's own
+      addition. Unbinding by the true role leaves, per coordinate, the
+      true item's value plus a sum of m - 1 independent uniform +-1
+      steps. If the carrier is a finite group G, this noise is the
+      n-step walk nu = mu^(*n), n = m - 1, and by the upper bound lemma
+      4 ||nu - eta||^2 &lt;= sum over nontrivial characters of
+      |mu^(chi)|^(2n) &lt;= (|G| - 1) lambda^(2n), with lambda the largest
+      nontrivial |mu^(chi)|; for +-1 on Z/g, g odd, lambda = cos(pi/g).
+      Under any hypothesis the bundle's law is a product over the D
+      coordinates, and total variation is subadditive over products, so
+      it lies within D ||nu - eta|| of the uniform law eta, which does not
+      depend on the hypothesis. Hence ANY readout choosing among N
+      equally likely candidates is right with probability at most
+      1/N + (D/2) sqrt(|G| - 1) lambda^(m - 1): capacity grows like
+      log D / log(1/lambda), about (2 g^2 / pi^2) log D on Z/g. The
+      bound needs G finite, not the ring: the count wraps. Over the
+      integers it does not wrap, and the correlation readout's capacity
+      is the linear one the literature measures (a TRANSPLANT here:
+      unmeasured before this run).
+  (5) WHICH DIFFERENCE OWNS THE RESCUE (as frozen; see SETTLED ON AUDIT). In characteristic p every
+      finitely supported step law lives in the F_p-span of its support,
+      a finite group, so (4) caps the capacity whatever the precision
+      of the reader: over F_q[x] at the place x = 0 read to P digits,
+      a +-1 bundle is a walk on F_p. In characteristic 0 the +-1 walk
+      is the integer walk, held without wrap by Z/g once g exceeds its
+      range, so a 3-adic reader of P digits holds it for m up to about
+      9^P / (some constant): capacity bought by precision, through
+      carries. Both carriers keep the same P base-3 digits; one adds
+      with carries and one without.
+
+PREDICTIONS (fixed before the run). Every check prints PASS. The
+subgroups of U(210) number more than 10 and each has distance equal to
+its least index weight; every additive subgroup of Z/210 and Z/2310
+but 0 has distance 1; Reed-Solomon over F_7 of dimension k has distance
+8 - k for k = 1..6 and is additively closed. The sign hypercube built
+on [7, 4, 3] Hamming has distance 3 and corrects every single wrong
+channel; the octave has all 28 pairs at distance 7; Z/510510's unit of
+order 240 has distance 1. The wall retrieves 0 of 2000 at Z/510510 and 0 of
+2000 over F_7, least noise weight 4 and 5. The mixing bound holds at
+every g and n computed. The carrier sweep (CAPACITY m* = largest grid
+m with success &gt;= 0.9, D = 1000, N = 100):
+  A  Z                      m* &gt;= 48
+  B  Z/3^P, P = 1..4        m* nondecreasing in P, B(4) = A
+  C  F_3[x]/x^P, P = 1..4   m* equal across P, = B(1) = D(3)
+  D  F_p, p = 3..13         m* nondecreasing in p
+POSITIVE CONTROL, read first: success 1.0 at m = 1 in every arm.
+KILLS (observables):
+  K1  C: m*(P=4) &gt; m*(P=1)         -- decided by (5) as a proof; the
+      print can only confirm it.
+  K2  B: m*(P=4) &lt;= m*(P=1)        -- the precision claim dies.
+  K3  D: m*(3) &gt;= A m* / 2         -- the window claim dies.
+  K4  any arm, any m: success - 1/N above the bound of (4) by more
+      than 3 binomial sd           -- (4) has a bug.
+SECOND READOUT (added after the first run, predictions fixed before
+the second). The first run's correlation readout is the standard one,
+not the best: when the walk wraps, the centred lift can reverse the
+correlation's sign (on F_3 at m = 2 the true item's expected
+correlation per coordinate is exactly -1/2). The ceiling that (4)
+bounds is the MAP readout, score_j = sum_i log nu(b_i - v_j,i) with
+nu the carrier's own walk law. PREDICTIONS: MAP m* nondecreasing in p
+on F_p and in P on Z/3^P, flat in P on F_3[x]/x^P and equal to F_3's,
+MAP on Z at least correlation on Z, MAP m* on F_3 at most 8 (the bound
+of (4) is below 0.9 from m = 11 at D = 1000), and no arm under either
+readout above the bound.
+
+DESIGN. Sections of checks printing PASS or FAIL.
+  D  the dictionary criterion: every subgroup of U(210), its
+     distance against its least index weight; the additive subgroups
+     of Z/210 and Z/2310; Reed-Solomon over F_7 read at the seven roots
+     of x^7 - x, its distance for k = 1..6 (closure holds by
+     construction, the words being a linear map's image); the sign hypercube
+     over 3, 5, 7, 11, 13, 17, 19; the octave over the seven primes
+     17, 41, 73, 89, 97, 113, 137, each = 1 mod 8; Z/510510's unit of order
+     lambda(510510) = 240; the fault union on 5000 seeded pairs at Z/510510,
+     the faulty words glued by CRT and multiplied in the ring.
+  W  the superposition wall: 2000 seeded bundles of two nonzero
+     codewords of the residue code at Z/510510 (data below 210, distance 4)
+     under roles drawn from all of its units, decoded at radius 3, d - 1,
+     the widest the theorem covers; the same over F_7 with Reed-Solomon
+     [7, 3, 5] at radius 4; the direct-sum cure at
+     Z/510510 with slots 30, 77, 221 on 1000 seeded triples.
+  M  the mixing bound: the exact law of the +-1 walk on Z/g for
+     g = 3, 5, 7, 9, 27, 81, n = 1..60, against the bound.
+  C  the carrier sweep: per trial one codebook of N = 100 random +-1
+     vectors of length D = 1000 and m - 1 more random +-1 items, their
+     integer sum s = v_1 + sum of the rest per coordinate (roles are
+     +-1 and cancel on unbinding, so they are folded in). Each arm
+     reduces s by its own addition: Z keeps s; Z/g takes s mod g;
+     F_3[x]/x^P adds the items' digit vectors coefficientwise without
+     carry, each +-1 being the constant 1 or 2. The readout reads each
+     carrier's value as a signed integer (the centred representative
+     on Z/g and F_p; each coefficient as a signed digit weighted by 3^k
+     on F_3[x]/x^P) and scores
+     each candidate by its dot product with that; since the lift is
+     odd, that is the lifted unbound bundle's correlation with the
+     candidate. A tie shares the win. 200 trials per m, grid
+     1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, seed fixed.
+     The MAP readout (added after the first run) weights coordinate i
+     by (log nu(b_i - 1) - log nu(b_i + 1)) / 2, b_i the carrier's
+     reduction of s, and scores each candidate by its dot product with
+     the weights; on F_3[x]/x^P the walk and every bundle sit in the
+     constants, so nu is the walk on F_3.
+  M  (after the first run) the walk law is counted exactly, integer
+     paths over 2^n, and compared with the bound in logs: at g = 3,
+     n = 60 the bound is near 6e-19, below double-precision noise.
+
+RUN RECORD. First run: 17 of 18 PASS. Sections D, W and M as
+predicted: 50 subgroups of U(210), each at its least index weight; 46
+additive subgroups of Z/210 and Z/2310, every nonzero one at distance
+1; the sign hypercube's 16 words over 3..19 at distance 3; least noise
+weight 4 at Z/510510 and 5 over F_7, retrieval 0 of 2000 at both. The
+correlation readout's m*: Z 64; Z/3^P 3, 8, 32, 64 for P = 1..4;
+F_3[x]/x^P 3, 3, 3, 3; F_p 3, 6, 3, 8, 16 for p = 3, 5, 7, 11, 13. The
+FAILED prediction is the last: F_p is not monotone under correlation,
+because a wrap reverses the correlation's sign (F_3 scores 0.00 at
+m = 2 and 1.00 at m = 3; F_7 scores 0.00 at m = 6). The first run's M
+check also passed only through its 1e-12 tolerance, the float bound
+falling to 1e-19 at g = 3; both were repaired before the second run
+(SECOND READOUT; M counted exactly).
+
+Second run: 23 of 23 PASS, every second-run prediction met. M exact:
+the largest log(TV / bound) over g = 3, 5, 7, 9, 27, 81, n &lt;= 60 is
+-0.059. MAP m*:
+Z 64; Z/3^P 4, 16, 64, 64; F_3[x]/x^P 4, 4, 4, 4; F_p 4, 8, 16, 24, 32.
+MAP and correlation print identical rows on Z (the MAP weight on Z is
+monotone in the count and near-linear while |s| is well below m),
+and Z/81's MAP row is Z's (0.99, 0.94, 0.80,
+0.55 at m = 48, 64, 96, 128). The correlation readout is unchanged
+from the first run. The bound holds in every arm under both readouts,
+and is loose: where it falls below 1 the largest MAP success above chance
+is 0.01, so it bounds and does not predict.
+
+Third run: 27 of 27 PASS, the 23 of the second run, the even-g coset
+check, and three added: the bound solved for 0.9 permits m &lt;= [10, 34,
+70, 181, 257] on F_p, p = 3..13, against MAP m* [4, 8, 16, 24, 32];
+Z/81's MAP weights equal Z's at every count a bundle can take at m = 48
+and 64, and Z/27's at m = 64 do not, even inside |t| &lt; m, t the
+coordinate's count; at each finite arm's MAP edge the radius of
+agreement with Z's weight and the count's mass past it, as in (d).
+
+Fourth run: 28 of 28 PASS. The edge's agreement test was absolute
+(within 0.01 of Z's weight) while the score V @ w ignores a positive
+factor on w, so F_3's radius 0 was the tolerance's artifact (its weights
+at t = 2 are 0.369 times Z's, exactly). The test now reads the weight
+against alpha times Z's, alpha matched at t = 2, within 1%, and its
+check asked only that every edge's mass past the radius be under half,
+which at c &lt;= 9 it could not fail: agreement at t = 2 holds by
+construction, and radius 2 alone leaves under half past it there.
+
+Fifth run: 28 of 28 PASS. Only the lifts past t = 2 test anything (an
+intermediate version asserted radius &gt;= 4; exact radii replaced it).
+Positive control, asserted: F_5 at m = 8 parts at t = 4 (0.226 against
+0.909 x 0.549 = 0.499, by hand), mass 74/256 = 0.289 past t = 2, as
+computed by hand. The check: the 1% radii are 4, 4, 4, 20 at c = 9, 11,
+13, 27 and 2 at c = 5, 7; F_3's window holds t = 2 alone and is
+undecided. The absolute band's radii print beside them: 0, 0, 2, 4, 6,
+6, 20 at c = 3, 5, 7, 9, 11, 13, 27.
+
+FINDINGS. (a) Binding keeps every group code of the index ring and
+addition over Z/M keeps only distance 1; over F_q[x] addition keeps
+Reed-Solomon, the ultrametric inequality at infinity (theorem, proved in
+(1), (2); section D its instances). (b) The superposition wall is the
+code's distance and reads no absolute value, only channels (theorem,
+(3); section W over Z and
+over F_7). (c) On a finite carrier every readout's capacity is at most
+logarithmic in D (theorem, (4); at even order the walk sits on one
+parity coset and the bound holds there with |G| - 2 and cos(2 pi/g),
+checked exactly at g = 4, 8, 16, 32, 64). (d) The capacity of a bipolar
+bundle on a finite carrier is set by its characteristic c &gt; 0, the
+additive order of 1: the +-1 walk lives in the prime ring Z/c, so (4)
+caps it at O(c^2 log(Dc)), and c &gt; 2m reads it exactly as Z does (an odd
+c &gt; m already keeps every likelihood: Z/81's MAP matches Z's at m = 48
+and 64). Z's quotients reach every c; F_q[x]'s stay at p at every
+precision (proved in (5); the F_3[x]/x^P rows are F_3's by construction
+and confirm nothing the proof did not). Measured at D = 1000, N = 100,
+200 trials: capacity grows with c on Z/3^P and F_p alike, carries or
+not, and every finite arm's MAP m* lies past the wrap c/2 (pattern). At
+the edges with c &lt;= m (c odd, m even) a residue names one count of the
+parity of m in (-c, c) (c odd suffices). Read against alpha times
+Z's, alpha matched at t = 2, the MAP weight keeps Z's shape within 1%
+one lift past t = 2, to |t| = 4, on Z/9, Z/11 and Z/13 (parting at
+t = 6) and to 20 on Z/27, alpha within 0.01 of 1, the count lying past
+that with probability 0.210, 0.307, 0.377, 0.008; on Z/5 and Z/7 it
+parts at t = 4 (alpha 0.909, 0.927), and Z/3, whose lifts are 0 and
++-2, cannot be decided (alpha 0.369). Only at Z/27 does the agreement
+reach past almost every count. The radius is the 1% band's: an
+absolute band of 0.01 gives 0, 0, 2, 4, 6, 6, 20 at c = 3, 5, 7, 9,
+11, 13, 27.
+
+SETTLED ON AUDIT. (d) was first written as "a count that does not wrap,
+bought by characteristic 0's carries". The rows contradict it: MAP holds
+past the wrap (Z/9 at m = 16, F_3 at m = 4, F_13 at 0.96 at m = 32), and
+F_13 buys capacity with no carry. "No size" at the edge was first read
+off the centred lift, whose alternating signs are its artifact (an odd
+residue there stands for a count c away), then off an absolute tolerance
+on weights whose scale the score ignores. Read up to that scale, F_5 and
+F_7 part from Z's shape at t = 4, Z/9, Z/11 and Z/13 one lift later, F_3
+cannot be decided, and among the edges with c &lt;= m only Z/27 keeps the
+shape past almost every count. The residue fixes the count outright
+where c &gt; 2m, or c &gt; m for odd c (Z/81 at its edge m = 64). The bound of
+(4) is loose there (solved for 0.9 it permits m = 10, 34, 70, 181, 257
+at c = 3, 5, 7, 11, 13 against 4, 8, 16, 24, 32 measured) and permits,
+never explains. The U(210) check was widened from the 50 two-generated
+subgroups to all 54, the 53 nontrivial ones checked.
+
+Sixth run, after an audit rebuilt the checks that replayed their own
+arithmetic: 28 of 28 PASS. The fault union multiplies in the ring; the
+wall decodes at radius d - 1 under roles drawn from every unit, 0 of
+2000 at both codes; U(210)'s 54 subgroups are counted; the unit of
+order 240 is checked to have that order, u^60 = 1 everywhere but at 17;
+Z's MAP weight is checked against (1/2) log((m + t)/(m - t)); Z/130
+at m = 64 joins the c &gt; 2m case; the K1 rows print and are not checked,
+equal by construction. The mixing bound's largest log ratio per g reads
+-0.059, -0.299, -0.435, -0.536, -1.006, -1.522 at g = 3, 5, 7, 9, 27,
+81: near-tight at g = 3 alone. Wall 9.7 s, peak 57 MB (memory guard).
+
+Run: python binding.py   (under ten seconds, under 100 MB)
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
+import random
+from itertools import combinations, product
+from math import cos, exp, gcd, log, pi, prod, sqrt
+
+import numpy as np
+
+CHECKS = []
+
+
+<span id="check"></span>def check(name, ok, detail=""):
+    CHECKS.append(bool(ok))
+    tail = f"  ({detail})" if detail else ""
+    print(f"  {'PASS' if ok else 'FAIL'}  {name}{tail}")
+
+
+<span id="crt"></span>def crt(res, mods):
+    M = prod(mods)
+    x = 0
+    for r, m in zip(res, mods):
+        n = M // m
+        x += r * n * pow(n, -1, m)
+    return x % M
+
+
+<span id="primitive_root"></span>def primitive_root(p):
+    if p == 2:
+        return 1
+    fs = [q for q in range(2, p) if (p - 1) % q == 0
+          and all(q % r for r in range(2, int(q ** 0.5) + 1))]
+    for g in range(2, p):
+        if all(pow(g, (p - 1) // q, p) != 1 for q in fs):
+            return g
+
+
+<span id="dlog"></span>def dlog(x, g, p):
+    if p == 2:
+        return 0
+    y = 1
+    for e in range(p - 1):
+        if y == x % p:
+            return e
+        y = y * g % p
+
+
+<span id="weight"></span>def weight(x, y, mods):
+    return sum((x - y) % m != 0 for m in mods)
+
+
+<span id="code_distance"></span>def code_distance(words, mods):
+    return min(weight(a, b, mods) for a, b in combinations(words, 2))
+
+
+# ------------------------------------------------------------ D criterion
+
+<span id="section_d"></span>def section_d():
+    print("D  the dictionary criterion")
+    mods = [2, 3, 5, 7]
+    M = 210
+    units = [x for x in range(M) if gcd(x, M) == 1]
+    roots = {p: primitive_root(p) for p in mods}
+    def generate(gens):
+        H, frontier = {1}, [1]
+        while frontier:
+            y = frontier.pop()
+            for a in gens:
+                z = y * a % M
+                if z not in H:
+                    H.add(z)
+                    frontier.append(z)
+        return frozenset(H)
+
+    # every subgroup: close the cyclic ones under adding a generator
+    subgroups = {generate((a,)) for a in units}
+    while True:
+        grown = {generate(tuple(H) + (c,)) for H in subgroups
+                 for c in units}
+        if grown &lt;= subgroups:
+            break
+        subgroups |= grown
+    ok = True
+    for H in subgroups:
+        if len(H) &lt; 2:
+            continue
+        index_w = min(sum(dlog(h, roots[p], p) != 0 for p in mods)
+                      for h in H if h != 1)
+        ok &amp;= code_distance(sorted(H), mods) == index_w
+    nontrivial = sum(len(H) &gt; 1 for H in subgroups)
+    check("all 54 subgroups of U(210): distance = least index weight",
+          ok and len(subgroups) == 54,
+          f"{len(subgroups)} subgroups, {nontrivial} nontrivial checked")
+
+    ok, n_sub = True, 0
+    for M2, ps in ((210, [2, 3, 5, 7]), (2310, [2, 3, 5, 7, 11])):
+        for d in (d for d in range(1, M2) if M2 % d == 0):
+            words = list(range(0, M2, d))
+            ok &amp;= min(sum(w % p != 0 for p in ps) for w in words if w) == 1
+            n_sub += 1
+    check("additive subgroups of Z/210, Z/2310: every nonzero one has "
+          "distance 1", ok, f"{n_sub} subgroups")
+
+    q, pts = 7, list(range(7))
+    ok = True
+    for k in range(1, 7):
+        words = []
+        for coeffs in product(range(q), repeat=k):
+            words.append(tuple(sum(c * pow(a, i, q) for i, c in
+                                   enumerate(coeffs)) % q for a in pts))
+        # closure holds by construction: the words are the image of a
+        # linear evaluation map, so only the distance is tested
+        wmin = min(sum(v != 0 for v in w) for w in words if any(w))
+        ok &amp;= wmin == 8 - k
+    check("Reed-Solomon over F_7, k = 1..6: distance 8 - k, every word",
+          ok)
+
+    ps = [3, 5, 7, 11, 13, 17, 19]
+    G = [(1, 0, 0, 0, 1, 1, 0), (0, 1, 0, 0, 1, 0, 1),
+         (0, 0, 1, 0, 0, 1, 1), (0, 0, 0, 1, 1, 1, 1)]
+    cws = {tuple(sum(c * g[i] for c, g in zip(cs, G)) % 2 for i in range(7))
+           for cs in product(range(2), repeat=4)}
+    words = [crt([p - 1 if b else 1 for b, p in zip(cw, ps)], ps)
+             for cw in cws]
+    MS = prod(ps)
+    wset = set(words)
+    closed = all(x * y % MS in wset for x in words for y in words)
+    ok_snap = True
+    for w in words:
+        for i, p in enumerate(ps):
+            for bad in range(p):
+                if bad == w % p:
+                    continue
+                res = [w % pp for pp in ps]
+                res[i] = bad
+                y = crt(res, ps)
+                near = [c for c in words if weight(c, y, ps) &lt;= 1]
+                ok_snap &amp;= near == [w]
+    check("sign hypercube on Hamming [7, 4, 3]: closed under products, "
+          "distance 3, every single wrong channel snaps back",
+          closed and code_distance(words, ps) == 3 and ok_snap,
+          f"{len(words)} words over 3..19")
+
+    ps8 = [17, 41, 73, 89, 97, 113, 137]
+    gs = []
+    for p in ps8:
+        r = primitive_root(p)
+        gs.append(pow(r, (p - 1) // 8, p))
+    g = crt(gs, ps8)
+    M8 = prod(ps8)
+    octave = [pow(g, j, M8) for j in range(8)]
+    dists = [weight(a, b, ps8) for a, b in combinations(octave, 2)]
+    check("the octave: all 28 pairs at distance 7",
+          len(dists) == 28 and set(dists) == {7})
+
+    rad = [2, 3, 5, 7, 11, 13, 17]
+    R = prod(rad)
+    u = crt([1] + [primitive_root(p) for p in rad[1:]], rad)
+    lam = 1
+    for p in rad:
+        lam = lam * (p - 1) // gcd(lam, p - 1)
+    orbit = [pow(u, j, R) for j in range(lam)]
+    dmin = min(sum(o % p != 1 % p for p in rad) for o in orbit[1:])
+    z60 = [p for p in rad if pow(u, 60, R) % p != 1]
+    check("Z/510510's unit of order lambda = 240: distance 1, u^60 = 1 "
+          "at every channel but 17",
+          lam == 240 and pow(u, lam, R) == 1 and len(set(orbit)) == lam
+          and dmin == 1 and z60 == [17], f"u^60 differs from 1 at {z60}")
+
+    # the product is taken in Z/510510 itself, the faulty words glued by
+    # CRT, and only then read back channel by channel
+    rng = random.Random(7)
+    ok = True
+    for _ in range(5000):
+        x, y = rng.randrange(R), rng.randrange(R)
+        xb, yb = list(x % p for p in rad), list(y % p for p in rad)
+        for v in (xb, yb):
+            for i in rng.sample(range(7), rng.randrange(3)):
+                v[i] = rng.randrange(rad[i])
+        wx = {p for p, a, b in zip(rad, xb, (x % p for p in rad)) if a != b}
+        wy = {p for p, a, b in zip(rad, yb, (y % p for p in rad)) if a != b}
+        xy = crt(xb, rad) * crt(yb, rad) % R
+        wxy = {p for p in rad if xy % p != x * y % p}
+        ok &amp;= wxy &lt;= wx | wy
+    check("fault union: wrong(xy) inside wrong(x) | wrong(y), the product "
+          "taken in Z/510510, 5000 pairs", ok)
+
+
+# ------------------------------------------------------------- W wall
+
+<span id="section_w"></span>def section_w():
+    print("W  the superposition wall")
+    rad = [2, 3, 5, 7, 11, 13, 17]
+    R = prod(rad)
+    code = list(range(210))
+    rng = random.Random(11)
+
+    def unit():
+        while True:
+            u = rng.randrange(1, R)
+            if gcd(u, R) == 1:
+                return u
+    # a decoder of radius r returns every codeword within r channels; at
+    # r = d - 1, the widest the theorem covers, a_1 must never be among them
+    hits, least = 0, 99
+    for _ in range(2000):
+        f1, f2 = rng.randrange(1, 210), rng.randrange(1, 210)
+        r1, r2 = unit(), unit()
+        b = (r1 * f1 + r2 * f2) % R
+        q = b * pow(r1, -1, R) % R
+        least = min(least, weight(q, f1, rad))
+        near = [c for c in code if weight(c, q, rad) &lt;= 3]
+        hits += f1 in near
+    check("residue code at Z/510510 (distance 4): two-item bundle, decoded "
+          "at radius 3, returns a_1 0 of 2000", hits == 0 and least &gt;= 4,
+          f"least noise weight {least}")
+
+    q7, pts = 7, list(range(7))
+    words = [tuple(sum(c * pow(a, i, q7) for i, c in enumerate(cs)) % q7
+                   for a in pts) for cs in product(range(q7), repeat=3)]
+    hits, least = 0, 99
+    for _ in range(2000):
+        f1 = rng.choice(words[1:])
+        f2 = rng.choice(words[1:])
+        r1 = [rng.randrange(1, 7) for _ in pts]
+        r2 = [rng.randrange(1, 7) for _ in pts]
+        b = [(a * x + c * y) % 7 for a, x, c, y in zip(r1, f1, r2, f2)]
+        qv = tuple(bb * pow(a, -1, 7) % 7 for bb, a in zip(b, r1))
+        least = min(least, sum(x != y for x, y in zip(qv, f1)))
+        near = [w for w in words if sum(x != y for x, y in zip(w, qv)) &lt;= 4]
+        hits += f1 in near
+    check("Reed-Solomon [7, 3, 5] over F_7, decoded at radius 4: returns "
+          "a_1 0 of 2000", hits == 0 and least &gt;= 5,
+          f"least noise weight {least}")
+
+    slots = [30, 77, 221]
+    idem = []
+    for s in slots:
+        e = crt([1 if s % p == 0 else 0 for p in rad], rad)
+        idem.append(e)
+    ok = True
+    for _ in range(1000):
+        xs = [rng.randrange(R) for _ in slots]
+        b = sum(e * x for e, x in zip(idem, xs)) % R
+        for s, x in zip(slots, xs):
+            ok &amp;= b % s == x % s
+    check("direct-sum cure at Z/510510, slots 30, 77, 221: every item exact",
+          ok, "1000 triples")
+
+
+# ----------------------------------------------------------- M mixing
+
+<span id="walk_counts"></span>def walk_counts(g, n):
+    """The n-step +-1 walk on Z/g, as integer counts over 2^n paths."""
+    c = [0] * g
+    c[0] = 1
+    for _ in range(n):
+        c = [c[(x - 1) % g] + c[(x + 1) % g] for x in range(g)]
+    return c
+
+
+<span id="log_bound"></span>def log_bound(g, n):
+    return log(0.5) + 0.5 * log(g - 1) + n * log(cos(pi / g))
+
+
+<span id="bound"></span>def bound(g, n):
+    return exp(log_bound(g, n))
+
+
+<span id="section_m"></span>def section_m():
+    print("M  the mixing bound")
+    ok, per_g = True, {}
+    for g in (3, 5, 7, 9, 27, 81):
+        for n in range(1, 61):
+            c = walk_counts(g, n)
+            # 2 * g * 2^n * TV = sum |g c_x - 2^n|, an exact integer
+            num = sum(abs(g * cx - 2 ** n) for cx in c)
+            log_tv = log(num) - log(2 * g) - n * log(2)
+            ok &amp;= log_tv &lt;= log_bound(g, n) + 1e-9
+            per_g[g] = max(per_g.get(g, -1e9), log_tv - log_bound(g, n))
+    print("     largest log(TV / bound) per g: " + ", ".join(
+        f"g = {g}: {v:.3f}" for g, v in per_g.items()))
+    check("+-1 walk on Z/g: TV &lt;= (1/2) sqrt(g - 1) cos(pi/g)^n, exact "
+          "counts compared in logs", ok,
+          f"g = 3, 5, 7, 9, 27, 81, n &lt;= 60, largest log ratio "
+          f"{max(per_g.values()):.3f}")
+    # even g: the walk sits on the parity coset n mod 2, where it mixes
+    ok, worst = True, -1e9
+    for g in (4, 8, 16, 32, 64):
+        for n in range(1, 61):
+            c = walk_counts(g, n)
+            # against the uniform law on the coset: 2 g 2^n TV exact
+            num = sum(abs(g * cx - 2 * 2 ** n) if x % 2 == n % 2
+                      else g * cx for x, cx in enumerate(c))
+            lam = cos(2 * pi / g)
+            if num == 0 or lam &lt; 1e-12:   # g = 4: exactly uniform
+                ok &amp;= num == 0
+                continue
+            log_tv = log(num) - log(2 * g) - n * log(2)
+            lb = log(0.5) + 0.5 * log(g - 2) + n * log(lam)
+            ok &amp;= log_tv &lt;= lb + 1e-9
+            worst = max(worst, log_tv - lb)
+    check("even g: TV to the parity coset &lt;= (1/2) sqrt(g - 2) "
+          "cos(2 pi/g)^n, exact counts compared in logs", ok,
+          f"g = 4, 8, 16, 32, 64, n &lt;= 60 (g = 4 exactly uniform), largest "
+          f"log ratio over g &gt;= 8 {worst:.3f}")
+
+
+# ---------------------------------------------------------- C carriers
+
+GRID = [1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128]
+DIM, NCAND, TRIALS = 1000, 100, 200
+
+
+<span id="centred"></span>def centred(v, g):
+    v = np.mod(v, g)
+    return np.where(v &gt; g // 2, v - g, v)
+
+
+<span id="carry_free_digits"></span>def carry_free_digits(s, P):
+    """The P coefficients of a sum of +-1 constants in F_3[x]/x^P."""
+    dig = np.zeros((P,) + s.shape, dtype=np.int64)
+    dig[0] = np.mod(s, 3)
+    return dig
+
+
+<span id="signed_read"></span>def signed_read(dig):
+    """Each coefficient read as a signed digit, weighted by 3^k."""
+    return sum(centred(d, 3) * 3 ** k for k, d in enumerate(dig))
+
+
+<span id="arms"></span>def arms():
+    out = [("A  Z", lambda s: s)]
+    for P in (1, 2, 3, 4):
+        out.append((f"B  Z/3^{P}", lambda s, P=P: centred(s, 3 ** P)))
+    for P in (1, 2, 3, 4):
+        out.append((f"C  F_3[x]/x^{P}",
+                    lambda s, P=P: signed_read(carry_free_digits(s, P))))
+    for p in (3, 5, 7, 11, 13):
+        out.append((f"D  F_{p}", lambda s, p=p: centred(s, p)))
+    return out
+
+
+<span id="walk_log_law"></span>def walk_log_law(g, n):
+    """log nu on Z/g (g = 0: on Z, offset n), impossible cells at -1e6."""
+    if g == 0:
+        c = [0] * (2 * n + 1)
+        c[n] = 1
+        for _ in range(n):
+            c = [(c[x - 1] if x else 0) + (c[x + 1] if x &lt; 2 * n else 0)
+                 for x in range(2 * n + 1)]
+    else:
+        c = walk_counts(g, n)
+    t = sum(c)
+    return np.array([log(v / t) if v else -1e6 for v in c])
+
+
+<span id="map_weights"></span>def map_weights(s, carrier, m):
+    """Per-coordinate MAP weight (L(b - 1) - L(b + 1)) / 2 for a +-1
+    candidate, from the carrier's own reduction b of the bundle."""
+    kind, g = carrier
+    n = m - 1
+    if kind == "Z":
+        L = walk_log_law(0, n)
+        idx = lambda x: np.clip(x + n, 0, 2 * n)
+        lo = np.where(np.abs(s - 1) &lt;= n, L[idx(s - 1)], -1e6)
+        hi = np.where(np.abs(s + 1) &lt;= n, L[idx(s + 1)], -1e6)
+        return (lo - hi) / 2
+    L = walk_log_law(g, n)
+    b = np.mod(s, g)
+    return (L[np.mod(b - 1, g)] - L[np.mod(b + 1, g)]) / 2
+
+
+<span id="section_c"></span>def section_c():
+    print("C  the carrier sweep")
+    rng = np.random.default_rng(2024)
+    A = arms()
+    carrier = {"A  Z": ("Z", 0)}
+    for P in (1, 2, 3, 4):
+        carrier[f"B  Z/3^{P}"] = ("G", 3 ** P)
+        carrier[f"C  F_3[x]/x^{P}"] = ("G", 3)   # the walk lives in F_3
+    for p in (3, 5, 7, 11, 13):
+        carrier[f"D  F_{p}"] = ("G", p)
+    names = [n for n, _ in A]
+    succ = {r: {n: {} for n in names} for r in ("corr", "map")}
+    for m in GRID:
+        tot = {r: {n: 0.0 for n in names} for r in succ}
+        for _ in range(TRIALS):
+            V = rng.choice(np.array([-1, 1], dtype=np.int64),
+                           size=(NCAND, DIM))
+            if m &gt; 1:
+                rest = rng.choice(np.array([-1, 1], dtype=np.int64),
+                                  size=(m - 1, DIM)).sum(axis=0)
+            else:
+                rest = np.zeros(DIM, dtype=np.int64)
+            s = V[0] + rest
+            for name, lift in A:
+                for r, w in (("corr", lift(s)),
+                             ("map", map_weights(s, carrier[name], m))):
+                    sc = V @ w
+                    top = sc.max()
+                    win = np.flatnonzero(sc &gt;= top - 1e-9)
+                    if sc[0] &gt;= top - 1e-9:
+                        tot[r][name] += 1.0 / len(win)
+        for r in succ:
+            for n in names:
+                succ[r][n][m] = tot[r][n] / TRIALS
+        if m == 1:   # the positive control, read before the sweep goes on
+            check("positive control: success 1.0 at m = 1, every arm, both "
+                  "readouts", all(succ[r][n][1] == 1.0 for r in succ
+                                  for n in names))
+            if not CHECKS[-1]:
+                raise SystemExit(1)
+    mstar = {}
+    for r in succ:
+        print(f"     readout {r}")
+        print("     arm            " + " ".join(f"{m:&gt;5}" for m in GRID))
+        for n in names:
+            print(f"     {n:&lt;15}" + " ".join(f"{succ[r][n][m]:5.2f}"
+                                              for m in GRID))
+        mstar[r] = {n: max([m for m in GRID if succ[r][n][m] &gt;= 0.9]
+                           or [0]) for n in names}
+        print("     m*: " + ", ".join(f"{n.split()[1]} {v}"
+                                      for n, v in mstar[r].items()))
+
+    def rows(r):
+        return (mstar[r]["A  Z"],
+                [mstar[r][f"B  Z/3^{P}"] for P in (1, 2, 3, 4)],
+                [mstar[r][f"C  F_3[x]/x^{P}"] for P in (1, 2, 3, 4)],
+                [mstar[r][f"D  F_{p}"] for p in (3, 5, 7, 11, 13)])
+
+    a, b, c, d = rows("corr")
+    # K1 is decided by (5) as a proof: the F_3[x]/x^P arms reduce s to its
+    # constant digit, the same computation as F_3's, so their rows print
+    # and are not checked
+    print(f"     correlation, K1 by construction: F_3[x]/x^P {c}, F_3 {d[0]}")
+    check("correlation, A: Z holds m* &gt;= 48", a &gt;= 48, f"m* = {a}")
+    check("correlation, K2 survives: Z/3^P grows with P, B(4) = A",
+          b == sorted(b) and b[3] &gt; b[0] and b[3] == a, f"{b}")
+    check("correlation, K3 survives: F_3's m* below half of Z's",
+          d[0] &lt; a / 2, f"{d[0]} against {a}")
+    check("correlation reverses on a wrap: F_3 at m = 2 scores 0, MAP 1",
+          succ["corr"]["D  F_3"][2] == 0.0 and succ["map"]["D  F_3"][2]
+          == 1.0)
+    am, bm, cm, dm = rows("map")
+    check("MAP: F_p nondecreasing in p", dm == sorted(dm), f"{dm}")
+    check("MAP, K2 survives: Z/3^P nondecreasing in P, grows",
+          bm == sorted(bm) and bm[3] &gt; bm[0], f"{bm}")
+    print(f"     MAP, K1 by construction: F_3[x]/x^P {cm}, F_3 {dm[0]}")
+    check("MAP on Z at least correlation on Z", am &gt;= a, f"{am} &gt;= {a}")
+    check("Z's two readouts print the same row",
+          all(round(succ["corr"]["A  Z"][m], 2)
+              == round(succ["map"]["A  Z"][m], 2) for m in GRID))
+    ok = True
+    for m in (16, 64):        # every value |t| &lt; m of the parity of m
+        t = np.arange(-(m - 2), m - 1, 2)
+        ok &amp;= np.allclose(map_weights(t, ("Z", 0), m),
+                          0.5 * np.log((m + t) / (m - t)))
+    check("Z's MAP weight is (1/2) log((m + t)/(m - t)) at every |t| &lt; m, "
+          "m = 16, 64", ok)
+    check("MAP at F_3 within the proved ceiling m* &lt;= 8", dm[0] &lt;= 8,
+          f"m* = {dm[0]}")
+    ok, tight = True, 0.0
+    for n in names:
+        kind, g = carrier[n]
+        if kind == "Z":
+            continue
+        for m in GRID:
+            cap = 1.0 / NCAND + DIM * bound(g, m - 1)
+            sd = sqrt(0.25 / TRIALS)
+            for r in succ:
+                ok &amp;= succ[r][n][m] &lt;= cap + 3 * sd
+            if cap &lt; 1:
+                tight = max(tight, succ["map"][n][m] - 1.0 / NCAND)
+    check("K4 survives: no finite arm, either readout, beats the bound",
+          ok, f"largest MAP success above chance where the bound is below 1: "
+          f"{tight:.2f}")
+
+    # what the bound permits at 0.9, beside what the sweep measured:
+    # bound(p, m) below is the m-step walk's, an (m + 1)-item store's, so
+    # the first m at which it fails is the largest item count that passes
+    permits = []
+    for p in (3, 5, 7, 11, 13):
+        m = 1
+        while 1.0 / NCAND + DIM * bound(p, m) &gt;= 0.9:
+            m += 1
+        permits.append(m)
+    print(f"     the bound at 0.9 permits m &lt;= {permits} on F_p, "
+          f"p = 3..13; MAP m* {dm}")
+    check("the bound permits every measured MAP m* on F_p",
+          all(a &lt;= b for a, b in zip(dm, permits)))
+
+    # odd c &gt; m: every likelihood is Z's, so MAP reads as Z does; the
+    # weights compared at every count a bundle of m items can take
+    def same_as_z(g, m, edge=None):
+        edge = m if edge is None else edge
+        s = np.arange(-edge, edge + 1, 2)
+        return np.array_equal(map_weights(s, ("G", g), m),
+                              map_weights(s, ("Z", 0), m))
+    s27 = np.arange(-62, 63, 2)
+    part = s27[map_weights(s27, ("G", 27), 64)
+               != map_weights(s27, ("Z", 0), 64)]
+    print(f"     Z/27 at m = 64 parts from Z's weights first at |t| = "
+          f"{int(np.abs(part).min()) if len(part) else None}")
+    check("MAP weights equal Z's at every count on Z/81, m = 48, 64 (odd "
+          "c &gt; m), and on Z/130, m = 64 (c &gt; 2m); Z/27's at m = 64 do not, "
+          "even inside |t| &lt; m",
+          same_as_z(81, 48) and same_as_z(81, 64) and same_as_z(130, 64)
+          and len(part) &gt; 0)
+
+    # at every finite arm's MAP edge with c &lt;= m (each has c odd, m even):
+    # each residue read at its lift t in (-c, c) with t = m mod 2, the one
+    # count of that parity it names. The score V @ w ignores a positive
+    # factor on w, so the weight is compared with Z's up to the factor
+    # alpha read at t = 2: the radius T out to which it agrees within 1%,
+    # and the m-step walk's mass past it
+    past_at, edge_m, radius_at, w5 = {}, {}, {}, None
+    for name in names:
+        kind, g = carrier[name]
+        m = mstar["map"][name]
+        if kind == "Z" or g &gt; m:
+            continue
+        if g in past_at:          # an arm of the same c: the same cell
+            assert edge_m[g] == m
+            continue
+        assert g % 2 == 1 and m % 2 == 0
+        t = np.arange(2, g, 2)
+        wg = map_weights(t, ("G", g), m)
+        wz = map_weights(t, ("Z", 0), m)
+        assert np.allclose(map_weights(-t, ("G", g), m), -wg)
+        assert np.allclose(map_weights(-t, ("Z", 0), m), -wz)
+        alpha = wg[0] / wz[0]
+        agree = np.abs(wg - alpha * wz) &lt;= 0.01 * alpha * np.abs(wz)
+        T = 2 * int(np.argmin(agree)) if not agree.all() else int(t[-1])
+        near = np.abs(wg - wz) &lt; 0.01            # the absolute band
+        Ta = 2 * int(np.argmin(near)) if not near.all() else int(t[-1])
+        if g == 5:
+            w5 = (wg[1], alpha * wz[1])
+        walk = walk_counts(2 * m + 1, m)   # Z's m-step walk, no wrap
+        past = sum(c for x, c in enumerate(walk)
+                   if abs(x if x &lt;= m else x - (2 * m + 1)) &gt; T) / 2 ** m
+        past_at[g], edge_m[g] = past, m
+        radius_at[g] = (T, len(t))
+        tail = ("" if len(t) &gt; 1 else
+                "; t = 2 is the only positive lift, so any odd weight is a "
+                "multiple of Z's: undecided")
+        print(f"     Z/{g} at its MAP edge m = {m}: MAP weight = "
+              f"{alpha:.3f} x Z's within 1% for |t| &lt;= {T} (lift window "
+              f"|t| &lt;= {int(t[-1])}), walk mass past it {past:.3f}; "
+              f"absolute band 0.01: |t| &lt;= {Ta}{tail}")
+    # the factor is matched at t = 2, so agreement there is by
+    # construction: the test speaks only where a window has t = 4
+    check("positive control: F_5 at m = 8 parts from Z's shape at t = 4 "
+          "(0.226 against 0.909 x 0.549 = 0.499, by hand), mass 74/256 "
+          "past t = 2", w5 is not None and radius_at[5] == (2, 2)
+          and abs(w5[0] - 0.226) &lt; 5e-4 and abs(w5[1] - 0.499) &lt; 1e-3
+          and abs(past_at[5] - 74 / 256) &lt; 1e-12)
+    if not CHECKS[-1]:
+        raise SystemExit(1)
+    check("past the matching point Z's shape holds to t = 4 at c = 9, 11, "
+          "13 and to 20 at c = 27, and fails at t = 4 at c = 5, 7",
+          [radius_at.get(g, (None,))[0] for g in (9, 11, 13, 27, 5, 7)]
+          == [4, 4, 4, 20, 2, 2])
+
+<span id="main"></span>def main():
+    section_d()
+    section_w()
+    section_m()
+    section_c()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks passed")
+    raise SystemExit(0 if all(CHECKS) else 1)
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+</article></main>
+<footer><a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/code/binding.py">The program file</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

@@ -1,0 +1,331 @@
+"""tame.py -- at an odd prime, where a class of units lands past the bend,
+read off one coefficient level of the Eisenstein polynomial, and what
+that makes of a head's width.
+
+QUESTION. Let p be odd and K/Q_p totally ramified of degree e, cut out
+by F = x^e + sum_{i=1}^{e-1} p b_i x^i - p d with root pi, u = p/pi^e
+(triangle.py), and let the bend s = e/(p - 1) be an integer. A CLASS is
+a pair (c, m) with c p^m = s, m >= 0: a unit z of level exactly c,
+v(z - 1) = c, reaches level s after m p-th powers, and its LANDING is
+v(z^(p^(m+1)) - 1), where it lands past the bend. Where do the units of
+a class land, and what does the least landing read?
+
+THE OBJECT READ. The DEPARTURE of F is
+    l = v(u + 1) = min( e v_p(d + 1),  min_i ( e v_p(b_i) + i ) ),
+the least level (triangle.py) of a nonzero coefficient digit of
+(F - x^e - p)/p: u + 1 = (1 + D)/D with D = d - sum b_i pi^i, and the
+terms of 1 + D sit at distinct levels mod e. So l = 0 iff d != -1 mod p
+(ubar != -1), l is infinite at F = x^e + p (u = -1), and every value
+between is the level of one digit.
+
+THE ARGUMENT (written before the engine).
+  (1) BELOW THE BEND. Let z = 1 + pi^c t, t a unit of residue a, and
+      x_j = z^(p^j) - 1, so v(x_j) = c p^j for j <= m (the levels stay
+      below the bend, where psi multiplies; clock.py). Then x_(j+1) =
+      x_j^p (1 + rho_j) with rho_j = (p x_j + middle binomials)/x_j^p of
+      valuation (p - 1)(s - c p^j) >= c (p - 1)^2 p^(m-1) for j < m.
+      Raising a 1-unit to a p-th power never lowers its level, so
+          x_m = pi^s t^(p^m) (1 + eta),   v(eta) >= c(p-1)^2 p^(m-1),
+      and c(p - 1)^2 > p at every odd p, so v(eta) > p^m (eta = 0 at
+      m = 0).
+  (2) THE LANDING. y = 1 + x_m, and
+          y^p - 1 = (p x_m / u) * B,
+          B = u + x_m^(p-1)/p * u + u sum_{k=2}^{p-1} C(p, k)/p x_m^(k-1),
+      with v(p x_m / u) = e + s = p s. Since x_m^(p-1) = pi^e t^((p-1)p^m)
+      (1 + eta)^(p-1) and p = u pi^e, the second term of B is
+      W := t^((p-1)p^m) (1 + eta)^(p-1). The k-th binomial term sits at
+      level (k - 1)s >= p^m, equality only at k = 2 and c = 1. Write
+      t = a + t_1 pi + ... with a in {1, ..., p - 1}; a^(p-1) = 1 mod p,
+      a level e > p^m, so t^(p-1) = 1 - (t_1/a) pi + ..., and its
+      p^m-th power is 1 - (t_1/a) pi^(p^m) + deeper, since below the
+      bend each p-th power takes a level-r leading digit gamma to
+      gamma^p = gamma at level p r. So
+          B = (u + 1) + (-t_1/a + [c = 1] const) pi^(p^m) + deeper,
+      const a fixed residue, and -t_1/a runs over all of F_p with t_1.
+  (3) THE READOUT. If l < p^m, v(B) = l for every unit of the class,
+      which lands RIGIDLY at p s + l. If l >= p^m, every landing is at
+      least p s + p^m and one value of t_1 makes the level-p^m digit of
+      B nonzero. Hence the least landing of the class (c, m) is
+          L(c, m) = p s + min(l, p^m),
+      the whole class landing there when l < p^m.
+  (4) THE WIDTH. At a place with a head (f = 1, s = p^n, ubar = -1;
+      clock.py's head criterion) the class (1, n) is the level-1 units, its
+      least landing is clock.py's arrival A, and w = A - s - e = min(l, s), since
+      (p - 1)s = e. So at every odd p the width is the departure capped
+      at the bend, a function of one coefficient level of any Eisenstein
+      polynomial of the field.
+
+TRANSPLANTS. The formula is the record this script replaces, there
+written on -p/pi^e, whose defect v(-p/pi^e - 1) is l. The
+claim that deeper coefficient digits do not move L is (3) read, not
+assumed: the digits above it are drawn at random.
+
+PREDICTIONS, fixed before the run.
+  C  CONTROL. (a) l from the coefficients equals v(u + 1) read from
+     triangle.py's u at every polynomial used. (b) The class minimum over
+     z mod pi^(c+2) equals the minimum over z mod pi^(c+3) at every
+     class of p = 3, e <= 6 and p = 5, e = 4. (c) Every level-c unit
+     reaches level exactly c p^j after j p-th powers, j <= m.
+  L  THE READOUT. At (p, e) = (3, 2), (3, 4), (3, 6), (3, 12), (3, 18),
+     (5, 4), (5, 8), (5, 20), (7, 6), (7, 12), every class (c, m), and
+     polynomials with l = 0, every l from 1 to s + 2, and l infinite
+     (x^e + p), each with random digits above its departure level, plus
+     random polynomials: the least landing over the class is
+     p s + min(l, p^m), and when l < p^m every unit of the class lands
+     there.
+  W  THE WIDTH. At the odd-p places of clock.py with a head and at
+     designed ones with s = 3 (p = 3, e = 6) and s = 5 (p = 5, e = 20)
+     at l = 1, 2, ..., s + 1: the width clock.py reads off the tick
+     ladder (via the group exponent, not the landing) is min(l, s); and
+     the translate F(x - p), whose root pi + p is another uniformizer of
+     the same field, has its own departure l' with min(l', s) = min(l, s).
+KILLS, as printed observables: any C line off (nothing below is read);
+one (polynomial, class) whose least landing is off p s + min(l, p^m),
+or a rigid class (l < p^m) with a unit landing elsewhere; one W place
+whose ladder width is off min(l, s), or a translate whose capped
+departure differs.
+
+FINDINGS. Every prediction landed: 14/14 checks PASS, no kill fired.
+  C  l off the coefficients is v(u + 1) and the designed level at 92
+     polynomials, 0 off; the class minimum over two digits equals that
+     over three at 40 (polynomial, class), 0 off; every level-c unit
+     reaches level c p^j after j p-th powers, 0 off.
+  L  154 (polynomial, class) readings over the ten (p, e), from s = 1
+     to s = 9 (classes (9, 0), (3, 1), (1, 2) at (3, 18)): the least
+     landing is p s + min(l, p^m) at every one, and at the 58 rigid
+     readings (l < p^m) every unit of the class lands there.
+  W  At the five odd-p places of clock.py with a head (x^2 + 3, x^2 - 6,
+     x^6 + 3, x^4 + 5, x^6 + 7) and ten designed ones, the ladder width
+     is min(l, s): 1, 2, 3, 3 at l = 1..4 over (3, 6), and 1, 2, 3, 4,
+     5, 5 at l = 1..6 over (5, 20). The translates move l itself, not
+     only above e (x^2 + 3 reads l = infinity and its translate l' = 1,
+     since pi' / pi = 1 + p/pi sits at level e - 1), and min(l', s) =
+     min(l, s) at all 15.
+  Tiers: (3) and (4) a theorem at every odd p, their proof (1)-(3); the
+  departure's reading off the coefficients a property.
+
+RUN RECORD. 14/14, 0.5 s wall, peak working set 13.8 MB under
+a memory guard, green on the first run.
+"""
+
+import os
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+import random
+from math import comb
+
+from module_law import Local, check, section, CHECKS, vp
+from triangle import Field
+import clock
+
+SEED = 1424
+INF = 10 ** 9
+
+
+def departure(p, e, b, d):
+    """l = v(u + 1), off the coefficients."""
+    best = INF if d + 1 == 0 else e * vp(d + 1, p)
+    for i in range(1, e):
+        if b[i]:
+            best = min(best, e * vp(b[i], p) + i)
+    return best
+
+
+def designed(rng, p, e, l, top):
+    """(b, d) whose departure is exactly l: the digits of
+    (F - x^e - p)/p are zero below level l, nonzero at l, random above
+    (to level top); l = INF gives x^e + p."""
+    b, dp1 = [0] * e, 0
+    if l < INF:
+        for r in range(l, top + 1):
+            i, k = r % e, r // e
+            if r == l:
+                c = rng.randrange(2, p) if r == 0 else rng.randrange(1, p)
+            else:
+                c = rng.randrange(p)
+            if i == 0:
+                dp1 += c * p ** k
+            else:
+                b[i] += c * p ** k
+    return b, dp1 - 1
+
+
+def local(p, e, b, d):
+    return Local(p, [-p * d] + [p * b[i] for i in range(1, e)] + [1],
+                 "eis", f"F({p},{e})")
+
+
+def classes(p, e):
+    s = e // (p - 1)
+    out, m = [], 0
+    while s % p ** m == 0:
+        out.append((s // p ** m, m))
+        m += 1
+    return out
+
+
+def landings(loc, c, m, K):
+    """{z: v(z^(p^(m+1)) - 1)} over z = 1 + sum_(j<K) a_j pi^(c+j),
+    a_0 != 0, with the levels of z^(p^j) - 1 for j <= m."""
+    p, e = loc.p, loc.e
+    s = e // (p - 1)
+    N = (p * s + s + e + 2) // e + 2
+    mod = p ** N
+    pis = [loc.pi_pow(c + j, mod) for j in range(K)]
+    out, levels_ok = [], True
+    total = (p - 1) * p ** (K - 1)
+    for idx in range(total):
+        digs = [1 + idx % (p - 1)]
+        rest = idx // (p - 1)
+        for _ in range(K - 1):
+            digs.append(rest % p)
+            rest //= p
+        z = [1] + [0] * (e - 1)
+        for a, t in zip(digs, pis):
+            z = [(x + a * y) % mod for x, y in zip(z, t)]
+        y = z
+        for j in range(m + 1):
+            levels_ok &= loc.val([y[0] - 1] + y[1:], N) == c * p ** j
+            y = loc.power(y, p, mod)
+        out.append(loc.val([y[0] - 1] + y[1:], N))
+    return out, levels_ok, e * N
+
+
+# ------------------------------------------------------------ sections
+
+GRID = [(3, 2), (3, 4), (3, 6), (3, 12), (3, 18), (5, 4), (5, 8),
+        (5, 20), (7, 6), (7, 12)]
+
+
+def polys(rng, p, e):
+    s = e // (p - 1)
+    top = 2 * e + s
+    out = [(l, designed(rng, p, e, l, top)) for l in range(0, s + 3)]
+    out.append((INF, designed(rng, p, e, INF, top)))
+    for _ in range(2):
+        b = [0] + [rng.randrange(p ** 4) for _ in range(1, e)]
+        d = rng.choice([x for x in range(1, p ** 4) if x % p])
+        out.append((departure(p, e, b, d), (b, d)))
+    return out
+
+
+def section_control(rng):
+    section("C  CONTROL: the departure, the digit depth, the levels below")
+    seen = bad = 0
+    for (p, e) in GRID:
+        for l, (b, d) in polys(rng, p, e):
+            f = Field(p, e, b, d, 3 * e)
+            v = f.val([(f.u[0] + 1) % f.mod] + f.u[1:])
+            seen += 1
+            bad += departure(p, e, b, d) != min(v, INF) and not (
+                l == INF and v >= f.e * f.N)
+            bad += l != departure(p, e, b, d)
+    check("Ca l off the coefficients = v(u + 1) = the designed level",
+          bad == 0, f"{seen} polynomials, {bad} off")
+    seen = bad = 0
+    for (p, e) in [(3, 2), (3, 4), (3, 6), (5, 4)]:
+        for l, (b, d) in polys(rng, p, e):
+            loc = local(p, e, b, d)
+            for (c, m) in classes(p, e):
+                two = min(landings(loc, c, m, 2)[0])
+                three = min(landings(loc, c, m, 3)[0])
+                seen += 1
+                bad += two != three
+    check("Cb the class minimum over two digits = over three",
+          bad == 0, f"{seen} (polynomial, class), {bad} off")
+
+
+def section_readout(rng):
+    section("L  THE READOUT: least landing p s + min(l, p^m)")
+    total = rigid = 0
+    lv_bad = 0
+    for (p, e) in GRID:
+        s = e // (p - 1)
+        seen = bad = 0
+        for l, (b, d) in polys(rng, p, e):
+            loc = local(p, e, b, d)
+            for (c, m) in classes(p, e):
+                land, lv_ok, _ = landings(loc, c, m, 2)
+                lv_bad += not lv_ok
+                want = p * s + min(l, p ** m)
+                seen += 1
+                ok = min(land) == want
+                if l < p ** m:
+                    rigid += 1
+                    ok &= set(land) == {want}
+                bad += not ok
+                if not ok:
+                    print(f"    OFF p={p} e={e} l={l} class ({c},{m}): "
+                          f"min {min(land)} want {want}, "
+                          f"spectrum {sorted(set(land))[:6]}")
+        total += seen
+        check(f"L (p, e) = ({p}, {e}), s = {s}, classes "
+              f"{classes(p, e)}", bad == 0,
+              f"{seen} (polynomial, class), {bad} off")
+    check("Cc every level-c unit reaches level c p^j after j powers",
+          lv_bad == 0, f"{lv_bad} off")
+    print(f"  {total} (polynomial, class) readings, {rigid} of them rigid")
+
+
+def ladder_width(loc):
+    n = clock.bend_power(loc)
+    s = loc.e // (loc.p - 1)
+    lad = clock.ladder(loc, loc.e + 2 * s + 2)
+    return lad[n + 1] - s - loc.e
+
+
+def translate(p, e, b, d):
+    """F(x - p) as (b', d'): expand and read the coefficients."""
+    F = [-p * d] + [p * b[i] for i in range(1, e)] + [1]
+    G = [0] * (e + 1)
+    for j, a in enumerate(F):
+        for i in range(j + 1):
+            G[i] += a * comb(j, i) * (-p) ** (j - i)
+    assert G[e] == 1 and all(g % p == 0 for g in G[:e])
+    return [0] + [G[i] // p for i in range(1, e)], -G[0] // p
+
+
+def section_width(rng):
+    section("W  THE WIDTH: clock.py's ladder width = min(l, s) at odd p")
+    rows = []
+    for loc in clock.PLACES:
+        if loc.p > 2 and loc.kind == "eis" and clock.criterion(loc):
+            e, p = loc.e, loc.p
+            b = [0] + [loc.g[i] // p for i in range(1, e)]
+            rows.append((loc.name, p, e, b, -loc.g[0] // p))
+    for (p, e) in [(3, 6), (5, 20)]:
+        s = e // (p - 1)
+        for l in range(1, s + 2):
+            b, d = designed(rng, p, e, l, e + s)
+            rows.append((f"designed l={l}", p, e, b, d))
+    bad = 0
+    for name, p, e, b, d in rows:
+        s = e // (p - 1)
+        l = departure(p, e, b, d)
+        w = ladder_width(local(p, e, b, d))
+        b2, d2 = translate(p, e, b, d)
+        l2 = departure(p, e, b2, d2)
+        ok = w == min(l, s) and min(l2, s) == min(l, s)
+        bad += not ok
+        print(f"  {name:18s} p={p} e={e:2d} s={s} l={'inf' if l >= INF else l}"
+              f" l'={'inf' if l2 >= INF else l2} ladder w={w}"
+              f"{'' if ok else '  OFF'}")
+    check("W the ladder's width is min(l, s), and the translate agrees",
+          bad == 0, f"{len(rows)} places, {bad} off")
+
+
+def main():
+    rng = random.Random(SEED)
+    section_control(rng)
+    if not all(CHECKS):
+        print("\ncontrol failed: nothing below is read")
+        raise SystemExit(1)
+    section_readout(rng)
+    section_width(rng)
+    print()
+    print(f"{sum(CHECKS)}/{len(CHECKS)} checks PASS")
+    if not all(CHECKS):
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()

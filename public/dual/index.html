@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DUAL — the leading end of base b, read against the trailing end | Numbers read one place at a time</title>
+<meta name="description" content="DUAL — the leading end of base b, read against the trailing end">
+<link rel="alternate" type="text/markdown" href="/dual.md">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a> › <a href="/digits/">Digit readers: the real place</a></nav></header>
+<main><article>
+<h1>DUAL — the leading end of base b, read against the trailing end</h1>
+<p class="lead">The object: base b read top first. A positive integer n has e + 1
+digits, e = e(n) = ⌊log_b n⌋, and its depth-t <dfn id="t-leading-tile">leading tile</dfn> is the
+set of integers with the same digit count and the same t leading digits.
+Like a <a href="/size/#t-window">window</a> of <a href="/size/">SIZE</a>, this is a reading at a set of places, here the
+archimedean place alone: size, read to t digits. So a floating-point
+number names a leading tile. The trailing end reads the same integer
+bottom first, and its depth-t <a href="/reading/#t-tiles">tile</a> is n mod b^t. A map f of the positive
+integers is read at lookahead c when at every depth t the depth-t tile
+of f(n) is a function of the depth-(t + c) tile of n, over the n with
+f(n) ≥ 1, since zero has no leading tile; a map of two integers reads
+the pair of their tiles, and a map valued in {0, 1} or {−1, 0, 1}, as [x
+= y] or the sign of x − y, is read at lookahead c when at every depth t
+its value is a function of the inputs' depth-(t + c) tiles. This page
+shows that the two ends of base b exchange what they read: the places p
+| b that the trailing end reads exactly, the leading end hides exactly;
+the difference map (x, y) ↦ x − y, which the trailing end reads digit by
+digit, is read at no finite lookahead at the leading end; multiplication
+is free at the trailing end and division at the leading end. It decides
+the affine maps the leading end reads and bounds their least lookahead,
+exactly in the cases the least-lookahead law names, and shows that it
+reads maps outside that class. Then it gives the leading end redundant
+signed digits {−a, …, a}, 2a + 1 &gt; b: the overlapping cover they buy
+reads every Lipschitz map of their range, or its powers, into that
+range, and the purchase costs order, a lower bound on size before a
+division, and, unless p ∣ 2a + 1, the exact hiding of the places p ∣ b,
+degraded to a bias. Last come the leading end's densities, whose own
+measure is log-uniform, the Haar measure of the scale circle.</p>
+<nav class="toc" aria-label="Contents" data-generated="toc"><ol><li><a href="#the-leading-tile-lemma">The leading-tile lemma</a> <span>property</span></li><li><a href="#the-two-ends-law">The two-ends law</a> <span>criterion</span></li><li><a href="#the-crown-exchange">The crown exchange</a> <span>property</span></li><li><a href="#the-coset-rigidity">The coset rigidity</a> <span>property</span></li><li><a href="#the-affine-class-theorem">The affine class theorem</a> <span>theorem</span></li><li><a href="#the-least-lookahead-law">The least-lookahead law</a> <span>theorem; pattern</span></li><li><a href="#the-two-ends-exchange">The two-ends exchange</a> <span>criterion</span></li><li><a href="#the-structural-split">The structural split</a> <span>property</span></li><li><a href="#the-redundant-reader">The redundant reader</a> <span>theorem</span></li><li><a href="#the-hedge">The hedge</a> <span>property</span></li><li><a href="#what-the-purchase-spends">What the purchase spends</a> <span>property</span></li><li><a href="#the-redundancy-leak">The redundancy leak</a> <span>criterion</span></li><li><a href="#the-period-law">The period law</a> <span>theorem</span></li><li><a href="#the-dual-haar-measure">The dual Haar measure</a> <span>property</span></li><li><a href="#each-end-prices-in-its-own-metric">Each end prices in its own metric</a> <span>property</span></li><li><a href="#open-fronts">Open fronts</a></li></ol></nav>
+<p>Which end pays for what. Each end reads freely the operation whose
+carries run away from it. A product's low digits depend only on the
+factors' low digits, so the trailing end multiplies at lookahead 0 and
+divides only where the divisor's primes divide b. Long division emits
+the quotient from the top with a bounded remainder, so the leading end
+divides by anything and multiplies only where the multiplier's primes
+divide b. Where <a href="/reading/">READING</a> reads a leading numeration on R, a scaling
+y ↦ uy with u &gt; 0 reads iff 1/u ∈ Z[1/b]. On the integers a map is a
+floor, and a floor adds one condition, that its jumps fall on tile
+boundaries. Redundant digits blur size inside the archimedean window
+itself: the integers sharing t leading digits no longer make disjoint
+tiles, and every wall of a Lipschitz map from the redundant strings'
+range, or its powers, into that range dissolves. Order stays walled,
+and wider.</p>
+<pre>                 TRAILING END              LEADING END
+tile, j digits  n mod b^j, a coset        b^j consecutive integers
+the places p | b read exactly              hidden exactly
+x − y            read at 0                 walled at every depth
+x = y            only mod b^t              walled short of the last digit
+n ↦ un           read at 0                 read iff rad(u) ∣ rad(b)
+⌊n/v⌋            read iff rad(v) ∣ rad(b)  read; at digits_b(v)
+                                           when v ≥ 2, b ∤ v
+redundant digits buy nothing               an overlapping cover</pre>
+<p>rad(u) is the product of the primes dividing u.</p>
+<h2 id="the-leading-tile-lemma">The leading-tile lemma</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_t">dual.py::section_t</a>.</p>
+<p>If e + 1 ≤ t the depth-t leading tile of n is {n}. Otherwise it is
+[P b^j, (P + 1) b^j) with j = e + 1 − t and P the t-digit prefix: b^j
+consecutive integers, sign-definite. Its span is j, the digits it
+hides, and it is deep when j ≥ 1. A tile of span j is therefore a
+complete residue system mod b^j, and for m ≥ 2, n mod m is constant
+on no tile of length at least 2. The predicate [m ∣ n] is weaker and
+is answered by length, not depth: a tile shorter than m that holds no
+multiple of m decides it false. At base 2 the depth-2 tile of 4 is
+[4, 6), deep, and decides [7 ∣ n].</p>
+<p>Proof. The integers with e + 1 digits and prefix P are exactly those
+with ⌊n/b^j⌋ = P.</p>
+<p>The script groups every n below 2^12, 3^7 and 10^4 by its tile at
+depths 1 to 4, and every group is the stated interval.</p>
+<h2 id="the-two-ends-law">The two-ends law</h2>
+<p class="tag">Tier: <a href="/key/#criterion">criterion</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_h">dual.py::section_h</a>.</p>
+<p>For m ≥ 2 and j ≥ 0, n mod m is a function of the last j digits iff
+m ∣ b^j, and every residue mod m has the same count on every leading
+tile of span j iff m ∣ b^j. So one condition decides both ends: depth j
+of the trailing end reads m exactly where span j at the leading end
+hides it exactly. A prime p is read by some trailing depth and hidden on
+every deep leading tile iff p ∣ b, and for p ∤ b, n mod p is a function
+of no trailing depth and of no deep leading tile.</p>
+<p>Proof. The first half is the suffix read
+(<a href="/coordinates/#the-suffix-and-floor-reads">COORDINATES: The suffix and floor reads</a>). For the second, a span-j
+tile is b^j consecutive integers. Each residue appears b^j/m times
+when m ∣ b^j, and otherwise ⌊b^j/m⌋ or ⌊b^j/m⌋ + 1 times, both counts
+occurring, on every such tile.</p>
+<p>When rad(m) ∣ rad(b), m is hidden from span max_p ⌈v_p(m)/v_p(b)⌉ on,
+v_p the p-adic valuation, the depth at which the trailing end first
+reads it. The finite mirror is
+<a href="/size/#the-hiding-lemma">SIZE: The hiding lemma</a>: a window of a residue ring hides the sign bit
+exactly iff the ring's size over the window's is even, as a leading tile
+hides m exactly iff m ∣ b^j. The script reads all 1595 triples
+b = 2..12, m = 2..30, j = 0..4, the leading half on every tile with a
+one- or two-digit prefix and the trailing half on the n &lt; min(b^j, 60)
+against n + k b^j, k ≤ 3.</p>
+<h2 id="the-crown-exchange">The crown exchange</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_z">dual.py::section_z</a>.</p>
+<p>The leading end reads sign and exponent natively and a product's
+exponent to one bit, e(xy) − e(x) − e(y) ∈ {0, 1}. It reads neither
+equality nor the order of nearby values at any depth: two points of one
+deep tile of span j differ by any integer in (−b^j, b^j), so on that
+tile paired with itself [x = y] and the sign of x − y take every value
+and e(|x − y|) takes 0, …, j − 1, at every depth. The trailing end reads
+x − y at lookahead 0 but x = y only modulo b^t, and a residue ring
+reads x − y = 0 exactly, channel by channel.</p>
+<p>Proof. b^(e(x)+e(y)) ≤ xy &lt; b^(e(x)+e(y)+2). The difference set of an
+interval of b^j integers is (−b^j, b^j).</p>
+<p>The exact zero-test a residue ring is built on and the leading end's
+blind spot are one point, 0, where a logarithm is singular. On a
+squarefree modulus the ring's support log reaches 0 by passing to a
+smaller support (<a href="/coordinates/#the-support-log">COORDINATES: The support log</a>), so a squarefree
+residue ring meets that point and reads through it. The leading read
+is a chart of the real logarithm that omits 0, and a difference is the
+operation that reaches 0, so the leading end meets the same point and
+is walled by it. The script
+finds e(xy) − e(x) − e(y) taking exactly 0 and 1 over all x, y below
+2^10, 3^7 and 500 at bases 2, 3 and 10, and the tiles [64, 128) at base
+2 and [1000, 2000) at base 10 realizing every difference exponent below
+their spans, 6 and 3, with both signs and 0.</p>
+<h2 id="the-coset-rigidity">The coset rigidity</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_c">dual.py::section_c</a>.</p>
+<p>Let a digit set D write every integer as a finite trailing string, as
+{−a, …, a} does whenever 2a + 1 ≥ b and a ≥ 1. The completions of a
+trailing prefix of value V and length t are then exactly the coset
+V + b^t Z. Two such tiles are equal or disjoint, so the trailing tiles
+are the b-adic balls however redundant D is. <a href="/reading/">READING</a>'s Lipschitz and
+division criteria hold unchanged, and no such digit set buys the
+trailing end an overlap: redundancy is a purchase for the leading end only.</p>
+<p>Proof. The extension's digits write any integer z, and the completion
+is V + b^t z. For {−a, …, a}: take d ≡ n mod b in D and n′ = (n − d)/b.
+Then |n′| ≤ (|n| + a)/b &lt; |n| while |n| &gt; a/(b − 1), and every |n| ≤ a
+is a digit.</p>
+<p>The script writes and reads back every |n| ≤ 10^4 at (b, a) = (2, 1),
+(3, 1), (4, 2), (10, 5) and (10, 6). At each, five extension digits
+reach every z with |z| ≤ b^3, so every prefix of length up to 3 fills
+its coset within b^(t+3) of V.</p>
+<h2 id="the-affine-class-theorem">The affine class theorem</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_a">dual.py::section_a</a>, <a href="/code/dual/#section_0">dual.py::section_0</a>.</p>
+<p>Let f be nondecreasing with |f(n) − λn| ≤ C, λ &gt; 0. f is read at some
+lookahead iff
+- Slope: λ = b^r/h for integers r ≥ 0 and h ≥ 1, the reduced
+  numerator of λ dividing a power of b, r taken least; and
+- Alignment: for some K ≥ 0 every positive multiple N of h b^K has
+  f(N) ≥ λN &gt; f(N − 1).</p>
+<p>Three families follow. The <dfn id="t-numerator-criterion">numerator criterion</dfn>: ⌊(u/v)n⌋ with
+gcd(u, v) = 1 is read iff rad(u) ∣ rad(b), so the denominator is free
+and every floor division reads. The <dfn id="t-phase-law">phase law</dfn>: ⌊(n + s)/v⌋ with
+0 ≤ s &lt; v is read iff s = 0, and n + ω, ω an integer, iff ω = 0. The
+<dfn id="t-sum-criterion">sum criterion</dfn>: f = Σ w_i ⌊n/v_i⌋ with w_i ≥ 1, ℓ = lcm(v_i) and U =
+Σ w_i ℓ/v_i is read iff rad(U) ∣ rad(b), U the numerator over the lcm,
+unreduced. So g = ⌊n/3⌋ + ⌊n/7⌋ is read at base 10, U = 10, and is no
+⌊(10n + s)/21⌋ with 0 ≤ s &lt; 21, since those stay within 1 of 10n/21 and
+g(20) − 200/21 = −32/21. The arithmetic maps the leading end reads are
+wider than the numerator family and its phases.</p>
+<p>Proof. Write Δ = ⌈C/λ⌉ + 1, and n*(B) = min{n : f(n) ≥ B} for the
+crossing of B, so |n*(B) − B/λ| ≤ Δ. The depth-t output boundaries
+are the integers M b^J with 1 ≤ M &lt; b^t. A monotone f sends a
+depth-(t + c) input tile into one output tile iff no crossing sits
+strictly inside it. So f is read at lookahead c iff every crossing n*
+with f(n* − 1) ≥ 1 lying in a deep tile, of span j = digits(n*) −
+t − c, is that tile's left end, b^j ∣ n*: call such a crossing
+aligned.</p>
+<p>Slope. n*(b^J) has at least J − G digits for a constant G, so at
+depth 1 and lookahead c being aligned makes b^(J−G−1−c) divide it. The
+integer n*(b^J)/b^(J−G−1−c) lies within Δ b^(G+1+c−J) of the fixed
+real b^(G+1+c)/λ, which is therefore an integer: λ is a power of b
+over an integer, which is b^r/h once r is taken least.</p>
+<p>Alignment, necessity. For J ≥ r and M with exactly t digits,
+N₀ = M b^J/λ = h M b^(J−r) is an integer. The crossing lies within Δ of it and
+has at least t + J − r − 1 digits, so being aligned gives
+b^(J−r−1−c) ∣ n*.
+N₀ is a multiple of the same power, so once b^(J−r−1−c) &gt; Δ the two are
+equal. That threshold J₀ depends on neither M nor t, and every multiple
+of h b^(J₀−r) is h M b^(J−r) with b ∤ M, t = digits(M) and J ≥ J₀, so it
+is its own crossing.</p>
+<p>Alignment, sufficiency. For J ≥ r + K the crossing of M b^J is
+N = h M b^(J−r), of at most digits(h) + t + J − r digits, so at
+c ≥ digits(h) its tile has span at most J − r and N is aligned. For
+J &lt; r + K the crossing is below h b^(t+K−1) + Δ + 1, in no deep tile
+at c ≥ digits(h) + K + digits(Δ).</p>
+<p>The families. ⌊(u/v)n⌋: the slope needs u ∣ b^r, and then every
+multiple N of h = v b^r/u has f(N) = λN &gt; f(N − 1), K = 0. ⌊(n + s)/v⌋
+with 0 &lt; s &lt; v has f(N − 1) = N/v at every multiple of v, so it fails at
+every K, and n + ω needs ω ≥ 0 for f(N) ≥ N and ω &lt; 1 for
+f(N − 1) &lt; N. For the sums, f(n) ≤ λn with equality iff ℓ ∣ n, and
+f(N − 1) = λN − Σ w_i when ℓ ∣ N, so alignment holds at K iff
+ℓ ∣ h b^K, iff U ∣ b^(r+K).</p>
+<p>The slope half is <a href="/reading/#the-wall-criterion">READING: The wall criterion</a> on the integers; the
+alignment half is what floors add. It is not implied by the slope:
+⌊n/3⌋ + ⌊n/6⌋ has λ = 1/2 and U = 3, so it fails at every base prime to
+3. The proof constructs a misaligned crossing wherever a condition
+fails, and the families' verdicts are also checked by computation. At
+171 sums, the 55 pairs 2 ≤ v₁ &lt; v₂ ≤ 12 at bases 2, 6 and 10 and six
+more sums at base 10, three of them weighted, a crossing reader
+(depths 1 to 3) and the alignment condition read directly each agree
+with rad(U) ∣ rad(b) at all 171, 42 of them read. The slope holds with
+rad(U) ∤ rad(b) at 2 sums at base 2, 3 at base 10 and none at base 6.
+The numerator criterion holds at all 273 cases, the 91 coprime maps
+⌊(u/v)n⌋ with u, v ≤ 12 at bases 2, 6 and 10, and the phase law at v =
+3, 5, 7 and |ω| ≤ 3 at bases 2 and 10. An exhaustive reader grouping
+every n below 10^6 finds g at base 10 with 1552 and 1103 input tiles
+whose image meets two output tiles, summed over depths 1 to 3, at c = 0
+and 1 and none at 2. Over n below 2^13, 6^5 and 10^4 it agrees with the
+crossing reader at all 1368 (sum, depth, c) it decides.</p>
+<h2 id="the-least-lookahead-law">The least-lookahead law</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>; pattern (the scanned lookahead under the sharper bound
+of the last paragraph at the 42 read sums, unproved as a bound on
+c_min).<br>
+Verifier: proof; <a href="/code/dual/#section_k">dual.py::section_k</a>.</p>
+<p>In the affine class theorem's notation, with Δ = ⌈C/λ⌉ + 1 as in its
+proof and c_min the least lookahead at which f is read, take K least,
+δ = digits_b(h), μ = v_b(h), the exponent of the largest power of b
+dividing h, and h′ = h/b^μ. Then
+c_min ≥ c_deep = digits_b(h′) − [h′ = 1], and c_min ≤ max(c_deep, δ + K)
+whenever Δ ≤ (b − 1) b^(δ+K). So when K = 0, h ≥ 2, b ∤ h and
+Δ ≤ (b − 1) b^δ,</p>
+<pre>c_min = digits_b(h),</pre>
+<p>the lookahead priced exactly: ⌊n/3⌋ reads at 1 at base 10, and g at 2.</p>
+<p>Proof. The deep bound. For J ≥ r + K the crossing of M b^J is
+N = h M b^(J−r), its depth-(t + c) tile has span digits(hM) + J − r −
+t − c, and N is aligned iff c ≥ digits(hM) − t − v_b(hM). For M prime
+to b, v_b(hM) = μ; M is taken so because v_b is not additive at a
+composite b (2 · 5 at base 10). The bound is then δ − μ when the
+product overflows into δ + t digits and δ − μ − 1 otherwise, and
+every M gives at most δ − μ. The overflow interval [b^(δ+t−1)/h, b^t)
+is nonempty iff h &gt; b^(δ−1), iff h′ ≥ 2. Its length grows with t, and
+any b consecutive integers hold one ≡ 1 mod b. So at every large J a
+deep crossing needs c_deep. For J &lt; r + K the
+crossing is below b^(δ+t+K−1) + Δ, hence below b^(δ+t+K) when
+Δ ≤ (b − 1) b^(δ+K), and its tile has span at most δ + K − c.</p>
+<p>The script reads c_scan, the least lookahead that suffices at every
+crossing it scans (output depths up to the first overflow and at least
+to 3, exponents to r + K + 6), so c_scan ≤ c_min, at the 42 read sums.
+c_scan ≥ c_deep at all 42, with the deep crossing exhibited. All 42 meet
+Δ ≤ (b − 1) b^(δ+K) and sit under the bound, and c_scan = digits_b(h) at
+all 30 sums the law covers; since c_scan ≤ c_min, these are consistency
+checks, and only the proof carries the upper bound. ⌊n/3⌋ + ⌊n/9⌋ at
+base 2 has h = 9 and c_scan = 4, decided first at depth 4 by the
+crossing 135 of 15 · 2². A reader stopping at depth 3 reads 3, as the
+script prints. c_scan sits under the sharper bound max(c_deep, δ + K −
+1) at all 42 sums, with equality at 41: a pattern, unproved as a bound
+on c_min.</p>
+<h2 id="the-two-ends-exchange">The two-ends exchange</h2>
+<p class="tag">Tier: <a href="/key/#criterion">criterion</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_a">dual.py::section_a</a>, <a href="/code/reading/#section_r">reading.py::section_r</a>.</p>
+<p>Let u, v ≥ 1 be coprime. At the trailing end n ↦ un is read at
+lookahead 0 and ⌊n/v⌋ is read iff rad(v) ∣ rad(b). At the leading end
+⌊n/v⌋ is read and ⌊(u/v)n⌋ is read iff rad(u) ∣ rad(b). One radical
+condition falls on opposite parts of the fraction.</p>
+<p>Proof. The trailing half is <a href="/reading/#the-division-criterion">READING: The division criterion</a> at the
+chain b^t, with multiplication 1-Lipschitz. The leading half is the
+numerator criterion.</p>
+<h2 id="the-structural-split">The structural split</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_s">dual.py::section_s</a>.</p>
+<p>A map is read at lookahead 0 iff it sends every tile into a tile of the
+same depth, and that asks for no arithmetic. At base 2, the flip n ↦ n
+XOR 2^(e−1) changes the second digit, on n ≥ 2. At base 10, π(n) sends
+the second digit d to 9 − d, on n ≥ 10. The power n ↦ b^e is
+nondecreasing with b^e/n running over (1/b, 1], so no line lies within a
+bounded distance of it. All three are read at lookahead 0, and the flip
+and π are not monotone. On a finite product of finite fields a map is
+channel-local iff it is a polynomial (<a href="/size/#the-locality-criterion">SIZE: The locality criterion</a>):
+on a squarefree residue ring locality and algebra coincide, and at the
+leading end they part. The trailing end of Z is no such ring past depth
+1: over Z/8 the maps read at lookahead 0 number 2^(2+4+8) = 2^14, the
+value mod 2^t chosen one binary digit at a time, while the polynomial
+functions number ∏_(i&lt;4) 8/gcd(8, i!) = 8 · 8 · 4 · 4 = 2^10 (Kempner);
+both counts are by hand.</p>
+<p>Proof. Each fixes the digit count and rewrites the leading t digits by a
+map that reads only them, so a depth-t tile maps into one depth-t tile.</p>
+<p>The script finds every tile sent into one tile at depths 1 to 4 for the
+flip below 2^12 and for π and the power below 10^5. The flip sends 2 to
+3 and 3 to 2, π(10) = 19 &gt; π(11) = 18, and the power's b^e/n is 0.1010
+at n = 99.</p>
+<h2 id="the-redundant-reader">The redundant reader</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_r">dual.py::section_r</a>.</p>
+<p>Give the leading end the digits {−a, …, a} with 2a + 1 &gt; b, and read
+0.d₁d₂… as y = Σ d_i b^(−i) in [−ρ, ρ], ρ = a/(b − 1) &gt; 1/2. The
+completions of a depth-t prefix of value V are exactly the interval
+[V − ρb^(−t), V + ρb^(−t)], and adjacent children of a tile overlap by
+(2ρ − 1)b^(−t−1) &gt; 0. A map is read at lookahead c here when a reader
+seeing the inputs c digits ahead can always commit a child tile that
+holds every image still possible. Every map F: [−ρ, ρ]^k → [−ρ, ρ]
+of k ≥ 1 inputs that is L-Lipschitz in the sup metric is read at lookahead</p>
+<pre>max(0, ⌈log_b L + log_b(2a/(2a − b + 1))⌉).</pre>
+<p>So every scaling y ↦ (u/v)y with |u/v| ≤ 1 is read whatever the
+radical of u, and so are the mean (x + y)/2 and the product xy/ρ:
+redundancy dissolves every wall of a Lipschitz map of [−ρ, ρ]^k into
+[−ρ, ρ].</p>
+<p>Proof. The j-digit strings write every integer in [−aR_j, aR_j],
+R_j = (b^j − 1)/(b − 1), by induction, since the intervals
+[bz − a, bz + a] over consecutive z abut when 2a + 1 ≥ b. A limit of
+finite completions is a completion, which gives the interval. A tile's
+children are centred at V + d b^(−t−1) with radius ρb^(−t−1); the
+extreme ones reach V ± (a + ρ)b^(−t−1) = V ± ρb^(−t), and adjacent
+ones overlap by 2ρb^(−t−1) − b^(−t−1). So every subinterval of a tile
+of length at most (2ρ − 1)b^(−t−1) lies in one child. At b^c ≥
+2ρL/(2ρ − 1), if the committed depth-t tile holds F of the inputs'
+depth-(t + c) tiles, as [−ρ, ρ] does at t = 0, then F of the
+depth-(t + 1 + c) tiles lies inside it with diameter at most
+2ρL b^(−t−1−c) ≤ (2ρ − 1)b^(−t−1). It fits a child, and committing that
+child keeps the hypothesis.</p>
+<p>At (2, 1) the lookahead is <a href="/reading/">READING</a>'s max(0, ⌈log₂ L⌉ + 1). The bound
+is a sufficient lookahead, and for a C² map F of one input, not affine
+on [−ρ, ρ], L the sup of |F′|, it is the least: with ρ = a/(b − 1) it is
+the inequality b^c(2a + 1 − b) ≥ 2aL of
+<a href="/redundant/#the-many-stream-theorem">REDUNDANT: The many-stream theorem</a> at one stream and lead 0, the lead
+at which that page's output root tile is [−ρ, ρ] itself. In that page's
+letters, its gradient sup Λ is this page's L, its delay (lead plus
+lookahead) is c here, its slack is 2a + 1 − b, and its digit-interval
+length |I| is 2a. At the continued-fraction
+numeration the same purchase cures walls and not the lag
+(<a href="/rates/#the-ladder-law">RATES: The ladder law</a>), since there a tile's scale is not a function
+of its depth. With 2a + 1 = b the overlap is 0, and balanced ternary
+reads y/2 at the stream 1 0 0 … at no finite lookahead, every input
+tile's image holding the boundary 1/6 in its interior. At lookahead 3 the
+script's balanced-ternary reader commits no digit of it in 12 steps,
+while at signed binary a reader at lookahead 0 commits all 12. At
+(2, 1), (3, 2), (4, 2), (10, 6) and (10, 9) it never sticks at the
+stated lookahead on random streams to depth 30, for y/3, 2y/5, −y/7, the
+mean and xy/ρ.</p>
+<h2 id="the-hedge">The hedge</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_e">dual.py::section_e</a>.</p>
+<p>If moreover a ≤ b − 1, then y ↦ |y| is read at lookahead 0, while on the
+all-zero stream the sign of y is read at no depth. The reader copies the
+prefix, negated when its first nonzero digit is negative, and writes
+zeros while the prefix is zero. It never learns the sign; it hedges with
+the same all-zero prefix that makes the sign unreadable. Continuity, not
+information, is what a reader needs.</p>
+<p>Proof. With first nonzero digit d_i, |V| − ρb^(−t) ≥ b^(−i)(1 − ρ) ≥ 0,
+so every completion is 0 or has the sign of d_i, and the absolute values
+of the tile form the tile of the prefix the reader writes. The all-zero
+tile holds both signs at every depth.</p>
+<p>At a &gt; b − 1 the first nonzero digit no longer fixes the sign: at
+(2, 2) the prefix 1 has the tile [−1/2, 3/2]. The script checks every
+prefix to depth 5 at (2, 1) and (3, 1) and to depth 3 at (10, 6) and
+(10, 9); balanced ternary (3, 1) has no overlap, and the proof, which
+needs only ρ ≤ 1, holds there too.</p>
+<h2 id="what-the-purchase-spends">What the purchase spends</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_p">dual.py::section_p</a>.</p>
+<ul><li>- The order blur. Two depth-t tiles of values V &lt; V′ have completions in
+both orders iff V′ − V &lt; 2ρb^(−t). A tile clear of the ends then has
+its order open against 2⌈2a/(b − 1)⌉ − 1 tiles, itself included: three
+at (2, 1) and (10, 6), where the standard digits leave one. The band
+of open order, one tile wide under standard digits, widens to
+2⌈2a/(b − 1)⌉ − 1 tiles.</li><li>- No normalization. The tile of the prefix 1 0 … 0 is
+[1/b − ρb^(−t), 1/b + ρb^(−t)] and holds 1/b in its interior at every
+depth, so neither the exponent of y nor its standard string is read on
+that stream.</li><li>- Division's bit. y ↦ x/y is read at no depth on a y-prefix of zeros,
+whose tile holds values of both signs arbitrarily near 0. Given a
+certificate y ≥ η &gt; 0, η x/y is (1 + ρ/η)-Lipschitz on
+[−ρ, ρ] × [η, ρ], and the redundant reader reads it with each y-tile
+clipped to [η, ρ]. A lower bound on |y| is archimedean data the cover
+cannot supply.</li></ul>
+<p>Proof. The tiles are intervals of radius ρb^(−t) about values spaced
+b^(−t), and the rest is interval arithmetic.</p>
+<p>The sign's non-locality is not on this list: a balanced non-redundant
+end has it already. The script counts open-order sets of exactly
+three at (2, 1), (10, 6) and (3, 2), sees the tile of 1 0 … 0 hold 1/b
+in its interior at depths 1 to 10, and reads η x/y at η = 1/2 at
+(b, a) = (2, 1) at lookahead 3 on 100 random streams.</p>
+<h2 id="the-redundancy-leak">The redundancy leak</h2>
+<p class="tag">Tier: <a href="/key/#criterion">criterion</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_p">dual.py::section_p</a>.</p>
+<p>Read an integer with t + j signed digits {−a, …, a}, 2a + 1 &gt; b and
+j ≥ 1. For a prime p ∣ b, the residues mod p are uniform over a prefix's
+completions, counted once per value or once per string, iff
+p ∣ 2a + 1. Counted per value the bias, the largest gap between a
+residue's share of the completions and 1/p, is below 1/(2aR_j + 1),
+R_j = (b^j − 1)/(b − 1), and vanishes with j. Counted per string it
+does not depend on j.</p>
+<p>Proof. With V the integer a prefix's t digits write, its completions
+are V b^j + z with z ∈ [−aR_j, aR_j], once each as values. Since
+p ∣ b, R_j ≡ 1 and z ≡ d₀ mod p, d₀ the last digit.
+The first count is uniform iff p ∣ 2aR_j + 1 ≡ 2a + 1, and a string's
+residue is its last digit's, uniform over {−a, …, a} iff p ∣ 2a + 1.</p>
+<p>The standard digits hide every p ∣ b exactly (the two-ends law), so
+redundancy degrades that hiding to a bias. This purchase spends a
+finite place's hiding, not archimedean data. Every even base leaks
+parity, and an odd radical can restore exact hiding: b = 9, a = 7
+hides 3. The script reads all 132 (b, a, p, j) with b ≤ 10,
+a ≤ b − 1 and 1 ≤ j ≤ 4.</p>
+<h2 id="the-period-law">The period law</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_m">dual.py::section_m</a>.</p>
+<p>Standard digits, n ↦ un with u ≥ 2, κ = ⌊log_b u⌋, input depth t + c
+and output depth t, with lookahead c ≥ 1. A deep input tile
+[P b^j, (P + 1)b^j), j ≥ 1, is an exception when its image meets two
+output tiles. With θ = 1 when uP has t + c + κ + 1 digits and 0
+otherwise, and τ = c + κ + θ, every b^τ consecutive P of one θ hold
+exactly</p>
+<pre>γ ⌊u(b^j − 1)/(b^j γ)⌋    exceptions,  γ = gcd(u, b^τ),</pre>
+<p>u − γ when b^j γ &gt; u. The count is 0 iff u ∣ b^τ, that is iff
+rad(u) ∣ rad(b) and τ ≥ max_p ⌈v_p(u)/v_p(b)⌉: the numerator
+criterion's multiplier half, at its depth threshold, is the zero locus
+of one density. For gcd(u, b) = 1, on tiles longer than u (b^j &gt; u),
+over the (t + c)-digit P as t grows, the density of exceptions tends to</p>
+<pre>(1 − 1/u)/b^c      counted per tile, and
+(1 − 1/u) H(ξ)/b^c with each tile P weighted log_b((P + 1)/P),</pre>
+<p>ξ = {log_b u}, H(ξ) = b^(ξ−1)(1 + (b − 1)(1 − ξ)). Under counting, the
+split between the classes θ = 0 and θ = 1, which the multiplier's
+mantissa sets, cancels, leaving the factor 1 − 1/u. The log weights keep
+the mantissa's share, in H(ξ), and H &gt; 1 on 0 &lt; ξ &lt; 1, so they see more
+exceptions at every base.</p>
+<p>Proof. The image's output tiles have length b^J, J = j + τ, and the
+tile is an exception iff a multiple of b^J lies in
+(uPb^j, uPb^j + u(b^j − 1)], iff 1 ≤ σ ≤ u(b^j − 1)/b^j with
+σ = (−uP) mod b^τ; σ = 0 fails since b^τ &gt; u. Over b^τ consecutive P, σ
+runs over the multiples of γ, each γ times, which gives the count. It
+is 0 iff γ &gt; u(1 − b^(−j)), and as γ ∣ u and 1 − b^(−j) ≥ 1/2, iff
+γ = u. For the densities the count is u − 1 per b^τ, and the class
+θ = 0 holds the fraction w₀ = (b^(κ+1) − u)/(u(b − 1)) of the P, so the
+density tends to (u − 1)b^(−c−κ)(w₀ + (1 − w₀)/b) = (1 − 1/u)/b^c.
+Under the log weights the classes hold 1 − ξ and ξ, which gives H. ln H
+is concave and 0 at ξ = 0 and 1, so it is positive between.</p>
+<p>The script counts each of 1257 cases (base, multiplier, lookahead,
+depth, class, phase) at bases 2, 6 and 10, multipliers 2 to 12 and 25,
+each exactly on the formula, with every zero where u ∣ b^τ. At (b, u,
+c, j) = (10, 3, 1, 2) the densities are 0.066667 = 1/15 and 0.114118,
+and at (2, 3, 1, 2) they are 0.333336 and 0.353762 against 0.353759.</p>
+<h2 id="the-dual-haar-measure">The dual Haar measure</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_m">dual.py::section_m</a>.</p>
+<p>The mantissas form the compact group R_&gt;0/b^Z, the scale circle, whose
+Haar measure is log-uniform. The mantissas of the depth-t leading
+tiles with prefix P lie in the arc [P, P + 1)·b^Z, of Haar measure
+log_b((P + 1)/P): Benford's law is the Haar measure of these arcs. The
+arcs have unequal Haar measure, which is why a density at the leading
+end must name its measure. A trailing tile is a coset of b^t Z, the
+integers in a coset of b^t Z_b
+in the b-adic integers Z_b, and those cosets have equal Haar measure
+b^(−t), which is why a trailing density of a union of residue classes
+needs no named measure.</p>
+<p>Proof. log_b carries the scale circle onto R/Z and Haar onto Lebesgue
+measure. Haar measure is invariant under multiplication by every q &gt; 0
+because log is a homomorphism, so a fixed arc keeps its mass when the
+measure is pushed forward.</p>
+<p>Log-uniformity as the scale-invariant law is known (Pinkham, Ann.
+Math. Statist. 32, 1961; Hill, Statist. Sci. 10, 1995), and the period
+law's factor H &gt; 1 is what it changes. The script's positive control:
+leading digit 1 carries 0.301030 at base 10 and keeps it under
+multiplication by 3 to 1e-5, while the counting share of that tile moves
+from 0.1111 to 0.3704.</p>
+<h2 id="each-end-prices-in-its-own-metric">Each end prices in its own metric</h2>
+<p class="tag">Tier: <a href="/key/#property">property</a>.<br>
+Verifier: proof; <a href="/code/dual/#section_k">dual.py::section_k</a>, <a href="/code/dual/#section_0">dual.py::section_0</a>,
+<a href="/code/reading/#section_r">reading.py::section_r</a>.</p>
+<p>One map, ⌊n/m⌋ with m ≥ 2 and b ∤ m, has an exact price at both ends.
+The trailing end reads it at exactly max_(p∣m) ⌈v_p(m)/v_p(b)⌉ digits of
+lookahead, a maximum over the places, infinite where some p ∤ b. The
+leading end reads it at exactly digits_b(m) = ⌊Σ_p v_p(m) log_b p⌋ + 1,
+a sum over the places, each weighted by its size. At base 10, ⌊n/4⌋
+costs 2 at the trailing end and 1 at the leading end, and ⌊n/3⌋ is read
+at no finite lookahead at the trailing end and at 1 at the leading end.
+By analogy, the ultrametric triangle inequality prices by the maximum
+and the archimedean one by the sum: the two kinds of absolute value
+Ostrowski's theorem allows on Q.</p>
+<p>Proof. The trailing price is the least c with m ∣ b^c, by
+<a href="/reading/#the-division-criterion">READING: The division criterion</a> on the chain b^t. The leading price
+is the least-lookahead law at h = m, K = 0 and
+Δ = m ≤ (b − 1)b^(digits_b(m)).</p>
+<h2 id="open-fronts">Open fronts</h2>
+<p>Which maps do the two ends of an exotic base read, base 2i first, and
+does this page's exchange hold there? Do the over-redundant digit sets
+a ≥ b add a case of their own? The redundant reader still holds at every
+a, and the absolute value (<a href="/redundant/#the-absolute-value">REDUNDANT: The absolute value</a>) is still
+read at lookahead 0 on every symmetric set, but the first nonzero digit no
+longer fixes the sign there.</p>
+</article></main>
+<footer>Previous: <a href="/shifts/">SHIFTS — a digit shift is a change of numeration</a> · Next: <a href="/redundant/">REDUNDANT — what a signed-digit reader of integers computes</a> · <a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/dual.md">Source text</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>

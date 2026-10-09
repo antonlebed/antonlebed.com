@@ -1,0 +1,646 @@
+# SHIFTS — a digit shift is a change of numeration
+
+The object: the trailing Ostrowski numeration at an irrational
+α = [0; a₁, a₂, …] (OSTROWSKI.md), with denominators q_k, numerators p_k
+and remainders θ_k = q_k α − p_k, and the maps linear in its digits. The
+**shift** by stride r ≥ 1 sends n = Σ d_k q_k, the greedy string, to
+σ_r(n) = Σ d_k q_(k+r). The **drop** sends n to Σ_(k≥1) d_k q_(k−1), and
+×m sends n to mn. A reader at lookahead c commits the output's depth-t
+tile having seen the input's depth-(t + c) tile, as in READING.md, and
+t₀ is the first depth with q_t ≥ 2. [a₁, …, a_P] is the purely periodic
+α whose quotients repeat that block, golden, silver and bronze are [1],
+[2] and [3], **Euler's α** is e − 2 = [0; 1, 2, 1, 1, 4, 1, 1, 6, …],
+e Euler's number, and the **one-class numeration** (P, a), a ≥ 2, is
+[0; (1^(P−1), a)^∞], the quotient a at every P-th position and 1
+elsewhere. This page shows that a shift is a change of numeration: it
+takes α's digits as the digits of α_r = [0; a_(r+1), a_(r+2), …] and
+multiplies by −θ_(r−1), so it is a map of the circle R/Z with jumps at
+the cuts, the points −jα, j ≥ 1, the first q_t of which bound the
+depth-t tiles. Every map of the integers whose image point is a sum of the
+digits against weights that alternate in sign from some position on,
+with Σ cap_k |w_k| finite, cap_k the largest digit allowed at position
+k (OSTROWSKI.md#the-circle-numeration), the shifts, ×m and (where its
+sum converges) the drop among them, has its walls where
+SHIFTS.md#the-landing-criterion puts them, which for the affine maps is
+the set OSTROWSKI.md#the-containment-criterion gives. Where some
+non-cut's image point is a cut, it reads at no lookahead from the depth
+where the shallowest such cut becomes a tile boundary, which makes it
+DISCONTINUOUS, and at a finite lookahead at every shallower depth.
+Whether a stride reads is then a fact about α's caps set against α_r's
+remainders, whether some non-cut's image point is a cut, and no unit
+enters it.
+
+Where the unit went. At a purely periodic α the shift by the period and
+multiplication by the unit −θ_(P−1), whose norm is ±1, are one map, so a
+quadratic numeration cannot tell which of the two makes the period shift
+read. The change of numeration separates them. The shift by the period
+reads at lookahead 0 because α_P = α, and any stride whose rotated caps
+never fall below the original ones copies its string the same way: every
+stride of [0; 2, 4, 8, …], and the strides ≡ 0 mod 3 of Euler's α,
+where no unit exists. The strides ≡ 1 mod 3 of Euler's α are
+DISCONTINUOUS for the same reason as the strides with r mod P odd of a
+one-class periodic numeration: a comb of digits set against the rotated
+numeration's caps codes a non-cut whose image point is a cut. The
+strides ≡ 2 mod 3 of Euler's α read at lookahead 0 though their
+rotated caps fall: the one
+digit over its new cap spills a pair of digits, one up and one down, and
+the carry that follows never chains. Where the spill fills a cap over a
+nonzero, as at the class quotient 2, borrows from the digit below fix it
+under the borrow code's condition (S′), and the lookahead is then at
+most max(0, 3 − r). So the period shift reads by the copy reader's
+hypothesis, not because it is a unit's action, and that hypothesis holds
+where no unit exists.
+
+```
+MAP                    WEIGHTS w_k     READS
+n + ω, ω ≥ 0           θ_k (and ωα)    LIPSCHITZ (OSTROWSKI)
+mn, m ≥ 2              m θ_k           DISCONTINUOUS: no lookahead
+                                       from t₀
+σ_r, caps not falling  θ_(k+r)         lookahead 0 at every depth
+σ_r, r ≡ 2 mod 3,      θ_(k+r)         lookahead 0 at every depth
+  class caps under (S)
+σ_r, r ≡ 2 mod 3,      θ_(k+r)         lookahead ≤ max(0, 3 − r),
+  class caps under (S′)                never MIDDLE
+σ_r, one-class,        θ_(k+r)         DISCONTINUOUS at r mod P odd,
+  [0; (1^(P−1), a)^∞]                  LIPSCHITZ at r mod P even ≠ 0
+the drop               θ_(k−1)         LIPSCHITZ or DISCONTINUOUS as
+                                       σ_(P−1) is, at purely periodic
+                                       α; DISCONTINUOUS where
+                                       the quotients eventually ascend
+                                       at every other step, strictly
+                                       infinitely often, and
+                                       Σ a_(k+1)/q_k converges, or
+                                       where a_(D+1)|θ_(D−1)| > 1
+                                       infinitely often
+any of these, purely                   LIPSCHITZ or DISCONTINUOUS
+  periodic α
+```
+
+(S) and (S′) are the conditions of the block code and the borrow code
+below. The script's counts on this page are those of `shifts.py --full`;
+its default run checks smaller ranges.
+
+## The change of numeration
+Tier: theorem.
+Verifier: proof; shifts.py::section_change.
+
+For every r ≥ 1 and k ≥ −1, θ_(k+r) = −θ_(r−1) θ⁽ʳ⁾_k, where θ⁽ʳ⁾,
+q⁽ʳ⁾ and p⁽ʳ⁾ are the remainders, denominators and numerators of α_r.
+In integers, q_(k+r) = q⁽ʳ⁾_k q_r + p⁽ʳ⁾_k q_(r−1), and p likewise.
+So σ_r(n)α ≡ −θ_(r−1) Σ d_k θ⁽ʳ⁾_k mod 1: the shift takes the string
+at α_r and multiplies by −θ_(r−1). The drop is the stride −1: its point
+is Σ_(k≥0) d_k θ_(k−1) mod 1, since θ₋₁ = −1 is an integer. The image
+point g_r(x) = Σ d_k(x) θ_(k+r) is a map of the circle, continuous at
+every non-cut and with two one-sided values at each cut.
+
+Proof. Both sides obey u_(k+1) = a_(k+r+1) u_k + u_(k−1). At k = −1 they
+agree since θ⁽ʳ⁾₋₁ = −1, and at k = 0 since −θ_r/θ_(r−1) = α_r, the
+standard ratio of consecutive remainders. At r ≥ 0, a_(k+1)
+|θ_(k+r)| ≤ a_(k+1)/q_(k+r+1) ≤ 1/q_k, so the sum converges uniformly in
+the string, and a non-cut, whose coding is unique and continuous in the
+point, has a continuous image. The drop's sum converges wherever Σ
+a_(k+1)/q_k does: at every α with bounded quotients, and at Euler's α.
+A cut has two codings (OSTROWSKI.md#the-circle-numeration) and so two
+values, one from each side.
+
+The script checks the integer identities with none off at eight α, r ≤
+8, k ≤ 40, and the term bound at r = 0 … 8, k ≤ 40 at seven of them,
+all but the one-class (4, 3) numeration.
+
+## The landing criterion
+Tier: criterion.
+Verifier: proof; shifts.py::section_controls;
+shifts.py::section_change; shifts.py::section_criterion.
+
+Let f map the integers n ≥ 0 to themselves with f(n)α ≡ Σ d_k(n) w_k
+mod 1, where sign(w_k) = ε sign(θ_k) for one ε at every large k and
+Σ cap_k |w_k| converges, and let g(x) = Σ d_k(x) w_k. A non-cut x
+**lands** on a cut −sα when g(x) ≡ −sα. At a depth t with q_t ≥ 2, f reads
+at some lookahead iff no non-cut lands on a cut −jα with j ≤ q_t. So
+f reads at no lookahead exactly from the first depth t with
+q_t ≥ max(s, 2), where −sα is the shallowest cut a non-cut lands on:
+the depth where that cut's two codings part. The walls of f are
+g⁻¹(B) \ B, B the cuts, as for the affine maps, though g need not be
+continuous or injective.
+
+Proof. Among the legal tails from position k, where no nonzero digit
+at k − 1 bars the cap at k, Σ d_i w_i is largest at the tail with the
+caps where ε θ_i > 0 and zeros elsewhere, and nowhere else. It is
+smallest at the other parity's. Where a nonzero
+digit at k − 1 bars the cap at k, the extreme that uses position k
+holds it one below its cap instead, the second form of
+OSTROWSKI.md#the-circle-numeration. Each extreme is legal, since a
+capped digit sits over a zero. These two are the cap-fillings, the
+tails of a cut's two codings. A non-cut's string is never eventually a
+cap-filling, so at every depth it has legal tails
+above and below its own. Truncated far out they are integers agreeing
+with x to that depth, with images on both sides of g(x). If g(x) is a
+cut of depth t, some −jα with j ≤ q_t, they lie in two output tiles,
+so no input tile about x commits one. Conversely, if f reads at no
+lookahead at depth t, the input tiles that fail shrink to a point x,
+every neighbourhood of it on one side holding integers in two output
+tiles. Were x a cut, the points on one side of it follow that side's
+coding for long, so their images all sit on one side of g's value there
+by the extremality above, in one tile. So x is a non-cut, g is
+continuous at x, and g(x) is a cut of depth t. The shifts and ×m have
+the weights θ_(k+r) and mθ_k, and the drop has θ_(k−1) wherever Σ
+a_(k+1)/q_k converges.
+
+Over every legal tail of length 7 at four α and 72 alternating weight
+vectors, with the first digit free and with it held below its cap, the
+script finds the cap-filling alone at the maximum. Its exhaustive
+reader, run over n below two ranges, sets a depth t's least lookahead
+against each range's ceiling T − t + 1 there, T the range's depth, the
+largest T with q_T at most the range. Over 68 cells (five periodic α
+at the drop and strides 1 … 3, six one-class ones at the drop and
+strides 1 … 2P; 64 distinct, since [1, 2] is the one-class (2, 2) and
+its four cells are counted twice) it labels a depth **TRACKING**,
+climbing with the range as it does where no lookahead exists, when its
+least lookahead comes within 2 of the ceiling at both ranges or, at
+five or more depths short of the smaller range's depth, rises between
+the ranges by at least one less than their depths differ by;
+**BOUNDED** when it is the same at both ranges and at least 4 below the
+smaller range's ceiling; and otherwise leaves the depth undecided. The
+691 depths it decides over the 68 cells all agree with the landing
+walk's prediction, TRACKING from its first depth at no lookahead and
+BOUNDED before it, and 85 are left undecided. Wherever the reader
+decides the depths around a predicted first depth at no lookahead, it
+begins to track exactly there: the one-class (4, 3) numeration at
+r = 1, 3, 5, 7 from t = 2, 3, 5, 7, the shallowest landed cuts being
+−α, −3α, −14α and −39α. At the one-class (4, 2) numeration it leaves every
+depth from the predicted one on undecided at the drop and at r = 1, 3,
+5, 7, its least lookahead the same at both ranges and one below the
+smaller range's ceiling.
+
+## The copy reader
+Tier: theorem.
+Verifier: proof; shifts.py::section_copy.
+
+If a_(k+1) ≤ a_(k+r+1) at every k ≥ 1 and a₁ ≤ a_(r+1) + 1, then
+σ_r(n)'s greedy string is n's shifted by r, at every n, so σ_r reads at
+lookahead 0 at every depth. The hypothesis holds at the period's
+multiples of every purely periodic α, at every stride of an α whose
+quotients never fall, and at the strides ≡ 0 mod 3 of Euler's α.
+
+Proof. The shifted digit d_k sits at position k + r under the cap
+a_(k+r+1) ≥ a_(k+1) ≥ d_k (d₀ ≤ a₁ − 1 ≤ a_(r+1)). If d_k reaches that
+cap then a_(k+1) = a_(k+r+1) and d_k was capped before, so d_(k−1) = 0
+and a capped digit sits over a zero; below position r every digit is 0.
+A legal string is the greedy one.
+
+The script finds σ_r(n)'s string equal to n's shifted for every
+n < 20000 in 20 cases: golden and [0; 2, 4, 8, …] at r = 1 … 6,
+Euler's α at r = 3, 6, and three one-class numerations at r = P and 2P.
+
+## The landing walk
+Tier: theorem.
+Verifier: proof; shifts.py::section_controls;
+shifts.py::section_criterion.
+
+At a purely periodic α, whether a map of the landing criterion with
+weights m θ_(k+r) is DISCONTINUOUS, and from which depth it reads at
+no lookahead, is decided by
+a finite graph, a walk in the frame of FLUSH.md#the-lift-game with a
+single player, who chooses the string's digits. A string's sum
+Σ m d_j θ_(j+r) is λ = κ − sα, κ an integer, exactly when D_k = λ −
+Σ_(j<k) m d_j θ_(j+r), the value it still owes, stays at every k between
+the least and greatest legal tail sums from k, ends included. Written
+D_k = x θ_(k+r) + y θ_(k+r−1), (x, y) is a pair of integers and a step
+is X = y, Y = x − m d_k − a_(k+r+1) y. The map is
+DISCONTINUOUS iff the graph has a cycle through a state that is live
+(between the tail extremes, ends included), interior (strictly between
+them) and not (0, 0).
+
+Proof. The frame repeats with the period. The purely periodic α is a
+quadratic irrational; α′ is its Galois conjugate, the other root of its
+quadratic, and a prime mark ′ on any quantity built from α and integers
+replaces α by α′, so θ′_j = q_j α′ − p_j. On the conjugate side, u = x
+ζ′_(k+r) + y, with ζ′_j = θ′_j/θ′_(j−1) > 1, steps as u ↦ u/ζ′ − md, a
+contraction, so on a cycle u is its fixed point and lies in [−U, 0],
+U = mAζ′_min/(ζ′_min − 1) with A the largest quotient, and u = 0 only at
+(0, 0). The real side bounds xζ + y, ζ = θ_(k+r)/θ_(k+r−1). Together
+they bound x and y, so every cycle lies in a finite box. A state equal
+to a tail extreme has one live successor, the cap-filling's, so a cycle
+is all extreme, a cut's coding, or all interior, a non-cut. The value's
+α-coefficient v falls along a walk by m d_k q_(k+r). A cycle placed ever
+deeper has |v| growing with its depth, which a falling v allows only on
+the negative side, so the landing is on a cut. Along any path u
+converges geometrically into [−U, 0], so an infinite interior path stays
+in the box widened by any slack from some depth on, and there it closes
+a cycle; a cycle placed after zeros codes a non-cut that lands, a
+landing string. The depth comes from the least s whose λ reaches an
+interior cycle.
+
+The walk finds ×1 never DISCONTINUOUS and ×2, ×3 reading at no
+lookahead from t₀, landing on −α, at golden, silver and [1, 2], as
+OSTROWSKI.md#the-affine-maps requires. The drop reads at golden (its
+least lookahead 2, 1, 2, 1, … from depth 2), silver, bronze and the
+three odd-P one-class cells, and reads at no lookahead from t = 2 at
+the three even-P ones, [1, 2] = (2, 2) among them.
+
+## The uniform lookahead
+Tier: theorem.
+Verifier: proof; shifts.py::section_uniform.
+
+At a purely periodic α, a map of the landing walk that is not
+DISCONTINUOUS reads at one lookahead at every depth: it is LIPSCHITZ,
+never MIDDLE (READING.md#the-lipschitz-criterion). If the nonzero
+interior states of the box the proof builds carry a longest path of L
+steps, the lookahead at depth t is at most
+max(0, L + 1 + max(k_s − t, 1 − r)), with k_s = max(0, −r) the walk's
+first step. Off periodicity the same walk, started from every cut of
+depth t, decides that one depth exactly whenever every walk dies.
+
+Proof. The depth-t cuts are −jα, 1 ≤ j ≤ q_t. Lookahead c fails at depth
+t exactly when some input prefix of length t + c holds a depth-t cut
+strictly inside the hull of its tails' images: integers approach both
+ends of the hull, so they sit on both sides of the cut, in two output
+tiles, and two images in two tiles have a cut between them. An extreme
+state's one live successor is extreme, so a failing walk is interior at
+every step, and the lookahead at depth t is max(0, K + 1 − t), K the
+last step at which a walk from some κ − jα, j ≤ q_t, is interior. On
+the conjugate side u_k is λ′/θ′_(k+r−1) plus the past digits' term,
+which lies in [−U, 0] as in the landing walk, whose proof defines
+the primed (conjugate) quantities. Here λ′ = λ + j(α − α′) and
+|θ′_i| = q_i(α − α′) − θ_i, and once q_(k+r−1) ≥ q_t ≥ max(j, 2)
+the first term lies in [−1 − G, G⁺], with G = (H₀ + 1)/(2(α − α′) − 1) and
+G⁺ = max(0, H₀ − (α − α′))/(α − α′ − 1), H₀ the largest
+|Σ_(i≥k_s) m d_i θ_(i+r)| over the legal tails from the first step,
+which bounds |λ|. λ′ can be negative, a start below −j(α − α′) (at
+the drop of [0; (1, 1, 8, 2)^∞] a live start has λ′ ≈ −0.88); then the
+term is at most (H₀ − j(α − α′))/(j(α − α′) − 1) ≤ G⁺, since α′ < −1, α
+being the reciprocal of a reduced quadratic, makes α − α′ > 1. With the real
+side's bound, every interior state of such a walk lies in one finite
+box per residue of the step mod P from step max(k_s, t − r + 1) on.
+Its nonzero interior states carry no cycle, since one would make the map
+DISCONTINUOUS, so a failing walk spends at most L steps there.
+
+The script walks every start with j ≤ 5000 at once. As positive
+controls it reproduces the exhaustive reader's lookahead columns for the
+drop, which at golden reads 0, 2, 1, 2, 1, … from depth 1 and at the
+one-class (3, 2) reads 4, 3, 2 repeating from depth 2, and at the one-class
+(3, 2) and (4, 2) at r = 1 some walk survives exactly from t = 2, the first
+depth at no lookahead the landing criterion predicts. Every interior
+state met past the box's step lies in the box. Over 221 cells that are
+not DISCONTINUOUS, 3194 depths, the box graph is acyclic and no depth
+passes the bound; the largest lookahead in any column is 10, the drop
+at the one-class (9, 2). Of the columns the script prints, which run to
+the depths with q_t ≤ 5000, most even-residue ones are 0 at each of
+those depths; whether every column repeats with the period is an open
+question.
+The exhaustive reader never reads above the walk and equals it at all
+3133 depths where its range suffices.
+
+## The combs
+Tier: theorem.
+Verifier: proof; shifts.py::section_combs; shifts.py::section_e2;
+shifts.py::section_uniform.
+
+At the one-class numeration [0; (1^(P−1), a)^∞], a ≥ 2, every stride
+with r mod P odd is DISCONTINUOUS. At even P the comb of 1s at the odd
+positions lands on the cut −q_r α, and at odd P the comb with 1 at the
+positions 2, 4, …, P − 3 of each period and 2 at its class slot P − 1
+lands on −q_(r+1) α, so the stride reads at no lookahead from the first
+depth with q_t ≥ max(q_r, 2), or max(q_(r+1), 2), at the latest. At every α
+whose quotients are 1 off one residue class mod 3 and at least 2 on
+it, every stride r ≡ 1 mod 3 is DISCONTINUOUS, at no lookahead
+from the first depth with q_t ≥ max(q_(c₀+r−1), 2) at the latest: the
+comb of 2s at the class positions c₀, c₀ + 3, …, c₀ the first where a
+2 is legal, lands on −q_(c₀+r−1) α. Euler's α is one, with c₀ = 1.
+
+Proof. At even P the quotient a_(2i+1) is 1, so
+θ_(2i) = θ_(2i+1) − θ_(2i−1), and the comb's image Σ θ_(k+r) over odd k,
+all at even indices, telescopes to −θ_r ≡ −q_r α. The comb is legal,
+since each 1 sits over a 0, and it holds 1 at the class slots, whose cap
+is a, so it is no cap-filling: a non-cut. At odd P write ξ = MP + r,
+M ≥ 0 a count of periods. The 1s give Σ θ_(ξ+2i) = θ_(ξ+P−2) − θ_(ξ+1),
+since each a_(ξ+2i+1) = 1 (with ρ = r mod P odd, ρ + 2i + 1 is even and
+lies in [ρ + 3, ρ + P − 2], below 2P and never P), and
+2θ_(ξ+P−1) = θ_(ξ+P+1) − θ_(ξ+P−2), since a_(ξ+P) = a_(ξ+P+1) = 1. A
+period gives θ_(ξ+P+1) − θ_(ξ+1), and the periods telescope to −θ_(r+1).
+Two zeros open each period, so this comb is no cap-filling either. At
+the mod-3 numerations 2θ_j = θ_(j+2) − θ_(j−1) wherever
+a_(j+1) = a_(j+2) = 1, which r ≡ 1 mod 3 gives at every j = c + r with c
+a class position. Consecutive teeth cancel and the sum is −θ_(c₀+r−1).
+The comb has two zeros between teeth, so it is no cap-filling either.
+The landing criterion finishes both.
+
+At Euler's α the exhaustive reader tracks from t = 2, 4, 7 at
+r = 1, 4, 7, the depths where −α, −7α and −71α become tile boundaries,
+as the combs require. The walk from every cut of depth t finds, at r =
+1, 4, some walk surviving from depths 2 and 4 respectively, as the
+combs prove, and at r = 4 every walk dying at depths 2 and 3, so those
+depths read at a finite lookahead; and it finds that r = 2, 5, 8 read at
+lookahead 0 at every depth t ≤ 10, which the block code below proves at
+every depth; r = 3, 6 read 0 at every depth, as the copy reader says.
+
+## The block code
+Tier: criterion.
+Verifier: proof; shifts.py::section_block; shifts.py::section_sharp.
+
+Let a_j = 1 off the class indices J_i = 3i + ψ, ψ ∈ {−1, 0, 1} the
+phase, with class quotients b_i = a_(J_i) ≥ 2 (Euler's α is ψ = −1,
+b_i = 2i), and let r = 3ℓ + 2. Write B_i for the input cap of the digit
+the shift puts in block i's third slot: b_(i−ℓ), except b₀ − 1 at ψ = 1,
+where the first class digit is digit 0, and B_i = 0 where that slot gets
+no class digit. The block code below is σ_r(n)'s greedy string at every
+n iff at every block i with B_(i−1), B_(i−2) ≥ 2
+
+```
+(S)  ⌊B_i/2⌋ + max(1, ⌊(B_(i−1) − 1)/2⌋) < b_i,
+```
+
+and the blocks below those pass a finite enumeration of their legal
+inputs. (S) at every block, those below included, is sufficient on its
+own. Then output digit j reads the input at most at j + 2 − r ≤ j, so
+σ_r reads at lookahead 0 at every depth. Euler's α satisfies (S) at every
+block at every ℓ ≥ 1, and at ℓ = 0 at every block but the first, which
+the enumeration passes; every constant class quotient b ≥ 3, even b
+included, satisfies it at every block and every ℓ; b = 2 alone fails.
+
+Proof. Cut the output into blocks (J_i − 1, J_i, J_i + 1), caps
+(b_i, 1, 1). At every phase the shift sends the class digit at J_h − 1
+to the third slot of block h + ℓ and J_h, J_h + 1 to the first two of
+block h + ℓ + 1, so the shifted string holds x_i, y_i ∈ {0, 1} and
+e_i ≤ B_i there, and the phase moves only the bottom. Since
+a_(J_i+1) = a_(J_i+2) = 1, 2q_(J_i+1) = q_(J_i+2) + q_(J_i−1): spill
+⌊e_i/2⌋ pairs, one digit up a block and one down, leaving β_i = e_i mod
+2, and let X_i = x_i + ⌊e_i/2⌋ + ⌊e_(i−1)/2⌋. Then carry once,
+c_(i+1) = y_i β_i by q_(J_i) + q_(J_i+1) = q_(J_i+2), set
+Z_i = X_i + c_i, and output (Z_i, 0, 0) if y_i = β_i = 1,
+(Z_i − 1, 0, 1) if y_i = 1, β_i = 0 and Z_i ≥ 1, (0, 1, 0) if y_i = 1
+and Z_i = 0, and (Z_i, 0, β_i) if y_i = 0. Each case keeps the value.
+The carry reads y_i and β_i and never Z_i, so no carry chains, and block
+i's output reads the shifted string on J_i − 3 … J_i + 1 alone. The
+output is legal, so greedy, iff its first digit o_i is at most b_i,
+strictly when block i − 1 ends in a nonzero. Legality of the input ties
+the slots: x_i = 1 forces e_(i−1) = 0, and c_i = 1 forces x_i = 0 and
+e_(i−1) odd below its cap. Over the legal inputs, o_i is at most
+⌊B_i/2⌋ + max(1, ⌊B_(i−1)/2⌋) in general, ⌊B_i/2⌋ + ⌊B_(i−1)/2⌋ through
+a carry, and ⌊B_i/2⌋ + max(1, ⌊(B_(i−1) − 1)/2⌋) over a nonzero, which
+needs e_(i−1) odd, or even below its cap under y = 1, or 0 under
+x_i = 1. The third bound is at least the others less one, and each is
+attained by a legal input once the two blocks below, i − 1 and i − 2,
+carry caps ≥ 2, so (S) is exactly legality there. The enumeration runs
+the lowest blocks, where fewer inputs exist.
+
+The script finds the block code equal to the greedy string at every
+n < 200000 and on 500 random 60-digit strings at Euler's α, r = 2, 5, 8,
+11, at [0; (1, 3, 1)^∞] and [0; (1, 5, 1)^∞] at r = 2, 5, and at two
+random class sequences drawn under the stricter condition (G), (S) with
+max(1, ⌊B_(i−1)/2⌋) as its second term, with none off, and the walk from
+every cut reads 0 at every depth to t = 10 or more at each of those
+cells but Euler's α, which the uniform lookahead walks at r = 2, 5, 8.
+Its controls flag the code with the carry removed at Euler's α and the
+full code at [0; (1, 2, 1)^∞], r = 2, where (S) fails. At the other two
+phases, the constant 3 at r = 2 and 5 and two random sequences, one at
+r = 2 and one at r = 5, each drawn so the enumeration finds no violation
+in its blocks, the phase's code is the greedy string at every n < 200000
+and on 500 strings, 0 off, and the walk reads 0 at every depth to
+t = 9 … 13. A finite search over the block states fed by the first 60
+input digits finds a reachable violation, with a legal witness the
+comparison flags, at all 24 random sequences over 2 … 5, and none at
+[0; (1, 4, 1)^∞] and [0; (1, 6, 1)^∞], where (G) fails, both read at 0.
+Fed only the digits up to a block whose two blocks below carry class
+digits, it agrees with (S) at that block at 3000 random cases at phase
+ψ = −1.
+
+## The borrow code
+Tier: theorem.
+Verifier: proof; shifts.py::section_borrow; shifts.py::section_sharp.
+
+In the setting of the block code, if at every block
+
+```
+(S′)  ⌊B_i/2⌋ + max(1, ⌊B_(i−1)/2⌋) ≤ b_i,
+```
+
+then σ_r reads at lookahead at most max(0, 3 − r) at every depth, the
+lowest blocks decided by the enumeration: 0 at r ≥ 5, and at r = 2
+exactly 1 at the depths J_i − 1 of the blocks i with B_(i−1),
+B_(i−2) ≥ 2 where (S) fails, and at the depths J_i − 1 of the lower
+blocks where the enumeration finds a violation, 0 at every other. So it
+is never MIDDLE. Every class sequence with caps in {2, 3} satisfies (S′)
+at every ℓ, the constant 2 and the Thue–Morse word 2 + tm(i) among them;
+b_i = 2 with B_i or B_(i−1) at 4 or more fails it.
+
+Proof. Under (S′) the first two maxima of the block code's proof are
+within the cap, so its output breaks legality only as o_i = b_i over a
+last digit 1 of block i − 1. Fix every such block at once, running up
+the blocks with a pending unit. Add the unit to block i's first digit,
+turning (0, 1, 0) into (0, 0, 1) by q_(J_i−1) + q_(J_i) = q_(J_i+1). If
+now o_i = b_i over a 1, rewrite b_i q_(J_i−1) + q_(J_i−2) = q_(J_i): the
+1 below becomes 0 and the block's first two digits become 0, 1, its
+third unchanged. A block left (0, 1, 1) waits: if the block above
+violates over its 1, that rewrite consumes it; if not,
+q_(J_i) + q_(J_i+1) = q_(J_i+2) clears it and sends the unit up.
+The unit arrives only where the block below ended 1 and this block did
+not violate, so its first digit was at most b_i − 1 and now sits over a
+0, legal. A (0, 1, 0) turned (0, 0, 1) can make the block above violate,
+with the one kind the run fixes, and only where (S) fails. For the block
+below was the case y = 1, β = 0, Z = 0, so its e is 0 and it sends no
+carry, and the violating first digit is at most
+Z_i = x_i + ⌊e_i/2⌋ ≤ 1 + ⌊B_i/2⌋, while (S′) makes b_i at least that,
+so 1 + ⌊B_i/2⌋ = b_i, where (S) fails. So the output is legal, the
+greedy string. Every change runs upward but one, block i − 1's last
+digit, decided by block i's first digit, which reads the shifted string
+to J_i + 1, three places above it. So output digit j reads the input at
+most at j + 3 − r, and at j + 2 − r unless j = J_i − 2 at a block with a
+legal violating input. There lowering e_i, one input place beyond the
+depth J_i − 1, removes the violation and moves the digit, so that depth
+needs exactly one more place at r = 2.
+
+At 36 cells, the Thue–Morse caps, the constant 2 and two random (S′)
+sequences at each phase, r = 2, 5, 8, the script finds the borrow code
+equal to the greedy string at every n < 200000 and on 500 strings, 0
+off, and the walk's least lookahead within max(0, 3 − r) at every depth it
+reaches, to t = 9 … 14; at r = 2 it is 1 exactly at the search's
+violating depths (the constant 2 at t = 7, 10, 13 at the phase of
+Euler's α), 0 elsewhere.
+Its controls flag the code with the rewrites removed at
+[0; (1, 2, 1)^∞], r = 2, and the full code where (S′) fails, at the
+class quotients alternating 2 and 9, r = 5, whose least lookahead
+reads 3, 2, 1 at t = 8, 9, 10.
+
+Open: off periodicity, does σ_r with r ≡ 2 mod 3 read at a class
+sequence failing (S′), where a borrow can reach a 0 and chain down?
+Does σ_r with r ≡ 0 mod 3 read at a class sequence that falls, where
+the copy reader is silent: the primes with adjacent pairs swapped,
+3, 2, 7, 5, 13, 11, …, or the Thue–Morse word? At a periodic sequence
+the uniform lookahead makes each LIPSCHITZ or DISCONTINUOUS.
+
+## The even residues
+Tier: theorem.
+Verifier: proof; shifts.py::section_even.
+
+At the one-class numeration [0; (1^(P−1), a)^∞], a ≥ 2, the landing walk
+of a stride with ρ = r mod P even and nonzero has no nonzero interior
+cycle: at odd P it has no nonzero cycle at all, and at even P only the
+cap-filling of the even positions, which is extreme. Index by j = k + r,
+so the digit's cap is a at j ≡ ρ − 1 and the quotient under its weight
+θ_j is a at j ≡ −1, mod P. A cycle is then a periodic legal string z
+over every j in Z, and its state (x, y) at an index j ≡ 0 mod P, re-indexed to
+j = 0, is fixed by two readings of the one string, the future on the
+real side, F = Σ_(j≥0) z_j θ_j, and the past on the conjugate side,
+C = Σ_(j<0) z_j |θ′_j|:
+
+```
+x = (F − C)/(α − α′),     F = xα − y,     C = xα′ − y.
+```
+
+Proof. The period is a unit: θ_(j+P) = ηθ_j with η = −θ_(P−1), an
+algebraic identity (the change of numeration at α_P = α), so it holds
+for the conjugates at every j in Z, and every θ′_j is negative. One
+period summed geometrically makes C the conjugate of F. Three bounds
+finish.
+
+x < 1. F is at most the cap-filling of the even positions, and C > 0 at
+a nonzero state, while α − α′ > 1. At even P every even position has cap
+1 and quotient 1, and the cap-filling telescopes to 1. At odd P a class
+slot changes parity each period, and it falls short of 1 by
+(a − 1)|η|(1 − |θ_(ρ−1)|)/(1 − η²).
+
+x > −1. In C − F omit the even j ≥ 0, whose weights are negative, and
+charge a digit at an even j < 0 to its odd right neighbour, which
+legality leaves a unit below its cap and whose weight is larger. With
+the quotients in place of the caps, the odd sums telescope to α on the
+future and |α′| on the past, so C − F ≤ α − α′ + T. T compares the odd
+positions of the digits' class residue c = ρ − 1 with those of the
+quotients' residue −1, each a geometric sum in |η|. With R_c = |θ′_c| /
+|θ′_(P−1)|, at even P every class slot is odd and
+
+```
+T = −(a − 1)(1 + |η| − |θ_c| − R_c)/(1 − |η|) < 0,
+```
+
+since |θ_c| ≤ 1 − α < 1/2 and R_c ≤ 1/2. At odd P an even class slot
+leaves a remainder, and T(1 − η²) ≤ (a − 1)(|θ_c| + (1 + |η|)R_c − 1 −
+η²), negative at P ≥ 5: c ≤ P − 4 gives R_c ≤ 1/3 with |θ_c| < 1/2 and
+|η| < 1/2, and c = P − 2 gives R_c ≤ 2/3, |θ_c| < 1/q_(P−1) ≤ 1/5 and
+|η| < 1/q_P ≤ 1/13. At P = 3 that bound is positive, and the remainder
+is taken exactly: at each past class slot j ≡ c it is
+a|θ′_j| − |θ′_(j+1)| where positive, the quotient under θ_j is 1
+(c ≠ P − 1), so |θ′_(j+1)| = |θ′_j| + |θ′_(j−1)|, and in units of
+|θ′_(P−1)|, as R_c is measured, the remainder is max(0, (a − 1)R_c − R_(c−1)), not the bound's
+(a − 1)R_c. With it, at P = 3 exactly,
+T = (a² − a√(a² + 2a + 2) − 2)/(4(a + 1)) < 0.
+
+The census. At x = 0 and a nonzero state, F = C = −y is a positive
+integer at most 1. At odd P there is none, and at even P F reaches 1
+only on the cap-filling of the even positions. Which multiple of P the
+cycle's period is never enters.
+
+As a positive control the script finds nonzero strings with integer
+x and y at the odd residue ρ = 1 of (3, 2) and (4, 2). It checks
+x(α − α′) against F − C summed directly, and x against an exact
+integer form of the same coordinate, on 227 random strings. Over all
+3,563,549 legal cyclic strings of length a multiple of P, up to 18, a
+cycle counted at each multiple of its period, at eight cells it finds
+every x in (−1, 1), both bounds held, and the strings with integer x
+and y exactly the zero string and, at even P, the cap-filling of the
+even positions. At 1900 cells, P ≤ 40, it finds T at most −1/4, the
+P = 3 limit, and every hand bound true. At P = 10 … 16 and a = 2 and 7
+the walk finds
+no interior cycle, and no live state at odd P.
+
+## The parity law
+Tier: theorem; rule (that the combs' cuts are the shallowest landed,
+verified P = 2 … 9, a = 2 … 5, r ≤ 8).
+Verifier: proof; shifts.py::section_parity; shifts.py::section_combs;
+shifts.py::section_even.
+
+At the one-class numeration [0; (1^(P−1), a)^∞], a ≥ 2, the shift by r
+reads at lookahead 0 when r ≡ 0 mod P, is DISCONTINUOUS when r mod P is
+odd, and is LIPSCHITZ when r mod P is even and nonzero.
+
+The first case is the copy reader, the second the combs and the third
+the even residues with the uniform lookahead. In the third the rotated
+caps fall, since the class slot moves onto a cap-1 position, and yet
+nothing lands on a cut: the copy reader's hypothesis is sufficient and
+not necessary. The landing walk decides all 352 cells of P = 2 … 9, a =
+2 … 5, r = 1 … 2P with none off. That the combs' cuts are the shallowest
+landed is a rule: the walk finds −q_r α at even P and −q_(r+1) α at odd
+P at all 112 DISCONTINUOUS cells of that range with r ≤ 8.
+
+## The drop
+Tier: theorem.
+Verifier: proof; shifts.py::section_drop; shifts.py::section_wide.
+
+At a purely periodic α of period P, whether a stride r ≥ −1 is
+DISCONTINUOUS depends on r mod P alone, so the drop, the stride −1, is
+DISCONTINUOUS exactly when σ_(P−1) is. At the one-class numeration it
+is DISCONTINUOUS at even P and LIPSCHITZ at odd P, and at a numeration
+with one repeated quotient (P = 1) it reads.
+Off periodicity two strings decide it for the numerations below. The
+**ascent comb** is the string with d_j = a_j at j = j₀ + 2, j₀ + 4, …,
+j₀ ≥ 0, and zeros elsewhere. When the quotients ascend at every other
+step from j₀ + 2 on, a_j ≤ a_(j+1) at each of those j and strictly
+infinitely often, it is legal and no cap-filling, and it lands on the
+cut −q_(j₀)α. Where Σ a_(k+1)/q_k also converges, so that the landing
+criterion covers the drop, the drop then reads at no lookahead from the
+first depth with q_t ≥ max(q_(j₀), 2) at the latest. Every
+[0; 1, γ₁, 1, γ₂, …] with bounded γ_i ≥ 1 and γ_i ≥ 2 recurring is
+such a numeration, periodic or not, at j₀ = 1, with the cut −α and
+the depth 2. The string at Euler's
+α: 1 at position 1 and the cap 2μ at position 3μ − 2 for every μ ≥ 2 lands on
+−α, so the drop reads at no lookahead from t = 2 there, though from no
+position on do the quotients ascend at every other step. These strings
+are landings, so they can show the drop DISCONTINUOUS and never that it
+reads. Wherever Σ a_(k+1)/q_k converges the landing criterion still
+characterizes it: the drop is DISCONTINUOUS exactly when some non-cut
+lands on a cut. Past the criterion large quotients decide it: if
+a_(D+1)|θ_(D−1)| > 1 at infinitely many D, which a_(D+1) ≥ q_D + q_(D−1)
+ensures, the sum diverges and the drop reads at no lookahead from t₀.
+Off periodicity, which numerations with a convergent sum carry a
+landing is open, and so is, where none does, whether the drop is
+LIPSCHITZ or MIDDLE; where the sum diverges with
+a_(D+1)|θ_(D−1)| ≤ 1 from some D on, nothing here decides it.
+
+Proof. The landing walk sees r only through the quotient a_(k+r+1), the
+caps a_(k+1) and the frame (θ_(k+r), θ_(k+r−1)). Moving r by P leaves
+the first two alone and multiplies the frame, the value owed and both
+tail extremes by the period's unit η = −θ_(P−1) alike (the change of
+numeration at α_P = α), swapping the extremes when η < 0, so no
+state's label and no step changes. The one-class cases are then the
+combs at P − 1 odd and the even residues at P − 1 even; at P = 1 its
+graph is σ_P's, never DISCONTINUOUS since the copy reader reads σ_P at
+every depth, though the two maps' lookaheads differ. The comb:
+a_j θ_(j−1) = θ_j − θ_(j−2), so the image telescopes to −θ_(j₀). A
+digit at its cap has a zero below it, the other parity, so the string
+is legal, and a strict ascent leaves a digit under its cap, so it is
+no cap-filling. At Euler's α the truncation below 3μ − 2 misses −α by
+E_μ = μ θ_(3μ−4) − (μ − 1) θ_(3μ−3): at μ = 2 it is 2θ₂ − θ₃ = 2α − 1,
+and a step adds 2μ θ_(3μ−3), which a_(3μ−2) = a_(3μ) = 1 and a_(3μ−1) =
+2μ rewrite as E_(μ+1). Both terms are at most μ/q_(3μ−3), so E_μ → 0.
+The teeth sit three apart, alternating parity, so the string is no
+cap-filling. The landing criterion finishes all three. Past it,
+|θ_(D−1)| lies between 1/(q_D + q_(D−1)) and 1/q_D, so a_(D+1) ≥ q_D +
+q_(D−1) gives a_(D+1)|θ_(D−1)| > 1, which gives a_(D+1)/q_D > 1. The
+inputs b·q_D and (b + 1)·q_D, b < a_(D+1), are single digits over zeros
+and share every input tile of depth at most D. Their drops' points
+b·θ_(D−1) and (b + 1)·θ_(D−1) sweep past a whole turn as b runs, so
+some pair sits on the two sides of −α, on an arc of length |θ_(D−1)|.
+At a depth t ≤ D − 1 with q_t ≥ 2 the cuts lie at least |θ_(t−1)|
+apart, so −α is the one cut on that arc and the two drops lie in two
+output tiles. A D past t + c from the infinite set then defeats
+lookahead c at depth t.
+
+The script finds the drop's graph and σ_(P−1)'s one, their live,
+interior and cycle sets equal, at 37 purely periodic α (39 runs, the
+one-class (2, 2) and (3, 2) repeating [1, 2] and [1, 1, 2]; at golden,
+silver and bronze, P = 1, the two walks use one frame and agree by
+construction), 1373 live states over the runs, and the one-class drop
+DISCONTINUOUS at exactly the 16 even-P cells of 32, P ≤ 9, a ≤ 5,
+landing on −α. The comb's truncations telescope exactly, over 60 teeth,
+at six sequences: three with the quotient 1 at every odd position and a
+word over {1, 2} at the even ones (the Fibonacci word, Thue–Morse and a
+random word), one random with the even positions ascending, one
+ascending from j₀ = 9 onto −32403α, and the one-class (4, 3). At each,
+raising the comb's last strict tooth gives a legal string on the cut's
+other side; at golden, where no ascent is strict, the comb is a
+cap-filling and the drop reads. E_μ holds exactly at μ ≤ 60. The
+exhaustive reader tracks from t = 2 at the three sequences over {1, 2}
+and decides no depth against it. At the numeration with a₁ = 2,
+a_(D+1) = q_D + q_(D−1) at D = 4, 8, …, 24 and every other quotient 1,
+the pair at each D sits on the two sides of −α, its inputs parting at
+position D and its drops at 0 = t₀ − 1.

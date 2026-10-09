@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MACHINE — a state that only multiplies, read as a machine | Numbers read one place at a time</title>
+<meta name="description" content="MACHINE — a state that only multiplies, read as a machine">
+<link rel="alternate" type="text/markdown" href="/machine.md">
+<style>:root{color-scheme:light dark;--fg:#1b1b1b;--bg:#fdfdfb;--mute:#5f5f5f;--link:#1d4f91;--rule:#d8d8d4}@media(prefers-color-scheme:dark){:root{--fg:#e4e4e0;--bg:#171717;--mute:#9d9d98;--link:#8fb3e8;--rule:#383836}}body{margin:0 auto;max-width:44rem;padding:0 1rem 3rem;color:var(--fg);background:var(--bg);font:1.0625rem/1.55 system-ui,-apple-system,'Segoe UI',sans-serif}a{color:var(--link)}header,footer{font-size:.875rem;color:var(--mute);padding:.8rem 0}footer{border-top:1px solid var(--rule);margin-top:3rem}h1{font-size:1.5rem;line-height:1.25}h2{font-size:1.15rem;margin-top:2.2rem}code,pre{font-family:ui-monospace,Consolas,'DejaVu Sans Mono',monospace}pre{overflow-x:auto;padding:.6rem .75rem;border:1px solid var(--rule);font-size:.875rem;line-height:1.4}.tag{font-size:.875rem;color:var(--mute);margin-top:-.5rem}.lead{border-left:3px solid var(--rule);padding-left:.8rem}dfn{font-style:normal;font-weight:600}table{border-collapse:collapse;display:block;overflow-x:auto;font-size:.9rem}td,th{border:1px solid var(--rule);padding:.25rem .5rem;text-align:left;vertical-align:top}ul,ol{list-style:none;padding-left:0}li{margin:.35rem 0}.toc{font-size:.9rem;border-bottom:1px solid var(--rule)}.toc li{margin:.15rem 0}.toc span,.src{color:var(--mute)}</style>
+</head>
+<body>
+<header><nav aria-label="Trail"><a href="/">Numbers read one place at a time</a> › <a href="/machines/">Machines and learning</a></nav></header>
+<main><article>
+<h1>MACHINE — a state that only multiplies, read as a machine</h1>
+<p class="lead">The object: a state M that only ever multiplies, M ↦ Mm, driven by a
+program that may read the state before each move. Read as a counter
+machine, the depths v_p(M) only rise, so the bare machine has no
+decrement. The question is whether that settles it: which reads leave a
+program's halting decidable, and which make it universal. Universality
+is Minsky's: two counters with increment and a decrement fused to a
+zero-test (Minsky 1967). The verifiers are <a href="/code/machine/">machine.py</a>, <a href="/code/borrow/">borrow.py</a> and
+<a href="/code/comparison/">comparison.py</a>.</p>
+<nav class="toc" aria-label="Contents" data-generated="toc"><ol><li><a href="#the-depth-machine-decides-its-halting">The depth machine decides its halting</a> <span>theorem</span></li><li><a href="#clearing-a-place-decides-and-dividing-once-does-not">Clearing a place decides and dividing once does not</a> <span>theorem</span></li><li><a href="#one-form-decides-and-two-can-run-minsky">One form decides and two can run Minsky</a> <span>theorem</span></li><li><a href="#two-places-at-the-ratios-1-and-αβ-run-fractran">Two places at the ratios 1 and α/β run FRACTRAN</a> <span>theorem</span></li><li><a href="#the-headroom-is-a-bank-of-minsky-counters">The headroom is a bank of Minsky counters</a> <span>theorem</span></li><li><a href="#a-blind-read-decides-and-a-sighted-read-is-universal">A blind read decides and a sighted read is universal</a> <span>theorem</span></li></ol></nav>
+<p>λ is the Carmichael function, W(L) the largest modulus whose λ divides
+L, and ξ(M) = W(λ(M))/M the headroom (<a href="/headroom/#the-headroom">HEADROOM: The headroom</a>): a move
+m is transparent at M, λ(Mm) = λ(M), exactly when m divides ξ(M). A
+<dfn id="t-push">push</dfn> is a move by one prime p, M ↦ Mp. An odd prime l is seated in M
+when l | M, and at a seated l, v_l(ξ) = v_l(λ) + 1 − v_l(M).</p>
+<p>The answer, in one line: the depths are counters with no decrement and
+decide, but the headroom's exponents at the seated primes are counters
+that pushes move both ways, so a program that reads λ is universal while
+one that reads only support and squarefreeness, with moves that read λ
+only to choose a fresh prime, each multiplying by it alone or times a
+fixed one, is not. Neither the move nor the read settles it alone. The
+number of classes of the coarsest equivalence that refines the reads and
+that every move carries into itself is finite for pushes under presence
+reads and for a move that clears a place, and finite classes decide; it
+is one per value for a single division or a read of λ, and there the
+machine is universal. Past finite the count grades nothing: tests
+comparing depths through one linear form keep one class per value and
+decide, and two forms, with as many classes, admit a universal program,
+as two constructions show.</p>
+<h2 id="the-depth-machine-decides-its-halting">The depth machine decides its halting</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/machine/#section_decide">machine.py::section_decide</a>.</p>
+<p>The <dfn id="t-depth-machine">depth machine</dfn> takes counters c_i = v_(p_i)(M), the increment the
+push of p_i and the zero-test the presence read p_i | M. A counter once
+nonzero stays nonzero, and a program over increments and zero-tests
+passes from (instruction, zero-pattern) to the next such pair by a map
+reading nothing else. So its run projects to a deterministic run on the
+finite set I × {0, +}^η, I the instructions and η the counters, which
+halts or revisits a pair within |I|·2^η steps, and that decides halting.
+The quotient agrees with a direct run on all 258,352 cases of every such
+program of up to three instructions over two counters, from the starts
+(0, 0), (0, 1), (1, 0) and (2, 3).</p>
+<p>The decrement breaks it. The program "at q₀: if zero halt, else
+decrement and go to q₁; at q₁: if zero loop, else decrement and go to
+q₀" halts from 2 and loops from 3, and both runs start at the pair
+(q₀, +): the magnitude the quotient discards decides whether the run halts.</p>
+<h2 id="clearing-a-place-decides-and-dividing-once-does-not">Clearing a place decides and dividing once does not</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/borrow/#section_clear">borrow.py::section_clear</a>; <a href="/code/borrow/#section_classes">borrow.py::section_classes</a>;
+<a href="/code/borrow/#section_divide">borrow.py::section_divide</a>.</p>
+<p>Give the depth machine a move that lowers a depth. <dfn id="t-clear">CLEAR</dfn> p sends M
+to M/p^(v_p(M)), dropping the place whole; <dfn id="t-divide">DIVIDE</dfn> p sends M to M/p
+when p divides M, dropping one. Let the tests ask whether p^t divides M
+for t ≤ T. Under pushes and clears, v ↦ min(v, T) respects every move
+and every test: min(v + 1, T) is a function of min(v, T), a clear sends
+the cleared place's depth to 0, and v ≥ t iff min(v, T) ≥ t. So
+(instruction, min(v_p, T) at each place) is a bisimulation onto
+|I|·(T + 1)^η states, and halting decides; the depth machine is the
+clear-free case T = 1. A hand making finitely many pushes between
+consecutive steps of the program, choosing its primes by any rule,
+uncomputable or not, moves that quotient by the same law, so program and
+hand play a finite game, and whether some hand makes the program halt,
+or every hand does, decides there. Division has no such quotient.
+DIVIDE^v followed by the presence test separates the depth v from every
+larger one, so the coarsest equivalence that refines the tests and that
+every move carries into itself is equality, and two places with pushes,
+division and the presence test run Minsky's machine. The program "if 2
+does not divide M halt, else divide by 2; then if 2 does not divide M
+loop, else divide by 2 and repeat" halts from 4 and loops from 8, and
+both runs start at the presence pair (q₀, +).</p>
+<p>So what separates the two moves is that equivalence's number of classes
+and not their direction: a clear takes a depth all the way to zero and
+leaves T + 1 classes, while division leaves one per depth. A tested
+depth falling back to zero is not the mark of the danger, as
+push-and-clear flips its test from yes to no 100 times in 400 steps and
+still decides. The quotient decider matches a direct run on all
+1,016,280 (program, start) cases over pushes, clears and tests at the
+places 2 and 3, from every start in {0, 1, 2}², with tests to T = 2 in
+programs of up to two instructions and to T = 1 in programs of three,
+and on the halve-twice program it gives the starts 4 and 8 one verdict
+where one halts and the other loops. Counting classes through words of
+length up to 4, 6 and 8 over the depths 0 to 30 prints T + 1 for push
+and clear at T = 1, 2 and 3 at each of the three lengths, and two more
+than the length for push and divide, rising with it. Whether a move
+erases is a different axis: over the depths 0 to 30, push and division
+on positive depths merge nothing, clear merges all 31 into one and
+truncated division, which leaves the depth 0 at 0, merges 0 with 1, so a
+move that forgets can decide or not, and so can one that forgets nothing
+(<a href="/code/borrow/#section_classes">borrow.py::section_classes</a>); reversible machines are universal
+(Bennett 1973). The count is sufficient and not necessary: the one-form
+machine below keeps one class per value and decides. In a
+nondeterministic system a decrement blocks at zero, a one-sided test,
+and vector addition systems, with no other test, keep reachability
+decidable (Mayr 1981; Kosaraju 1982) though their counters keep one
+class per value, while adding a reset loses it (Dufourd, Finkel and
+Schnoebelen 1998). Past finite, the count stops grading
+(<a href="/machine/#one-form-decides-and-two-can-run-minsky">One form decides and two can run Minsky</a>).</p>
+<h2 id="one-form-decides-and-two-can-run-minsky">One form decides and two can run Minsky</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/comparison/#section_one">comparison.py::section_one</a>;
+<a href="/code/comparison/#section_minsky">comparison.py::section_minsky</a>.</p>
+<p>Let the tests compare depths: the three-way sign of f − γ for a form
+f = α·v_p − β·v_q, α, β ≥ 1, and finitely many offsets γ, beside
+presence reads, the moves still pushes. A comparison flips back and
+forth as the two depths leapfrog, so the depth machine's argument fails;
+when every comparison reads one form the machine decides all the same.
+Its state is the instruction, the presence bits and f. Outside the range
+of the offsets every comparison answers alike, so the instruction and
+the bits trace a path that halts or cycles, and the cycle moves f by a
+fixed drift: a drift of zero or away from the range never returns, and
+one toward it returns at a point computed with whole cycles skipped, no
+farther from the range than one move can change f. The states a run can
+hold at a return or inside the range are finitely many, so it halts or
+repeats one. Two forms can run Minsky's machine. Read X = v_2 − v_3 and
+Y = v_3 − v_5 by equality: the push 2 raises X, the pushes 3 then 5
+lower it, the pushes 3 then 2 raise Y and the push 5 lowers it, each
+leaving the other counter where it was. A difference of two depths that
+only rise is a counter one push lowers.</p>
+<p>Both machines keep one class per value in the coarsest equivalence the
+moves and reads respect, since pushes move f both ways and the offsets
+tell every value apart by the pushes it takes to cross one. Once the
+classes are infinite their count, countable either way, grades nothing;
+what separates the two machines here is how many independent forms the
+tests read: one form keeps every program decidable, a one-counter
+machine, and two admit a universal program, shown for differences at
+three places and for 1:1 beside α:β at two
+(<a href="/machine/#two-places-at-the-ratios-1-and-αβ-run-fractran">Two places at the ratios 1 and α/β run FRACTRAN</a>). Whether
+every pair of independent forms does is not settled here. Over every
+program of two instructions reading one form, each a push at 2, 3 or 5,
+a comparison at an offset γ ∈ {−1, 0, 1} or a presence read at 2, 3 or
+5, its targets the two instructions and a halt, at the ratio 1:1 or 3:2,
+from six starts, 164,268 cases taking 1,452 cycle skips, the decider's
+halts match a direct run and its loops run 200 steps without halting,
+while the finite quotient of the depth machine, applied as if the signs
+were presence bits, disagrees with it on 98. Three compiled two-counter
+programs match a reference interpreter at all 421 trace states of 21
+runs, the looping ones cut at 80 steps.</p>
+<h2 id="two-places-at-the-ratios-1-and-αβ-run-fractran">Two places at the ratios 1 and α/β run FRACTRAN</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/comparison/#section_read">comparison.py::section_read</a>;
+<a href="/code/comparison/#section_block">comparison.py::section_block</a>; <a href="/code/comparison/#section_fractran">comparison.py::section_fractran</a>.</p>
+<p>At exactly two places the counters above have no linear encoding: the
+moves add (1, 0) and (0, 1) to (v_p, v_q), so under any two independent
+forms a program's displacements lie in the cone of two independent
+vectors, which never holds a vector and its negative, and so cannot move
+one counter both ways while the other stands still. A cycle does it
+instead. Read G = c − d and F = α·c − β·d at the two depths c and d,
+α &gt; β ≥ 1 coprime, and call c = d = u home, where F reads (α − β)u. Walk
+a word of c-steps and d-steps cyclically until F reads a chosen offset
+below that, then take c-steps until G reads 0; they do reach it, since
+F = αG + (α − β)d, so G is at most 0 when F reads the offset with d ≥ u.
+A cycle of a c-steps and b d-steps drops F by D = bβ − aα, so F first
+hits the offset at a substep j fixed by u's class mod D, and the new
+home is ρu + s_j with ρ = 1 + b(α − β)/D and s_j a shift fixed by the
+substep j and the offset.</p>
+<p>The word (c^(β−1) d^(α−1))^k has ρ = α. Its d-steps visit α − 1
+consecutive multiples of α modulo α − β, which is prime to α, so they
+cover every residue there, and the k repetitions cover every class mod
+D: the word fires at every u, and the substep that fires reads u mod
+k. The word c^a d^b with a = Pβ − Qα and b = α(P − Q) has ρ = P/Q, and
+with Q prime to β its d-steps cover every class once b ≥ D, that is
+once P/Q ≥ α − β + 1. The control zeroes s_j: it fires at a larger
+offset, a multiple of D, then walks a number of cycles and d-steps a
+finite table assigns to j, counting them in its states. So on Q | u the
+home moves to (P/Q)u exactly.</p>
+<p>That is FRACTRAN (Conway 1987). Over primes prime to αβ, each fraction
+multiplied by a power of a prime J dividing α until its value is at
+least α − β + 1, a step reads u mod each denominator in turn, each read
+multiplying u by α, and multiplies by the first padded fraction whose
+denominator divides u; with the primes of α stripped, u is the FRACTRAN
+state. Each padded fraction is at least α − β + 1 and each read
+multiplies u by α, so u never falls, and a start holding enough powers
+of J keeps every home above the offsets the reads fire at. At 3:2 with
+J = 3, a two-number multiplication program relabelled onto 5, 7, 11, 13,
+17 and 19 takes 5²·7³ to 11⁶ in 25 steps and 5³·7² to 11⁶ in 26, step
+for step with a reference, the home value ending at 63 and 64 digits.
+The read word fires at five ratios, k to 12 and u to 300, the closed
+form agreeing with a literal walk that reads only signs on all 18,000
+walks; eight blocks at 3:2 land exactly on 320 multiples; and below the
+threshold ×11/7 never fires on u ≡ 14 mod 21.</p>
+<h2 id="the-headroom-is-a-bank-of-minsky-counters">The headroom is a bank of Minsky counters</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/machine/#section_control">machine.py::section_control</a>;
+<a href="/code/machine/#section_counters">machine.py::section_counters</a>; <a href="/code/machine/#section_minsky">machine.py::section_minsky</a>.</p>
+<p>Fix odd primes l₁, …, l_η seated in M and read h_i = v_(l_i)(ξ(M)).
+Two moves and one read run Minsky's instructions on these counters.</p>
+<ul><li>- Decrement: push l = l_i. With a = v_l(M) before the push,
+λ(l^(a+1)) = l^a·(l − 1), and since l − 1 already divides λ, only
+v_l(λ) can move, to max(v_l(λ), a); with v_l(M) up by one, h_i
+becomes max(0, h_i − 1), and no sibling moves. This is
+<a href="/headroom/#the-ledger">HEADROOM: The ledger</a>'s truncated subtraction at a prime move.</li><li>- Zero-test: h_i = 0 iff l does not divide ξ(M), iff the push l is not
+transparent. The test is read off λ before the push, never after.</li><li>- Increment: push a prime q not dividing M with v_l(q − 1) = v_l(λ) + 1
+and q ≢ 1 mod every sibling l_j. Then v_l(λ) rises by one and no
+sibling's v(λ) or v(M) moves. The conditions are congruences to the
+coprime moduli l^(v_l(λ)+2) and l_j, so Dirichlet's theorem provides q
+at every state for any number of counters. The increment is a
+<dfn id="t-selector">selector</dfn>, a choice of a move's fresh prime made from the state,
+here the least such q read off v_l(λ), and not one fixed move.</li></ul>
+<p>So pushes alone, the increment's prime chosen by a selector that reads
+v_l(λ), run any Minsky program, and a multiply-only world is universal.
+As with division, h_i decrements followed by the zero-test separate the
+value h_i from every larger one, so the coarsest equivalence refining
+the read that every move carries into itself keeps one class per counter
+value. The three laws hold with no exception and no sibling moved at
+2,816 decrement cells over odd M ≤ 3000 and 25,546 increment cells over
+odd M ≤ 1200 and primes q &lt; 3000, against W computed from its closed
+form, while a prime 1 mod a sibling (31 from 15) moves that sibling too.
+From the seed 15, counters at 3 and 5, halts-iff-even, a one-way
+transfer and a transfer there and back match a reference interpreter
+step for step from the first counter's values 0 to 6, the second at 0,
+the counter read off λ and M at every step; over one run at each of two
+to five counters, three rounds of increments and then one decrement per
+counter, 56 moves in all, no move shifts a sibling.</p>
+<h2 id="a-blind-read-decides-and-a-sighted-read-is-universal">A blind read decides and a sighted read is universal</h2>
+<p class="tag">Tier: <a href="/key/#theorem">theorem</a>.<br>
+Verifier: proof; <a href="/code/machine/#section_square">machine.py::section_square</a>.</p>
+<p>Of the demands <a href="/growth/#the-three-fates">GROWTH: The three fates</a> asks of a move, the rate aside,
+which chooses among moves rather than testing one, two are blind to the
+headroom, and so is a third test, semisimplicity: independence
+(gcd(m, M) = 1), new idempotents (m brings a prime M lacks) and Mm
+squarefree answer, for a fixed m, as functions of M's support on the
+primes of m and of whether M is squarefree. Give a program the moves
+above, fixed pushes, the increment selector and the padded decrement
+below, each selector reading λ, and the support to pass over primes M
+holds, only to choose its fresh prime, chosen off the fixed moves'
+primes, which Dirichlet's theorem still allows. An import, the fresh
+prime a selector pushes, is a prime M lacks, and a selector's move is
+its import times a fixed prime or none, so on it the three answers are
+functions of the support on the fixed primes and the squarefree bit, and
+what they can see is the instruction beside the support on the fixed
+moves' primes and that bit, both write-once; the depth machine's
+argument decides it. On the moves these programs offer, the bare push of
+a seated l, the increment's fresh import and the padded decrement, every
+blind answer is fixed by the move's kind and that bit, by construction;
+over the runs at the end of this section, where every move a program
+makes raises λ, the zero-test takes both values at three of the four
+(counter, bit) keys. Only the read differs. The other three are sighted:
+dynamics (λ rises), new orders (the same predicate) and transparency
+(its complement) answer the zero-test exactly, since a one-bit probe
+separates what its negation separates. 855 and 2565 share the support
+{3, 5, 19}, neither squarefree, and read 1 and 0 at the counter prime 3:
+the blind demands answer alike on both at every 2 ≤ m ≤ 400, and
+dynamics answers the push 3 differently.</p>
+<p>The price is a read and not a move. v_l(ξ) compares λ's depth at l, the
+most any place's unit group carries there, against M's depth at l, depth
+across places, and no blind demand reads it. With the move held fixed,
+the read sets the class count: the push 3 from 21, 57 and 489 passes 1,
+2 and 4 times before λ rises, so dynamics tells the three apart, while
+the blind demands answer the push 3 alike at every state of the three
+orbits until λ rises, as they must, 3 dividing every state
+(<a href="/code/borrow/#section_read">borrow.py::section_read</a>).</p>
+<p>A program may also be held to moving only where its own demand admits.
+Under dynamics the bare decrement is transparent and so forbidden, but
+the padded decrement l·q′ is admitted: q′ a fresh prime with q′ ≢ 1 mod
+every counter prime and q′ − 1 not dividing λ raises λ without touching
+a counter, and the push of l decrements. The increment raises λ by
+construction. So a dynamics-autonomous program is universal, spending
+its probe on the bare push it never makes; the three programs run that
+way match the reference with every one of 210 moves raising λ. Under
+transparency an autonomous program's states are divisors of W(λ(seed))
+(<a href="/growth/#the-three-fates">GROWTH: The three fates</a>), finitely many, and it decides.</p>
+<p>Reading and hosting are independent axes. A demand hosts an instruction
+when it admits some move doing it: independence and semisimplicity host
+no decrement, which pushes a seated prime; transparency hosts no
+increment, which moves λ; new idempotents and dynamics host both, the
+padded decrement bringing a new prime, and so does new orders, whose
+predicate is dynamics'. With these moves new idempotents cannot read the
+zero-test; transparency reads it and hosts only the decrement. So among
+these demands only dynamics and new orders both read and host, and with
+these moves an autonomous program is universal there alone.</p>
+</article></main>
+<footer>Next: <a href="/supply/">SUPPLY — the element machine over a growing supply of windows</a> · <a href="/claims/">Every claim</a> · <a href="/terms/">Every term</a> · <a href="/key/">How to read a claim</a> · <a href="/machine.md">Source text</a> · <a href="/index.json">Machine-readable index (JSON)</a> · Public domain (CC0)</footer>
+</body>
+</html>
