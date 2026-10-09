@@ -155,35 +155,33 @@ factored by trial division.
   V  the volume face.
   L  the layer face.
 
-RUN RECORD. First run: 22 of 23 PASS. The failure was the engine's:
-the product-formula check multiplied |x| by p^(v_p) where
-|x|_p = p^(-v_p), and all 200 vectors failed together. After the sign
-was fixed, 23 of 23 PASS. The prints read as frozen. Reciprocity held
-at all 1,444 pairs, 361 of them odd, and all 128 channel patterns of
-510510 were found as visible sets. Over F_2(t), 343 vectors were
-realized with the degree place omitted, 63 and 41 of 125 with the
-places of degree 2 and 3 omitted, each exactly the congruent ones.
-Indices 2, 2, 1, 1 over Q(sqrt -5), 2, 2, 1, 2 over Q(sqrt 10) and all
-1 over Q(sqrt 2). R_S over Q(sqrt 10) at S_f over 2, 3, 41 and
-{2, 41}: 2.520902, 4.389544, 25.077500, 34.764796, the ratio equal to
-the index to 1.6e-15. The layer face's rho > 1 pairs over Q(sqrt 2)
-were P3 against each place over 17 (rho 4), the conjugates over 7, 17,
-23 (rho 3, 16, 11) and P7(r=3) * P23(r=5), P7(r=4) * P23(r=18) (rho 2).
-Wall 1.3 s, peak 14 MB.
-(Settled later, on an audit. ARGUMENT (1) first said H "does not
-depend on w" and is "applied once and not per place", which is only
-its definition; it is restated above with the obstruction in H modulo
-the image of ker s_w, which does depend on w, as section R's indices
-show. The ranks first counted places; they now print the found valuation
-lattice's basis, 1, 2, 1, 2, a print because a nonzero index already
-forces them. Section V
-reads the S-sets its code names, not every set of section R: the
-single place over 7 of Q(sqrt 2) is read in R only.) A code read
-then made the checks that held by construction prints: the odd visible
-sets (reciprocity implies them), D's degree sums and its iff, R's
-ranks, V's ratios and L's h_m (by (6)'s formula); the four algebras
-and V's regulators became controls, run first and stopping the run. The run
-prints 16/16.
+RUN RECORD. First run: 22 of 23 PASS. The failure was the engine's: the
+product-formula check multiplied |x| by p^(v_p) where |x|_p = p^(-v_p),
+and all 200 vectors failed together. After the sign was fixed, 23 of 23
+PASS. The prints read as frozen. Reciprocity held at all 1,444 pairs,
+361 of them odd, and all 128 channel patterns of 510510 were found as
+visible sets. Over F_2(t), the factorizer read back all 343 vectors on
+t, t + 1 and t^2 + t + 1 with infinity omitted; with the places of
+degree 2 and 3 omitted, 63 and 41 of 125 were realized, each exactly the
+congruent ones. Indices 2, 2, 1, 1 over Q(sqrt -5), 2, 2, 1, 2 over
+Q(sqrt 10) and all 1 over Q(sqrt 2). R_S over Q(sqrt 10) at S_f over 2,
+3, 41 and {2, 41}: 2.520902, 4.389544, 25.077500, 34.764796, the ratio
+equal to the index to 1.6e-15. The layer face's rho > 1 pairs over
+Q(sqrt 2) were P3 against each place over 17 (rho 4), the conjugates
+over 7, 17, 23 (rho 3, 16, 11) and P7(r=3) * P23(r=5), P7(r=4) *
+P23(r=18) (rho 2). Wall 1.3 s, peak 14 MB. (Settled later, on an audit.
+ARGUMENT (1) first said H "does not depend on w" and is "applied once
+and not per place", which is only its definition; it is restated above
+with the obstruction in H modulo the image of ker s_w, which does depend
+on w, as section R's indices show. The ranks first counted places; they
+now print the found valuation lattice's basis, 1, 2, 1, 2, a print
+because a nonzero index already forces them. Section V reads the S-sets
+its code names, not every set of section R: the single place over 7 of
+Q(sqrt 2) is read in R only.) A code read then made the checks that held
+by construction prints: the odd visible sets (reciprocity implies them),
+D's degree sums and its iff, R's ranks, V's ratios and L's h_m
+(by (6)'s formula); the four algebras and V's regulators became
+controls, run first and stopping the run. The run prints 16/16.
 
 Run: python budget.py   (seconds, pure Python)
 """
@@ -262,7 +260,7 @@ def section_q():
             full *= Fraction(p) ** -back[p]
         bad += back != want
         unit += full == 1
-    check("200 random valuation vectors realized and read back",
+    check("200 random valuation vectors read back from their rationals",
           bad == 0, f"{bad} failures")
     print(f"    prod_v |x|_v = 1 at {unit} of 200 (algebra, once the "
           "vector reads back)")
