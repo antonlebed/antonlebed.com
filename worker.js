@@ -977,6 +977,7 @@ const PAGES = new Set([
 "/cascade/",
 "/claims/",
 "/clock/",
+"/code/",
 "/code/audit/",
 "/code/band/",
 "/code/binding/",
