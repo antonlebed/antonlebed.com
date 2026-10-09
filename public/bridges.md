@@ -36,7 +36,7 @@ whose matching lower bound is open.
 
 | bridge | growth side | number-theory side | direction | status |
 |---|---|---|---|---|
-| the lock | every prime is some seed's lock (GROWTH.md#the-lock-prime-law) | a prime ≡ 1 (mod B) and ≢ 1 modulo the prime locked onto, B the lcm the lock-prime law builds from the primes up to that prime, prime to it | one way, into Dirichlet | proved |
+| the lock | every prime is some seed's lock (GROWTH.md#the-lock-prime-law) | a prime ≡ 1 (mod B), ≢ 1 modulo the prime locked onto and not dividing the state, B the lcm the lock-prime law builds from the primes below that prime, prime to it | one way, into Dirichlet | proved |
 | the seating law | an alphabet world (BRIDGES.md#the-seating-law) seats infinitely many primes | infinitely many primes p with (p − 1)_S′ dividing F, n_S′ the part of n prime to S and F that part of lcm(λ(seed), q − 1 : q ∈ S); from seed 1 with every q − 1 S-smooth, infinitely many with p − 1 S-smooth | equivalence, per seed and alphabet | open: Fermat at {2}, Pierpont at {2, 3} |
 | the atoms | an odd h is the odd part of some λ(M) | for each l^j ‖ h, a divisor h′ of h with v_l(h′) = j and h′·2^b + 1 prime, up to a finite correction | equivalence | the least h that is not: the least prime Sierpiński number, on the published record; open |
 | the cascade | every ideal-world trajectory of a number ring locks (CASCADE.md#dead-levels-recur-at-eleven-characteristics) | infinitely many dead levels at one rank-1 characteristic, a prime with an unramified place over it whose norm is that prime | one way, sufficient | proved at a ring with a rank-1 characteristic among the eleven primes with a known covering of their levels' candidates, 2 by a covering of its own and 3, 5, 7, 11, 13, 17, 19, 23, 31 and 37 (odd characteristics below 1000 searched, covering primes below 2,000 modulo which the characteristic's order divides 5,040); open in general |
@@ -65,22 +65,21 @@ prime to S. Then
 
 whatever the schedule. Fills leave λ fixed, and at the wall an odd prime
 r is seated iff (r − 1) | λ, at depth v_r(λ) + 1. So a push of an
-unseated letter q opens it and brings in (q − 1)_S′ once; a push of a
-seated letter q deepens it by one and adds one factor q and nothing
-prime to S, since (q − 1) | λ already; a push of 2 adds one factor 2.
-Once every letter
-has been pushed, λ's part prime to S is F forever and its part at every
-letter diverges, and the seats are the union of the walls' supports. An
-odd seat p outside S ends at depth v_p(F) + 1, and 2 outside S at
-v₂(F) + 2, v₂(F) being at least 1 since S then holds an odd letter.
-Nine alphabets from seed 1, and {2} and {2, 3} from each of
-the seeds 7, 11, 65 and 105, are run under a round-robin and a random
-schedule on λ alone, each fill read as its wall: at the 489 steps with
-λ ≤ 10⁶ the wall built from its primes carries that λ, and λ of it
-times its least move is the next step. The final λ's part prime to S
-is then F by construction, and the seats below 10⁶ after 25 pushes per
-letter match the predicate, a match that reads only the depth they
-reached.
+unseated letter q opens it and takes the lcm of λ with (q − 1)_S′ once;
+a push of a seated letter q deepens it by one and adds one factor q and
+nothing prime to S, since (q − 1) | λ already; a push of 2 adds one
+factor 2. Once every letter has been pushed, λ's part prime to S is F
+forever and its part at every letter diverges, and the seats are the
+union of the walls' supports. An odd seat p outside S ends at depth
+v_p(F) + 1, and 2 outside S at v₂(F) + 2, v₂(F) being at least 1 since S
+then holds an odd letter. Nine alphabets from seed 1, and {2} and {2, 3}
+from each of the seeds 7, 11, 65 and 105, are run under a round-robin
+and a random schedule on λ alone, each fill read as its wall: at the 489
+steps with λ ≤ 10⁶ the wall built from its primes carries that λ, and λ
+of it times its least move is the next step. The final λ's part prime to
+S is then F by construction, and the seats below 10⁶ after 25 pushes per
+letter match the predicate, a match that reads only that 25 pushes per
+letter carry every seat below 10⁶.
 
 When every q − 1 with q ∈ S is S-smooth, F is λ(s)_S′, and from seed 1
 the seats are exactly the primes p with p − 1 S-smooth: the world seats
@@ -113,11 +112,12 @@ where
 and the spectrum only grows along divisibility, so every phoenix seats
 spectrum(1), which is 2 and the Fermat primes. The seed-1 phoenix seats
 3, 5, 17, 257 and 65537 as v₂(λ) reaches 1, 2, 4, 8 and 16, and 2^j + 1
-is composite for every other j with 1 ≤ j ≤ 40: it seats infinitely
-many primes iff there are infinitely many Fermat primes. From seed 1,
-the least move that restarts a transparency walk at its wall grows
-exactly 2 and the Fermat primes; from a seed with odd(λ(s)) = h it
-grows spectrum(h), which at h = 3 (seed 7) adds 7, 13, 97, 193, 769, …
+is composite for every other j with 1 ≤ j ≤ 40. Its seats being
+spectrum(1), it seats infinitely many primes iff there are infinitely
+many Fermat primes. From seed 1, the least move that restarts a
+transparency walk at its wall seats exactly 2 and the Fermat primes;
+from a seed with odd(λ(s)) = h it seats spectrum(h), which at h = 3
+(seed 7) adds 7, 13, 97, 193, 769, …
 
 ## The atom criterion
 Tier: criterion (proved both ways; every odd h ≤ 999 realized by a

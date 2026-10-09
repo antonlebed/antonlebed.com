@@ -94,8 +94,9 @@ THE ARGUMENT (written before the engine).
       walk from 1. The density theorem is the statement that along
       independence's walk the transparency demand admits almost every
       move: one walk, two demands, agreeing on a set of density 1.
-  (6) THE RUDDER. From any state one multiplication locks greedy
-      dynamics onto any prime q. At q = 2: raise 2 to depth
+  (6) THE RUDDER. From any state one multiplication locks the
+      dynamics demand's greedy walk (the least lambda-raising move)
+      onto any prime q. At q = 2: raise 2 to depth
       max(3, v_2(lambda) + 2); 2's door is then 1, price 2, the least
       possible move, forever. At odd q: raise q to depth
       v_q(lambda') + 1, lambda' the lambda after the multiplication,
@@ -117,13 +118,14 @@ with the factorization of P - 1 supplied where P exceeds the trial
 bound.
   C  POSITIVE CONTROLS, before any verdict; a failed control stops
      the run. C1 lambda against the unit group's exponent at every
-     M <= 300. C2 the wall formula against the largest M below 131100
+     M <= 300 [ruled: from M = 2, lambda(1) = 1 trivially]. C2 the wall formula against the largest M below 131100
      with lambda(M) | L, L = 2..24 even, 131100 past W(24) = 131040.
      C3 the primality test: below 3 10^24, by Miller-Rabin, it
      certifies 7 = 3 2 + 1 and refuses 78557 2 + 1 and 2^32 + 1; past
      it, by Proth's theorem, it certifies 47 2^583 + 1 and
      383 2^6393 + 1 and refuses 3 2^82 + 1 (a factor 7) and
-     3 2^90 + 1 (no factor below 2000). C4 the
+     3 2^90 + 1 (no factor below 2000) [ruled: that premise now
+     checked in the control]. C4 the
      covering checker accepts 78557's set over one period and
      rejects a planted non-cover ({3, 5} for k = 1).
   W  the seating law. W1 the pushes run in lambda-space, L -> lambda
@@ -141,22 +143,24 @@ bound.
      the Fermat primes.
   P  the phoenix. P1 the greedy law "least transparent move, else the
      least move" run by brute force from s = 1, 7, 11 through the
-     first walls with M <= 2 10^7, against fill-to-wall plus a push
-     of 2, a state with no transparent m <= 1000 read as a wall and
-     held to W(lambda). P2 2^j + 1 prime for j <= 40 only at j = 1, 2,
-     4, 8, 16, the seed-1 phoenix's seats; each opens at
-     v_2(lambda) = j by the seating predicate. P3, a print: the
-     spectra along the chain 1 | 3 | 9 | 45 | 315 below 10^6, nested
-     by divisibility.
+     first walls with M <= 2 10^7, a state with no transparent
+     m <= 1000 read as a wall, held to W(lambda) and pushed by 2.
+     P2 2^j + 1 prime for j <= 40 only at j = 1, 2, 4, 8, 16, the
+     seed-1 phoenix's seats (each opens at v_2(lambda) = j by the
+     seating predicate, argued, not computed). P3, a print: the
+     spectra along the chain 1 | 3 | 9 | 45 | 315 below 10^6, their
+     nesting read, and spectrum(3)'s first primes past spectrum(1).
   A  the atoms. A1, a print: odd(lambda(M)) against the lcm of the
      atoms, every M <= 20000, (3)'s identity read through growth.py's
      lambda. A2 every odd h <= 999 served by atoms, Proth witnesses
      searched to b <= 1200, 383's witness b = 6393 the one C3
      certifies; the M built from the serving atoms has odd(lambda) =
      h by the criterion's if-half, recomputed.
-     A3, a print: the odd h < 1000 the brute set odd(lambda(M))
-     over M <= 10^6 already holds. A4 78557: the covering over its period, no
-     atom by the finite correction either, and the two-prime
+     A3, a print: the odd h < 1000 the set odd(lambda(M)) over
+     M <= 10^6 already holds, each read as the lcm of its atoms by
+     (3)'s identity. A4 78557: the covering over its period, no
+     atom by the finite correction either (q^(a-1) | 78557 forces
+     a = 2 at q = 17 and 4621, so a in {2, 3} covers it), and the two-prime
      realization, its lambda computed. A5 271129: prime, not 2^n + 1,
      the covering, hence unrealizable; that no M <= 10^6 realizes it
      prints, vacuous there, no prime q <= 10^6 having 271129 | q - 1.
@@ -250,7 +254,7 @@ control was built too small, recorded below.
      odd h <= 999 is realized by a built M; the atoms needing b > 64
      are 47 (b = 583, and every h <= 999 whose serving atom the
      search took at 47), 587 (227), 631 (144), 881 (1027) and 383
-     (6393, the certified witness). M <= 10^6 already realizes 471 of
+     (none at b <= 1000, S; 6393 the certified witness). M <= 10^6 already realizes 471 of
      the 500 odd h < 1000. 78557 is covered with period 36, is no atom
      by the finite correction either, and odd(lambda(137 18927617)) =
      78557. 271129 is prime, 271128 = 2^3 3 11 13 79, its covering
@@ -291,7 +295,11 @@ N is the primorial. A code read made the checks that held by
 construction prints (P3, A1, T1, W1's F and seat comparisons and its
 monotonicity), built the walls W1 now reads, made the controls stop the
 run, gave C3 two refusals past 3 10^24 and the rudder's P a certificate:
-16/16, 9.2 s, peak 57.5 MB under a memory guard.
+16/16, 9.2 s, peak 57.5 MB under a memory guard. A later read printed
+what the doc quoted by hand: S = {3} from seed 5 has F = 4 and seats
+13; S = {2, 11} seats 41 and not 101; the spectra nest, spectrum(3)
+adding 7, 13, 97, 193, 769 first; no prime q <= 10^6 has
+271129 | q - 1; the 200 rudder states are distinct: 16/16, 9.1 s.
 """
 
 import os
@@ -501,9 +509,11 @@ def section_c():
     ok = (proth_prime(3, 1) and proth_prime(47, 583)
           and proth_prime(383, 6393) and not proth_prime(78557, 1)
           and not proth_prime(1, 32) and not proth_prime(3, 82)
-          and not proth_prime(3, 90))
+          and not proth_prime(3, 90)
+          and all((3 * 2 ** 90 + 1) % p for p in PRIMES_X if p < 2000))
     control("C3 the primality test: 7, 47 2^583+1, 383 2^6393+1 prime; "
-            "78557 2+1, 2^32+1, 3 2^82+1, 3 2^90+1 refused", ok)
+            "78557 2+1, 2^32+1, 3 2^82+1, 3 2^90+1 (no factor below "
+            "2000) refused", ok)
     good, per = covers(78557, (3, 5, 7, 13, 19, 37, 73))
     planted, _ = covers(1, (3, 5))
     control("C4 the covering checker: 78557's set accepted, a planted "
@@ -607,8 +617,13 @@ def section_w():
           "from its primes, every step with L <= 10^6", off == 0,
           f"{steps} steps, {off} off")
     print(f"    F and the seats below 10^6 after 25 pushes per letter: "
-          f"{bad} disagreements in 17 (seed, alphabet) cases x 2 "
-          "schedules")
+          f"{bad} disagreements in {len(cases)} (seed, alphabet) cases "
+          "x 2 schedules")
+    F5, law5 = seating_law(5, (3,))
+    _, law211 = seating_law(1, (2, 11))
+    print(f"    S={{3}} from seed 5: F={F5}, 13 seated: {13 in law5}; "
+          f"S={{2, 11}} from seed 1: 41 seated: {41 in law211}, "
+          f"101 seated: {101 in law211}")
     print("    seats below 10^j, j = 1..6:")
     for S in ((2,), (2, 3), (2, 3, 5), (2, 3, 5, 7), (2, 5)):
         _, law = seating_law(1, S)
@@ -650,10 +665,12 @@ def section_p():
             opened.append(j)
     check("P2 2^j + 1 prime for j <= 40 only at 1, 2, 4, 8, 16",
           opened == [1, 2, 4, 8, 16], f"{opened}")
-    sizes = [sum(1 for p in PRIMES_X if h % odd(p - 1) == 0)
-             for h in (1, 3, 9, 45, 315)]
+    spectra = [{p for p in PRIMES_X if h % odd(p - 1) == 0}
+               for h in (1, 3, 9, 45, 315)]
+    nested = all(a <= b for a, b in zip(spectra, spectra[1:]))
     print(f"    P3 spectrum sizes along 1 | 3 | 9 | 45 | 315 below 10^6: "
-          f"{sizes}, nested by divisibility")
+          f"{[len(x) for x in spectra]}, nested: {nested}; spectrum(3) "
+          f"adds {sorted(spectra[1] - spectra[0])[:5]} first")
 
 
 # ------------------------------------------------------------ section A
@@ -760,8 +777,9 @@ def section_a():
     check("A5 271129: prime, not 2^n + 1, covered, hence unrealizable",
           is_prime_mr(271129) and not fermat(271129) and ok27,
           f"period {per27}; 271128 = {factor(271128)}")
-    print(f"    A5 an M <= 10^6 realizing it: {hit271} (vacuous: no prime "
-          "q <= 10^6 has 271129 | q - 1)")
+    q271 = [q for q in PRIMES_X if q % 271129 == 1]
+    print(f"    A5 an M <= 10^6 realizing it: {hit271}; primes q <= 10^6 "
+          f"with 271129 | q - 1: {q271}")
 
 
 # ------------------------------------------------------------ section S
@@ -793,8 +811,8 @@ def section_s():
     print(f"    survivors to b <= 1000: {len(survivors)}, the first ten "
           f"{survivors[:10]}")
     print(f"    proper powers among them: {[(k, factor(k)) for k in powers]}")
-    check("S1 the survivors below 1000 are the two A2 resolved past "
-          "b = 1000", [k for k in survivors if k < 1000] == [383, 881],
+    check("S1 the survivors below 1000 are exactly 383 and 881",
+          [k for k in survivors if k < 1000] == [383, 881],
           f"{len(survivors)} survivors")
     b379 = least_proth(143641, 1212)
     check("S2 143641 = 379^2 resolves at least b = 1212, Proth-certified",
@@ -899,7 +917,8 @@ def section_r():
                 break
             cur = deepen(cur, 2, cost)
         ok2 += good
-    check("R1 one push locks 200 states onto 2", ok2 == 200, f"{ok2}/200")
+    check("R1 one push locks 200 states onto 2", ok2 == 200,
+          f"{ok2}/200, {len(set(states))} distinct")
     okq, total = 0, 0
     for M in (30, 3 ** 15, 2 ** 20, 510510, 17 ** 6):
         mf = factor(M)
