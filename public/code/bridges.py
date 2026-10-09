@@ -118,8 +118,9 @@ with the factorization of P - 1 supplied where P exceeds the trial
 bound.
   C  POSITIVE CONTROLS, before any verdict; a failed control stops
      the run. C1 lambda against the unit group's exponent at every
-     M <= 300 [ruled: from M = 2, lambda(1) = 1 trivially]. C2 the wall formula against the largest M below 131100
-     with lambda(M) | L, L = 2..24 even, 131100 past W(24) = 131040.
+     M <= 300 [ruled: from M = 2, lambda(1) = 1 trivially]. C2 the
+     wall formula against the largest M below 131100 with
+     lambda(M) | L, L = 2..24 even, 131100 past W(24) = 131040.
      C3 the primality test: below 3 10^24, by Miller-Rabin, it
      certifies 7 = 3 2 + 1 and refuses 78557 2 + 1 and 2^32 + 1; past
      it, by Proth's theorem, it certifies 47 2^583 + 1 and
@@ -252,13 +253,14 @@ control was built too small, recorded below.
      kill.
   A  odd(lambda(M)) is the lcm of its atoms at every M <= 20000. Every
      odd h <= 999 is realized by a built M; the atoms needing b > 64
-     are 47 (b = 583, and every h <= 999 whose serving atom the
-     search took at 47), 587 (227), 631 (144), 881 (1027) and 383
-     (none at b <= 1000, S; 6393 the certified witness). M <= 10^6 already realizes 471 of
-     the 500 odd h < 1000. 78557 is covered with period 36, is no atom
-     by the finite correction either, and odd(lambda(137 18927617)) =
-     78557. 271129 is prime, 271128 = 2^3 3 11 13 79, its covering
-     holds with period 24, and no M <= 10^6 realizes it (vacuously).
+     are 47 (b = 583, and every h <= 999 whose serving atom the search
+     took at 47), 587 (227), 631 (144), 881 (1027) and 383 (none at b
+     <= 1000, S; 6393 the certified witness). M <= 10^6 already
+     realizes 471 of the 500 odd h < 1000. 78557 is covered with
+     period 36, is no atom by the finite correction either, and
+     odd(lambda(137 18927617)) = 78557. 271129 is prime, 271128 = 2^3
+     3 11 13 79, its covering holds with period 24, and no M <= 10^6
+     realizes it (vacuously).
   S  23844 prime powers of non-Fermat base lie below 271129; 513 resolve
      only at 200 < b <= 1000; 278 SURVIVE to b <= 1000, the first 383,
      881, 2897, 3061, 4861, 5297, 5897, 6379, 7013, 8269, and among them
