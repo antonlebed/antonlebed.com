@@ -1,5 +1,5 @@
 // worker.js: the site's router, generated from its table. Do not edit.
-const STATUS = 302;
+const STATUS = 301;
 // Every page and script address the earlier site served, to its page now.
 const MOVED = {
 "/address.html": "/ostrowski/",
