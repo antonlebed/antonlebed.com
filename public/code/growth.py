@@ -258,8 +258,8 @@ FINDINGS. Every prediction landed: 38/38 checks PASS.
      open at its own face value. At q = 3, v = 2 the candidates 28 and
      55 are composite, and a prime seed P with P = 1 (mod lcm{l - 1 :
      l prime, 5 <= l < 81}), 27 not dividing P - 1, shuts every
-     cheaper move: the least such P, 961440481 (prime by Miller-Rabin,
-     deterministic there), opens 3 at 81 and locks at 3, the invariant
+     cheaper move: the least such P, 961440481 (least by cascade.py's
+     construction, prime by Miller-Rabin, deterministic there), opens 3 at 81 and locks at 3, the invariant
      set by the opening itself.
   C4 cold-opening minima 16 and 9; every 5 <= q <= 47 opens at q from
      lambda = 2.

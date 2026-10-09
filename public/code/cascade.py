@@ -251,8 +251,9 @@ FINDINGS. Every prediction landed: 17/17 checks PASS.
      discriminants, tau_K = 1 there only, and 2 exactly at the eighteen
      of Baker and Stark; tau_K <= sqrt(|D|/3) and
      below the Minkowski bound everywhere (by the forms), mean tau_K
-     9.58, tau_K <= 4 at 11.8% of fields, mean tau_K / Minkowski 0.705,
-     so the constant grows with the field. D = -23: h = 3, tau_K = 2
+     9.58, tau_K <= 4 at 11.8% of fields, mean tau_K / Minkowski 0.705;
+     tau_K is unbounded over the fields by the count of reduced forms,
+     never by this mean. D = -23: h = 3, tau_K = 2
      against a Minkowski bound of 3.053.
   B  2^k + 1 is a prime power for k <= 300 exactly at 3, 5, 9, 17, 257,
      65537.
@@ -260,15 +261,17 @@ FINDINGS. Every prediction landed: 17/17 checks PASS.
      1, D(17) = 2 beside D(29) = 8, D(101) = 10, D(151) = 12,
      D(751) = 33 beside the largest, D(719) = 62, and D(997) = 45,
      each an upper bound once its ladder passes 3.3 10^24, where a
-     prime verdict is probable only. No odd multiplier is ever
-     accepted, so the working set is the floor((p - 1)/2) even
-     ones.
+     prime verdict is probable only. No odd multiplier is accepted
+     at any level to D(p), nor at any level by (6), X1's enumeration
+     holding no power of 2, so the working set is the
+     floor((p - 1)/2) even ones.
   K  every start V0 <= 300 dies, the longest spanning 8 levels at 2,
      4 at 3 and 3 at 5, the start's included. The covering search
      finds coverings at exactly 3, 5, 7, 11, 13, 17, 19, 23, 31 and
      37 (the first found at 3 is
-     V + 1 = 1 mod 6 by 7; at 37 nine primes up to 67, period 1680),
-     and the 109 levels a covering kills, p = 2's class included, are
+     V + 1 = 1 mod 6 by 7; at 37 nine primes up to 67, period 1680;
+     at 13, 17, 31 and 37 the first killed level from p - 2 is past
+     200), and the 109 levels a covering kills, p = 2's class included, are
      all dead.
   Q  the least rank-1 characteristic of Q(sqrt(2 3 ... P)) exceeds P
      at every odd P <= 97: 103 at P = 97.
@@ -285,10 +288,12 @@ FINDINGS. Every prediction landed: 17/17 checks PASS.
      level-10 candidate past 3.3 10^24, where a prime verdict is
      probable. Sifting below 10^4 empties the first dead level D(p)
      at no p >= 100.
-  W  "no prime carrier" and "dead" agree at every level of every odd
-     p < 1000; the one level with a proper power carrier, (11, 1),
-     also holds the prime 727. Every dead level D(p) is therefore a
-     full-price opening over Z. The construction of (8) at p = 3, V = 2
+  W  "no prime carrier" and "dead" agree at the one level of an odd
+     p < 1000 where they can differ, (11, 1), the one level with a
+     proper power carrier, which also holds the prime 727; elsewhere
+     they agree by (6). Every dead level is therefore a full-price
+     opening over Z by (8); the witnesses outside its hypothesis,
+     (3, 1), (5, 1) and (7, 1), hold the primes 19, 101 and 197. The construction of (8) at p = 3, V = 2
      gives B = 480720240, its least prime P = 961440481, and growth.py's
      menu opens 3 there at 81, full price.
   Tiers: (1)-(3) and the element world (4) are theorems, the recorded
@@ -318,7 +323,9 @@ over p crosses it; corrected in review. A code read then made the
 checks that held by construction prints (R1's bounds, Q1, S3, W3),
 rebuilt R1 against the known class numbers 1 and 2, widened C3 past p - 2,
 recorded the least-norm walk at 2 beside the one banking the most, and
-made the controls stop the run: 17/17, 15.9 s, 9.7 MB.
+made the controls stop the run: 17/17, 15.9 s, 9.7 MB. A later read
+added prints for the first killed level from p - 2 at each covering and
+for the three witnesses of (8), and named S's odd-m count by its range.
 """
 
 import os
@@ -695,7 +702,7 @@ def section_s():
     off = {p: DEATH.get(p) for p in want if DEATH.get(p) != want[p]}
     print(f"  {len(DEATH)} odd p die, {len(alive)} alive at 120; largest "
           f"D({top}) = {DEATH[top]}; recorded values off: {off}")
-    print(f"  accepted odd-m carriers below the dead levels: {odd_acc}")
+    print(f"  accepted odd-m carriers at levels 1..D(p): {odd_acc}")
     check("S1 all 167 odd p < 1000 die at or below level 120",
           len(DEATH) == 167 and not alive)
     check("S2 the recorded dead levels, largest D(719) = 62",
@@ -782,7 +789,10 @@ def section_k():
     print(f"  coverings at {sorted(covered)}")
     for p in sorted(covered):
         L, k0, used = covered[p]
-        print(f"    p = {p}: V + 1 = {k0} mod {L}, primes {used}")
+        first = next(V for V in range(max(1, p - 2), max(1, p - 2) + L)
+                     if (V + 1) % L == k0)
+        print(f"    p = {p}: V + 1 = {k0} mod {L}, primes {used}; first "
+              f"killed level from p - 2: {first}")
     check("K2 coverings at exactly 3, 5, 7, 11, 13, 17, 19, 23, 31, 37",
           sorted(covered) == [3, 5, 7, 11, 13, 17, 19, 23, 31, 37])
     n, live = 0, []
@@ -945,7 +955,9 @@ def section_w():
           P == 961440481 and (q, cost, k) == (3, 81, "full"))
     atD = [p for p in ODD if prime_carrier(p, DEATH[p]) is not None]
     print(f"  dead levels D(p) holding a prime carrier: {atD} (none by "
-          "D's definition; each is a full-price opening)")
+          "D's definition, so each is a full-price opening by (8))")
+    wit = [prime_carrier(p, 1) * p ** 2 + 1 for p in (3, 5, 7)]
+    print(f"  the least prime carrier at (3, 1), (5, 1), (7, 1): {wit}")
 
 
 def main():
