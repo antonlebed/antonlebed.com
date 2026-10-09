@@ -77,8 +77,8 @@ THE ARGUMENT (written before the engine).
   (7) THE DOOR MENU. lambda(Mm) is the lcm of lambda at the prime
       powers exactly dividing Mm, so a lambda-raising m has one prime
       power part q^r that raises lambda alone; the least raising move is
-      a prime power, the least at each q being q^r with r its DOOR. With a = v_q(M) and
-      v = v_q(lambda): at odd q, a >= 1, the door is v - a + 2 (q - 1
+      a prime power, the least at each q being q^r with r its DOOR. With
+      a = v_q(M) and v = v_q(lambda): at odd q, a >= 1, the door is v - a + 2 (q - 1
       already divides lambda, and the q-part must pass v); at odd q,
       a = 0, it is 1 if (q - 1) does not divide lambda, else v + 2; at
       q = 2 it is the scan over lambda(2^j) = 1, 2, 2, 4, .... Least
@@ -93,8 +93,8 @@ THE ARGUMENT (written before the engine).
       a_q - 1 (THE RECURRENCE INVARIANT;
       a_q - 2 at q = 2 once a_q >= 3), which holds q's door at 1, price
       q, from then on, while every other least move is nondecreasing as
-      lambda grows and never costs q. So the first pick that is not a ghost locks
-      the trajectory onto q. A ghost at a prime q' is legal only while
+      lambda grows and never costs q. So the first pick that is not a
+      ghost locks the trajectory onto q. A ghost at a prime q' is legal only while
       (q' - 1) does not divide lambda, which only gets harder, so
       ghosts come in increasing order; and a later ghost divides
       lambda(seed), since the factors a ghost q' adds are factors of
@@ -214,8 +214,8 @@ this one replaces; the argument above says why each should hold).
      19; 23761 at 23; 55441 at 29, 31, 37, 41, 43; 1275121 at 47.
   D1 real 2-door v + 3 and counterfeit v + 2 at every odd M > 1, price
      floors 16 and 8; the 3-door identical in both; the carriers
-     under the full-price opening {1, 2, 3} with rises {1, 2, 1} real and {1} with
-     rise 1 counterfeit, every odd p <= 50 admitting 1..p - 1 with
+     under the full-price opening {1, 2, 3} with rises {1, 2, 1} real
+     and {1} with rise 1 counterfeit, every odd p <= 50 admitting 1..p - 1 with
      rise 1; the walk from 4 real [4, 2, 2, ...], counterfeit
      [2, 2, 2, ...]; the prime powers among 2^k + 1, k <= 20, exactly
      3, 5, 9, 17, 257, 65537.
@@ -259,8 +259,8 @@ FINDINGS. Every prediction landed: 38/38 checks PASS.
      55 are composite, and a prime seed P with P = 1 (mod lcm{l - 1 :
      l prime, 5 <= l < 81}), 27 not dividing P - 1, shuts every
      cheaper move: the least such P, 961440481 (least by cascade.py's
-     construction, prime by Miller-Rabin, deterministic there), opens 3 at 81 and locks at 3, the invariant
-     set by the opening itself.
+     construction, prime by Miller-Rabin, deterministic there), opens
+     3 at 81 and locks at 3, the invariant set by the opening itself.
   C4 cold-opening minima 16 and 9; every 5 <= q <= 47 opens at q from
      lambda = 2.
   C5 all 15 primes q <= 47 lock their blocker seeds with wander 0, at

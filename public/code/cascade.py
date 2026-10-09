@@ -252,9 +252,9 @@ FINDINGS. Every prediction landed: 17/17 checks PASS.
      of Baker and Stark; tau_K <= sqrt(|D|/3) and
      below the Minkowski bound everywhere (by the forms), mean tau_K
      9.58, tau_K <= 4 at 11.8% of fields, mean tau_K / Minkowski 0.705;
-     tau_K is unbounded over the fields by the count of reduced forms,
-     never by this mean. D = -23: h = 3, tau_K = 2
-     against a Minkowski bound of 3.053.
+     tau_K is unbounded over the fields by the count of reduced forms
+     and the class numbers' growth (Heilbronn), never by this mean.
+     D = -23: h = 3, tau_K = 2 against a Minkowski bound of 3.053.
   B  2^k + 1 is a prime power for k <= 300 exactly at 3, 5, 9, 17, 257,
      65537.
   S  all 167 odd p < 1000 die, the dead level erratic: D(19) = D(23) =
@@ -293,9 +293,10 @@ FINDINGS. Every prediction landed: 17/17 checks PASS.
      proper power carrier, which also holds the prime 727; elsewhere
      they agree by (6). Every dead level is therefore a full-price
      opening over Z by (8); the witnesses outside its hypothesis,
-     (3, 1), (5, 1) and (7, 1), hold the primes 19, 101 and 197. The construction of (8) at p = 3, V = 2
-     gives B = 480720240, its least prime P = 961440481, and growth.py's
-     menu opens 3 there at 81, full price.
+     (3, 1), (5, 1) and (7, 1), hold the primes 19, 101 and 197. The
+     construction of (8) at p = 3, V = 2 gives B = 480720240, its
+     least prime P = 961440481, and growth.py's menu opens 3 there at
+     81, full price.
   Tiers: (1)-(3) and the element world (4) are theorems, the recorded
   walks (C4) a rule: at 3 and 5 exhaustive to their dead levels, at 2
   the two walks recorded, each through 257 to level 8; the residual (5)

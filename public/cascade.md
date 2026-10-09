@@ -35,7 +35,10 @@ below 10⁴ empties the first dead level at no p from 100 to 1000
 
 ## The escape is a conjunction
 Tier: theorem; observation (the mean τ_K over 305 fields, and the
-counts of possible norms, an estimate).
+counts of possible norms, an estimate); known (the class numbers of
+imaginary quadratic fields are unbounded).
+Source: H. Heilbronn, On the class-number in imaginary quadratic
+fields, Quart. J. Math. 5 (1934), 150–160.
 Verifier: proof; cascade.py::section_c, cascade.py::section_r,
 module_law.py.
 
@@ -177,30 +180,32 @@ period the order of p mod q. So a set of primes whose classes cover
 every even multiplier at one level covers them every lcm of their
 orders, and from level p − 2 on, where the exponent identity
 (CASCADE.md#the-shape-of-a-dead-level) rules out proper powers, each
-such level is dead: its least candidate, 2·p^(V+1) + 1, exceeds every
-prime the covering uses, all below 2,000. At 3 the prime 7 kills every
-level with V + 1 ≡ 1 mod 6; at 37 nine primes up to 67 kill one level in
-1,680. At 2, 3 kills 2^(V+1) + 1, 17 kills 2^(V+2) + 1 and 5 kills
-3·2^(V+1) + 1 whenever V + 1 ≡ 3 mod 8, from V + 1 = 11 on, and no
-carrier jumps it (CASCADE.md#the-escape-is-a-conjunction). None of the
-three is a proper power from V + 1 = 11 on: 2^k + 1 is one only at 9
-(Mihăilescu's theorem), and 3·2^k + 1 = 5^s forces s = 2, k = 3, since
-at odd s, 5^s − 1 ≡ 4 mod 8 forces k = 2 and 13 is no power of 5, and at
-s = 2t the factor 5^t + 1, twice an odd number, must be 6. A walk at odd
-p rises one level at a time, so none steps over a dead level. Coverings
-exist at 3, 5, 7, 11, 13, 17, 19, 23, 31 and 37 and at no other odd p
-below 1000 within the search (primes below 2,000 whose order of p
-divides 5,040), and all 109 levels a covering kills that were checked,
-to level 200 at odd p and 400 at 2, are dead; at 13, 17, 31 and 37 the
-first such level past p − 2 lies beyond 200, so there the covering is
-the proof alone. A ring with a rank-1 characteristic among those eleven
-has its ideal world lock from every seed; from every start to 300 the
-walks at 2, 3 and 5 span at most 8, 4 and 3 levels, the start's
-included. A ring is closed this way only if one of its rank-1
-characteristics has a known covering: they are read prime by prime off
-how each prime splits, but Q(√(2·3···37)) has none below 53, and no
-covering was found at any odd p from 41 to 997, so no claim on this page
-closes that ring.
+such level is dead: an odd multiplier's candidate is even and no proper
+power, and the least even one's, 2·p^(V+1) + 1, exceeds every prime the
+covering uses (19 = 2·3² + 1 against 7 at 3, 1251 = 2·5⁴ + 1 against 3
+and 11 at 5, and from 7 on more than 2,000, the search's bound on the
+covering's primes). At 3 the prime 7 kills every level with V + 1 ≡ 1
+mod 6; at 37 nine primes up to 67 kill one level in 1,680. At 2, 3 kills
+2^(V+1) + 1, 17 kills 2^(V+2) + 1 and 5 kills 3·2^(V+1) + 1 whenever
+V + 1 ≡ 3 mod 8, from V + 1 = 11 on, and no carrier jumps it
+(CASCADE.md#the-escape-is-a-conjunction). None of the three is a proper
+power from V + 1 = 11 on: 2^k + 1 is one only at 9 (Mihăilescu's
+theorem), and 3·2^k + 1 = 5^s forces s = 2, k = 3, since at odd s,
+5^s − 1 ≡ 4 mod 8 forces k = 2 and 13 is no power of 5, and at s = 2t the
+factor 5^t + 1, twice an odd number, must be 6. A walk at odd p rises
+one level at a time, so none steps over a dead level. Coverings exist at
+3, 5, 7, 11, 13, 17, 19, 23, 31 and 37 and at no other odd p below 1000
+within the search (primes below 2,000 whose order of p divides 5,040),
+and all 109 levels a covering kills that were checked, to level 200 at
+odd p and 400 at 2, are dead; at 13, 17, 31 and 37 the first such level
+past p − 2 lies beyond 200, so there the covering is the proof alone. A
+ring with a rank-1 characteristic among those eleven has its ideal world
+lock from every seed; from every start to 300 the walks at 2, 3 and 5
+span at most 8, 4 and 3 levels, the start's included. A ring is closed
+this way only if one of its rank-1 characteristics has a known covering:
+they are read prime by prime off how each prime splits, but
+Q(√(2·3···37)) has none below 53, and no covering was found at any odd p
+from 41 to 997, so no claim on this page closes that ring.
 
 ## The residual is inhabited at every bound
 Tier: theorem.
