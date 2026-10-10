@@ -10,7 +10,8 @@ Over F₂[x], F₂ the field of two elements and x there an indeterminate
 rather than an integer, the ring is F₂[x]/f with f squarefree, an
 element a of F₂[x]/f read as its residues mod the factors f_i. This page
 says which maps a window computes channel by channel, why size is not
-among them, why ∞ − k and −k read alike at every place, how completely
+among them, why ∞ − k and −k read alike at every finite place once ∞
+is divisible by every positive integer, how completely
 size hides from a proper window, what the
 least exact key for size costs and where a published comparator sits
 against it, what a labelling kept by addition can carry of it, and which
@@ -21,8 +22,9 @@ happens to have.
 QUESTION                       ANSWER                         PRICE
 what is channel-local          exactly the polynomials        none
 sign, compare, overflow        channel-local at no p < M      the wall
-∞ − k against −k               one value at every place       the order, read
-                                when ∞ is divisible by all n   at no place
+∞ − k against −k               one value at every finite      the order, read
+                                place when ∞ is divisible      at no finite
+                                by all n                       place
 what a window W knows of the   sign-bit bias 0 or 1/2 an      nothing
 sign                           element, 0 iff M/W is even
 what x mod Q knows of          no element determined until    no pair ordered
@@ -110,31 +112,34 @@ write ∞ − k for H − k: it lies above every integer, while −k lies below
 0. A finite place of A is a ring map f into a finite ring, of
 characteristic m say. When H is divisible in A by every positive
 integer, f(H) = m·f(H/m) = 0 at every finite place, so ∞ − k and −k
-have one residue at every place at once. Over Z the places together
+have one residue at every finite place at once. Over Z the places together
 separate every pair, Z → Ẑ being one-to-one; here they read ∞ − k and
-−k as one value, and only the order tells them apart. The order is read
+−k as one value, and the order tells them apart. The order is read
 at no finite place: for every x ≠ 0, x and (1 − 2m)x agree mod m and
-have opposite signs. When H is not divisible, its residues are free:
-for each a ∈ Ẑ the sets {n ≥ 1 : n ≡ a mod lcm(1, …, j)} are nested and
-infinite, so a nonprincipal ultrafilter on the positive integers
-holding all of them makes the hyperinteger [n] infinite with residue a
-at every modulus, and ∞ − k reads a − k, apart from −k exactly where a
-is not 0.
+have opposite signs. Divisibility is a choice: an infinite hyperinteger
+can have any residue point a ∈ Ẑ. For each a the sets
+{n ≥ 1 : n ≡ a mod lcm(1, …, j)} are nested and infinite, so a
+nonprincipal ultrafilter on the positive integers holding all of them
+makes the hyperinteger [n] infinite with residue a
+at every modulus, and ∞ − k reads a − k, apart from −k at exactly the
+moduli where a is not 0.
 
 The neighbours sort by which half they keep. Ẑ keeps every residue and
-no order: −1 is the limit of n! − 1, so ∞ − 1 and −1 are one element.
+no order: n! → 0 there, so ∞ − 1 read as the limit of n! − 1 is −1
+itself.
 Conway's omnific integers keep the order and read only the constant
 term: they are the sums x = Σ b_y ω^y with b_0 ∈ Z and no negative
-exponent (Berarducci, Mantova, arXiv:1710.07304, which writes
+exponent (L'Innocente, Mantova, arXiv:1710.07304, which writes
 ω = 2·ω/2 = 3·ω/3), so x − b_0 is n times an omnific integer and
 x ≡ b_0 mod n; the map to Ẑ has image Z. The hyperintegers keep both,
-the residue of the infinite element chosen by the ultrafilter: Benci
+the residues of the infinite element [n] chosen by the ultrafilter: Benci
 and Di Nasso's numerosity gives a cofinite set of positive integers the
 size α − k, and whether α is even depends on the ultrafilter
 (Wenmackers, arXiv:2408.03344). A computable shadow is the big-M
-method's a + bH, ordered by b first, with H's residues set to 0 by
-fiat. Made finite, H = M and 0 ≤ a < M, the pair (b, a) is x in mixed
-radix, and an overflow of x + y kept as a value is the high digit
+method's a + bH, ordered by b first, with H's residues set to 0 here,
+since the method has none. Made finite, H = M and 0 ≤ a < M, the pair
+(b, a) is x in mixed radix, and an overflow of x + y, x and y in
+[0, M), kept as a value is the high digit
 ⌊(x + y)/M⌋: the overflow bit itself, which the wall puts at no channel
 and SIZE.md#the-least-key prices as one key compare.
 

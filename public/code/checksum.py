@@ -200,8 +200,7 @@ def section_r():
     for _ in range(500):
         words = message(RNG.randrange(1, 65))
         f = field(words)
-        ok &= f == (-sum(words)) % M or (f == M and sum(words) % M == 0) \
-            or (f == 0 and sum(words) % M == 0)
+        ok &= f == (-sum(words)) % M or (f == M and sum(words) % M == 0)
         ok &= ones_sum(words + [f]) % M == 0
     check("R1 field = -(sum) mod 65535 and the check sums to 0", ok)
     rest, m, m2 = 0xCD7A, 0x5555, 0x3285

@@ -255,7 +255,7 @@ F_2[x]/x^3 1,024 of 262,144; the two squarefree F_2[x] quotients 16 = 16
 and 1,024 = 1,024. The runs of D reach 2, 3, 97 and 15 at the four sets,
 each its m_1. Z/510510's D-only ties are 92,160 = phi. The orientation sweep
 met 15,475 base-0 classes, and the 29 without a distinct triple are the
-antipodal ones, one per even M <= 60. The Z wrap's first witness is
+antipodal ones, one per even M from 4 to 60. The Z wrap's first witness is
 x = 1: its 16-bit truncated sum lands past one half. Second run, after
 the source read that added (9): 50 of 50 PASS. The least range M/m_k
 against the diagonal's S: 30,030 against 716,167 at Z/510510, 255 against

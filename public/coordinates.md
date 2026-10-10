@@ -10,9 +10,9 @@ the logarithm the integers themselves carry, stands beside them in the
 table below, uncounted: on a finite prime set it is no bijection. Each
 system reads some operations cheaply, and an operation it does not
 read cheaply is one of its **walls**. This page says which pair of
-operations each system reads, proves that no system with two
-coordinates or more reads addition, multiplication and size together
-coordinate by coordinate,
+operations each system reads, proves that on Z/M no system with two
+coordinates or more reads addition and multiplication coordinate by
+coordinate with the sign a function of one coordinate,
 names three kinds of wall, pins most walls, here and in SIZE.md, to
 the least structures that bear them, and reads the Internet checksum,
 where digits and residues meet, one prime at a time.
@@ -22,12 +22,13 @@ SYSTEM             +                  ×              POWERING       SIZE
 residues mod M     channel-local      channel-local  exponent read  walled
  (M squarefree)                                      mod λ, y ≥ 1
 indices on U(M)    one table per      addition       scaling        —
-                    channel, true to
+                    channel,
+                    compatible with
                     no proper
                     quotient but Z/1
 exponent vectors   walled             addition       scaling        walled
-digits in base b   one carry bit,     not automatic  —              the top
-                    no bounded set                                   digit
+digits in base b   one carry bit,     not automatic  —              compared
+                    no bounded set                                   top first
 ```
 
 λ = lcm(p − 1) over the channels, Carmichael's exponent of a squarefree
@@ -42,9 +43,10 @@ is read at a finite set of channels, and there size is walled outright:
 Three kinds of wall appear. Size under residues at two channels or more
 is an **information wall**: no channel-local read, of any size, decides
 it (SIZE.md#the-size-wall). Addition under indices is a **structure
-wall**: the data sits in one channel, but as a table that compresses to
+wall**: the data sits in one channel, but as a table compatible with
 no proper quotient but Z/1 (proved below, p ≥ 5). Powering under
-residues is a **type wall**: the exponent must be read in another ring.
+residues is a **type wall** unless λ | M: the exponent is read mod λ,
+which Z/M carries exactly when λ | M (proved below).
 
 ## The two-readings criterion
 Tier: criterion.
@@ -217,8 +219,8 @@ on 500 random one-word changes, one in five steered to a zero sum, and
 the three computations at the two edges above, each prime's miss set by
 residue arithmetic at every pair of positions within a word for same-way
 and opposite flip pairs, and the missed share over every pair of bit
-positions and every bit value at 1 to 4 words, the checksum recomputed
-each time.
+positions and both values of each flipped bit, on one message of each
+length 1 to 4 words, the checksum recomputed each time.
 
 ## The valuation row
 Tier: theorem.
@@ -273,7 +275,8 @@ Z/(p − 1) respects every quotient.
 The index map is a channel-local bijection, so addition, where the sum
 is a unit, stays channel-local in index coordinates, and the locality
 criterion (SIZE.md#the-locality-criterion) cannot see this wall. It costs one
-table of p − 2 entries per channel. The size wall costs what no table of
+table of p − 2 entries per channel. The size wall costs what no
+channel-local table of
 any size supplies. The script checks all 263 pairs (p, q) with p < 200,
 and every w ≠ 1 when p < 60.
 
@@ -295,7 +298,8 @@ at every channel of the support and 0 off it.
 
 So the logarithm reaches the whole ring as a pair, the support and an
 index, and log 0 = −∞ is a drop to a smaller support. On the units the
-index coordinate reads × as addition. Off them no coordinate does: a map
+index coordinate reads × as addition. Off them no coordinate into a
+group does: a map
 f into a group with f(0) + f(x) = f(0·x) = f(0) is constant. The support
 stands in its place.
 
@@ -308,15 +312,21 @@ For a prime p ≥ 3 and y ≥ 1, x^y is not a function of
 exactly at the p − 2 residues x outside {0, 1}. It is a function of x
 mod p and y mod (p − 1) for positive y only. At p = 2, x^y = x for every
 y ≥ 1, so there is no wall there, and the only failure of either reading
-is 0⁰ = 1.
+is 0⁰ = 1. On a squarefree M, x^y at y ≥ 1 is a function of
+(x mod M, y mod M) iff λ | M, as at M = 6, 42 and 1806.
 
 Proof. x^(y+p) = x^y·x^p = x^(y+1) by Fermat, which differs from x^y
 iff x^y(x − 1) ≠ 0. For positive y, x^(y+p−1) = x^y at every x,
-0 included, while 0⁰ = 1 and 0^(p−1) = 0.
+0 included, while 0⁰ = 1 and 0^(p−1) = 0. On a squarefree M,
+x^(y+λ) = x^(y−1)·x^(λ+1) = x^y at y ≥ 1 by the support log, so λ | M
+reads the exponent mod M; when λ ∤ M, a unit g of order λ, which the
+unit group's exponent supplies, has g^(1+M) ≠ g.
 
 So the exponent of a power belongs to the index ring, with the zero
-exponent excluded, and the residue reading reads its base but not its
-exponent.
+exponent excluded, and the residue reading reads its base, and its
+exponent only when λ | M.
+The script checks the witnesses at p = 3 to 13, and on every squarefree
+M ≤ 300 that the exponent is read mod M exactly at M = 2, 6 and 42.
 
 ## The rigidity dichotomy
 Tier: theorem.
@@ -331,7 +341,8 @@ up to relabelling each coordinate's values, the coprime factorizations
 of Z/M into two factors or more, each above 1. Each of them reads ×
 coordinate by coordinate as well, and walls size: the sign [x ≥ M/2]
 is a function of no coordinate. So no coordinate system with two
-coordinates or more reads +, × and size together; the one-coordinate
+coordinates or more reads + and × coordinate by coordinate with the
+sign a function of one coordinate; the one-coordinate
 system Z/M reads all three and splits nothing. On the unit group
 alone, multiplication is not rigid: U(M) can have decompositions that
 cross the channels, three of four at M = 30.
@@ -377,7 +388,8 @@ a cyclic group and a        sign and orientation hidden           exact
  proper quotient             (SIZE, the hiding lemma)
 any composite Z/M           quantifying over channels:            exact
                              no polynomial computes [x = 0]
-one field, p ≥ 5; p ≥ 3     the Zech wall; the exponent wall      exact
+one field, p ≥ 5            the Zech wall                         exact
+squarefree, λ ∤ M           the exponent wall                     exact
 two coprime windows         order fails maximally                 exact
 two cyclic groups of        the order-divisibility wall:          exact
  non-coprime orders          ord(x) | ord(y) not conjunctive
@@ -387,10 +399,12 @@ squarefree                  channel-local = polynomial            sufficient
 
 Proofs of the rows not proved elsewhere on these pages. The **quantifier
 wall**, LOGIC.md#the-pair's wall on quantifying over channels, is read
-here at its least bearer. A polynomial on Z/M is compatible with every
+here at the hypothesis it needs, M composite. A polynomial on Z/M is
+compatible with every
 quotient Z/A, and a proper divisor A > 1 would need [0 = 0] ≡ [A = 0]
 mod A, that is 1 ≡ 0; at a prime [x = 0] is 1 − x^(p−1), so the wall
-needs the composite. For order, a window A that is a proper divisor of M
+needs the composite. For order, a window A, the reading x mod A at a
+proper divisor A of M,
 suffices, since u = s < A and v = s′ + A ≤ 2A − 1 < M realize every
 residue pair (s, s′) at A with u ≤ v; no field is used. Two coprime
 windows whose product is M make a coordinate system, so that the
@@ -403,7 +417,8 @@ n2, and its second, by symmetry, is full iff n2 | n1. When gcd(n1, n2) =
 since ord x is the product of its coprime parts the conjunction is the
 relation. At a prime r dividing both, x of order r in the first factor
 against y = 0 lies in both projections but not in the relation. The
-least bearer where the relation fails without failing maximally is C₂ ×
+least bearer by order where the relation fails without failing
+maximally is C₂ ×
 C₄ = U(15). On the rungs the order-divisibility wall first appears at
 Z/30, whose channels 3 and 5 are the first two with unit orders 2 and 4
 sharing a prime, and that pair is the bearer U(15) itself.

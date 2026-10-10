@@ -123,7 +123,8 @@ PREDICTIONS (fixed before the run). Every check prints PASS.
      block {0..r}, r = 0..5, in bases 2 and 10; the one-carry scan
      adds exactly in bases 2, 3 and 10 for x, y < 300.
   S: at bases 2, 6 and 10 the suffix read holds iff m | b^j. On the
-     primorial chain with M' <= 2,310 the readable cells are exactly
+     primorial chain with M' <= 2,310 and m = 2..30 the readable
+     cells are exactly these:
      t = 1: m = 3, 5, 7, 11, 15, 21 at c = 1, 2, 3, 4, 2, 3;
      t = 2: m = 5, 7, 11 at c = 1, 2, 3; t = 3: m = 7, 11 at c = 1, 2;
      t = 4: m = 11 at c = 1. Twelve cells, all others torn to the cap.
@@ -139,7 +140,9 @@ PREDICTIONS (fixed before the run). Every check prints PASS.
      every x of Z/510510; the product on supports and indices, the
      support idempotent and the meadow inverse exact at Z/210.
   E: p - 2 witnesses at p = 3..13; positive exponents mod p - 1 exact;
-     the zero exponent fails at x = 0 only.
+     the zero exponent fails at x = 0 only. On the squarefree M <= 300,
+     x^y at y >= 1 is read off (x mod M, y mod M) exactly at M = 2, 6
+     and 42, where lambda | M; up to 2,000 lambda | M at 2, 6, 42, 1806.
   R: 4, 4, 1 and 14 additive decompositions of Z/30, Z/60, Z/12 and
      Z/210, each a coprime factorization, multiplication read coordinate
      by coordinate in each, size walled at every summand; U(30) has 4
@@ -166,8 +169,11 @@ tests.
   I  per-channel discrete-log tables at Z/510510.
   Z  the complying set by brute over x, against (z - 1)/(w - z).
   G  every M <= 300 and every x of Z/510510.
-  E  every x, y at p = 3..13.
-  R  subgroups found as cyclic spans; decompositions by the sum map.
+  E  every x at p = 3..13 at y = 1 for the wall; every x and
+     y = 1..p - 1 at p = 2..13 for the reads; every x and y = 1..M
+     on the squarefree M <= 300, lambda | M listed to 2,000.
+  R  subgroups of Z/M as cyclic spans, of U(30) as closures of two
+     generators; decompositions by the sum map.
   P  polynomial functions as the additive span of the monomial
      functions; relations projected and conjoined.
 
@@ -186,6 +192,8 @@ channel's C4 {1, 7, 13, 19} with the C2 {1, 29}. The script counts the
 four and the one aligned; the split of the three is read by hand.
 Second run, after the removal and a relabelling of letters: 39 of 39.
 Third run, multiplication read at every pair at Z/210: 39 of 39, 2.3 s.
+Fourth run, the E arm on squarefree M: 41 of 41; the exponent is read
+mod M at 2, 6 and 42 below 300, and lambda | M at 2, 6, 42, 1806.
 
 Run: python coordinates.py   (seconds, pure Python)
 """
@@ -568,6 +576,15 @@ def section_e():
     ok = all([x for x in range(p) if pow(x, 0, p) != pow(x, p - 1, p)]
              == [0] for p in primes_upto(13))
     check("the zero exponent fails at x = 0 only", ok)
+    read = [M for M in range(2, 301) if squarefree(M)
+            and all(pow(x, y, M) == pow(x, y + M, M)
+                    for x in range(M) for y in range(1, M + 1))]
+    check("squarefree M <= 300: exponent read mod M iff lambda | M",
+          read == [M for M in range(2, 301) if squarefree(M)
+                   and M % carmichael(M) == 0], f"read at {read}")
+    hits = [M for M in range(2, 2001) if squarefree(M)
+            and M % carmichael(M) == 0]
+    check("lambda | M up to 2,000", hits == [2, 6, 42, 1806], str(hits))
 
 
 # ---------------------------------------------------------------- R
