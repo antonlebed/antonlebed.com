@@ -37,9 +37,9 @@ the least exact key            (floor(x/m_k), x mod m_k)      all moduli
 a labelling by s labels        exact below x₀, then periodic  order-blind at
  on [0, N), kept by addition    (x₀ + d ≤ s)                   and above s
 a monotone labelling kept by   none wrong only at saturation; wrong pairs
- addition on most pairs         at top cut c, (3/14)c² wrong   growing as c²:
-                                at 3 labels, at most about     a rounded
-                                c²/10 at many                  digit's carry
+ addition on most pairs         at top cut c, about (3/14)c²   growing as c²:
+                                wrong at 3 labels, at most     a rounded
+                                about c²/10 at many            digit's carry
 over F₂[x] instead             the same wall, zero bias,      no carries,
                                 an exact-or-flagged read       no silent miss;
                                                                (read: bias from
@@ -491,11 +491,11 @@ cuts at c = 300, m = 2 to 10, prints only upper bounds (0.1218 at m =
 10) and found this shape unprompted: at m = 9, cuts near (k + 1/2)·28.5
 and one wide top interval [216, 300).
 
-The construction is a renamed operation: round(x/w) is the high digit
-of x in radix w, rounded, the approximate form of the first coordinate
-of SIZE.md#the-least-key, and its error is the carry the dropped low
-digit would have sent. Results here are the constants of the front
-(3/14 and 1/10), not the label.
+The construction is a renamed operation: round(x/w) is the high digit of
+x in radix w, rounded, the approximate form of the first coordinate of
+SIZE.md#the-least-key, and its error is the carry the dropped low digit
+would have sent. Results here are the constants, 3/14 the front's at
+three labels and 1/10 rounding's limit, not the label.
 
 ## Doubling cuts against the front
 Tier: rule (verified s = 3, N = 60, t = 1..29; s = 4, N = 40, t = 1..9).
@@ -504,18 +504,20 @@ Verifier: erring_label.py::section_geo.
 Cuts in ratio 2, t, 2t, 4t, …, with the most frequent label as the sum
 table, are the floating-point exponent of a sum. At s = 3, N = 60 they
 sit on the front at t = 1, 2, 3 and 20 (saturation, the two smallest
-scales, and the uniform cuts) and above it at the other 25 scales; at
-s = 4, N = 40 on it at t = 1 alone and above at t = 2 to 9. The gap
-reaches 4.8 times: 516 against 108 at s = 3, t = 29. Past its smallest
-scales the exponent is not the least-error label at its reach.
+scales, and the uniform cuts) and above it at the other 25 scales; at s
+= 4, N = 40 on it at t = 1 alone and above at t = 2 to 9. The gap
+reaches 4.8 times: 516 against 108 at s = 3, t = 29. At these two
+ranges, past its smallest scales and but for the uniform cuts, the
+exponent is not the least-error label at its reach.
 
 ## Open fronts
 
 The erring labelling's lower side. Does any partition of [0, c) err
 locally on less than rounding's quarter, and does κ_m tend to 0 as m
 grows? A block of sums spread evenly over width b ≤ W, at a uniform
-phase against cuts spaced W, errs on b/(4W) of its pairs, so a label
-whose widths grow with position, the cuts near X + Y spaced wider than
-the summands' intervals together, may err less than equal widths do; at
-the bottom of the range such a label spends its count on narrow
-intervals.
+phase against cuts spaced W, errs on b/(4W) of its pairs, and a block
+summing two even spreads errs on between 1/6 and 1/4 of them at b = W.
+Equal widths put a block of twice a label's width against its cuts, so a
+label whose widths grow with position, the cuts near X + Y spaced as
+wide as the summands' intervals together or wider, may err less; at the
+bottom of the range such a label spends its count on narrow intervals.

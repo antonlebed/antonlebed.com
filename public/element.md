@@ -41,12 +41,13 @@ over a number ring a ladder per place, and over each of these curves
 every class summons exactly one minimal rider. Over a curve, past a
 finite transient (the walk to its last opening that pays a rider,
 ELEMENT.md#greed-pays-no-avoidable-rider) and a finite notch the riders
-arrive too slowly to break the chain, so the walk keeps exactly one
-runaway, with a few rider-fed coordinates beside it that a recursion on
-(Z/n)², n the order of the runaway's class, sorts into unbounded and
-stopped, the unbounded ones growing at most like the logarithm of the
-runaway's exponent. Over a number ring the ideal walk's lid
-(CLOCK.md#a-lidded-block-locks-the-walk-for-good) has a twin in the
+arrive too slowly to break the chain at every branch run (the argument
+lacks one step, ELEMENT.md#the-eventual-chain), so the walk keeps
+exactly one runaway, with a few rider-fed coordinates beside it that a
+recursion on (Z/n)², n the order of the runaway's class, sorts into
+unbounded and stopped, the unbounded ones growing at most like the
+logarithm of the runaway's exponent. Over a number ring the ideal walk's
+lid (CLOCK.md#a-lidded-block-locks-the-walk-for-good) has a twin in the
 element world, priced with riders, so a walk reaches a lidded block
 exactly when its prices are bounded infinitely often
 (ELEMENT.md#the-element-lid); a lock repeating one vehicle
@@ -182,8 +183,8 @@ d₂ + m(−c). The verifier builds the witnesses with MINREP(−Tc) as the
 pad, doubling T until it avoids the pair: over the six rings 531
 cross-class and 118 same-class pairs carry them, and without the context
 28 of the 118 price alike. So a ring reaches the dynamics through two
-numbers per place, a count and its class group's addition, which m and
-MINREP read.
+numbers per place and a count, with its class group's addition, which m
+and MINREP read.
 
 ## The minimal rider is unique
 Tier: theorem.
@@ -263,30 +264,34 @@ core, falls in degree. At the price d·r, LIMIT.md's chain is the case
 R = 0, where every rival stands at most t and the premise always holds.
 
 ## The eventual chain
-Tier: theorem (the principal-free degrees being finitely many, by the
-Weil bound in the supply matrix's section above).
-Verifier: proof; element.py::analyse.
+Tier: rule (verified over every branch of six rings, an 8-move stretch
+continued to 300 moves; the argument below lacks its induction's base).
+Verifier: element.py::analyse, element.py::section_w.
 
 Past the transient every clock move at least doubles the notch and
 brings at most R rider units. Fix a notch t₀ past the transient. An item
 no clock move has lifted past the notch since t₀ stands at its exponent
 then plus R per clock move, O(log t), below t − R at a large notch t. A
 strand made past that notch stands at most t + j, j = O(log t) its rider
-units, so its door is at least T′ − t + 1 − j; it left the chain above
-the later holders' degrees, every change after t₀ having fallen (by
-induction over those changes: the next holder is either an item below t
-− R, which the margin step sends down in degree, or such a strand, which
-this bound prices out), so its cost is at least (d_Z + 1)(T′ − t + 1 −
-j), above the holder Z's d_Z(T′ − t) + R (ELEMENT.md#the-margin-step)
-once T′ − t > R + (d_Z + 1)(j − 1), which T′ ≥ 2t and t > R + (d_Z +
-1)(j − 1) ensure. No rider lifts an item past T′ ≥ 2t then either, every
-non-holder standing below T′ + 1 − R. So past the transient and a finite
-notch every crossing is made by a move's core and every change of holder
-falls: the changes are finitely many. A walk clocks forever, an opening
-costing at least its degree and each degree opening once while a clock
-move's price stands still between clock moves, so it has exactly one
-runaway. The rider-fed coordinates beside it can still grow; the orbit
-law below sorts them.
+units, so its door is at least T′ − t + 1 − j; if it left the chain
+above the later holders' degrees, every change past that notch having
+fallen, its cost is at least (d_Z + 1)(T′ − t + 1 − j), above the holder
+Z's d_Z(T′ − t) + R (ELEMENT.md#the-margin-step) once T′ − t > R + (d_Z
++ 1)(j − 1), which T′ ≥ 2t and t > R + (d_Z + 1)(j − 1) ensure. No rider
+lifts an item past T′ ≥ 2t then either, every non-holder standing below
+T′ + 1 − R. So past the transient and a finite notch every crossing is
+made by a move's core and every change of holder falls: the changes are
+finitely many. A walk clocks forever, an opening costing at least its
+degree and each degree opening once while a clock move's price stands
+still between clock moves, so it has exactly one runaway. The step not
+written is the induction's base: an induction over the changes past that
+notch takes the next holder to be an item below t − R, which the margin
+step sends down in degree, or such a strand, which this bound prices
+out, and leaves the items last lifted between t₀ and that notch, the
+holder there among them, unplaced. The walks agree at every branch run:
+no change of holder past step 9 or notch 8
+(ELEMENT.md#where-the-chain-changes-hands). The rider-fed coordinates
+beside the runaway can still grow; the orbit law below sorts them.
 
 ## Where the chain changes hands
 Tier: rule (verified over every branch of six rings, an 8-move stretch
@@ -389,8 +394,8 @@ from the matrix and the ladders equals the ring's least raising elements
 at every state, where 1,528 of its 3,196 vehicles are compound, their
 support more than one place. None of 36,078 longer cores, up to 3 past
 the door, is cheaper, which at these two rings is arithmetic: every
-least ideal has norm 1 or 2, so a longer core costs at least twice its
-door's.
+least ideal has norm 1 or 2, so a core j ≥ 1 past its door r costs at
+least 2N(J)^r, no less than the door's N(J)^r·m(−rc).
 
 ## The lock carries its rider
 Tier: rule (verified at the 53 seeds, the void and every principal
@@ -508,5 +513,6 @@ rather than a vehicle.
 
 Whether a lock's rider can sit over another prime than its core in a
 field of higher degree; whether a walk with finitely many openings
-always settles on one vehicle up to ties; and an explicit notch bound
-for the curve's eventual chain.
+always settles on one vehicle up to ties; and the eventual chain's
+induction base, the items last lifted between a notch past the transient
+and the large notch, with an explicit notch bound.

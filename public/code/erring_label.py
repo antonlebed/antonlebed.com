@@ -33,8 +33,8 @@ THE ARGUMENT (written before this script; T(n) = n(n + 1)/2).
        3 C(beta, 2) + T(alpha - beta), and twice the difference is
        2[alpha(beta - 1) - beta^2 + 3 beta] >= 2(3 beta - 1) > 0. So the
        least error at s = 3 is D4's minimum over alpha <= c/2.
-  (D5) At reach r much less than N^2 the front is E ~ kappa_s (r/N)^2,
-       kappa_s the limsup over c of e_{s-1}(c)/c^2, e_m(c) the least
+  (D5) At reach r much less than N^2 the front is E ~ kappa_{s-1}
+       (r/N)^2, kappa_m the limsup over c of e_m(c)/c^2, e_m(c) the least
        error of m intervals filling [0, c) with sums >= c in the overflow
        label.
   (D6) Plurality is the least-error table by the error's definition, so
@@ -113,8 +113,7 @@ FINDINGS (from the printed run; the controls passed first).
      0.1074), so it bounds each kappa_m, and the bound falls toward 1/10
      as m grows. So the limsup of kappa_m over m is at most 1/10, and
      the lean (a limit above 0.12) is dead. Open: whether any fine
-     partition errs locally on less than rounding's 1/4, which with the
-     top interval's trade would make 1/10 the limit of kappa_m.
+     partition errs locally on less than rounding's 1/4.
   D6 read: at every front point printed (s = 3, 4, N = 24) the
      plurality table, ties to the larger label, never shrinks a size
      (no "table shrinks" line), so the constraint does not move the
@@ -128,13 +127,12 @@ FINDINGS (from the printed run; the controls passed first).
 OPEN, with its handle. Whether any fine partition errs locally below
 rounding's 1/4. A block of width b (one cell's sums, near-uniform in
 position) over cuts spaced W >= b, its position uniform mod W, errs on
-the fraction (b/W)(1/4): equal widths (b = 2w, W = w, triangular) give
-1/4 at phase 1/2, and a narrow summand over w_Y = w_Z gives 1/4 averaged
-over the shift. Beating it needs w(X + Y) much wider than w(X) + w(Y)
-on most of the mass, while X << Y puts X + Y near Y. Turning this into
-a bound summed over the cells, the overflow region excepted, would make
-1/10 the limit of kappa_m, given that a fine region and one wide top
-interval are the optimal shape, itself unproved.
+the fraction (b/W)(1/4); outside that premise, equal widths (b = 2w,
+W = w, triangular) give 1/4 at phase 1/2, and a narrow summand over w_Y = w_Z gives 1/4 averaged
+over the shift. Equal widths put a block of width 2w against cuts
+spaced w; spacing near X + Y at least w(X) + w(Y) puts the block
+against one cut at most, which is where a smaller local error could
+come from.
 
 CONTROLS. s = N has error 0 and reach C(N, 2); saturation has error 0
 and reach (s - 1)(N - s + 1) + C(s - 1, 2); the closed-form cell counts
