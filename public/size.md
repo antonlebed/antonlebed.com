@@ -37,10 +37,11 @@ the least exact key            (floor(x/m_k), x mod m_k)      all moduli
 a labelling by s labels        exact below x₀, then periodic  order-blind at
  on [0, N), kept by addition    (x₀ + d ≤ s)                   and above s
 a monotone labelling kept by   none wrong only at saturation; wrong pairs
- addition on most pairs         at top cut c, about (3/14)c²   growing as c²:
-                                wrong at 3 labels, at most     a rounded
-                                about c²/10 at many, less      digit's carry
-                                with widths growing
+ addition on most pairs         at top cut c, about (3/14)c²   growing as c²
+                                wrong at 3 labels; at m + 1,   at 2 and 3
+                                a share of c² tending to 0,    labels; with
+                                at most O(log(log m)/log m)    m + 1, no lower
+                                                               bound known
 over F₂[x] instead             the same wall, zero bias,      no carries,
                                 an exact-or-flagged read       no silent miss;
                                                                (read: bias from
@@ -513,8 +514,8 @@ exponent is not the least-error label at its reach.
 
 ## Growing widths
 Tier: rule (the limits computed at m = 162, 400 and 1000); pattern (the
-comparisons at c = 4000).
-Verifier: erring_zones.py::section_limits;
+readings at c = 2000 to 64000, m = 34 to 1000, p = 1 to 3).
+Verifier: erring_zones.py::section_limits; erring_zones.py::section_controls;
 erring_widths.py::section_profiles; erring_widths.py::section_scale;
 erring_widths.py::section_phi.
 
@@ -539,7 +540,7 @@ A cut set bounds κ_m by its continuum error, its limit as the set is
 scaled (SIZE.md#zone-phases, step 1), never by a set re-tuned at another
 c (re-tuned at c/2 the profiles print 1.8 to 9.6% lower). The limits
 print 0.09054 at m = 162 (p = 1, top 0.8), 0.08572 and 0.08000 at
-m = 400 (p = 1 and 2, top 0.8), both built at c = 4000, and 0.07380 at
+m = 400 (p = 1 and 2, top 0.8), all three built at c = 4000, and 0.07380 at
 m = 1000 (p = 2, top 0.9, built at c = 10000). So κ₁₆₂ < 0.0906,
 κ₄₀₀ < 0.0801 and κ₁₀₀₀ < 0.0739, where rounding's limit is
 1/10 + O(1/m) (0.1030 at m = 162). The scaled readings approach from
@@ -593,7 +594,7 @@ and y = s(1 − v), ∫s ds ∫(v^p + (1 − v)^p) dv/4 = 1/(4(p + 1)). So for m
 
 At error η take p = 1/η, t₀ = η, Δ = η² and ε = η³: the factor is at
 most (1 − η/2)^(−1/η) ≤ 2 for η ≤ 1/2, so the bound is O(η), while
-log m* = (1/η + 3) log(1/η) + O(1); so κ_m = O(log(log m)/log m), and
+log m* ≤ (1/η + 3) log(1/η) + O(1); so κ_m = O(log(log m)/log m), and
 κ_m → 0.
 
 The theorem is asymptotic: at the m a run reaches the construction
@@ -607,6 +608,6 @@ errs above rounding, its one bottom interval costing about 2t₀. Over
 
 The erring labelling's rate. κ_m tends to 0 at least as fast as
 log(log m)/log m (SIZE.md#zone-phases); no lower bound on κ_m in m is
-known, not even whether κ_m = Ω(1/log m). Open too: whether a
-deterministic profile, without random zone phases, meets the bound
-1/(4(p + 1)) the random phases give.
+known, not even whether κ_m = Ω(1/log m). Open too: whether an
+explicit profile, its cuts given by a formula rather than chosen phases,
+meets the bound 1/(4(p + 1)) as p grows.

@@ -167,7 +167,8 @@ Verifier: proof; flush.py::section_grid; flush.py::section_universal.
 
 At a periodic α, the integer reader of n ↦ mn + ω (0 ≤ ω ≤ m) at
 lookahead c exists iff the reader wins a finite game, and the same game
-with the flush dropped, the safety game, is finite too. Over a finite
+with the flush dropped, the safety game, is finite too: a reader with the
+flush dropped exists iff it wins that game. Over a finite
 alphabet of quotients the same holds for one reader serving every α with
 quotients in it, which sees the quotients through a_(t+c+1) and nothing
 else of α. The game at each c is finite, pruned to a box the proof below
