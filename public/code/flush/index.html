@@ -153,8 +153,9 @@ PREDICTIONS (frozen before the engine ran).
      0) through the game: the identity at 0, n + 1 at 1, x 2 and x 3
      at no c &lt;= LOOKCAP at all six periodic alphas (ostrowski.py's
      theorems); with the rule dropped, n + 1 at 0. (c) Every winning
-     cell's strategy writes m n + omega under the caps and flushes for
-     every n &lt; N_CHECK, 0 bad. (d) The grid's c_int agrees at every
+     strategy of the grid and the band writes m n + omega under the caps
+     and flushes for every n &lt; N_CHECK, 0 bad (the legal output's are
+     not certified). (d) The grid's c_int agrees at every
      cell with the table of an earlier, independent engine (lattice
      points of the quadratic field of alpha, a box derived otherwise),
      EARLIER below.
@@ -174,8 +175,9 @@ PREDICTIONS (frozen before the engine ran).
      floor(n/m) alpha longer than |T_t*|. Kill: a tile whose hull fits.
   P4 THE FLUSH FLOOR. (a) The digitwise reader is correct on n &lt;
      N_CHECK at every cell with s &gt;= (m - 1) a_max, s_0 = 0 included.
-     (b) At a deep k of every phase, value m a_(k+1) q_k has exactly
-     one capped string from level k - 1. (c) Over the grid, c_int is 0
+     (b) At one k of every phase, the first k &gt;= 2 with
+     m a_(k+1) &lt; q_(k-1), value m a_(k+1) q_k has exactly one string
+     from level k - 1, of any digit sizes. (c) Over the grid, c_int is 0
      exactly where s &gt;= (m - 1) a_max and at least 2 elsewhere. Kill:
      a printed 1, or a 0 below the line.
   P5 THE COMPLETION READER IS THE SAFETY GAME. (a) The overlap
@@ -218,8 +220,8 @@ FINDINGS (entered after the run, from its prints; `--full`).
      with (1) to half the truncation bound at worst over seven alphas
      and six slacks. The legal output reads the identity at 0, n + 1 at
      1, and x 2, x 3 at no c &lt;= 3 at all six periodic alphas; with the
-     rule dropped n + 1 reads at 0. Every winning strategy is correct on
-     every n &lt; 1000. The grid's c_int agrees with EARLIER at all 144
+     rule dropped n + 1 reads at 0. Every winning strategy of the grid
+     and the band is correct on every n &lt; 1000. The grid's c_int agrees with EARLIER at all 144
      cells, although this engine's box is smaller than that one's.
   F2 THE TEAR (P1 lands). 8,321 strings of N &lt; 300 at seven alphas: 0
      stars off, 0 disagreements with the extremes; the (0, 0) column
@@ -429,10 +431,6 @@ BAND = [("[4]", (4,), 2, 3), ("[5]", (5,), 2, 3), ("[4]", (4,), 3, 5),
 
     def pack(self, x, y):
         return (x + self.bx) * self.K + (y + self.by)
-
-    def unpack(self, v):
-        x, y = divmod(v, self.K)
-        return x - self.bx, y - self.by
 
     # a state: (branches, quots, srcst, digs, lastzero_in, pos0,
     # lastzero_out); quots = (a_(t+1) .. a_(t+c+1)), digs = (d_(t+1) ..
@@ -1042,7 +1040,8 @@ BAND = [("[4]", (4,), 2, 3), ("[5]", (5,), 2, 3), ("[4]", (4,), 3, 5),
         print(f"    {name:12s} x{m} s = s_0 = {s}: c_ov {c_ov}  c_saf "
               f"{c_saf}  c_int {c_int}  states {len(g.states) if g else '-'}"
               f"  bad {bad}")
-        ok &amp;= c_ov == 1 and c_saf &lt;= 1 and c_int == 2 and bad == 0
+        ok &amp;= (c_ov == 1 and c_saf is not None and c_saf &lt;= 1
+               and c_int == 2 and bad == 0)
     check("a strict flush price at every band cell", ok)
     if not FULL:
         return

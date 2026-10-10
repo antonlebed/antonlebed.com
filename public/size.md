@@ -473,8 +473,8 @@ e_m(c) the least error and κ_m the limsup over c of e_m(c)/c². By
 SIZE.md#the-erring-labelling e_m(c) is the least error of m + 1 labels
 at top cut c on every N ≥ 2c − 1, whose reach is c(N − c) plus at most
 C(c, 2), so at reach r small against N² the front costs about
-κ_m(r/N)². κ₁ = 1/2 and κ₂ = 3/14, and the limsup of κ_m over m is at
-most 1/10.
+κ_m(r/N)². κ₁ = 1/2 and κ₂ = 3/14; the construction below holds κ_m to
+1/10 + O(1/m), and SIZE.md#zone-phases sends κ_m to 0.
 
 The construction: label x below uc by round(x/w) and [uc, c) by one top
 label. Pairs summing below uc spread over a triangle of width 2w against
@@ -512,9 +512,11 @@ ranges, past its smallest scales and but for the uniform cuts, the
 exponent is not the least-error label at its reach.
 
 ## Growing widths
-Tier: pattern (c = 2000 to 64000, m = 34 to 1000, p = 1 to 3).
-Verifier: erring_widths.py::section_profiles;
-erring_widths.py::section_scale; erring_widths.py::section_phi.
+Tier: rule (the limits computed at m = 162, 400 and 1000); pattern (the
+comparisons at c = 4000).
+Verifier: erring_zones.py::section_limits;
+erring_widths.py::section_profiles; erring_widths.py::section_scale;
+erring_widths.py::section_phi.
 
 Rounding's labels share one width, so a cell of two of them sums over
 twice a label's width and splits at a cut. A label whose widths grow
@@ -533,27 +535,78 @@ rounding 0.1022; at m = 1000, c = 10000, p = 2 with top 0.9 prints
 0.0723. A larger p needs a larger m: at m = 400, p = 3 spends 299
 labels on singletons near 0 and prints 0.1005.
 
-κ_m is read off one cut set scaled, never one re-tuned at another c
-(re-tuned at c/2 the profiles print 1.8 to 9.6% lower). Scaled, the
-readings hold or rise by shrinking steps: 0.0905 at m = 162, p = 1 at
-every scale x1 to x16; 0.0785, 0.0793, 0.0796,
-0.0798, 0.0799 at m = 400, p = 2, x1 to x16; 0.0723, 0.0731, 0.0734 at
-m = 1000, x1 to x4. A cut set's limit under scaling bounds κ_m from
-above, and the runs show the approach, not the limit. Taking the cut's
-position in a cell's spread of sums as uniform (a transplant, not
-derived), a p = 1 cell errs on φ₁ = 0.1989 of its pairs (1/4 for a flat
-block, 1/6 for a triangle), so top 0.8 estimates
-0.64 · φ₁/2 + 0.02 = 0.0836, the fine triangle's share plus the top's
-(1 − u)²/2, against 0.0857 printed at m = 400, x16.
+A cut set bounds κ_m by its continuum error, its limit as the set is
+scaled (SIZE.md#zone-phases, step 1), never by a set re-tuned at another
+c (re-tuned at c/2 the profiles print 1.8 to 9.6% lower). The limits
+print 0.09054 at m = 162 (p = 1, top 0.8), 0.08572 and 0.08000 at
+m = 400 (p = 1 and 2, top 0.8), both built at c = 4000, and 0.07380 at
+m = 1000 (p = 2, top 0.9, built at c = 10000). So κ₁₆₂ < 0.0906,
+κ₄₀₀ < 0.0801 and κ₁₀₀₀ < 0.0739, where rounding's limit is
+1/10 + O(1/m) (0.1030 at m = 162). The scaled readings approach from
+below: 0.0785 to 0.0799 at m = 400, p = 2, x1 to x16; 0.0723 to 0.0734
+at m = 1000, x1 to x4. Taking the cut's position in a cell's spread of
+sums as uniform (a transplant, not derived), a p = 1 cell errs on
+φ₁ = 0.1989 of its pairs (1/4 for a flat block, 1/6 for a triangle), so
+top 0.8 estimates 0.64 · φ₁/2 + 0.02 = 0.0836, the fine triangle's share
+plus the top's (1 − u)²/2, against the limit 0.0857 at m = 400.
+
+## Zone phases
+Tier: theorem; observation (the construction's error at m up to 3091).
+Verifier: proof; erring_zones.py::section_zones.
+
+κ_m is nonincreasing in m and tends to 0: κ_m = O(log(log m)/log m).
+
+Proof. (1) For a partition P of [0, 1) into m intervals, overflow [1,
+2), let E(P) be its continuum error, each cell's area less its largest
+label area. Round cP to integers and keep in each cell the continuum's
+best label as reference: each count moves by O(c), so e_m(c) ≤ c²E(P) +
+O(m²c) and κ_m ≤ E(P). (2) Once c > m some interval [u, v) has v − u ≥
+2; split it at v − 1. A split cell errs no more than the whole, since
+its parts' largest classes hold at least the whole's, and only the sums
+equal to v − 1 change label, at most c pairs, so e_{m+1}(c) ≤ e_m(c) + c
+and κ_{m+1} ≤ κ_m. (3) Take [0, t₀) as one interval and cut [t₀, 1) into
+n_z zones of width Δ ≤ t₀, zone k a grid of width w_k = εf(z_k), z_k its
+start and f nondecreasing, at a phase uniform on [0, w_k), the phases
+independent, zone ends cuts, and w_max = max w_k. A cell errs on at most
+its pairs whose sum leaves the label of the cell's midpoint sum M. Put
+aside a pair with a summand below t₀ (area at most 2t₀), a summand
+within w_max of a zone end (4(n_z + 1)w_max) or its sum within w_max of
+a zone end (2(n_z + 1)w_max, 1 among the ends). In a remaining pair (x,
+y), x in zone a and y in zone b, each summand lies in a full grid
+interval at an offset uniform under its zone's phase, so E|x − m_I| =
+w_a/4 for I its interval, and |x + y − M| ≤ (w_a + w_b)/2. A sum at or
+above 1 + w_max shares the overflow label with M. Otherwise the sum lies
+in a zone d, later than a and b since y ≥ t₀ ≥ Δ carries x + y past x's
+zone, so w_d ≥ w_a, w_b; given the phases of a and b, which fix M, the
+phase of d is uniform and independent of them, and a cut separates x + y
+from M with chance |x + y − M|/w_d. Averaged over the phases the pair
+errs with chance at most (w_a + w_b)/(4w_d), so some choice of phases
+errs at most B, the integral of (w(x) + w(y))/(4w(x + y)) over x, y ≥
+t₀, x + y < 1, plus 2t₀ + 6(n_z + 1)w_max, with at most m* = 1 + Σ_k
+(⌈Δ/w_k⌉ + 2) intervals, and by (1) and (2) κ_m ≤ B for every m ≥ m*.
+For f(t) = t^p, x + y ≥ 2t₀ and z_d > x + y − Δ cost the integrand a
+factor (1 − Δ/(2t₀))^(−p) at most, and over the whole triangle, x = sv
+and y = s(1 − v), ∫s ds ∫(v^p + (1 − v)^p) dv/4 = 1/(4(p + 1)). So for m
+≥ m*
+
+κ_m ≤ (1 − Δ/(2t₀))^(−p)/(4(p + 1)) + 2t₀ + 6(1/Δ + 2)ε.
+
+At error η take p = 1/η, t₀ = η, Δ = η² and ε = η³: the factor is at
+most (1 − η/2)^(−1/η) ≤ 2 for η ≤ 1/2, so the bound is O(η), while
+log m* = (1/η + 3) log(1/η) + O(1); so κ_m = O(log(log m)/log m), and
+κ_m → 0.
+
+The theorem is asymptotic: at the m a run reaches the construction
+errs above rounding, its one bottom interval costing about 2t₀. Over
+8 phase seeds each, it prints a mean error of 0.2285 at m near 575
+(p = 1, ε = 0.005, Δ = t₀ = 0.1) and 0.1684 at m near 1438 (p = 1,
+ε = 0.0025, Δ = t₀ = 0.05), and 0.2074 and 0.2094 at m near 1550 and
+3090 (p = 2, Δ = t₀ = 0.1, ε = 0.01 and 0.005).
 
 ## Open fronts
 
-The erring labelling's lower side. Growing widths print below
-rounding's 1/10 (SIZE.md#growing-widths); does κ_m tend to 0, and at
-what rate in m? Under a uniform phase a cell of widths α and β summing
-near z errs, on average over the phase, on at most (α + β)/(4w(z)) of
-its pairs, w(z) the label width there, and under widths proportional to
-t^p that bound integrates to 1/(4(p + 1)) over the triangle x + y < 1;
-for p > 1 the labels spent on [t₀, 1) grow like t₀^(1−p). Whether the
-uniform phase can be made exact, and whether any partition errs less
-than this route, is open.
+The erring labelling's rate. κ_m tends to 0 at least as fast as
+log(log m)/log m (SIZE.md#zone-phases); no lower bound on κ_m in m is
+known, not even whether κ_m = Ω(1/log m). Open too: whether a
+deterministic profile, without random zone phases, meets the bound
+1/(4(p + 1)) the random phases give.

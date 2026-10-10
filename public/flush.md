@@ -38,7 +38,8 @@ so a capped input digit at a deep enough position k leaves a residual
 the reader must write from where it stands. When (m − 1)a_(k+1) > s and
 m a_(k+1) < q_(k−1), that residual's only string needs a digit above
 a_(k+1) + s for a reader at lookahead 0 or 1; on most cells of the grid
-below a deeper reader pays nothing for it.
+below the reader that must end needs no more lookahead than the same
+game with the flush dropped.
 
 ```
 MAP         LEGAL OUTPUT      REDUNDANT, E = 0    REDUNDANT, E > 0
@@ -53,9 +54,10 @@ The script's grid: the six purely periodic α golden [1], silver [2],
 bronze [3], √3 − 1 = [1, 2], [1, 1, 1, 2] and [2, 1, 3, 1], where
 [a₁, …, a_p] is the α whose quotients repeat that block; the maps ×2 …
 ×5; and the six slacks (s, s₀) = (0, 0), (0, 1), (1, 0), (1, 1), (2, 2),
-(3, 3). On this page a periodic α is a purely periodic one. In the table
-c_ov is the overlap reader's lookahead and t* the depth from which floor
-division walls, both fixed in their sections below.
+(3, 3). On this page a periodic α is a purely periodic one, and the
+script's counts are those of `flush.py --full`. In the table c_ov is the
+overlap reader's lookahead and t* the depth from which floor division
+walls, both fixed in their sections below.
 
 ## The tear at E = 0
 Tier: theorem.
@@ -128,10 +130,12 @@ Committing that member keeps J_t inside T_t at every depth. The length
 of T_t tends to 0, so the output codes mx + M.
 
 The script runs this reader 36,000 times to depth 40 over nine α (the
-grid's six, the fractional part of Euler's number, [4] and [5]), ×2 …
-×5 and five slacks, and it never fails to find a member. c_ov runs
-from 0 to 6 over the grid; at a periodic α the ratios |θ_(k+1)/θ_k|
-repeat with the period, so the 40 depths it checks decide them all.
+grid's six, the fractional part of Euler's number, [4] and [5]), ×2 … ×5
+and five slacks, and it never fails to find a member (at the fractional
+part of Euler's number its lookahead is the least c meeting the
+conditions to depth 40). c_ov runs from 0 to 6 over the grid; at a
+periodic α the ratios |θ_(k+1)/θ_k| repeat with the period, so the 40
+depths it checks decide them all.
 
 ## Floor division walls at every slack
 Tier: theorem.
@@ -162,15 +166,15 @@ Tier: theorem.
 Verifier: proof; flush.py::section_grid; flush.py::section_universal.
 
 At a periodic α, the integer reader of n ↦ mn + ω (0 ≤ ω ≤ m) at
-lookahead c exists iff the reader wins a finite game, and so does the
-reader with the flush dropped. Over a finite alphabet of quotients the
-same holds for one reader serving every α with quotients in it, which
-sees the quotients through a_(t+c+1) and nothing else of α. The game at
-each c is finite, pruned to a box the proof below derives without the
-lookahead, so it is decided exactly, and the two least lookaheads, where
-finite, are found by searching c upward: c_int, the integer reader's,
-which must also flush, and c_saf, the least lookahead of the safety
-game, the reader with the flush dropped.
+lookahead c exists iff the reader wins a finite game, and the same game
+with the flush dropped, the safety game, is finite too. Over a finite
+alphabet of quotients the same holds for one reader serving every α with
+quotients in it, which sees the quotients through a_(t+c+1) and nothing
+else of α. The game at each c is finite, pruned to a box the proof below
+derives without the lookahead, so it is decided exactly, and the two
+least lookaheads, where finite, are found by searching c upward: c_int,
+the integer reader's, which must also flush, and c_saf, the safety
+game's, whose reader keeps some lift alive forever but need not end.
 
 Proof. Write the residual H_t = m Σ_(k≤t) d_k q_k + ω − Σ_(k<t) e_k q_k,
 keeping the pre-read d_(t+1) … d_(t+c) apart, as g q_t + h q_(t−1), and
@@ -200,34 +204,39 @@ that branch obeys
     |g| < B_g = μ(A + 1) + 1 + s + m,    |h| < B_h = 1 + s + m + μ,
 
 A the largest quotient. Pruning branches outside this box never removes
-it, so a win of the pruned game is a reader and a loss is a loss. The
-integer game asks, besides safety, that under zero input the reader can
-force the branch (0, 0) with nothing pending, which is H = 0: the flush.
-The safety game omits that. Both are a greatest fixed point over
-finitely many states. The safety game's fixed point keeps the states
-with a move whose every reply stays in the set; the integer game's
-alternates that cut with keeping only the states from which, under zero
-input, the reader can force the flush without leaving the set, until
-neither cut removes a state.
+it, so a win of the pruned game is a reader. A loss is a loss: a reader
+may use its whole history, but the states it visits are closed under its
+moves, and an integer reader ends from each of them under zero input, so
+they lie in the greatest fixed point below. The integer game asks,
+besides safety, that under zero input the reader can force the branch
+(0, 0) with nothing pending, which is H = 0: the flush. The safety game
+omits that. Both are a greatest fixed point over finitely many states.
+The safety game's fixed point keeps the states with a move whose every
+reply stays in the set; the integer game's alternates that cut with
+keeping only the states from which, under zero input, the reader can
+force the flush without leaving the set, until neither cut removes a
+state.
 
 The script's c_int agrees at all 144 cells of its grid (six periodic α,
 ×2 … ×5, six slacks) with a second, independent computation over the
-quadratic field of α with a larger box, whose table flush.py carries,
-and every winning strategy writes the right value under the output
-caps and ends, for every n < 1000. Solved at twice the box, the
-flushing branches of the reader of ×2 at s = s₀ = 1 over the quotient
-alphabet {1, 2} (the universal reader below) never leave the box
-itself, over the alphabet's two constant members and four random ones
-and every n < 250: at most (4, 2) against (10, 6).
+quadratic field of α with a larger box, whose table flush.py carries (at
+the 24 cells of the (0, 0) column neither finds a reader within its
+cap), and every winning strategy writes the right value under the output
+caps and ends, for every n < 1000. Solved at twice the box, the flushing
+branches of the reader of ×2 at s = s₀ = 1 over the quotient alphabet
+{1, 2} (the universal reader below) never leave the box itself, over the
+alphabet's two constant members and four random ones and every n < 250:
+at most (4, 2) against (10, 6).
 
 ## The completion reader is the safety game
 Tier: theorem.
 Verifier: proof; flush.py::section_completion; flush.py::section_grid;
 flush.py::section_band.
 
-At every periodic α and over every finite quotient alphabet, with
-s₀ ≤ s + 1, the completion reader's least lookahead c_comp equals c_saf
-at ω = 0.
+At every periodic α and over every finite quotient alphabet, with s₀ ≤
+s + 1, the completion reader's least lookahead c_comp equals c_saf at
+ω = 0, c_comp over an alphabet being that of one completion reader
+serving every α with quotients in it, which sees them through a_(t+c+1).
 So tracking the lifts costs no lookahead, and c_int − c_comp is the
 flush's price alone. The lifts are these integer differences: the fibre
 of R over R/Z, which the circle carries, and not n mod m, which
@@ -235,14 +244,13 @@ OSTROWSKI.md proves no tile carries and which stays floor division's.
 
 Proof. In a safe play the set of branches is never empty, each branch
 has one parent, and the box holds finitely many. By König's lemma one
-lineage runs forever. Its σ_t obeys |σ_t| ≤ B_g|θ_t| + B_h|θ_(t−1)|,
-which tends to 0, so the output codes mx + M for that lineage's lift: a
-safe reader is a completion reader. A completion reader's own lift is a
-true branch, inside the box by the lift game's bound, so the reader
-plays safe. It may use its whole history, but the states it visits are
-closed under its moves and so lie in the greatest fixed point: the
-positional game is won too. The width of the box above that bound is
-irrelevant.
+chain of branches, each the parent of the next, runs forever. Its σ_t
+obeys |σ_t| ≤ B_g|θ_t| + B_h|θ_(t−1)|, which tends to 0, so the output
+codes mx + M for that chain's lift: a safe reader is a completion
+reader. A completion reader's own lift carries a branch, inside the box
+by the lift game's bound, so the reader plays safe, and by the lift
+game's proof the positional game is won too. The width of the box above
+that bound is irrelevant.
 
 The script tracks the overlap reader's own lift in the game's frame over
 its 36,000 runs, with A the largest of a₁ … a₄₁, the quotients its
@@ -279,16 +287,16 @@ q_k = a_k q_(k−1) + q_(k−2), into two levels of which a reader at
 lookahead 1 has
 already written the lower and one at lookahead 0 both.
 
-Over the grid the script finds c_int = 0 exactly where s ≥ (m − 1)A
-and 2 or more elsewhere, never 1. c_int − c_saf is 0 at 91 of the 120
-finite cells, 1 at 28 and 2 at one ([1, 1, 1, 2] ×3 at s = s₀ = 3,
-where c_saf = 0). At four cells beyond the grid, [4] and [5] ×2 at
-s = s₀ = 3, and [4] and bronze ×3 at 5, c_ov = 1 and c_int = 2:
-the completion reader reads at 1 and the integer reader cannot. The
-first half's reader (flush.py's digitwise reader) is correct at every α
-of the grid, ×2 … ×5 and n < 1000, at s = (m − 1)A with s₀ = 0, and m
-a_(k+1) q_k has one
-string from level k − 1 at every phase.
+Over the grid the script finds c_int = 0 exactly where s ≥ (m − 1)A and
+2 or more elsewhere, never 1. c_int − c_saf is 0 at 91 of the 120 finite
+cells, 1 at 28 and 2 at one ([1, 1, 1, 2] ×3 at s = s₀ = 3, where
+c_saf = 0). At four cells beyond the grid, [4] and [5] ×2 at s = s₀ = 3,
+and [4] and bronze ×3 at 5, c_ov = 1 and c_int = 2: the completion
+reader reads at 1 and the integer reader cannot. The first half's reader
+(flush.py's digitwise reader) is correct at every α of the grid, ×2 … ×5
+and n < 1000, at s = (m − 1)A with s₀ = 0; and at one k in each position
+of α's period, the first k ≥ 2 with m a_(k+1) < q_(k−1), m a_(k+1) q_k
+has exactly one string from level k − 1 of any digit sizes.
 
 ## The universal reader
 Tier: rule (the finite game solved exhaustively at the cells below).
