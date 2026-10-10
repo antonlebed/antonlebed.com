@@ -104,7 +104,7 @@ a power of p and no μ_p. Measured heads fall at exactly the criterion's
 ## The width
 Tier: theorem.
 Verifier: proof; tame.py::section_width, wild.py::section_width,
-weld.py::section_head, clock.py::section_width.
+weld.py::section_head, weld.py::section_i, clock.py::section_width.
 
 The width is not a function of p, e, f and the roots of unity K holds:
 Q₂(√2) and Q₂(√−5) agree in all four and carry w = 1 and 2. It is a
@@ -289,7 +289,8 @@ ladder the same price lets one item clock at price 1 forever.
 
 ## Under the global clock the sup is a floor
 Tier: theorem.
-Verifier: proof; stop.py::section_walks, stop.py::section_excess.
+Verifier: proof; stop.py::section_walks, stop.py::section_excess,
+stop.py::section_horizon.
 
 Under the **global clock**, LIMIT.md's one notch T shared by every item,
 the notch walks the ladder member by member, and every exponent is at
@@ -317,7 +318,8 @@ item can enter paying 2, above its sup 1), holds by theorem under the
 per-item clock over a ladder with finite sup at least 2 and every degree
 supplied, since H = κ(d_X, sup) there by the per-item argument,
 r₀ ≤ 2 ≤ sup, and the horizon is H by the high-water lemma's second
-paragraph; under the global clock d_X·sup is a floor. Under the
+paragraph, at that price, covering and branch; under the global clock
+d_X·sup is a floor. Under the
 per-item clock the runaway has degree 1: a degree-1 item never bids
 above max(2, sup) = sup, so H ≤ sup, and H = d_X·sup forces d_X = 1.
 
@@ -389,7 +391,8 @@ Over 4096 branches (13 bounded ladders, five partitions, three prices)
 no change of holder rose, no single-holder branch sat off min H_b, and
 none kept two late blocks, clocked in a walk's last quarter, whose
 crossing price exceeds B; 911 kept more than one late block, all at
-headless ladders; late is a finite proxy for
+gaps 2, 3, 5 and (2, 3, 0), where a rational item's crossing price is
+its recurrent price; late is a finite proxy for
 running forever, so the proof carries the limit. At a gap-3 block beside
 (2, 2, 3) the tail-2 block waits at its bend on 21 of 25 branches, and
 which block runs moves with the branch. With one constant-gap ladder,
@@ -399,7 +402,8 @@ and one on every branch when they go to the highest; with (2, 2, 3) in
 both, one under either rule. Every block of the four partitions coarser
 than the per-item one, the global clock, a block per slot (an item's
 rank, first or second, among the two of its degree) and blocks by the
-degree plus the slot mod 2 and mod 3, runs at the doubling and square
+degree plus the slot mod 2 and mod 3, if it holds a seated item, is
+clocked in the last half of 480 moves at the doubling and square
 ladders, on all 207 branches.
 
 ## The admission census is the high-water lemma, item by item
@@ -483,11 +487,12 @@ pays the dearer one. So no two blocks both run away and no tie-break is
 consulted between blocks: the ring's runaways lie over one rational
 prime, and one place among them runs by
 CLOCK.md#a-rings-block-keeps-one-runaway-in-counts. A function field's
-places all lie over one p: one block. A runaway per block needs two
-blocks of unbounded gaps, two characteristics of equal characteristic,
-which no domain has: the doubling ladder and the tripling one, 1, 3, 9,
-27, …, in two blocks keep both clocked on all 20 branches, one block of
-doubling keeps one on all 32. What does decide a tie is visible in the
+places all lie over one p: one block. With no tie between blocks, as in
+a domain, a runaway per block needs two blocks of unbounded gaps, two
+characteristics of equal characteristic, which no domain has: the
+doubling ladder and the tripling one, 1, 3, 9, 27, …, in two blocks
+keep both clocked on all 20 branches, one block of doubling keeps one
+on all 32. What does decide a tie is visible in the
 equal-degree case: two items of one degree in one block, on gap 1 and
 gap h, tie at their entry, and in depth whichever enters first holds the
 clock forever unless a lower degree takes it, the wide one on 15, 18 and
@@ -527,7 +532,8 @@ is read against brute unit groups at Z's places over 2, 3, 5 and 7 to
 p^b ≤ 5000 and at Z[i]'s ramified place to depth 10 and its inert place
 over 3 to depth 4.
 The count engine matches dial.py move for move at 477 schedules with one
-ladder a block and parts at 52 of 378 with two. No quadratic ring holds
+ladder a block, where the two are one walk by construction, a guard of
+the code, and parts at 52 of 378 with two. No quadratic ring holds
 two ladders in a block, a split prime's places being conjugate; the ring
 of discriminant −59 holds Z₂'s headed ladder beside the unramified place
 of residue degree 2 over 2, and two over 59.
@@ -597,8 +603,10 @@ depth or more (two gaps where Y last landed by a clock move, at most at
 m_Y(V_R − 1); a place the walk starts with can sit deeper in its count),
 while R pends m_R(V + 1) − m_R(V_R), one of its own when no jump comes
 between. With one ladder Y's door exceeds R's and the residue degree
-falls: the block clock's chain. With two it can fail. At gap 3 beside
-the exact ladder under d·r the wide item takes the tick, the narrow one
+falls, a place's residue degree being its degree in the schedule, its
+price its norm to the door's power: the block clock's chain. With two
+it can fail. At gap 3 beside the exact ladder under d·r the wide item
+takes the tick, the narrow one
 enters at a rise of 3 against the wide one's 3, and the block changes
 holder at equal degree; 54 changes over the two-ladder schedules, none
 with Y's door below the bound m_Y(V + 1) − m_Y(V_R) + 1, all 54 not
@@ -624,7 +632,8 @@ number ring keeps one runaway place. No walk read reached the tail
 clause, 0 tail changes in any, so it stands on the proof; a holder that
 loses the clock falls a whole count behind. In the rings no block
 changed holder at all: of 1856 walks seating two places over one prime
-at depths 1 to 4, 252 clocked that block and none clocked both places.
+among each ring's 30 cheapest, at depths 1 to 4, 252 clocked that block
+and none clocked both places.
 
 ## A carrier bears on a place down to a ladder member
 Tier: theorem.
@@ -717,7 +726,7 @@ Over 338 blocks walked alone, 3748 ends with every tie branched, all 167
 changes of holder past the tails lowered ef, 131 of them at a tie, while
 257 of the 522 before the tails did not: the hypothesis bites. Every one
 of the 167 took an exit, and so did every change from the void: the 28
-of those blocks' walks from the void, among the 167 and all at a tie,
+in those blocks' walks from the void, among the 167 and all at a tie,
 and the 35 from the void over 7 once the list of place types the blocks
 are drawn from gains tame places of e = 4 and 5, 15 of them strict: a
 change from the void is no tie phenomenon. 695 ends run a place above

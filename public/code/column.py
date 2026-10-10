@@ -18,7 +18,7 @@ THE ARGUMENT (written before the engine).
       c(b + 1) = j), and ceil((b - 1)/e) is the c of the ladder
       1, 1 + e, 1 + 2e, ..., the STAIRCASE. So the closed form holds at
       every depth iff the ladder is the staircase. By the ladder theorem
-      (clock.py) the ladder is psi's orbit from 1, psi(i) = min(pi, i + e),
+      (clock.py) the ladder is psi's orbit from 1, psi(i) = min(p*i, i + e),
       save one overshoot by the width w where the bend s = e/(p - 1) is a
       power of p.
         e < p - 1: s < 1, so every i >= 1 lies above the bend, psi(i) =

@@ -170,8 +170,13 @@ FINDINGS (entered after the run, from its printed output).
   F4 THE FATE (PR6 hit). No opening in the last half at the 13
      bounded ladders under a per-item clock; 20 and 19 at the doubling
      and square ladders.
+  F5 THE HORIZON (S3b, added after the run, its prediction frozen
+     first: off d_X sup at the exact ladder alone). At d r, clock-first,
+     every one of the 13 ladders under both clocks has runaway degree 1
+     and H = sup, and the horizon is d_X sup at the 12 ladders past the
+     exact one; at the exact ladder, sup 1, the horizon and H are 2.
 
-RUN RECORD. One process, CPython, no numpy: 76309 checks, 0.4 s, peak
+RUN RECORD. One process, CPython, no numpy: 82604 checks, 0.5 s, peak
 commit 10.1 MB under a memory guard.
 """
 
@@ -555,6 +560,29 @@ def section_excess():
               f"horizon {u}, d_X sup {dX * c}")
 
 
+def section_horizon():
+    """The horizon at the corner on the clock-first branch, against the
+    runaway's degree times the sup."""
+    print("S3b THE HORIZON AT THE CORNER: d r, clock-first, no tie branched")
+    off = []
+    for lad in ladders():
+        s, _ = sup_tail(lad)
+        S = L.Sched(lad.name, lad, L.price_power(1))
+        for glob in (False, True):
+            st, log = run(S, SUP, glob, N)
+            H = max(x[2] for x in log)
+            u = horizon(S, st, SUP)
+            degs = sorted({d for d, _ in late(log)})
+            clock = "global" if glob else "per-item"
+            if u != degs[0] * s:
+                off.append((lad.name, clock))
+            print(f"  {lad.name:9s} {clock:8s} sup {s:2d} H {H:3d} horizon "
+                  f"{u:3d} late degrees {degs} d_X sup {degs[0] * s}")
+    print(f"  off: {off}")
+    check(off == [("exact", "per-item"), ("exact", "global")],
+          "the horizon at the corner off d_X sup away from the exact ladder")
+
+
 def section_fate():
     """PR6."""
     print("S4  THE FATE UNDER A PER-ITEM CLOCK (PR6): openings in the last "
@@ -575,6 +603,7 @@ def main():
     section_path()
     section_walks()
     section_excess()
+    section_horizon()
     section_fate()
     print(f"ALL CHECKS PASS: {CHECKS[0]} checks, {time.time() - t0:.1f} s")
 

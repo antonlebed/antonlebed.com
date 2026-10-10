@@ -123,8 +123,8 @@ PREDICTIONS, fixed before the run.
      the landing) is min(lam, 3e/2); the translate F(x - 2) has
      min(lam', 3e/2) = min(lam, 3e/2); and over the quadratic fields
      Q_2(sqrt delta), delta squarefree, 2 ramified, |delta| <= 400,
-     min(lam, 3) is 1 at delta = 2, 6 mod 8, 2 at 3 and 3 at 7 (clock.py's
-     delta mod 8 theorem, a positive control).
+     min(lam, 3) is 1 at delta = 2, 6 mod 8, 2 at 3 and 3 at 7 (carrier.py's
+     delta mod 8 law, a positive control).
   D  THE LETTERS AT e = 4. The field K(zeta_8) = K(i, sqrt 2) over a
      totally ramified quartic K is read by three LETTERS, each of
      delta = -1, 2, -2 split (a square in K), unramified (5 delta a
