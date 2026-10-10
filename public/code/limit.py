@@ -926,8 +926,8 @@ def section_c():
                 last = max([j for j, x in enumerate(ks) if x[5]] + [0])
                 for x in ks[last + 1:]:
                     if D > dmin:
-                        check(S.price(D, x[2], False)
-                              <= S.price(dmin, x[3] + 1, True),
+                        check(not S.price(D, x[2], False)
+                              > S.price(dmin, x[3] + 1, True),
                               "the finite-notch bound")
             check(census == vw, f"void law, {S.name} {sname}: "
                   f"{sorted(census)} against {sorted(vw)}")

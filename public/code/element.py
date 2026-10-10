@@ -268,16 +268,17 @@ FINDINGS (entered after the run, from its printed output).
      longer cores offered, none strictly cheaper; 43,503 openings, none
      paying a rider while a principal item of its degree was unseated;
      750 brute menus equal to the pruned ones.
-  F5 THE TRIVIAL GROUP (EP5 hit). 608 menus and states equal to
+  F5 THE TRIVIAL GROUP (EP5 hit). 603 menus and states equal to
      limit.py's over 2 branches of 300 moves.
   F6 THE CHAIN UNDER A RIDER (EP6). THE THEOREM CHECK HIT: 11 changes of
      holder stood under the premise (1 at h2, 10 at g2), all falling.
      THE SUSPICION HIT, SHARPENED: 52 changes do not fall, all at g2,
      and every one is asserted to be a HAND-OFF to the conjugate place
      standing level with the holder (same degree, negated class, equal
-     exponent). There the vehicle P^r iota(P)^r is the r-th power of a
-     polynomial in x, lifting both places alike, and which of two level
-     items holds is a naming. THE RANGE SUSPICION DIED as frozen: 53
+     exponent), so the margin step's premise (a place at most t - R)
+     fails at each; none of the 52 vehicles is P^r iota(P)^r (printed:
+     of them P^r iota(P)^r 0). THE RANGE
+     SUSPICION DIED as frozen: 53
      changes come after the last opening paying a rider (1 at h2, 52 at
      g2, all falling). What holds in range instead: no change of holder
      after step 9 and notch 8 at any branch of any ring. The design's
@@ -295,8 +296,11 @@ FINDINGS (entered after the run, from its printed output).
   F7 THE LIMIT (EP7 hit). Final runaways: degree 1 or 2 at F2[x], (1, 1)
      at h2 and h4, (2, 0) at h3, a rational place of each nonzero class
      1 to 4 at h5 and g2. Items above exponent 1 beside the runaway: 0 at
-     F2[x] and h3, 0 or 1 at h2 and h4, 2 at h5, 2 to 5 at g2. The orbit
-     law is asserted at every branch past its change range.
+     F2[x] and h3, 0 or 1 at h2 and h4, 2 at h5, 2 to 5 at g2. Places at
+     exponent 1 at a degree never opened, a rider's (count, branches):
+     (1, 2) at h3, (0, 2) (2, 2) at h4, (0, 16) (1, 4) at h5, (0, 85)
+     (1, 35) at g2, none at F2[x] and h2. The orbit law is asserted at
+     every branch past its change range.
   F8 THE RECURSION (EP8 hit). 895 eras past the change range, every door and
      every rider as (8) predicts.
   F9 THE VERDICT (EP9). No unbounded colour beside the runaway at
@@ -807,14 +811,12 @@ def apply(W, st, t):
         # a polynomial in x.
         cross = [(b, i) for i, (c, a, b) in enumerate(mods) if b > st.T]
         top = 0 if mods[0][2] > st.T else max(cross)[1]
-        rec["level"] = sum(b == mods[top][2] for b, i in cross) > 1
         TALLY["shared crossings"] += len(cross) > 1
         TALLY["shared crossings level"] += (
             len(cross) > 1 and mods[0][2] > st.T
             and all(b == mods[0][2] for b, i in cross))
         new = (mods[top][0], mods[top][2])
         rec["kind"] = "core" if top == 0 else "rider"
-        rec["ncross"] = len(cross)
         rec["change"] = None
         if st.holder is not None and st.holder[1] >= 2:
             same = mods[top][0] == st.holder[0] and mods[top][1] == \
@@ -985,12 +987,12 @@ def section_x(W):
     for _ in range(STRETCH):
         nxt, seen = [], set()
         for a, b in front:
+            n += 1
             for t in same(a, b):
                 a2 = apply(W, a, t)[0]
                 if a2.key() not in seen:
                     seen.add(a2.key())
                     nxt.append((a2, L.apply(S, b, kind(t))))
-                n += 1
         front = nxt
     for a, b in front:
         for _ in range(WALK_N - STRETCH):
@@ -1084,6 +1086,9 @@ def analyse(W, st, log):
         if y[0] >= z[0]:
             check(conj and ey == log[i]["hold"][1], f"{W.name}: a change"
                   " not falling that is no hand-off to a level conjugate")
+            TALLY["hand-offs"] += 1
+            TALLY["hand-offs P^r iota(P)^r"] += (
+                dict(log[i]["rider"]) == {z: log[i]["t"][2]})
         r["changes"].append((i, z[0], y[0], kind, ey,
                              None if t is None else t - W.Rmax, prem,
                              i > trans, log[i]["T0"]))
@@ -1097,7 +1102,6 @@ def analyse(W, st, log):
             if e >= 2 and cell != C:
                 deep.append((cell, e, st.units[cell]))
     r["deep"] = sorted(deep)
-    r["clock_e"] = st.holder[1]
     # the orbit law and the recursion past the change range
     clocks = []
     for i in range(win + 1, len(log)):
@@ -1153,6 +1157,13 @@ def section_w(W):
     above = sorted(Counter(len(r["deep"]) for r in rows).items())
     print(f"    items above exponent 1 beside the runaway, (count, branches):"
           f" {above}; e.g. (colour, a, rider units) {rows[0]['deep']}")
+    stray = Counter()
+    for st, log in out:
+        opened = {x["t"][0][0] for x in log if x["open"]}
+        stray[sum(k for cell, v in st.seat.items() for e, k in v.items()
+                  if e == 1 and cell[0] not in opened)] += 1
+    print(f"    places at exponent 1 at a degree never opened, (count, "
+          f"branches): {sorted(stray.items())}")
     vs = Counter()
     for r in rows:
         d, mu, lam, cyc, pre, rho = r["verdict"]
@@ -1349,7 +1360,9 @@ def main():
           f"menus {TALLY['brute menus']}; recursion eras "
           f"{TALLY['recursion eras']}; crossings a rider shared "
           f"{TALLY['shared crossings']}, at the core's exponent "
-          f"{TALLY['shared crossings level']}")
+          f"{TALLY['shared crossings level']}; hand-offs to the conjugate "
+          f"{TALLY['hand-offs']}, of them P^r iota(P)^r "
+          f"{TALLY['hand-offs P^r iota(P)^r']}")
     check(TALLY["offset cheaper"] == 0, "the bare door")
     check(TALLY["shared crossings level"] == TALLY["shared crossings"],
           "every crossing a rider shares has the core crossing and every "

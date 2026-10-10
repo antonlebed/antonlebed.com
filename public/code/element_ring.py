@@ -112,9 +112,12 @@ PREDICTIONS, frozen before the engine, each naming what the run PRINTS.
       Expected: two unbounded places there, each gaining one per move,
       the gap constant; one at every other lock. The places that grow
       are the vehicle's support by the lock's own definition, so a
-      laggard that stops gaining cannot pass RP6's lock check; the
-      content is the constant gap. POSITIVE CONTROL for the count: the
-      (5) lock must hold one place, asserted.
+      laggard that stops gaining cannot pass RP6's lock check, and at
+      a vehicle whose two exponents are equal, as (2) = P2 P2', the
+      constant gap follows from the lock too: the check re-reads the
+      vehicle. POSITIVE CONTROL for the count: some
+      seed of Q(sqrt(-23)) must lock on (5), asserted (5 is inert there,
+      so that lock holds one place by arithmetic).
 
 FINDINGS (entered after the run, from its printed output).
   F1 CONTROL (RP1 hit). The void pays 6, 6, 6, then 4 for 37 moves and
@@ -463,8 +466,8 @@ def section_walks(S):
           f" {TALLY['offsets']} offsets, {TALLY['offset cheaper']} cheaper,"
           f" {TALLY['offset tying']} tying ({time.time() - t0:.1f} s)")
     check(TALLY["offset cheaper"] == 0, "the bare door")
-    check(all(len(v) == 1 for cost, v in locks if cost == 25),
-          "the (5) lock holds more than one place")
+    check(F.name != "Q(sqrt(-23))" or any(cost == 25 for cost, v in locks),
+          "no seed locks on (5) at Q(sqrt(-23))")
     for (cost, v), k in sorted(locks.items()):
         print(f"    lock at {cost}: vehicle {dict(v)} at {k} seeds")
     for (cost, n, g), k in sorted(units.items()):

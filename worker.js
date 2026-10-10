@@ -1010,6 +1010,7 @@ const PAGES = new Set([
 "/code/dual/",
 "/code/element/",
 "/code/element_ring/",
+"/code/erring_label/",
 "/code/estimators/",
 "/code/faces/",
 "/code/fates/",

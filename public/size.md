@@ -14,9 +14,9 @@ among them, why ∞ − k and −k read alike at every finite place once ∞
 is divisible by every positive integer, how completely
 size hides from a proper window, what the
 least exact key for size costs and where a published comparator sits
-against it, what a labelling kept by addition can carry of it, and which
-part of all this belongs to windows and which to the archimedean place Z
-happens to have.
+against it, what a labelling kept by addition can carry of it and what
+a monotone one allowed to err pays, and which part of all this belongs
+to windows and which to the archimedean place Z happens to have.
 
 ```
 QUESTION                       ANSWER                         PRICE
@@ -36,6 +36,10 @@ the least exact key            (floor(x/m_k), x mod m_k)      all moduli
  (G(x), x mod m_j)                                             but one
 a labelling by s labels        exact below x₀, then periodic  order-blind at
  on [0, N), kept by addition    (x₀ + d ≤ s)                   and above s
+a monotone labelling kept by   none wrong only at saturation; wrong pairs
+ addition on most pairs         at top cut c, (3/14)c² wrong   growing as c²:
+                                at 3 labels, at most about     a rounded
+                                c²/10 at many                  digit's carry
 over F₂[x] instead             the same wall, zero bias,      no carries,
                                 an exact-or-flagged read       no silent miss;
                                                                (read: bias from
@@ -408,10 +412,110 @@ degree profile at all 15 proper windows of
 x(x + 1)(x² + 1)(x² + x + 2) over F₃, and finds the Z wrap at y = 1
 at Z/510510 with 16 bits.
 
+## The erring labelling
+Tier: theorem.
+Verifier: proof; erring_label.py::section_zero;
+erring_label.py::section_two; erring_label.py::section_nfree;
+erring_label.py::section_three.
+
+The escape the additive labelling law leaves, priced for a label that
+respects size. Let μ be nondecreasing from [0, N) onto s labels, cut at
+0 = c₀ < c₁ < ⋯ < c_s = N, and let addition keep it on most pairs:
+A(a, b) is a most frequent label of x + y over the pairs (x, y) with
+μ(x) = a, μ(y) = b and x + y < N, the **error** E counts the pairs where
+μ(x + y) ≠ A(μ(x), μ(y)), and the **reach** R counts the pairs x < y
+with μ(x) < μ(y). The **front** is the least error at reach at least r.
+Write c = c_{s−1} for the top cut and T(n) = n(n + 1)/2. For 1 < s < N:
+
+- E = 0 exactly at saturation, μ(x) = min(x, s − 1).
+- Once 2c − 1 ≤ N, E is a function of the cuts below c alone, the same
+  at every such N.
+- At s = 2 the front is c = 1, …, ⌊N/2⌋, with E = C(c, 2) and
+  R = c(N − c).
+- At s = 3 and 2c − 1 ≤ N, the least error at top cut c is
+  e₂(c) = min over 1 ≤ α ≤ c/2 of 3C(α, 2) + T(c − 2α), α = c₁, and
+  e₂(c)/c² tends to 3/14, the minimum near α = 2c/7.
+
+Proof. Zero error makes μ(x + y) a function of μ(x) and μ(y), the law's
+hypothesis, so μ is exact on [0, x₀) and periodic after; a periodic
+nondecreasing tail is constant and an exact monotone prefix is
+x ↦ x, so μ is saturation, which keeps addition:
+min(x + y, s − 1) = min(min(x, s − 1) + min(y, s − 1), s − 1). A pair
+with a summand at or above c sums into the top label, so only the pairs
+in [0, c)² can err; they sum below 2c − 1 ≤ N, none truncated, and land
+by the cuts up to c. At s = 2 only the cell [0, c)² errs: T(c) of its
+c² sums fall below c, the other C(c, 2) at the top. For c > N/2,
+d = N − c, the sums in [c, N) number d(2c − 1 − d)/2, fewer than T(c),
+so that is the error, above d's C(d, 2) by d(c − d) at the same reach
+c(N − c); on c ≤ ⌊N/2⌋ reach and error both rise strictly. At s = 3 put
+β = c − α. If β ≥ α the four cells below c err C(α, 2) three times (in
+[0, α) × [0, β) the pairs i + j ≥ β number C(α, 2)) and T(β − α) once,
+the sums of [α, c)² below c, fewer than β²/2. If β < α they err
+C(α, 2), T(β), T(β) and 0, and twice the excess over the swap α' = β,
+which errs at most 3C(β, 2) + T(α − β), is at least 2(3β − 1) > 0. With
+α = ac the error over c² tends to 3a²/2 + (1 − 2a)²/2, least at
+a = 2/7, where it is 3/14.
+
+The script finds saturation the only zero-error cut set at 100 cells
+(s, N), s = 2 to 6, N up to 24; the s = 2 front at N = 3 to 60, with
+the count at all 870 cut sets c > N/2; the same error at N and N + 7 at
+4740 cut sets; e₂(c) equal to the minimum at c = 2 to 120 (0.2125 c² at
+c = 120); and the β < α count and its swap at 1560 cut sets, c up to 80.
+
+## Rounding's carry at many labels
+Tier: property.
+Verifier: proof; erring_label.py::section_round;
+erring_label.py::section_kappa; erring_label.py::section_far.
+
+Fill [0, c) with m intervals below one overflow label [c, 2c − 1), call
+e_m(c) the least error and κ_m the limsup over c of e_m(c)/c². By
+SIZE.md#the-erring-labelling e_m(c) is the least error of m + 1 labels
+at top cut c on every N ≥ 2c − 1, whose reach is c(N − c) plus at most
+C(c, 2), so at reach r small against N² the front costs about
+κ_m(r/N)². κ₁ = 1/2 and κ₂ = 3/14, and the limsup of κ_m over m is at
+most 1/10.
+
+The construction: label x below uc by round(x/w) and [uc, c) by one top
+label. Pairs summing below uc spread over a triangle of width 2w against
+cuts spaced w and miss their cell's label on a quarter of the pairs,
+over an area u²c²/2. A fine summand near ξ and a top summand overflow c
+with probability ξ/((1 − u)c) up to ξ = (1 − u)c, so each order of the
+mixed pairs errs on the smaller side, (1 − u)²c²/4 pairs. Every other
+pair errs only in the cells cut by x + y = uc or x + y = c, O(cw) pairs.
+So as c grows at fixed w/c, E/c² tends to u²/8 + (1 − u)²/2 + O(w/c),
+least at u = 4/5, where it is 1/10, and w can be chosen to give every m.
+At c = 2000 the script prints 0.1301, 0.1149, 0.1077 and 0.1028 at w =
+100, 50, 25 and 10 (m = 18, 34, 66, 162); at m = 18 it prints 0.1299,
+0.1301 and 0.1302 at c = 1000, 2000 and 4000. A local search over the
+cuts at c = 300, m = 2 to 10, prints only upper bounds (0.1218 at m =
+10) and found this shape unprompted: at m = 9, cuts near (k + 1/2)·28.5
+and one wide top interval [216, 300).
+
+The construction is a renamed operation: round(x/w) is the high digit
+of x in radix w, rounded, the approximate form of the first coordinate
+of SIZE.md#the-least-key, and its error is the carry the dropped low
+digit would have sent. Results here are the constants of the front
+(3/14 and 1/10), not the label.
+
+## Doubling cuts against the front
+Tier: rule (verified s = 3, N = 60, t = 1..29; s = 4, N = 40, t = 1..9).
+Verifier: erring_label.py::section_geo.
+
+Cuts in ratio 2, t, 2t, 4t, …, with the most frequent label as the sum
+table, are the floating-point exponent of a sum. At s = 3, N = 60 they
+sit on the front at t = 1, 2, 3 and 20 (saturation, the two smallest
+scales, and the uniform cuts) and above it at the other 25 scales; at
+s = 4, N = 40 on it at t = 1 alone and above at t = 2 to 9. The gap
+reaches 4.8 times: 516 against 108 at s = 3, t = 29. Past its smallest
+scales the exponent is not the least-error label at its reach.
+
 ## Open fronts
 
-The additive labelling law leaves one escape, a label map allowed to be
-wrong somewhere on the range. Open: where must such a label map err, and
-how much of the range can it keep correct, derived rather than measured?
-The labellings that addition keeps current on the whole range are all
-counted by the law.
+The erring labelling's lower side. Does any partition of [0, c) err
+locally on less than rounding's quarter, and does κ_m tend to 0 as m
+grows? A block of sums spread evenly over width b ≤ W, at a uniform
+phase against cuts spaced W, errs on b/(4W) of its pairs, so a label
+whose widths grow with position, the cuts near X + Y spaced wider than
+the summands' intervals together, may err less than equal widths do; at
+the bottom of the range such a label spends its count on narrow
+intervals.

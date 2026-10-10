@@ -2,15 +2,16 @@
 
 The object: a greedy growth walk under the dynamics demand in the
 element world, where a move multiplies by an element and so seats the
-place power it aims at together with the minimal divisor cancelling
-its class, over the ring of a curve over F₂ and over an imaginary
-quadratic ring. This page asks what the ring hands the walk, what the
-element reading hides of a gcd and of the count of ideals by norm, which
+place power it aims at together with the minimal divisor cancelling its
+class, over the ring of a curve over F₂ and over an imaginary quadratic
+ring. This page asks what the ring hands the walk, what the element
+reading hides of a gcd and of the count of ideals by norm, which
 colouring of its places is the coarsest that prices every move, what
-that divisor costs and does, whether the chain of clock holders
-survives it, what the walk converges to, and which of the limit's
-coordinates are unbounded. Its verifiers are element.py,
-element_ring.py, rider.py, sensor.py and module_law.py.
+that divisor costs and does, whether the chain of clock holders survives
+it, what the walk converges to, and which of the limit's coordinates are
+unbounded. Its verifiers are element.py, element_ring.py, rider.py,
+sensor.py and module_law.py, with limit.py the trivial group's reference
+walk.
 
 The curve rings are the functions on a curve over F₂ regular away from
 one rational point at infinity, in the imaginary model y² + H(x)y = F(x)
@@ -56,8 +57,9 @@ over the core's own prime.
 
 ## The ring is a supply matrix
 Tier: rule (verified at six rings: every colour to degree 9 against a
-brute count of places, the counts to degree 400 by an exact
-recursion); theorem for the finiteness of the principal-free degrees.
+brute count of places; the counts to degree 400 computed by an exact
+recursion, whole at every degree); theorem for the finiteness of the
+principal-free degrees.
 Verifier: element.py::cells, element.py::section_c,
 element.py::section_g.
 
@@ -84,7 +86,7 @@ class 0 are those splitting completely in the Hilbert class field, a
 curve over F₂ in which ∞ splits, and the Weil bound on that field counts
 about 2^d/(d·h) of them at degree d, h the ring's class number, so every
 large degree holds one. At the trivial
-group the walker is LIMIT.md's: 608 menus and states equal to limit.py's
+group the walker is LIMIT.md's: 603 menus and states equal to limit.py's
 corner walk over F₂[x].
 
 ## The element reading sees only classes
@@ -165,22 +167,23 @@ effective divisors of a large degree n on the projective curve, at most
 2^(n − d₁ + 1 − g) − 1 contain X₁ and 2^(n − d₂ + 1 − g) − 1 contain X₂,
 and one containing neither is a pad once its multiple of ∞ is dropped.
 If the classes differ, X₁ one above X₂ beside a pad making the
-assignment principal gives an exchange moving the class sum by
-c₂ − c₁ ≠ 0. If they agree, at c, with d₁ < d₂, fix a pad for every
-class and let k be their largest exponent; take T a power of 2 above
-d₂ + R + k + 1, seat the pad of class −Tc, X₁ alone or X₂ alone at T,
-and principal places outside the pair and the pad, at exponent 1,
-covering every supplied degree to d₂ + R (the context; a principal-free
-degree is covered through a multiple holding a principal place, which
-the finiteness of the principal-free degrees provides). The notch is T
-on both sides and the core at T has door 1; every other seated item's
-clock costs at least T + 1 − k, an unseated item of a covered degree
-more, and an opening more than d₂ + R. So the least costs are d₁ + m(−c)
-against d₂ + m(−c). The verifier builds the witnesses with MINREP(−Tc)
-as the pad, doubling T until it avoids the pair: over the six rings 531
+assignment principal gives an exchange moving the class sum by c₂ − c₁ ≠
+0. If they agree, at c, with d₁ < d₂, fix a pad for every class and let
+k be their largest exponent; take T a power of 2 above d₂ + R + k + 1,
+seat the pad of class −Tc, X₁ alone or X₂ alone at T, and principal
+places outside the pair and the pad, at exponent 1, covering every
+supplied degree to d₂ + R (the context; a principal-free degree is
+covered through a multiple holding a principal place, which the
+finiteness of the principal-free degrees provides). The notch is T on
+both sides and the core at T has door 1; every other seated item's clock
+costs at least T + 1 − k, an unseated item of a covered degree more, and
+an opening more than d₂ + R. So the least costs are d₁ + m(−c) against
+d₂ + m(−c). The verifier builds the witnesses with MINREP(−Tc) as the
+pad, doubling T until it avoids the pair: over the six rings 531
 cross-class and 118 same-class pairs carry them, and without the context
 28 of the 118 price alike. So a ring reaches the dynamics through two
-numbers per place and a count.
+numbers per place, a count and its class group's addition, which m and
+MINREP read.
 
 ## The minimal rider is unique
 Tier: theorem.
@@ -270,19 +273,20 @@ no clock move has lifted past the notch since t₀ stands at its exponent
 then plus R per clock move, O(log t), below t − R at a large notch t. A
 strand made past that notch stands at most t + j, j = O(log t) its rider
 units, so its door is at least T′ − t + 1 − j; it left the chain above
-the later holders' degrees, so its cost is at least
-(d_Z + 1)(T′ − t + 1 − j), above the holder Z's d_Z(T′ − t) + R
-(ELEMENT.md#the-margin-step) once
-T′ − t > R + (d_Z + 1)(j − 1), which T′ ≥ 2t and
-t > R + (d_Z + 1)(j − 1) ensure. No
-rider lifts an item past T′ ≥ 2t then either, every non-holder standing
-below T′ + 1 − R. So past the transient and a finite notch every
-crossing is made by a move's core and every change of holder falls: the
-changes are finitely many. A walk clocks forever, an opening costing
-at least its degree and each degree opening once while a clock move's
-price stands still between clock moves, so it has exactly one runaway.
-The rider-fed coordinates beside it can still grow; the orbit law below
-sorts them.
+the later holders' degrees, every change after t₀ having fallen (by
+induction over those changes: the next holder is either an item below t
+− R, which the margin step sends down in degree, or such a strand, which
+this bound prices out), so its cost is at least (d_Z + 1)(T′ − t + 1 −
+j), above the holder Z's d_Z(T′ − t) + R (ELEMENT.md#the-margin-step)
+once T′ − t > R + (d_Z + 1)(j − 1), which T′ ≥ 2t and t > R + (d_Z +
+1)(j − 1) ensure. No rider lifts an item past T′ ≥ 2t then either, every
+non-holder standing below T′ + 1 − R. So past the transient and a finite
+notch every crossing is made by a move's core and every change of holder
+falls: the changes are finitely many. A walk clocks forever, an opening
+costing at least its degree and each degree opening once while a clock
+move's price stands still between clock moves, so it has exactly one
+runaway. The rider-fed coordinates beside it can still grow; the orbit
+law below sorts them.
 
 ## Where the chain changes hands
 Tier: rule (verified over every branch of six rings, an 8-move stretch
@@ -296,19 +300,17 @@ history per state. Eleven changes of holder stood under the margin
 step's premise, one at h2 and ten at g2, and all fell; seventy-eight
 more fell without it, all at g2. Fifty-two did not fall, all at g2 and
 within the transient, and every one is a hand-off to the conjugate place
-at the holder's own exponent: same degree, negated class. There, with P
-the holder and ι(P) its conjugate, the image of P under the curve's
-involution (x, y) ↦ (x, y + H(x)), the vehicle P^r·ι(P)^r is the r-th
-power of a polynomial in x, which lifts both places alike, so which of
-the two holds is a naming, and the step's premise fails by construction.
-No change of holder comes after step 9 or notch 8 at any branch of any
-ring, but 53 come after the transient (one at h2, 52 at g2, all
-falling), so the **change range**, the steps up to the last change of
-holder, is not the transient. No rider crosses the notch alone on any
-branch's history, and in all 28 crossings a rider joins, counted once
-per move applied (merged successors included, so not on one history per
-state), the core crosses and every crossing place lands at the core's
-exponent, and the core's place holds.
+ι(P) of the holder P, its image under the curve's involution (x, y) ↦
+(x, y + H(x)): same degree, negated class, and standing level with P, so
+the premise, a place at most t − R, fails. None of the 52 vehicles is
+P^r·ι(P)^r. No change of holder comes after step 9 or notch 8 at any
+branch of any ring, but 53 come after the transient (one at h2, 52 at
+g2, all falling), so the **change range**, the steps up to the last
+change of holder, is not the transient. No rider crosses the notch alone
+on any branch's history, and in all 28 crossings a rider joins, counted
+once per move applied (merged successors included, so not on one history
+per state), the core crosses and every crossing place lands at the
+core's exponent.
 
 ## The orbit law and the rider recursion
 Tier: theorem (past the change range; verified over every branch of
@@ -327,32 +329,35 @@ The steady state is the self-map (T, r) ↦ (2T, T − ρ(r)) of (Z/n)²,
 eventually periodic within n² steps. A colour some MINREP(−rγ) uses at
 an r in the cycle gains units forever and is unbounded; one used only in
 the pre-period stops at a finite exponent. The verdict reads the state
-at the change range's end, which only a walk provides. Every door and
-every rider of the 895 eras past the change range is the recursion's.
+at the change range's end, which the walk provides. Every door and every
+rider of the 895 eras past the change range is the recursion's.
 
 ## The element limit
 Tier: rule (verified over every branch of six rings, an 8-move stretch
-continued to 300 moves).
+continued to 300 moves; unbounded and stopped read by the orbit law's
+recursion from each branch's seed).
 Verifier: element.py::section_w.
 
 The limit is ∞ at the runaway, the cycle's colours unbounded, the
-pre-period's and the transient's leftovers at finite exponents, and one
-place at exponent 1 at each opened degree. At F₂[x] and h3 it is the
-ideal limit (LIMIT.md#the-ideal-limit): γ = 0, the runaway of degree 1
-or 2 at F₂[x] and the principal degree-2 place at h3, nothing beside
-it. At h2 and h4 γ has
-order 2 and the cycle feeds nothing beside the runaway: at h2 the
-cycle's doors are even and summon nothing, ρ = 0 absorbing, and at h4
-they are odd and the one rider they summon is the runaway itself,
-ρ = 1 every era. Either way the runaway alone is unbounded, beside at
-most one other place above exponent 1. At h5 and g2 the runaway
-is a rational place of a nonzero class, γ of order 5 and 15, and a
-cycle of length 4 feeds two rational places forever: three unbounded
-coordinates at every branch, the two beside the runaway gaining at
-most R units an era against a notch that doubles. A pre-period of
-length 1 leaves one more colour at a finite exponent at 23 of g2's 120
-branches, and with the transient's leftovers g2 ends with two to five
-places above exponent 1 beside the runaway.
+pre-period's and the transient's leftovers at finite exponents, one
+place at exponent 1 at each opened degree, and at some branches places
+at exponent 1 at a degree never opened, a rider's: one at both of h3's
+branches, two at 2 of h4's 4, one at 4 of h5's 20 and at 35 of g2's 120.
+At F₂[x] it is the ideal limit (LIMIT.md#the-ideal-limit): γ = 0, the
+runaway of degree 1 or 2, nothing beside it. At h3 γ = 0 too, the
+runaway the principal degree-2 place, with one rational place beside it
+at exponent 1. At h2 and h4 γ has order 2 and the cycle feeds nothing
+beside the runaway: at h2 the cycle's doors are even and summon nothing,
+ρ = 0 absorbing, and at h4 they are odd and the one rider they summon is
+the runaway itself, ρ = 1 every era. Either way the runaway alone is
+unbounded, beside at most one other place above exponent 1. At h5 and g2
+the runaway is a rational place of a nonzero class, γ of order 5 and 15,
+and a cycle of length 4 feeds two rational places forever: three
+unbounded coordinates at every branch, the two beside the runaway
+gaining at most R units an era against a notch that doubles. A
+pre-period of length 1 leaves one more colour at a finite exponent at 23
+of g2's 120 branches, and with the transient's leftovers g2 ends with
+two to five places above exponent 1 beside the runaway.
 
 ## The number rings price in (min, ×)
 Tier: rule (verified at Z[√−5] and Q(√−23): the classes against
@@ -369,21 +374,23 @@ least place of the same class, so the curve's (min, +) holds after
 logarithms. The bare door's proof holds over any Dedekind ring with
 finite class group, norms multiplying where degrees added: a principal V
 raising λ carries some place J of class c to a depth v at least J's door
-r; V·J^(−v) is integral of class −vc, so
-N(V) ≥ N(J)^v·m(−vc) ≥ N(J)^r·m(−rc), since J^(v−r) times a least ideal
-of class −vc lies in class −rc; and at equality V is J^r times a least
-ideal of class −rc, so the least moves are the cores at their doors
-times least ideals of class −rc, which need not be unique there.
-What the matrix cannot carry is the door
-itself, which reads each place's own ladder λ_P, λ_P(b) = λ(P^b),
-against L: over F₂ every place shares the notch, and a number ring
-hands the walker a ladder per place, not per norm
-(CLOCK.md#a-norm-does-not-fix-a-column). At both rings each
-class's minimum is attained once, m is (1, 2) and (1, 2, 2), and the
-menu read from the matrix and the ladders equals the ring's least
-raising elements at every state, where 1,528 of its 3,196 vehicles are
-compound, their support more than one place.
-None of 36,078 longer cores, up to 3 past the door, is cheaper.
+r; V·J^(−v) is integral of class −vc, so N(V) ≥ N(J)^v·m(−vc) ≥
+N(J)^r·m(−rc), since J^(v−r) times a least ideal of class −vc lies in
+class −rc; and at equality V is J^r times a least ideal of class −rc, so
+the least moves are the cores at their doors times least ideals of class
+−rc, which need not be unique there. What the matrix cannot carry is the
+door itself, which reads each place's own ladder λ_P, λ_P(b) = λ(P^b),
+against L: over F₂ every place shares the notch, and a number ring hands
+the walker a ladder per place: at a quadratic ring places of one norm
+share a ladder, and in general they need not
+(CLOCK.md#a-norm-does-not-fix-a-column). At both rings each class's
+minimum is attained once, m is (1, 2) and (1, 2, 2), and the menu read
+from the matrix and the ladders equals the ring's least raising elements
+at every state, where 1,528 of its 3,196 vehicles are compound, their
+support more than one place. None of 36,078 longer cores, up to 3 past
+the door, is cheaper, which at these two rings is arithmetic: every
+least ideal has norm 1 or 2, so a longer core costs at least twice its
+door's.
 
 ## The lock carries its rider
 Tier: rule (verified at the 53 seeds, the void and every principal
@@ -402,19 +409,18 @@ column count
 (CLOCK.md#a-rings-door-is-one-valuation-and-its-clock-a-count) rises by
 one every e units of depth, e its ramification index, deepening the one
 place over 2 of Z[√−5] by its e = 2 and the deeper of Q(√−23)'s two by
-its e = 1; the (5) lock
-holds because every cheaper element misses the place it deepens
-(GROWTH.md#the-lock-over-a-number-ring). A lock is V = P^r times a least
-ideal of class −rc at a constant door r, so every place X of V gains
-v_X(V) units a move and the rider grows at the core's rate: at Q(√−23)
-both places over 2
-gain one a move with a constant gap, the deeper set by the seed; at
-Z[√−5] the door is 2 against a class of order 2, so −2c = 0 and the lock
-has no rider. The margin step does not port: over a curve a clock move
-brings at most R rider units while the door doubles, so the rider share
-of the runaway's growth falls to zero; at a number ring's constant door
-the share is fixed, and the limit's unbounded places are the lock
-vehicle's support.
+its e = 1; the (5) lock holds because every cheaper element misses the
+place it deepens (GROWTH.md#the-lock-over-a-number-ring). A lock's
+vehicle is P^r times a least ideal of class −rc at a constant door r, so
+every place X of it gains its valuation there in units a move and the
+rider grows at the core's rate: at Q(√−23) both places over 2 gain one a
+move with a constant gap, the deeper set by the seed; at Z[√−5] the door
+is 2 against a class of order 2, so −2c = 0 and the lock has no rider.
+The margin step does not port: over a curve a clock move brings at most
+R rider units while the door doubles, so the rider share of the
+runaway's growth falls to zero; at a number ring's constant door the
+share is fixed, and the limit's unbounded places are the lock vehicle's
+support.
 
 ## The element lid
 Tier: theorem (the lid and the four statements over any number ring;

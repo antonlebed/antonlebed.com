@@ -727,6 +727,7 @@ def section_lid(Fs):
           f"{tot['void_unlocked']} {tot.get('void_unlocked_at', [])}; lock "
           f"prices {sorted(tot.get('void_prices', Counter()).items())}; "
           f"over two primes {tot.get('void_two', [])}")
+    check(not tot.get("void_two"), "F5: the void's lock lies over two primes")
     return tot
 
 
@@ -755,6 +756,7 @@ def section_seeds(Fs):
     two = tot.get("seed_two", [])
     print(f"  lock vehicles over two primes: {len(two)}; the first "
           f"{two[:6]}")
+    check(not two, "F5: a seed's lock vehicle lies over two primes")
 
 
 def section_table(Fs):
@@ -811,6 +813,7 @@ def section_bite(Fs):
           f"({time.time() - t0:.1f} s); taking W at least once {tot['took']}"
           f"; example (field, core, j, prices, moves taking W) "
           f"{tot.get('took_ex')}")
+    check(tot["took"] >= 1, "no seed takes W: the bite test is vacuous")
     viol = sum(tot[k] for k in ("lid_lost", "lid_rise", "over_B", "over",
                                 "jump_on_lid", "holder_over"))
     print(f"  locked {tot['bite_locked']}, not {tot['bite_unlocked']}; lid "

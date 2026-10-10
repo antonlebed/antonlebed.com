@@ -120,7 +120,6 @@ Standard library only.
 """
 
 from itertools import product as cartesian
-from math import gcd
 
 CHECKS = []
 
