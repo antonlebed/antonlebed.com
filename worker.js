@@ -1011,6 +1011,7 @@ const PAGES = new Set([
 "/code/element/",
 "/code/element_ring/",
 "/code/erring_label/",
+"/code/erring_widths/",
 "/code/estimators/",
 "/code/faces/",
 "/code/fates/",

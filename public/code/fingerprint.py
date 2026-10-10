@@ -56,11 +56,12 @@ eigenvalue of the CHANNEL-STEP GRAPH -- the Cayley graph of Z/M whose
 steps are +-1 in one channel, the product of the cycles C_{q_j} -- on
 the character psi_m(x) = exp(2 pi i sum_j m_j x_j / q_j), labelled by
 its CRT coordinates m_j = m mod q_j. So the theorem says each
-eigenvalue's multiplicity is exactly the size of a sign orbit: the
-spectrum is as simple as its symmetry allows. The additive character
+eigenvalue's multiplicity is exactly the size of a sign orbit: each
+eigenvalue is as simple as multiplication by the sign group allows. The additive character
 x -> exp(2 pi i m x / M) is the character with coordinates m u_j, where
 u_j is the inverse of M / q_j mod q_j, so its eigenvalue is
-Theta_M(u * m), a TWIST that changes nothing while every u_j = +-1.
+Theta_M(u * m), a TWIST that moves no label up to sign while every
+u_j = +-1.
 
 DESIGN. Sections, each a set of checks printing PASS or FAIL.
   R  step (2), exactly. For every prime power q <= 200: psi_q, the monic
@@ -74,9 +75,12 @@ DESIGN. Sections, each a set of checks printing PASS or FAIL.
      polynomial. Every pair c' < c <= q/2 is reduced in integer
      arithmetic, no float in the verdict, and the set of rational
      differences is compared with step (2)'s law. q = 2 has degree-1
-     Phi and rational values, and is read directly.
+     Phi and rational values 2 and -2; its set {+-4} is written in by
+     hand, not computed.
      POSITIVE CONTROL, read before the law's verdict: the detector must
-     fire at q = 3, 4, 8, 9, where rational differences exist.
+     fire at q = 3, 4, 8, 9, where rational differences exist (at 3 and
+     4 psi_q has degree 1, every reduction is constant, so only 8 and 9
+     test the split).
   Z  step (3): only the primes 2 and 3 carry nonzero difference sets
      in R, so a zero sum across channels at distinct primes pairs one
      2-power with one 3-power; no such pair with a nonzero entry sums
@@ -93,9 +97,11 @@ DESIGN. Sections, each a set of checks printing PASS or FAIL.
      Theta_M through each n against its sign orbit {g n : g in G_M}.
   G  the channel-step graph at M = 30, 210, 360: the adjacency applied
      to every psi_m returns Theta_M(m) psi_m, read at every
-     max(1, M // 60)-th point (30 at M = 30, 70 at 210, 60 at 360); the
-     multiplicity of each eigenvalue among the psi_m is its orbit
-     size; the additive character's eigenvalue is Theta_M(u * m); the
+     max(1, M // 60)-th point (strides 1, 3 and 6: 30, 70 and 60
+     points); the multiplicity of each eigenvalue among the psi_m is its
+     orbit size, read off Theta_M itself, so it restates E's fibre law
+     and the graph enters through the eigen-relation alone; the additive
+     character's eigenvalue is Theta_M(u * m); the
      u_j ladder over the rungs k = 1..10 and the first rung where some
      u_j is not +-1; and off the primorials, Z/15, where u = 2 at 5.
   C  the chord identity over every n of Z/2310 and Z/360.
@@ -126,7 +132,7 @@ FINDINGS. Every prediction landed: 29/29 checks PASS.
      least prime generating (Z/q)* / {+-1} and confirmed by Rabin's
      test; psi_q(2) = p throughout.
   R2 R3 the sets are exactly the law's at the 59 computed prime powers
-     and at q = 2, read directly: {+-4} at 2, {+-2, +-4} at every
+     and at q = 2, written in by hand: {+-4} at 2, {+-2, +-4} at every
      larger power of 2, {+-3} at every power of 3, empty at 5, 25,
      125, 7, 49, 11, 121, ..., 199. The detector
      fires at 3, 4, 8 and 9.
@@ -142,7 +148,8 @@ FINDINGS. Every prediction landed: 29/29 checks PASS.
      4, 8, 16, 32, 64 over the rungs.
   G1 eigen-relation deviations at most 4.5e-14 on psi_m and 1.6e-12 on
      the additive characters; multiplicities are the sign orbits at 30,
-     210 and 360; the twist first shows at k = 4, u = (1, 1, 3, 4);
+     210 and 360; the twist first shows at k = 4, u = (1, 1, 3, 4)
+     (the ladder prints it signed, (1, 1, -2, -3));
      at Z/15, u = (2, 2).
   C1 deviation 3.6e-15.
   Tiers: the fingerprint theorem is a theorem, proved above; R and Z
@@ -354,7 +361,7 @@ def section_r():
         certs += cert is not None and rabin_irreducible(f, cert)
     check("R1 psi_q irreducible for every prime power 3 <= q <= 200",
           certs == len(PRIME_POWERS) - 1, f"{certs} certificates")
-    check("R1 psi_q(2) = p at every q = p^e", psi2)
+    check("R1 psi_q(2) = p at every q = p^e >= 3", psi2)
     check("R3 the detector fires at 3, 4, 8 and 9",
           all(sets[q] for q in (3, 4, 8, 9)))
     wrong = {q: s for q, s in sets.items() if s != law(q)}
@@ -440,7 +447,8 @@ def section_e():
         order = len(sign_group(factors))
         above2 = sum(q > 2 for q in factors)
         check(f"E1 M = {'*'.join(map(str, factors))}: distinct = classes",
-              gap > 1e-9 and order == 2 ** above2,
+              gap > 1e-9 and order == 2 ** above2
+              and len(vals) == prod(q // 2 + 1 for q in factors),
               f"{len(vals)} classes, least gap {gap:.1e}, |G| = {order}")
     for factors in [(2, 3, 5, 7), (2, 3, 5, 7, 11), (8, 9, 5), (4, 9, 25)]:
         M, G = prod(factors), sign_group(factors)

@@ -11,7 +11,8 @@ the factors are powers of distinct primes.
 
 ## The fingerprint
 Tier: property.
-Verifier: fingerprint.py::section_g; fingerprint.py::section_c.
+Verifier: fingerprint.py::section_g; fingerprint.py::section_c;
+fingerprint.py::section_e.
 
 Let M = q_1 q_2 ⋯ q_k with the q_j powers of k distinct primes, so that
 Z/M is read through the k channels n mod q_j. The **fingerprint** of n is
@@ -49,13 +50,13 @@ with x_j = x mod q_j, labelled by CRT coordinates m_j = m mod q_j, and
 x ↦ exp(2πi mx/M) is ψ with coordinates m·u_j, where u_j is the inverse
 of M/q_j mod q_j, so its eigenvalue is Θ_M at the twisted label.
 Along the primorials, through Z/30 every u_j is ±1 and the twist
-changes nothing; it first changes something at Z/210, where u = 3 at 5
-and u = 4 at 7. Off them it can bite sooner: at Z/15, u = 2 at 5.
+moves no label up to sign; it first moves one at Z/210, where u = 3 at
+5 and u = 4 at 7. Off them it can bite sooner: at Z/15, u = 2 at 5.
 
 ## The fingerprint theorem
 Tier: theorem; observation (the least gaps between fingerprints).
 Verifier: proof; fingerprint.py::section_r; fingerprint.py::section_z;
-fingerprint.py::section_e.
+fingerprint.py::section_e; fingerprint.py::section_g.
 
 For every modulus M, Θ_M(n) = Θ_M(m) iff m = gn for some g in the sign
 group: n and m agree in every channel up to sign, independently. So
@@ -67,10 +68,11 @@ the distinct fingerprints number
 
 each prime power q multiplying the count by ⌊q/2⌋ + 1. Two equivalent
 statements follow: on the torus, the chord distance from the origin
-fixes the point up to reflecting each circle; in the spectrum, each
-eigenvalue's multiplicity is the size of one sign orbit, so the spectrum
-is as simple as its symmetry allows. At Z/510510, for instance, 18,144
-real numbers name 18,144 orbits, the largest of 64 elements.
+fixes a point of Z/M up to reflecting each circle; in the spectrum, each
+eigenvalue's multiplicity is the size of one sign orbit, so each
+eigenvalue is as simple as multiplication by the sign group allows. At
+Z/510510, for instance, 18,144 real numbers name 18,144 orbits, the
+largest of 64 elements.
 
 The proof has three steps. Suppose two class tuples give one sum, and
 let δ_j = 2cos(2πc/q_j) − 2cos(2πc′/q_j), c and c′ being the two
@@ -84,18 +86,18 @@ rational number. So every δ_j is rational.
 
 One channel. At q = p^e, the value 2cos(2πc/q) generates the real
 subfield of Q(ζ_{p^a}) with p^a = q/gcd(c, q), its **exact level**, and
-irrational values of different exact levels generate fields of
-different degree. A rational
-difference of two irrational values puts both in one field, where
-values of one exact level are Galois conjugates with one common trace,
-so the difference equals its own average, 0. A rational minus an
-irrational value is irrational. So a nonzero rational δ_j needs two
-rational values, and by Niven's theorem the rational values of 2cos
-at rational multiples of 2π are 2, 1, 0, −1 and −2. Hence the nonzero
-rational differences are ±4 at q = 2; ±2 and ±4 at the larger powers
-of 2 (values 2, 0, −2); ±3 at the powers of 3 (values 2, −1); and
-none at a power of any p ≥ 5. Within a channel 2cos is strictly
-decreasing on the class range, so δ_j = 0 means equal classes.
+irrational values of different exact levels generate fields of different
+degree. A rational difference of two irrational values puts both in one
+field, where values of one exact level are Galois conjugates with one
+common trace, so the difference equals its own average, 0. A rational
+minus an irrational value is irrational. So a nonzero rational δ_j needs
+two rational values, and by Niven's theorem (I. Niven, Irrational
+Numbers, 1956, Corollary 3.12) the rational values of 2cos at rational
+multiples of 2π are 2, 1, 0, −1 and −2. Hence the nonzero rational
+differences are ±4 at q = 2; ±2 and ±4 at the larger powers of 2 (values
+2, 0, −2); ±3 at the powers of 3 (values 2, −1); and none at a power of
+any p ≥ 5. Within a channel 2cos is strictly decreasing on the class
+range, so δ_j = 0 means equal classes.
 
 The clash. Only the 2-power and the 3-power channels can carry a
 nonzero δ, and there is at most one of each. A zero sum then needs a
@@ -115,14 +117,16 @@ four at 3, 4, 8 and 9 read first as a positive control. The last step
 uses that the primes are distinct: two channels at one prime can
 cancel, as channels 2 and 4 do (−4 against 4) and channels 3 and 9 do
 (−3 against 3). In floats, the class tuples' fingerprints are distinct
-at ten moduli to Z/510510 and 4·9·25·49, which is the statement there,
+at ten moduli, the seven primorials Z/2 to Z/510510 and 8·9·5·7·11,
+16·27·5·7 and 4·9·25·49, which is the statement there,
 and the fibre through every n is its sign orbit at Z/210, Z/2310, Z/360
 and Z/900.
 
 The theorem is exact in the reals and costly in digits. Reading n's sign
 orbit back off Θ_M needs an error below half the least gap between
 fingerprints, and that gap, computed, falls from 1 at Z/6 to 1.9 × 10⁻⁷
-at Z/510510: the one number carries every channel. Reading it back
-costs more digits as the gap falls, broadly, with the classes:
-4·9·25·49, four channels and 4875 classes, has the gap 3.0 × 10⁻⁷,
-below Z/30030's 6.8 × 10⁻⁶ at six channels and 2016 classes.
+at Z/510510: the one number carries every channel. The gap falls
+with the count of class tuples, but not in step: 16·27·5·7,
+8·9·5·7·11 and Z/30030, at 1512, 1800 and 2016 class tuples, have the
+gaps 4.3, 6.5 and 6.8 × 10⁻⁶, and 4·9·25·49, four channels and 4875
+class tuples, has 3.0 × 10⁻⁷, below Z/30030's at six channels.

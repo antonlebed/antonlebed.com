@@ -39,7 +39,8 @@ a labelling by s labels        exact below x₀, then periodic  order-blind at
 a monotone labelling kept by   none wrong only at saturation; wrong pairs
  addition on most pairs         at top cut c, about (3/14)c²   growing as c²:
                                 wrong at 3 labels, at most     a rounded
-                                about c²/10 at many            digit's carry
+                                about c²/10 at many, less      digit's carry
+                                with widths growing
 over F₂[x] instead             the same wall, zero bias,      no carries,
                                 an exact-or-flagged read       no silent miss;
                                                                (read: bias from
@@ -510,14 +511,49 @@ reaches 4.8 times: 516 against 108 at s = 3, t = 29. At these two
 ranges, past its smallest scales and but for the uniform cuts, the
 exponent is not the least-error label at its reach.
 
+## Growing widths
+Tier: pattern (c = 2000 to 64000, m = 34 to 1000, p = 1 to 3).
+Verifier: erring_widths.py::section_profiles;
+erring_widths.py::section_scale; erring_widths.py::section_phi.
+
+Rounding's labels share one width, so a cell of two of them sums over
+twice a label's width and splits at a cut. A label whose widths grow
+with position puts wider labels where the sums land: cuts at
+t ↦ t + max(1, round(g c (t/c)^p)) up to a top cut uc, then [uc, c) as
+one top label, g tuned to give m intervals. These are a companding
+quantizer's steps, 1/G′(t) for a compressor G, p = 1 the logarithmic
+compressor of μ-law: the label is that operation renamed, and only the
+constants below are results.
+
+At c = 4000 a profile beats rounding's best top cut at the same m from
+m = 66 (p = 1, top 0.8: 0.1034 against 0.1068), not at m = 34 (0.1362
+against 0.1120), and prints below 1/10 from m = 162 (0.0905 against
+0.1028). At m = 400, p = 2 with top 0.8 prints 0.0785 and p = 1 0.0852,
+rounding 0.1022; at m = 1000, c = 10000, p = 2 with top 0.9 prints
+0.0723. A larger p needs a larger m: at m = 400, p = 3 spends 299
+labels on singletons near 0 and prints 0.1005.
+
+κ_m is read off one cut set scaled, never one re-tuned at another c
+(re-tuned at c/2 the profiles print 1.8 to 9.6% lower). Scaled, the
+readings hold or rise by shrinking steps: 0.0905 at m = 162, p = 1 at
+every scale x1 to x16; 0.0785, 0.0793, 0.0796,
+0.0798, 0.0799 at m = 400, p = 2, x1 to x16; 0.0723, 0.0731, 0.0734 at
+m = 1000, x1 to x4. A cut set's limit under scaling bounds κ_m from
+above, and the runs show the approach, not the limit. Taking the cut's
+position in a cell's spread of sums as uniform (a transplant, not
+derived), a p = 1 cell errs on φ₁ = 0.1989 of its pairs (1/4 for a flat
+block, 1/6 for a triangle), so top 0.8 estimates
+0.64 · φ₁/2 + 0.02 = 0.0836, the fine triangle's share plus the top's
+(1 − u)²/2, against 0.0857 printed at m = 400, x16.
+
 ## Open fronts
 
-The erring labelling's lower side. Does any partition of [0, c) err
-locally on less than rounding's quarter, and does κ_m tend to 0 as m
-grows? A block of sums spread evenly over width b ≤ W, at a uniform
-phase against cuts spaced W, errs on b/(4W) of its pairs, and a block
-summing two even spreads errs on between 1/6 and 1/4 of them at b = W.
-Equal widths put a block of twice a label's width against its cuts, so a
-label whose widths grow with position, the cuts near X + Y spaced as
-wide as the summands' intervals together or wider, may err less; at the
-bottom of the range such a label spends its count on narrow intervals.
+The erring labelling's lower side. Growing widths print below
+rounding's 1/10 (SIZE.md#growing-widths); does κ_m tend to 0, and at
+what rate in m? Under a uniform phase a cell of widths α and β summing
+near z errs, on average over the phase, on at most (α + β)/(4w(z)) of
+its pairs, w(z) the label width there, and under widths proportional to
+t^p that bound integrates to 1/(4(p + 1)) over the triangle x + y < 1;
+for p > 1 the labels spent on [t₀, 1) grow like t₀^(1−p). Whether the
+uniform phase can be made exact, and whether any partition errs less
+than this route, is open.
