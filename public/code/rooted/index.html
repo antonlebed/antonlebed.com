@@ -78,7 +78,8 @@ sympy, a factor tested cyclotomic by sympy's own test.
      reducible one -- rooted, mixed, free outright -- and whether a
      non-cyclotomic part N != 1 is ever nonnegative.
   FLOOR: every 0/1 polynomial with constant term 1 and degree 1..6,
-     each class counted by degree.
+     each class counted by degree, and the rooted seeds below degree
+     5 written out.
 
 PREDICTIONS (fixed before the engine).
   P1 CONTROL: 30 of 30 cyclotomic; the two others not.
@@ -112,7 +113,8 @@ FINDINGS. Every prediction held and no kill fired.
      irreducible, so its cyclotomic part is not 1.
   P5 degrees 1 to 4 hold no free seed (rooted 0, 0, 1, 2); degree 5
      holds 3 rooted and 4 mixed; degree 6, 3 and 2; none free
-     outright.
+     outright. The rooted seeds below degree 5 are 1 + x^3,
+     1 + x^2 + x^4 and 1 + x + x^3 + x^4.
 Tiers: the least free size 3 and the trinomial rule are proved above;
 the least degree 5 is a rule, exhaustive over the 31 polynomials of
 degree at most 5.
@@ -121,7 +123,9 @@ RUN RECORD. 6 of 6 checks, 0.2 s, peak commit 50 MB. The first run
 read MIXED as a free seed with a torsion-rooted NEGATIVE factor, and
 split the 98 free trinomials 24 mixed, 74 free outright; an audit
 restored the definition the size-5 reduction needs, any torsion-rooted
-factor, and every other print was unchanged.
+factor, and every other print was unchanged. A later arm writes out
+the rooted seeds below degree 5, which the counts alone left
+unprinted.
 """
 
 import os
@@ -262,6 +266,7 @@ X = symbols("x")
     section(f"FLOOR -- every 0/1 polynomial of degree 1..{top}, f(0) = 1")
     first = None
     rows = {}
+    low = []
     for deg in range(1, top + 1):
         tally = {"rooted": 0, "mixed": 0, "outright": 0}
         for mid in product((0, 1), repeat=deg - 1):
@@ -269,12 +274,16 @@ X = symbols("x")
             k = kind(uni(exps))
             if k:
                 tally[k] += 1
+            if k == "rooted" and deg &lt; 5:
+                low.append(" + ".join("1" if e == 0 else "x" if e == 1 else f"x^{e}"
+                                      for e in exps))
         rows[deg] = tally
         free = tally["mixed"] + tally["outright"]
         if free and first is None:
             first = deg
         print(f"    degree {deg}: rooted {tally['rooted']}, mixed "
               f"{tally['mixed']}, free outright {tally['outright']}")
+    print(f"    rooted below degree 5: {', '.join(low)}")
     at5 = rows[5]["mixed"] + rows[5]["outright"]
     check("P5 least free degree 5, four there", first == 5 and at5 == 4,
           f"first {first}, {at5} at degree 5")

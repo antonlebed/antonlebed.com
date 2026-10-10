@@ -297,15 +297,16 @@ sizes at least 2 reaches twelve only at (2,6) and (3,4).
 Tier: property.
 Verifier: faces.py::section_witness.
 
-{4, 6}·{3, 4, 8, 9, 18, 24} = {2, 4}·{6, 8, 9, 24, 27, 36}, x₀ the prime
-2 and x₁ the prime 3, is a twelve-term 0/1 core with exactly two atomic
-factorizations, (x₀ + x₁)·(x₀ + 1)n against (x₀ + 1)·(x₀ + x₁)n, n =
-x₀²x₁ + x₀² − x₀x₁ + x₁² + x₁. Its polygon's 16 proper faces separate
+{4, 6}·{3, 4, 8, 9, 18, 24} = {2, 4}·{6, 8, 9, 24, 27, 36}, x_2 and x_3
+being x0 and x1 in faces.py's print, is a
+twelve-term 0/1 core with exactly two atomic factorizations,
+(x_2 + x_3)·(x_2 + 1)n against (x_2 + 1)·(x_2 + x_3)n, n =
+x_2²·x_3 + x_2² − x_2·x_3 + x_3² + x_3. Its polygon's 16 proper faces separate
 nowhere, so δ = 2: the two factorizations part only on the whole
 polygon, and at the first term count where it could, the edge reading
 of the ten-term classification stops covering products that factor two
 ways. The face law says why: n's initial forms are monomials except at
-the normals ±(1, 0) and ±(1, 2), and x₀ + 1 and x₀ + x₁ are monomials
+the normals ±(1, 0) and ±(1, 2), and x_2 + 1 and x_2 + x_3 are monomials
 except at ±(0, 1) and ±(1, 1).
 
 ## The sign scan
@@ -687,9 +688,10 @@ Verifier: proof; quadrinomial.py::section_plane,
 quadrinomial.py::section_line, quadrinomial.py::section_rank3.
 
 A four-term 0/1 polynomial P that factors over Z into two non-monomial
-factors is P = m(1 + W)(q_s(W) + v·q_t(W)) with W and v monomials, s
-and t odd, and q_n(W) = 1 − W + ⋯ + W^(n−1); in particular it is
-divisible by a binomial 1 + W.
+factors is P = m(1 + W)(q_s(W) + v·q_t(W)) with W and v Laurent
+monomials (exponents of either sign), s and t odd, and
+q_n(W) = 1 − W + ⋯ + W^(n−1); in particular it is divisible by a
+binomial, 1 + W up to a monomial.
 
 Proof. At dimension 3 the half-size law forbids a factor, so P lies on a
 line or in a plane. Four unit complex numbers summing to zero are two
@@ -847,8 +849,8 @@ non-cyclotomic factor beside H_K. The box's 155 sampled irreducible
 cores hold at most 8 such zeros of order at most 400 at K = 20, 40, 60,
 against the bound, 30 times the summed |det(u, u′)|, at least 4500 on each;
 the line to degree 30 holds 3,007 reducible pentanomials and the box's
-seeds at K = 9..12 give 520 more of degree at most 104, none with a
-reducible non-cyclotomic part.
+seeds at K = 9..12 give 520 (seed, K) images of degree at most 104,
+not deduplicated, none with a reducible non-cyclotomic part.
 
 ## Open fronts
 
