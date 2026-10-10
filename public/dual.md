@@ -122,7 +122,7 @@ Proof. b^(e(x)+e(y)) ≤ xy < b^(e(x)+e(y)+2). The difference set of an
 interval of b^j integers is (−b^j, b^j).
 
 The exact zero-test a residue ring is built on and the leading end's
-blind spot are one point, 0, where a logarithm is singular. On a
+blind spot sit each at its own 0, where its logarithm is singular. On a
 squarefree modulus the ring's support log reaches 0 by passing to a
 smaller support (COORDINATES.md#the-support-log), so a squarefree
 residue ring meets that point and reads through it. The leading read
@@ -144,7 +144,8 @@ trailing prefix of value V and length t are then exactly the coset
 V + b^t Z. Two such tiles are equal or disjoint, so the trailing tiles
 are the b-adic balls however redundant D is. READING.md's Lipschitz and
 division criteria hold unchanged, and no such digit set buys the
-trailing end an overlap: redundancy is a purchase for the leading end only.
+trailing end an overlap: for such digit sets redundancy is a purchase
+for the leading end only.
 
 Proof. The extension's digits write any integer z, and the completion
 is V + b^t z. For {−a, …, a}: take d ≡ n mod b in D and n′ = (n − d)/b.
@@ -232,7 +233,8 @@ The numerator criterion holds at all 273 cases, the 91 coprime maps
 every n below 10^6 finds g at base 10 with 1552 and 1103 input tiles
 whose image meets two output tiles, summed over depths 1 to 3, at c = 0
 and 1 and none at 2. Over n below 2^13, 6^5 and 10^4 it agrees with the
-crossing reader at all 1368 (sum, depth, c) it decides.
+crossing reader at all 1368 (sum, depth, c) it decides, at depths 1
+and 2 and c ≤ 3.
 
 ## The least-lookahead law
 Tier: theorem; pattern (the scanned lookahead under the sharper bound
@@ -261,14 +263,15 @@ product overflows into δ + t digits and δ − μ − 1 otherwise, and
 every M gives at most δ − μ. The overflow interval [b^(δ+t−1)/h, b^t)
 is nonempty iff h > b^(δ−1), iff h′ ≥ 2. Its length grows with t, and
 any b consecutive integers hold one ≡ 1 mod b. So at every large J a
-deep crossing needs c_deep. For J < r + K the
+crossing of the layer J ≥ r + K needs c_deep. For J < r + K the
 crossing is below b^(δ+t+K−1) + Δ, hence below b^(δ+t+K) when
 Δ ≤ (b − 1) b^(δ+K), and its tile has span at most δ + K − c.
 
 The script reads c_scan, the least lookahead that suffices at every
 crossing it scans (output depths up to the first overflow and at least
 to 3, exponents to r + K + 6), so c_scan ≤ c_min, at the 42 read sums.
-c_scan ≥ c_deep at all 42, with the deep crossing exhibited. All 42 meet
+c_scan ≥ c_deep at all 42, with a crossing of the layer J ≥ r + K
+exhibited. All 42 meet
 Δ ≤ (b − 1) b^(δ+K) and sit under the bound, and c_scan = digits_b(h) at
 all 30 sums the law covers; since c_scan ≤ c_min, these are consistency
 checks, and only the proof carries the upper bound. ⌊n/3⌋ + ⌊n/9⌋ at
@@ -304,11 +307,12 @@ bounded distance of it. All three are read at lookahead 0, and the flip
 and π are not monotone. On a finite product of finite fields a map is
 channel-local iff it is a polynomial (SIZE.md#the-locality-criterion):
 on a squarefree residue ring locality and algebra coincide, and at the
-leading end they part. The trailing end of Z is no such ring past depth
-1: over Z/8 the maps read at lookahead 0 number 2^(2+4+8) = 2^14, the
-value mod 2^t chosen one binary digit at a time, while the polynomial
-functions number ∏_(i<4) 8/gcd(8, i!) = 8 · 8 · 4 · 4 = 2^10 (Kempner);
-both counts are by hand.
+leading end they part. The trailing end's ring Z/b^t is no such ring
+once b^t is not squarefree, at every depth past 1: over Z/8 the maps
+read at lookahead 0 number 2^(2+4+8) = 2^14, the value mod 2^t chosen
+one binary digit at a time, while the polynomial functions number
+∏_(i<4) 8/gcd(8, i!) = 8 · 8 · 4 · 4 = 2^10 (Kempner, Trans. Amer.
+Math. Soc. 22, 1921); both counts are by hand.
 
 Proof. Each fixes the digit count and rewrites the leading t digits by a
 map that reads only them, so a depth-t tile maps into one depth-t tile.
@@ -412,8 +416,9 @@ Verifier: proof; dual.py::section_p.
   whose tile holds values of both signs arbitrarily near 0. Given a
   certificate y ≥ η > 0, η x/y is (1 + ρ/η)-Lipschitz on
   [−ρ, ρ] × [η, ρ], and the redundant reader reads it with each y-tile
-  clipped to [η, ρ]. A lower bound on |y| is archimedean data the cover
-  cannot supply.
+  clipped to [η, ρ]. On a y-prefix of zeros the cover supplies no lower
+  bound on |y| at any depth: η is archimedean data from outside the
+  stream.
 
 Proof. The tiles are intervals of radius ρb^(−t) about values spaced
 b^(−t), and the rest is interval arithmetic.
@@ -447,7 +452,7 @@ redundancy degrades that hiding to a bias. This purchase spends a
 finite place's hiding, not archimedean data. Every even base leaks
 parity, and an odd radical can restore exact hiding: b = 9, a = 7
 hides 3. The script reads all 132 (b, a, p, j) with b ≤ 10,
-a ≤ b − 1 and 1 ≤ j ≤ 4.
+(b − 1)/2 < a ≤ b − 1, p a prime dividing b and 1 ≤ j ≤ 4.
 
 ## The period law
 Tier: theorem.
@@ -489,11 +494,12 @@ density tends to (u − 1)b^(−c−κ)(w₀ + (1 − w₀)/b) = (1 − 1/u)/b^c
 Under the log weights the classes hold 1 − ξ and ξ, which gives H. ln H
 is concave and 0 at ξ = 0 and 1, so it is positive between.
 
-The script counts each of 1257 cases (base, multiplier, lookahead,
-depth, class, phase) at bases 2, 6 and 10, multipliers 2 to 12 and 25,
-each exactly on the formula, with every zero where u ∣ b^τ. At (b, u,
-c, j) = (10, 3, 1, 2) the densities are 0.066667 = 1/15 and 0.114118,
-and at (2, 3, 1, 2) they are 0.333336 and 0.353762 against 0.353759.
+The script counts each of 1257 cases (base, multiplier, lookahead, span,
+class, phase), each at one depth, at bases 2, 6 and 10, multipliers 2 to
+12 and 25, each exactly on the formula, with every zero where u ∣ b^τ.
+At (b, u, c, j) = (10, 3, 1, 2) the densities are 0.066667 = 1/15 and
+0.114118, and at (2, 3, 1, 2) they are 0.333336 and 0.353762 against
+0.353759.
 
 ## The dual Haar measure
 Tier: property.
@@ -525,7 +531,7 @@ from 0.1111 to 0.3704.
 ## Each end prices in its own metric
 Tier: property.
 Verifier: proof; dual.py::section_k, dual.py::section_0,
-reading.py::section_r.
+reading.py::section_r, reading.py::section_l.
 
 One map, ⌊n/m⌋ with m ≥ 2 and b ∤ m, has an exact price at both ends.
 The trailing end reads it at exactly max_(p∣m) ⌈v_p(m)/v_p(b)⌉ digits of

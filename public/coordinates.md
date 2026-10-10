@@ -428,6 +428,7 @@ fields, yet Z/4 still has as many polynomial maps as maps whose value
 mod 2 depends only on the argument mod 2, 64, and Z/8 is the first
 failure (size.py::section_l). The script checks the quantifier wall
 against the whole span of polynomial functions at Z/4, Z/6, Z/8 and Z/9
-(Kempner's counts 64, 108, 1,024 and 19,683), order at Z/6 and at Z/36
+(Kempner's counts 64, 108, 1,024 and 19,683; Trans. Amer. Math. Soc.
+22, 1921), order at Z/6 and at Z/36
 through the windows 4 and 9, and the order-divisibility relation on all
 45 pairs 2 ≤ n1 ≤ n2 ≤ 10.

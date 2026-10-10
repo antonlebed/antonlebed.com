@@ -72,7 +72,8 @@ couples two channels.
 
 The fields are needed. Over Z/8 the maps whose value mod 2 depends only
 on the argument mod 2 number 2² · 4⁸ = 262,144, while the polynomial
-maps number 1,024 (Kempner's count); over F₂[x]/x³ the numbers are the
+maps number 1,024 (Kempner's count, Trans. Amer. Math. Soc. 22,
+1921); over F₂[x]/x³ the numbers are the
 same. The script counts the polynomial maps as the span of the powers:
 all 108 channel-local maps of Z/6 among its 46,656, exhaustively; the
 16 and 1,024 of F₂[x]/(x(x + 1)) and F₂[x]/(x(x² + x + 1)) and the

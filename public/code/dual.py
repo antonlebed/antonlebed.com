@@ -810,7 +810,7 @@ def section_a():
     conv = {2: [], 6: [], 10: []}
     for b, terms in cells():
         m, U = sum_map(terms)
-        best, wit = m.scan(b, (1, 2, 3), J_range(b))
+        best, _ = m.scan(b, (1, 2, 3), J_range(b))
         reader = best <= 10
         crit = smooth(U, b)
         K = m.alignment_K(b)
@@ -883,7 +883,7 @@ def section_k():
     ok_floor = ok_wit = ok_law = ok_up = True
     n_law = n_up = n_sharp = n_meet = 0
     for b, terms, _ in READ:
-        m, U = sum_map(terms)
+        m, _ = sum_map(terms)
         r, h = m.slope(b)
         K = m.alignment_K(b)
         dl, mu = ndig(h, b), vb(h, b)
@@ -959,8 +959,9 @@ def section_s():
         exc = sum(brute_exceptions(vals, b, t, 0) for t in range(1, 5))
         desc = next(((n, n + 1) for n in range(1, b ** E - 1)
                      if vals[n] > vals[n + 1]), None)
+        dv = desc and (vals[desc[0]], vals[desc[1]])
         print(f"     {name:2s} base {b:2d}: exceptions at c = 0 over depths "
-              f"1..4: {exc}; first descent {desc}")
+              f"1..4: {exc}; first descent {desc} -> {dv}")
         ok &= exc == 0
         if name != "P":
             ok &= desc is not None
@@ -1150,14 +1151,15 @@ def section_p(rng):
         ok &= seen == {2 * K + 1}
         print(f"     ({b:2d}, {a}): open-order sets of sizes {sorted(seen)}, "
               f"2K + 1 = {2 * K + 1}")
-    # the non-redundant end: tiles [V, V + b^-t], distinct ones meet at
-    # most at an endpoint
+    # the non-redundant end: tiles [V, V + b^-t]; counted as above, the
+    # tiles whose interiors meet V's are V's alone
     for b in (2, 10):
         for t in (1, 2):
-            for k in range(b ** t - 1):
+            for k in range(b ** t):
                 lo1, hi1 = Fr(k, b ** t), Fr(k + 1, b ** t)
-                lo2, hi2 = hi1, Fr(k + 2, b ** t)
-                ok &= not (lo2 < hi1 and lo1 < hi2)
+                opn = sum(Fr(k2, b ** t) < hi1 and lo1 < Fr(k2 + 1, b ** t)
+                          for k2 in range(k - 3, k + 4))
+                ok &= opn == 1
     check("(a) both orders iff |V' - V| < 2 rho b^-t; 2K + 1 tiles open, "
           "one at the standard end", ok)
     ok = True
