@@ -7,12 +7,13 @@ one with unbounded gaps, at a price unbounded in the door, does not. It
 does not say WHERE the support stops. Read before at the corner price with the
 clock-first tie-break, the horizon sat at the runaway's degree times the
 ladder's largest gap, on every ladder read, headed or not, under one notch
-for every item and under one notch per item. clock.py proves what a
-place's ladder is: the orbit of psi(i) = min(p i, i + e) from 1 with one
-overshoot w at the bend, so its gaps are the ramp's, each below e, then
-e + w once, then e forever; the SUP is e + w and the TAIL is e. Does the
-stop location follow from those two numbers by argument, over every
-branch of the walk and under both kinds of clock?
+for every item and under one notch per item (F5: save the exact one).
+clock.py proves what a place's ladder is: the orbit of psi(i) = min(p i,
+i + e) from 1 with one overshoot w at the bend, so its gaps are the
+ramp's, each below e, then e + w once, then e forever; the SUP is e + w
+and the TAIL is e. Does the stop location follow from those two numbers
+by argument, over every branch of the walk and under both kinds of
+clock?
 
 THE SCHEDULE is limit.py's, imported: items of positive degree d, a
 supply of finitely many per degree, a ladder S of members x_1 = 1, x_2,
@@ -171,10 +172,14 @@ FINDINGS (entered after the run, from its printed output).
      bounded ladders under a per-item clock; 20 and 19 at the doubling
      and square ladders.
   F5 THE HORIZON (S3b, added after the run, its prediction frozen
-     first: off d_X sup at the exact ladder alone). At d r, clock-first,
-     every one of the 13 ladders under both clocks has runaway degree 1
-     and H = sup, and the horizon is d_X sup at the 12 ladders past the
-     exact one; at the exact ladder, sup 1, the horizon and H are 2.
+     first: the horizon is d_X sup at d r, clock-first, at every ladder
+     but the exact one, under both clocks, the exact one off on at
+     least one; KILL: a row off elsewhere; CONTROL: gap 2, global,
+     H = horizon = 2). Hit, the control as predicted, the exact ladder
+     off on both clocks (the check asks both). Every one of the 13
+     ladders under both clocks has runaway degree 1; at the 12 past the
+     exact one H = sup and the horizon is d_X sup; at the exact ladder,
+     sup 1, the horizon and H are 2.
 
 RUN RECORD. One process, CPython, no numpy: 82604 checks, 0.5 s, peak
 commit 10.1 MB under a memory guard.
